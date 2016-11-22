@@ -1,0 +1,27 @@
+#!/bin/sh
+
+PATH="/usr/local/bin:${PATH}"
+
+next_part "Updating fullbogon lists:"
+TMPFILE=`mktemp` && {
+  for v in 4; do
+    DBFILE=/var/db/fullbogons-ipv${v}.txt
+    ftp -4agMV -o $TMPFILE https://www.team-cymru.org/Services/Bogons/fullbogons-ipv${v}.txt
+    test -s $TMPFILE && cmp -s $TMPFILE $DBFILE || {
+      mv -f $TMPFILE $DBFILE
+      pfctl -q -f $DBFILE -t fullbogons${v} -T replace
+    }
+  done
+  rm -f $TMPFILE
+}
+
+next_part "Expiring bruteforce table:"
+pfctl -q -t bruteforce -T expire 86400
+
+{% if letsencrypt_domains is defined %}
+next_part "Renewing certificates:"
+acme-client -b {{ letsencrypt_domains | join(' ') }}
+if [[ $? -eq 0 ]]; then
+  rcctl restart nginx || :
+fi
+{% endif %}

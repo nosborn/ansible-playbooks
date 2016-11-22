@@ -1,0 +1,21 @@
+# roles/pf/tasks/main
+---
+- name: fetch bogons
+  get_url:
+    url=https://www.team-cymru.org/Services/Bogons/{{ item }}
+    dest=/var/db/{{ item }} force=no
+    owner=root group=wheel mode=0644
+  with_items:
+    - fullbogons-ipv4.txt
+  # - fullbogons-ipv6.txt
+  notify: reload pf
+
+- name: packet filter configuration file
+  template:
+    src=pf.conf.j2 dest=/etc/pf.conf
+    owner=root group=wheel mode=0400
+    validate='/sbin/pfctl -f %s -n'
+  notify: reload pf
+
+- meta: flush_handlers
+...

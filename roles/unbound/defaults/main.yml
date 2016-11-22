@@ -1,0 +1,4 @@
+# role/unbound/defaults/main
+---
+unbound_verbosity: 1
+...

@@ -1,0 +1,36 @@
+# roles/relayd/tasks/main
+---
+- file:
+    src=acme/fullchain.pem
+    dest=/etc/ssl/{{ wan_ipv4 | ipaddr('address') }}.crt
+    state=link
+  notify: reload relayd
+
+- file:
+    src=/etc/ssl/acme/private/privkey.pem
+    dest=/etc/ssl/private/{{ wan_ipv4 | ipaddr('address') }}.key
+    state=link
+  notify: reload relayd
+
+- file:
+    src=acme/fullchain.pem
+    dest=/etc/ssl/{{ wan_ipv6 | ipaddr('address') }}.crt
+    state=link
+  notify: reload relayd
+  when: wan_ipv6 is defined
+
+- file:
+    src=/etc/ssl/acme/private/privkey.pem
+    dest=/etc/ssl/private/{{ wan_ipv6 | ipaddr('address') }}.key
+    state=link
+  notify: reload relayd
+  when: wan_ipv6 is defined
+
+- template:
+    src=relayd.conf.j2 dest=/etc/relayd.conf
+    owner=root group=wheel mode=0400
+    validate='/usr/sbin/relayd -f %s -n'
+  notify: reload relayd
+
+- service: name=relayd enabled=yes state=running
+...

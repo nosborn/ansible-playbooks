@@ -1,0 +1,14 @@
+/etc/acme-client.conf
+/etc/mail/aliases
+/etc/mail/smtpd.conf
+{% if ansible_hostname == 'tombstone' %}
+/etc/nginx/nginx.conf
+{% endif %}
+/etc/ntpd.conf
+/etc/pf.conf
+/etc/ssh/sshd_config
+/etc/ttys
+/var/nsd/etc/nsd.conf
+{% if ansible_hostname == 'tombstone' %}
+/var/unbound/etc/unbound.conf
+{% endif %}

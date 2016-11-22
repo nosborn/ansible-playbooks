@@ -1,0 +1,9 @@
+# roles/router/tasks/rtadvd
+---
+- template:
+    src=rtadvd.conf.j2 dest=/etc/rtadvd.conf
+    owner=root group=wheel mode=0444
+  notify: restart rtadvd
+
+- service: name=rtadvd arguments='-s re0' enabled=yes state=started
+...

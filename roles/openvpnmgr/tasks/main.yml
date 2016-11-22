@@ -1,0 +1,14 @@
+# roles/openvpnmgr/tasks/main
+---
+- openbsd_pkg: name={{ item }} state=installed
+  with_items:
+    - p5-IO-Socket-SSL
+    - p5-JSON
+    - p5-Proc-Daemon
+    - p5-libwww
+
+- template:
+    src=openvpnmgrd.pl.j2 dest=/usr/local/sbin/openvpnmgrd
+    owner=root group=wheel mode=0554
+    validate='/usr/bin/perl -c -- %s'
+...

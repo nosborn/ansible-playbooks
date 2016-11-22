@@ -1,0 +1,5 @@
+# roles/nsd/handlers/main
+---
+- name: reload nsd
+  service: name=nsd state=reloaded
+...

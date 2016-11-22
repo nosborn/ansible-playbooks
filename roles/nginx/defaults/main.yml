@@ -1,0 +1,4 @@
+# role/nginx/defaults/main
+---
+nginx_ssl: true
+...

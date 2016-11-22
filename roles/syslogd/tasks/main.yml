@@ -1,0 +1,6 @@
+# roles/syslogd/tasks/main
+---
+- service:
+    name=syslogd arguments="{{ syslogd_flags | default('') }}"
+    enabled=yes state=running
+...

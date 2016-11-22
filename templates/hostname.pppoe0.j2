@@ -1,0 +1,17 @@
+inet {{ wan_ipv4 | ipaddr('address') }} 255.255.255.255 NONE mtu 1500 \
+  pppoedev axe0 authproto chap \
+  authkey '{{ pppoe_authkey }}' authname '{{ pppoe_authname }}' \
+  up
+dest {{ wan_ipv4_dest }}
+
+!/sbin/route add -inet 5.196.64.52 -ifp \$if {{ wan_ipv4 | ipaddr('address') }}
+!/sbin/route add -inet 81.187.30.0/25 -ifp \$if {{ wan_ipv4 | ipaddr('address') }}
+!/sbin/route add -inet 81.187.81.0/24 -ifp \$if {{ wan_ipv4 | ipaddr('address') }}
+!/sbin/route add -inet 90.155.53.0/24 -ifp \$if {{ wan_ipv4 | ipaddr('address') }}
+!/sbin/route add -inet 91.220.196.211 -ifp \$if {{ wan_ipv4 | ipaddr('address') }}
+!/sbin/route add -inet 217.169.20.0/27 -ifp \$if {{ wan_ipv4 | ipaddr('address') }}
+!/sbin/route add -inet default -ifp \$if {{ wan_ipv4 | ipaddr('address') }}
+
+inet6 {{ wan_ipv6 | ipaddr('address') }} {{ wan_ipv6 | ipaddr('prefix') }}
+
+!/sbin/route add -inet6 2001:8b0:0::/48 -ifp \$if fe80::%\$if

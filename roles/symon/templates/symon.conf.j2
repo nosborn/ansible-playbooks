@@ -1,0 +1,13 @@
+monitor {
+  cpu(0),
+  cpu(1),
+  if(pppoe0),
+  if(tun0),
+  io(sd0),
+  load,
+  mbuf,
+  mem,
+  pf,
+# proc(httpd),
+  sensor(cpu0.temp0),
+} stream to 127.0.0.1 2100

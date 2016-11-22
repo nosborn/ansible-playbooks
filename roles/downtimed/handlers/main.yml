@@ -1,0 +1,5 @@
+# roles/downtimed/handlers
+---
+- name: restart downtimed
+  service: name=downtimed state=restarted
+...

@@ -1,0 +1,9 @@
+# roles/router/tasks/main
+---
+- sysctl: name={{ item.name }} reload=no sysctl_set=yes value={{ item.value }}
+  with_items:
+    - { name: net.inet.ip.forwarding, value: 1 }
+  # - { name: net.inet6.ip6.forwarding, value: 1 }
+
+#- include: rtadvd.yml
+...

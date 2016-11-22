@@ -1,0 +1,5 @@
+# roles/syslogd/meta/main
+---
+dependencies:
+  - { role: letsencrypt }
+...

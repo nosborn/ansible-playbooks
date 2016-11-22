@@ -1,0 +1,9 @@
+# roles/downtimed/tasks/main
+---
+- name: install package
+  openbsd_pkg: name=downtimed state=installed
+  notify: restart downtimed
+
+- name: start service
+  service: name=downtimed enabled=yes state=started
+...

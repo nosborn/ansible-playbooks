@@ -1,0 +1,857 @@
+# Config file for collectd(1).
+# Please read collectd.conf(5) for a list of options.
+
+##############################################################################
+# Global                                                                     #
+#----------------------------------------------------------------------------#
+# Global settings for the daemon.                                            #
+##############################################################################
+
+#Hostname    "localhost"
+#FQDNLookup   true
+#BaseDir     "/var/collectd"
+#PIDFile     "/var/collectd/collectd.pid"
+#PluginDir   "${exec_prefix}/lib/collectd"
+#TypesDB     "/usr/local/share/collectd/types.db"
+
+#----------------------------------------------------------------------------#
+# When enabled, plugins are loaded automatically with the default options    #
+# when an appropriate <Plugin ...> block is encountered.                     #
+# Disabled by default.                                                       #
+#----------------------------------------------------------------------------#
+#AutoLoadPlugin false
+
+#----------------------------------------------------------------------------#
+# When enabled, internal statistics are collected, using "collectd" as the   #
+# plugin name.                                                               #
+# Disabled by default.                                                       #
+#----------------------------------------------------------------------------#
+#CollectInternalStats false
+
+#----------------------------------------------------------------------------#
+# Interval at which to query values. This may be overwritten on a per-plugin #
+# base by using the 'Interval' option of the LoadPlugin block:               #
+#   <LoadPlugin foo>                                                         #
+#       Interval 60                                                          #
+#   </LoadPlugin>                                                            #
+#----------------------------------------------------------------------------#
+#Interval     10
+
+#MaxReadInterval 86400
+#Timeout         2
+#ReadThreads     5
+#WriteThreads    5
+
+# Limit the size of the write queue. Default is no limit. Setting up a limit is
+# recommended for servers handling a high volume of traffic.
+#WriteQueueLimitHigh 1000000
+#WriteQueueLimitLow   800000
+
+##############################################################################
+# Logging                                                                    #
+#----------------------------------------------------------------------------#
+# Plugins which provide logging functions should be loaded first, so log     #
+# messages generated when loading or configuring other plugins can be        #
+# accessed.                                                                  #
+##############################################################################
+
+LoadPlugin syslog
+
+#<Plugin syslog>
+#	LogLevel info
+#</Plugin>
+
+##############################################################################
+# LoadPlugin section                                                         #
+#----------------------------------------------------------------------------#
+# Lines beginning with a single `#' belong to plugins which have been built  #
+# but are disabled by default.                                               #
+#                                                                            #
+# Lines beginning with `##' belong to plugins which have not been built due  #
+# to missing dependencies or because they have been deactivated explicitly.  #
+##############################################################################
+
+#LoadPlugin aggregation
+#LoadPlugin apache
+#LoadPlugin apcups
+#LoadPlugin ascent
+#LoadPlugin bind
+LoadPlugin cpu
+#LoadPlugin csv
+#LoadPlugin curl
+#LoadPlugin curl_json
+#LoadPlugin curl_xml
+#LoadPlugin df
+LoadPlugin disk
+#LoadPlugin dns
+#LoadPlugin email
+#LoadPlugin exec
+#LoadPlugin filecount
+LoadPlugin interface
+LoadPlugin load
+#LoadPlugin memcachec
+#LoadPlugin memcached
+LoadPlugin memory
+#LoadPlugin mysql
+#LoadPlugin network
+LoadPlugin nginx
+#LoadPlugin ntpd
+#LoadPlugin nut
+#LoadPlugin olsrd
+LoadPlugin openvpn
+LoadPlugin pf
+LoadPlugin ping
+#LoadPlugin postgresql
+#LoadPlugin powerdns
+#LoadPlugin processes
+#LoadPlugin python
+#LoadPlugin rrdcached
+LoadPlugin rrdtool
+#LoadPlugin snmp
+LoadPlugin swap
+#LoadPlugin table
+#LoadPlugin tail
+#LoadPlugin tail_csv
+#LoadPlugin tcpconns
+#LoadPlugin ted
+#LoadPlugin unixsock
+#LoadPlugin uptime
+#LoadPlugin users
+#LoadPlugin uuid
+#LoadPlugin virt
+#LoadPlugin write_graphite
+#LoadPlugin write_http
+#LoadPlugin write_log
+
+##############################################################################
+# Plugin configuration                                                       #
+#----------------------------------------------------------------------------#
+# In this section configuration stubs for each plugin are provided. A desc-  #
+# ription of those options is available in the collectd.conf(5) manual page. #
+##############################################################################
+
+#<Plugin aggregation>
+#  <Aggregation>
+#    #Host "unspecified"
+#    Plugin "cpu"
+#    #PluginInstance "unspecified"
+#    Type "cpu"
+#    #TypeInstance "unspecified"
+#
+#    GroupBy "Host"
+#    GroupBy "TypeInstance"
+#
+#    CalculateNum false
+#    CalculateSum false
+#    CalculateAverage true
+#    CalculateMinimum false
+#    CalculateMaximum false
+#    CalculateStddev false
+#  </Aggregation>
+#</Plugin>
+
+#<Plugin apache>
+#  <Instance "local">
+#    URL "http://localhost/status?auto"
+#    User "www-user"
+#    Password "secret"
+#    CACert "/etc/ssl/ca.crt"
+#  </Instance>
+#</Plugin>
+
+#<Plugin apcups>
+#	Host "localhost"
+#	Port "3551"
+#	ReportSeconds true
+#</Plugin>
+
+#<Plugin ascent>
+#	URL "http://localhost/ascent/status/"
+#	User "www-user"
+#	Password "secret"
+#	CACert "/etc/ssl/ca.crt"
+#</Plugin>
+
+#<Plugin "bind">
+#  URL "http://localhost:8053/"
+#  ParseTime       false
+#  OpCodes         true
+#  QTypes          true
+#
+#  ServerStats     true
+#  ZoneMaintStats  true
+#  ResolverStats   false
+#  MemoryStats     true
+#
+#  <View "_default">
+#    QTypes        true
+#    ResolverStats true
+#    CacheRRSets   true
+#
+#    Zone "127.in-addr.arpa/IN"
+#  </View>
+#</Plugin>
+
+<Plugin cpu>
+# ReportByState true
+	ReportByCpu false
+# ValuesPercentage false
+</Plugin>
+
+#<Plugin csv>
+#	DataDir "/var/lib/collectd/csv"
+#	StoreRates false
+#</Plugin>
+
+#<Plugin curl>
+#  <Page "stock_quotes">
+#    URL "http://finance.google.com/finance?q=NYSE%3AAMD"
+#    User "foo"
+#    Password "bar"
+#    Digest false
+#    VerifyPeer true
+#    VerifyHost true
+#    CACert "/path/to/ca.crt"
+#    Header "X-Custom-Header: foobar"
+#    Post "foo=bar"
+#
+#    MeasureResponseTime false
+#    MeasureResponseCode false
+#    <Match>
+#      Regex "<span +class=\"pr\"[^>]*> *([0-9]*\\.[0-9]+) *</span>"
+#      DSType "GaugeAverage"
+#      Type "stock_value"
+#      Instance "AMD"
+#    </Match>
+#  </Page>
+#</Plugin>
+
+#<Plugin curl_json>
+#  <URL "http://localhost:80/test.json">
+#    Instance "test_http_json"
+#    <Key "testArray/0">
+#      Type "gauge"
+#      # Expect: 1
+#    </Key>
+#    <Key "testArray/1">
+#      Type "gauge"
+#      # Expect: 2
+#    </Key>
+#    <Key "testArrayInbetween/0/blarg">
+#      Type "gauge"
+#      # Expect: 3
+#    </Key>
+#    <Key "testArrayInbetween/1/blub">
+#      Type "gauge"
+#      # Expect: 4
+#    </Key>
+#    <Key "testDirectHit">
+#      Type "gauge"
+#      # Expect: 5
+#    </Key>
+#    <Key "testSubLevelHit/oneMoreLevel">
+#      Type "gauge"
+#      # Expect: 6
+#    </Key>
+#  </URL>
+# put this as test.json on your webserver, the above config demonstraces
+# how to match them.
+# {
+#  "testArray":[1,2],
+#  "testArrayInbetween":[{"blarg":3},{"blub":4}],
+#  "testDirectHit":5,
+#  "testSubLevelHit":{"oneMoreLevel":6}
+# }
+## See: http://wiki.apache.org/couchdb/Runtime_Statistics
+#  <URL "http://localhost:5984/_stats">
+#    Instance "httpd"
+#    <Key "httpd/requests/count">
+#      Type "http_requests"
+#    </Key>
+#
+#    <Key "httpd_request_methods/*/count">
+#      Type "http_request_methods"
+#    </Key>
+#
+#    <Key "httpd_status_codes/*/count">
+#      Type "http_response_codes"
+#    </Key>
+#  </URL>
+## Database status metrics:
+#  <URL "http://localhost:5984/_all_dbs">
+#    Instance "dbs"
+#    <Key "*/doc_count">
+#      Type "gauge"
+#    </Key>
+#    <Key "*/doc_del_count">
+#      Type "counter"
+#    </Key>
+#    <Key "*/disk_size">
+#      Type "bytes"
+#    </Key>
+#  </URL>
+#</Plugin>
+
+#<Plugin curl_xml>
+#  <URL "http://localhost/stats.xml">
+#    Host "my_host"
+#    Instance "some_instance"
+#    User "collectd"
+#    Password "thaiNg0I"
+#    Digest false
+#    VerifyPeer true
+#    VerifyHost true
+#    CACert "/path/to/ca.crt"
+#    Header "X-Custom-Header: foobar"
+#    Post "foo=bar"
+#
+#    <XPath "table[@id=\"magic_level\"]/tr">
+#      Type "magic_level"
+#      #InstancePrefix "prefix-"
+#      InstanceFrom "td[1]"
+#      ValuesFrom "td[2]/span[@class=\"level\"]"
+#    </XPath>
+#  </URL>
+#</Plugin>
+
+#<Plugin df>
+#	Device "/dev/hda1"
+#	Device "192.168.0.2:/mnt/nfs"
+#	MountPoint "/home"
+#	FSType "ext3"
+#	IgnoreSelected false
+#	ReportByDevice false
+#	ReportInodes false
+#	ValuesAbsolute true
+#	ValuesPercentage false
+#</Plugin>
+
+#<Plugin disk>
+#	Disk "/^[hs]d[a-f][0-9]?$/"
+#	IgnoreSelected false
+#	UseBSDName false
+#	UdevNameAttr "DEVNAME"
+#</Plugin>
+
+#<Plugin dns>
+#	Interface "eth0"
+#	IgnoreSource "192.168.0.1"
+#	SelectNumericQueryTypes true
+#</Plugin>
+
+#<Plugin email>
+#	SocketFile "/var/run/collectd-email"
+#	SocketGroup "collectd"
+#	SocketPerms "0770"
+#	MaxConns 5
+#</Plugin>
+
+#<Plugin exec>
+#	Exec "user:group" "/path/to/exec"
+#	NotificationExec "user:group" "/path/to/exec"
+#</Plugin>
+
+#<Plugin filecount>
+#	<Directory "/path/to/dir">
+#		Instance "foodir"
+#		Name "*.conf"
+#		MTime "-5m"
+#		Size "+10k"
+#		Recursive true
+#		IncludeHidden false
+#	</Directory>
+#</Plugin>
+
+<Plugin interface>
+	Interface "axe0"
+	Interface "enc0"
+	Interface "iwm0"
+	Interface "lo0"
+	Interface "pflog0"
+	IgnoreSelected true
+</Plugin>
+
+#<Plugin load>
+#	ReportRelative true
+#</Plugin>
+
+#<Plugin memcachec>
+#	<Page "plugin_instance">
+#		Server "localhost"
+#		Key "page_key"
+#		<Match>
+#			Regex "(\\d+) bytes sent"
+#			ExcludeRegex "<lines to be excluded>"
+#			DSType CounterAdd
+#			Type "ipt_octets"
+#			Instance "type_instance"
+#		</Match>
+#	</Page>
+#</Plugin>
+
+#<Plugin memcached>
+#	<Instance "local">
+#		Host "127.0.0.1"
+#		Port "11211"
+#	</Instance>
+#</Plugin>
+
+#<Plugin memory>
+#	ValuesAbsolute true
+#	ValuesPercentage false
+#</Plugin>
+
+#<Plugin mysql>
+#	<Database db_name>
+#		Host "database.serv.er"
+#		User "db_user"
+#		Password "secret"
+#		Database "db_name"
+#		MasterStats true
+#		ConnectTimeout 10
+#		InnodbStats true
+#	</Database>
+#
+#	<Database db_name2>
+#		Alias "squeeze"
+#		Host "localhost"
+#		Socket "/var/run/mysql/mysqld.sock"
+#		SlaveStats true
+#		SlaveNotifications true
+#	</Database>
+#</Plugin>
+
+#<Plugin network>
+#	# client setup:
+#	Server "ff18::efc0:4a42" "25826"
+#	<Server "239.192.74.66" "25826">
+#		SecurityLevel Encrypt
+#		Username "user"
+#		Password "secret"
+#		Interface "eth0"
+#		ResolveInterval 14400
+#	</Server>
+#	TimeToLive 128
+#
+#	# server setup:
+#	Listen "ff18::efc0:4a42" "25826"
+#	<Listen "239.192.74.66" "25826">
+#		SecurityLevel Sign
+#		AuthFile "/etc/collectd/passwd"
+#		Interface "eth0"
+#	</Listen>
+#	MaxPacketSize 1452
+#
+#	# proxy setup (client and server as above):
+#	Forward true
+#
+#	# statistics about the network plugin itself
+#	ReportStats false
+#
+#	# "garbage collection"
+#	CacheFlush 1800
+#</Plugin>
+
+<Plugin nginx>
+	URL "http://localhost/status?auto"
+#	User "www-user"
+#	Password "secret"
+#	CACert "/etc/ssl/ca.crt"
+</Plugin>
+
+#<Plugin ntpd>
+#	Host "localhost"
+#	Port 123
+#	ReverseLookups false
+#	IncludeUnitID true
+#</Plugin>
+
+#<Plugin nut>
+#	UPS "upsname@hostname:port"
+#</Plugin>
+
+#<Plugin olsrd>
+#	Host "127.0.0.1"
+#	Port "2006"
+#	CollectLinks "Summary"
+#	CollectRoutes "Summary"
+#	CollectTopology "Summary"
+#</Plugin>
+
+<Plugin openvpn>
+	StatusFile "/var/run/airvpn.status"
+#	ImprovedNamingSchema false
+	CollectCompression false
+#	CollectIndividualUsers true
+#	CollectUserCount false
+</Plugin>
+
+<Plugin ping>
+	Host "10.4.0.1"
+	Host "{{ wan_ipv4_dest }}"
+#	Interval 1.0
+#	Timeout 0.9
+#	TTL 255
+#	SourceAddress "{{ wan_ipv4 | ipaddr('address') }}"
+#	Device "eth0"
+#	MaxMissed -1
+</Plugin>
+
+#<Plugin postgresql>
+#	<Query magic>
+#		Statement "SELECT magic FROM wizard WHERE host = $1;"
+#		Param hostname
+#		<Result>
+#			Type gauge
+#			InstancePrefix "magic"
+#			ValuesFrom magic
+#		</Result>
+#	</Query>
+#	<Query rt36_tickets>
+#		Statement "SELECT COUNT(type) AS count, type \
+#		                  FROM (SELECT CASE \
+#		                               WHEN resolved = 'epoch' THEN 'open' \
+#		                               ELSE 'resolved' END AS type \
+#		                               FROM tickets) type \
+#		                  GROUP BY type;"
+#		<Result>
+#			Type counter
+#			InstancePrefix "rt36_tickets"
+#			InstancesFrom "type"
+#			ValuesFrom "count"
+#		</Result>
+#	</Query>
+#	<Writer sqlstore>
+#		# See contrib/postgresql/collectd_insert.sql for details
+#		Statement "SELECT collectd_insert($1, $2, $3, $4, $5, $6, $7, $8, $9);"
+#		StoreRates true
+#	</Writer>
+#	<Database foo>
+#		Host "hostname"
+#		Port "5432"
+#		User "username"
+#		Password "secret"
+#		SSLMode "prefer"
+#		KRBSrvName "kerberos_service_name"
+#		Query magic
+#	</Database>
+#	<Database bar>
+#		Interval 60
+#		Service "service_name"
+#		Query backend # predefined
+#		Query rt36_tickets
+#	</Database>
+#	<Database qux>
+#		Service "collectd_store"
+#		Writer sqlstore
+#		# see collectd.conf(5) for details
+#		CommitInterval 30
+#	</Database>
+#</Plugin>
+
+#<Plugin powerdns>
+#  <Server "server_name">
+#    Collect "latency"
+#    Collect "udp-answers" "udp-queries"
+#    Socket "/var/run/pdns.controlsocket"
+#  </Server>
+#  <Recursor "recursor_name">
+#    Collect "questions"
+#    Collect "cache-hits" "cache-misses"
+#    Socket "/var/run/pdns_recursor.controlsocket"
+#  </Recursor>
+#  LocalSocket "/opt/collectd/var/run/collectd-powerdns"
+#</Plugin>
+
+#<Plugin processes>
+#	Process "name"
+#</Plugin>
+
+#<Plugin python>
+#	ModulePath "/path/to/your/python/modules"
+#	LogTraces true
+#	Interactive true
+#	Import "spam"
+#
+#	<Module spam>
+#		spam "wonderful" "lovely"
+#	</Module>
+#</Plugin>
+
+#<Plugin rrdcached>
+#	DaemonAddress "127.0.0.1"
+#	CreateFiles true
+#	CreateFilesAsync true
+#	CollectStatistics false
+#</Plugin>
+
+<Plugin rrdtool>
+#	DataDir "/var/lib/collectd/rrd"
+	CreateFilesAsync true
+#	CacheFlush 900
+	CacheTimeout 120
+#	WritesPerSecond 50
+	RandomTimeout 60
+</Plugin>
+
+#<Plugin snmp>
+#   <Data "powerplus_voltge_input">
+#       Type "voltage"
+#       Table false
+#       Instance "input_line1"
+#       Values "SNMPv2-SMI::enterprises.6050.5.4.1.1.2.1"
+#   </Data>
+#   <Data "hr_users">
+#       Type "users"
+#       Table false
+#       Instance ""
+#       Values "HOST-RESOURCES-MIB::hrSystemNumUsers.0"
+#   </Data>
+#   <Data "std_traffic">
+#       Type "if_octets"
+#       Table true
+#       Instance "IF-MIB::ifDescr"
+#       Values "IF-MIB::ifInOctets" "IF-MIB::ifOutOctets"
+#   </Data>
+#
+#   <Host "some.switch.mydomain.org">
+#       Address "192.168.0.2"
+#       Version 1
+#       Community "community_string"
+#       Collect "std_traffic"
+#       Interval 120
+#   </Host>
+#   <Host "some.server.mydomain.org">
+#       Address "192.168.0.42"
+#       Version 2
+#       Community "another_string"
+#       Collect "std_traffic" "hr_users"
+#   </Host>
+#   <Host "some.ups.mydomain.org">
+#       Address "192.168.0.3"
+#       Version 1
+#       Community "more_communities"
+#       Collect "powerplus_voltge_input"
+#       Interval 300
+#   </Host>
+#</Plugin>
+
+#<Plugin swap>
+#	ReportByDevice false
+#	ReportBytes true
+#	ValuesAbsolute true
+#	ValuesPercentage false
+#</Plugin>
+
+#<Plugin table>
+#	<Table "/proc/slabinfo">
+#		Instance "slabinfo"
+#		Separator " "
+#		<Result>
+#			Type gauge
+#			InstancePrefix "active_objs"
+#			InstancesFrom 0
+#			ValuesFrom 1
+#		</Result>
+#		<Result>
+#			Type gauge
+#			InstancePrefix "objperslab"
+#			InstancesFrom 0
+#			ValuesFrom 4
+#		</Result>
+#	</Table>
+#</Plugin>
+
+#<Plugin tail>
+#  <File "/var/log/exim4/mainlog">
+#    Instance "exim"
+#    Interval 60
+#    <Match>
+#      Regex "S=([1-9][0-9]*)"
+#      DSType "CounterAdd"
+#      Type "ipt_bytes"
+#      Instance "total"
+#    </Match>
+#    <Match>
+#      Regex "\\<R=local_user\\>"
+#      ExcludeRegex "\\<R=local_user\\>.*mail_spool defer"
+#      DSType "CounterInc"
+#      Type "counter"
+#      Instance "local_user"
+#    </Match>
+#  </File>
+#</Plugin>
+
+#<Plugin tail_csv>
+#   <Metric "dropped">
+#       Type "percent"
+#       Instance "dropped"
+#       ValueFrom 1
+#   </Metric>
+#   <Metric "mbps">
+#       Type "bytes"
+#       Instance "wire-realtime"
+#       ValueFrom 2
+#   </Metric>
+#   <Metric "alerts">
+#       Type "alerts_per_second"
+#       ValueFrom 3
+#   </Metric>
+#   <Metric "kpps">
+#       Type "kpackets_wire_per_sec.realtime"
+#       ValueFrom 4
+#   </Metric>
+#   <File "/var/log/snort/snort.stats">
+#       Instance "snort-eth0"
+#       Interval 600
+#       Collect "dropped" "mbps" "alerts" "kpps"
+#       TimeFrom 0
+#   </File>
+#</Plugin>
+
+#<Plugin tcpconns>
+#	ListeningPorts false
+#	AllPortsSummary false
+#	LocalPort "25"
+#	RemotePort "25"
+#</Plugin>
+
+#<Plugin ted>
+#	Device "/dev/ttyUSB0"
+#	Retries 0
+#</Plugin>
+
+#<Plugin unixsock>
+#	SocketFile "/usr/local/var/run/collectd-unixsock"
+#	SocketGroup "collectd"
+#	SocketPerms "0660"
+#	DeleteSocket false
+#</Plugin>
+
+#<Plugin virt>
+#	Connection "xen:///"
+#	RefreshInterval 60
+#	Domain "name"
+#	BlockDevice "name:device"
+#	InterfaceDevice "name:device"
+#	IgnoreSelected false
+#	HostnameFormat name
+#	InterfaceFormat name
+#	PluginInstanceFormat name
+#</Plugin>
+
+#<Plugin write_graphite>
+#  <Node "example">
+#    Host "localhost"
+#    Port "2003"
+#    Protocol "tcp"
+#    LogSendErrors true
+#    Prefix "collectd"
+#    Postfix "collectd"
+#    StoreRates true
+#    AlwaysAppendDS false
+#    EscapeCharacter "_"
+#  </Node>
+#</Plugin>
+
+#<Plugin write_http>
+#	<Node "example">
+#		URL "http://example.com/collectd-post"
+#		User "collectd"
+#		Password "weCh3ik0"
+#		VerifyPeer true
+#		VerifyHost true
+#		CACert "/etc/ssl/ca.crt"
+#		CAPath "/etc/ssl/certs/"
+#		ClientKey "/etc/ssl/client.pem"
+#		ClientCert "/etc/ssl/client.crt"
+#		ClientKeyPass "secret"
+#		SSLVersion "TLSv1"
+#		Format "Command"
+#		StoreRates false
+#		BufferSize 4096
+#		LowSpeedLimit 0
+#		Timeout 0
+#	</Node>
+#</Plugin>
+
+##############################################################################
+# Filter configuration                                                       #
+#----------------------------------------------------------------------------#
+# The following configures collectd's filtering mechanism. Before changing   #
+# anything in this section, please read the `FILTER CONFIGURATION' section   #
+# in the collectd.conf(5) manual page.                                       #
+##############################################################################
+
+# Load required matches:
+#LoadPlugin match_empty_counter
+#LoadPlugin match_hashed
+#LoadPlugin match_regex
+#LoadPlugin match_value
+#LoadPlugin match_timediff
+
+# Load required targets:
+#LoadPlugin target_notification
+#LoadPlugin target_replace
+#LoadPlugin target_scale
+#LoadPlugin target_set
+#LoadPlugin target_v5upgrade
+
+#----------------------------------------------------------------------------#
+# The following block demonstrates the default behaviour if no filtering is  #
+# configured at all: All values will be sent to all available write plugins. #
+#----------------------------------------------------------------------------#
+
+#<Chain "PostCache">
+#  Target "write"
+#</Chain>
+
+##############################################################################
+# Threshold configuration                                                    #
+#----------------------------------------------------------------------------#
+# The following outlines how to configure collectd's threshold checking      #
+# plugin. The plugin and possible configuration options are documented in    #
+# the collectd-threshold(5) manual page.                                     #
+##############################################################################
+
+#LoadPlugin "threshold"
+
+#<Plugin threshold>
+#  <Type "foo">
+#    WarningMin    0.00
+#    WarningMax 1000.00
+#    FailureMin    0.00
+#    FailureMax 1200.00
+#    Invert false
+#    Instance "bar"
+#  </Type>
+#
+#  <Plugin "interface">
+#    Instance "eth0"
+#    <Type "if_octets">
+#      FailureMax 10000000
+#      DataSource "rx"
+#    </Type>
+#  </Plugin>
+#
+#  <Host "hostname">
+#    <Type "cpu">
+#      Instance "idle"
+#      FailureMin 10
+#    </Type>
+#
+#    <Plugin "memory">
+#      <Type "memory">
+#        Instance "cached"
+#        WarningMin 100000000
+#      </Type>
+#    </Plugin>
+#
+#    <Type "load">
+#    	DataSource "midterm"
+#    	FailureMax 4
+#    	Hits 3
+#    	Hysteresis 3
+#    </Type>
+#  </Host>
+#</Plugin>

@@ -1,0 +1,4 @@
+# role/symon/vars/main
+---
+symon_datadir: '/var/db/symon'
+...

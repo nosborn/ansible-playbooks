@@ -1,0 +1,35 @@
+# roles/symon/tasks/main
+---
+- name: install packages
+  openbsd_pkg: name={{ item }} state=installed
+  with_items:
+    - symon
+    - symux
+
+- name: configure system monitor
+  template:
+    src=symon.conf.j2 dest=/etc/symon.conf
+    owner=root group=wheel mode=0444
+    validate='/usr/local/libexec/symon -f %s -t'
+  notify: restart symon
+
+- file:
+    path={{ symon_datadir }}
+    owner=root group=wheel mode=0755
+
+- name: configure symon stream multiplexer
+  template:
+    src=symux.conf.j2 dest=/etc/symux.conf
+    owner=root group=wheel mode=0444
+    validate='/usr/local/libexec/symux -f %s -t'
+  notify: restart symux
+
+- name: initialised RRD files
+  command: '/usr/local/share/examples/symon/c_smrrds.sh all'
+
+- name: start services
+  service: name={{ item }} enabled=yes state=started
+  with_items:
+    - symon
+    - symux
+...

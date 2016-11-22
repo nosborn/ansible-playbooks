@@ -1,0 +1,27 @@
+# Configuration file for ISC dhcpd.
+
+authoritative;
+
+subnet {{ lan_ipv4 | ipaddr('network') }} netmask {{ lan_ipv4 | ipaddr('netmask') }} {
+	option domain-name "{{ global_domain }}";
+	option domain-name-servers {{ lan_ipv4 | ipaddr('address') }};
+	option ntp-servers {{ lan_ipv4 | ipaddr('address') }};
+	option routers {{ lan_ipv4 | ipaddr('address') }};
+
+	range {{ lan_ipv4 | ipaddr('64') | ipaddr('address') }} {{ lan_ipv4 | ipaddr('127') | ipaddr('address') }};
+
+	host AirPort-Time-Capsule {
+		hardware ethernet 6c:70:9f:d5:33:77;
+		fixed-address {{ lan_ipv4 | ipaddr('2') | ipaddr('address') }};
+	}
+
+	host AirPort-Extreme {
+		hardware ethernet 00:26:bb:76:9a:e1;
+		fixed-address {{ lan_ipv4 | ipaddr('3') | ipaddr('address') }};
+	}
+
+	host Mac-mini {
+		hardware ethernet 7c:c3:a1:70:ff:75;
+		fixed-address {{ lan_ipv4 | ipaddr('4') | ipaddr('address') }};
+	}
+}

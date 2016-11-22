@@ -1,0 +1,17 @@
+# See ntpd.conf(5) and /etc/examples/ntpd.conf
+
+{% for address in ntpd_listen_on|default([]) %}
+listen on {{ address }}
+{% endfor %}
+{% for address in ntpd_server|default([]) %}
+server {{ address }}
+{% endfor %}
+{% for address in ntpd_servers|default([]) %}
+servers {{ address }}
+{% endfor %}
+{% for url in ntpd_constraint|default([]) %}
+constraint from "{{ url }}"
+{% endfor %}
+{% for url in ntpd_constraints|default([]) %}
+constraints from "{{ url }}"
+{% endfor %}

@@ -1,0 +1,34 @@
+$ORIGIN leavethegun.com.
+$TTL 300
+
+@		IN	SOA	tombstone.{{ global_domain }}. hostmaster.{{ global_domain }}. (
+				2016110800	;serial
+				10800		;refresh
+				1800		;retry
+				604800		;expire
+				86400 )		;minimum
+
+			A	81.187.87.32
+
+			NS	c.ns.buddyns.com.
+			NS	d.ns.buddyns.com.
+			NS	g.ns.buddyns.com.
+			NS	secondary-dns.co.uk.
+
+			MX	10 aspmx.l.google.com.
+			MX	20 alt1.aspmx.l.google.com.
+			MX	20 alt2.aspmx.l.google.com.
+			MX	30 aspmx2.googlemail.com.
+			MX	30 aspmx3.googlemail.com.
+
+			SPF	"v=spf1 include:_spf.google.com ~all"
+
+			TXT	"google-site-verification=q3d9ohB3rSLLF-yHppr5lTSjPPIcLpYh7PJlTqCqcV8"
+			TXT	"v=spf1 include:_spf.google.com ~all"
+
+google._domainkey	TXT	"v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCShFPs7T98hxS0j0lK9wkdLZVwVbqCKAQxsPnrX7BrbFLPr+UyGAubCUvp9UxtvEjdwZASr/R7H77IWuwRK/+nLOMZ8O8+j94+hwzGcwtqXr2iXtQcrZd3wTSB0Ex3/e1oYTK5y43d5VB0+z9pCmUH+r0TD5bU+rB60tzDcLotgQIDAQAB"
+
+londoncannolimap	CNAME	www
+m			CNAME	londoncannolimap
+mail			CNAME	ghs.google.com.
+www			A	81.187.87.32

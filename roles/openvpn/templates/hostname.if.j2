@@ -1,0 +1,9 @@
+up group openvpn
+
+!/usr/local/sbin/openvpnmgrd
+
+!/usr/local/sbin/openvpn \
+  --config /etc/openvpn/\$if.conf \
+  --daemon \
+  --dev \$if \
+  --writepid /var/run/\$if.pid

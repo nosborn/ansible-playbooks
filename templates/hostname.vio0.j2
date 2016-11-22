@@ -1,0 +1,4 @@
+inet {{ wan_ipv4 | ipaddr('address') }} {{ wan_ipv4 | ipaddr('netmask') }} NONE
+rtsol
+
+!/sbin/route add -net 169.254.0.0/16 -iface {{ wan_ipv4 | ipaddr('network') }}

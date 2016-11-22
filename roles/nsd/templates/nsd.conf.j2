@@ -1,0 +1,47 @@
+server:
+	ip-address: {{ wan_ipv4 | ipaddr('address') }}
+	database: "" # disable database
+	identity: ""
+	verbosity: {{ nsd_verbosity }}
+	hide-version: yes
+
+remote-control:
+	control-enable: yes
+
+zone:
+	name: "32.87.187.81.in-addr.arpa"
+	zonefile: "master/%s.zone"
+	notify: 81.187.81.32 NOKEY # secondary-dns.co.uk
+	provide-xfr: 81.187.81.32 NOKEY # secondary-dns.co.uk
+	provide-xfr: 90.155.23.32 NOKEY # b.nameless.aa.net.uk
+	outgoing-interface: {{ wan_ipv4 | ipaddr('address') }}
+
+zone:
+	name: "leavethegun.com"
+	zonefile: "master/%s.zone"
+	notify: 81.187.81.32 NOKEY # secondary-dns.co.uk
+	provide-xfr: 81.187.81.32 NOKEY # secondary-dns.co.uk
+	provide-xfr: 88.198.106.11 NOKEY # b.transfer.buddyns.com
+	provide-xfr: 90.155.23.32 NOKEY # b.nameless.aa.net.uk
+	provide-xfr: 173.244.206.26 NOKEY # a.transfer.buddyns.com
+	outgoing-interface: {{ wan_ipv4 | ipaddr('address') }}
+
+zone:
+	name: "osborn.io"
+	zonefile: "master/%s.zone"
+	notify: 81.187.81.32 NOKEY # secondary-dns.co.uk
+	provide-xfr: 81.187.81.32 NOKEY # secondary-dns.co.uk
+	provide-xfr: 88.198.106.11 NOKEY # b.transfer.buddyns.com
+	provide-xfr: 90.155.23.32 NOKEY # b.nameless.aa.net.uk
+	provide-xfr: 173.244.206.26 NOKEY # a.transfer.buddyns.com
+	outgoing-interface: {{ wan_ipv4 | ipaddr('address') }}
+
+zone:
+	name: "osborn.ws"
+	zonefile: "master/%s.zone"
+	notify: 81.187.81.32 NOKEY # secondary-dns.co.uk
+	provide-xfr: 81.187.81.32 NOKEY # secondary-dns.co.uk
+	provide-xfr: 88.198.106.11 NOKEY # b.transfer.buddyns.com
+	provide-xfr: 90.155.23.32 NOKEY # b.nameless.aa.net.uk
+	provide-xfr: 173.244.206.26 NOKEY # a.transfer.buddyns.com
+	outgoing-interface: {{ wan_ipv4 | ipaddr('address') }}

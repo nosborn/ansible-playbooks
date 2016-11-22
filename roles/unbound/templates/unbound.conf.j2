@@ -1,0 +1,78 @@
+server:
+	verbosity: {{ unbound_verbosity }}
+
+	num-threads: {{ ansible_processor_count }}
+
+	interface: 127.0.0.1
+	interface: {{ lan_ipv4 | ipaddr('address') }}
+	interface: ::1
+
+#	outgoing-interface: {{ wan_ipv4 | ipaddr('address') }}
+
+	access-control: 0.0.0.0/0 refuse
+	access-control: 127.0.0.0/8 allow
+	access-control: {{ lan_ipv4 | ipaddr('network') }}/{{ lan_ipv4 | ipaddr('prefix') }} allow
+	access-control: ::0/0 refuse
+	access-control: ::1 allow
+
+	pidfile: /var/run/unbound.pid
+
+	root-hints: /var/unbound/etc/named.root
+
+	hide-identity: yes
+	hide-version: yes
+
+	harden-below-nxdomain: yes
+
+#	use-caps-for-id: yes
+#	qname-minimisation: yes
+
+	private-address: 10.0.0.0/8
+	private-address: 172.16.0.0/12
+	private-address: 169.254.0.0/16
+	private-address: 192.168.0.0/16
+	private-address: ::ffff:0:0/96
+	private-address: fd00::/8
+	private-address: fe80::/10
+
+	private-domain: local
+	private-domain: onion
+
+	do-not-query-localhost: no
+
+	prefetch: yes
+
+	module-config: "iterator"
+
+	domain-insecure: local
+	domain-insecure: onion
+
+	local-zone: "local" static
+	local-data: "tombstone.local IN A {{ lan_ipv4 | ipaddr('1') | ipaddr('address') }}"
+	local-data: "airport-time-capsule.local IN A {{ lan_ipv4 | ipaddr('2') | ipaddr('address') }}"
+	local-data: "airport-extreme.local IN A {{ lan_ipv4 | ipaddr('3') | ipaddr('address') }}"
+	local-data: "mac-mini.local IN A {{ lan_ipv4 | ipaddr('4') | ipaddr('address') }}"
+	local-data-ptr: "{{ lan_ipv4 | ipaddr('1') | ipaddr('address') }} tombstone.local"
+	local-data-ptr: "{{ lan_ipv4 | ipaddr('2') | ipaddr('address') }} airport-time-capsule.local"
+	local-data-ptr: "{{ lan_ipv4 | ipaddr('3') | ipaddr('address') }} airport-extreme.local"
+	local-data-ptr: "{{ lan_ipv4 | ipaddr('4') | ipaddr('address') }} mac-mini.local"
+
+	local-zone: "onion" nodefault
+
+	include: /var/unbound/etc/domains
+	include: /var/unbound/etc/hosts
+
+forward-zone:
+	name: "onion"
+	forward-addr: 127.0.0.1@{{ tor_dns_port }}
+{% for forward_zone in unbound_forward_zones %}
+
+forward-zone:
+	name: "{{ forward_zone.name }}"
+{%   for forward_addr in forward_zone.forward_addrs %}
+	forward-addr: {{ forward_addr }}
+{%   endfor %}
+{%   if forward_zone.forward_first is defined %}
+	forward-first: {{ forward_zone.forward_first }}
+{%   endif %}
+{% endfor %}

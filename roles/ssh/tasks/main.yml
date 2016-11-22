@@ -1,0 +1,12 @@
+# roles/ssh/tasks/main
+---
+- name: OpenSSH SSH daemon configuration file
+  template:
+    src=sshd_config.j2 dest=/etc/ssh/sshd_config
+    owner=root group=wheel mode=0644
+    validate='/usr/sbin/sshd -f %s -t'
+  notify: restart sshd
+
+- name: Enable OpenSSH SSH daemon
+  service: name=sshd enabled=yes state=started
+...

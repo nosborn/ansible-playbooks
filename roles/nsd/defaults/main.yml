@@ -1,0 +1,4 @@
+# role/nsd/defaults/main
+---
+nsd_verbosity: 2
+...

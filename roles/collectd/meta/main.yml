@@ -1,0 +1,6 @@
+# roles/collectd/meta/main
+---
+dependencies:
+  - { role: nginx }
+  - { role: pf }
+...

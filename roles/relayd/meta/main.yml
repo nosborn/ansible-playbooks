@@ -1,0 +1,5 @@
+# roles/relayd/meta/main
+---
+dependencies:
+  - { role: letsencrypt }
+...

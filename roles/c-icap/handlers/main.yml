@@ -1,0 +1,5 @@
+# roles/c-icap/handlers/main
+---
+- name: reload c-icap
+  service: name=c_icap state=reloaded
+...

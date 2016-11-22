@@ -1,0 +1,87 @@
+#!/usr/bin/perl -w
+
+use strict;
+use warnings;
+
+use IO::Socket::INET;
+use JSON qw(from_json);
+use LWP::Simple qw(get);
+use Proc::Daemon;
+use Sys::Syslog qw(:standard :macros);
+
+my $daemon = Proc::Daemon->new(
+  workdir  => '/var/empty',
+  setuid   => '_openvpn',
+  pid_file => '/var/run/openvpnmgrd.pid'
+);
+
+my $pid = $daemon->Init();
+exit(0) if ($pid);
+
+openlog('openvpnmgrd', 'ndelay,perror,pid', LOG_DAEMON);
+local $/ = "\r\n";
+
+my $server = IO::Socket::INET->new(LocalHost => '127.0.0.1',
+                                   LocalPort => {{ openvpn_management_port }},
+                                   Proto => 'tcp',
+                                   Listen => 1,
+                                   Reuse => 1)
+  or die "$!";
+
+syslog(LOG_NOTICE, 'ready');
+
+my $URL = 'https://airvpn.org/api/?format=json&key={{ airvpn_api_key }}&service=status';
+
+{% raw %}
+while (my $client = $server->accept()) {
+  while (my $line = $client->getline()) {
+    chomp $line;
+    syslog(LOG_NOTICE, '%s', $line);
+    next unless $line =~ /^>REMOTE:(.+),(.+),(.+)$/;
+    my ($host, $port, $proto) = ($1, $2, $3);
+
+    my $body = get($URL);
+    unless ($body) {
+      syslog(LOG_NOTICE, 'remote ACCEPT');
+      printf $client ("remote ACCEPT\n");
+      next;
+    }
+    my $status = from_json($body);
+    unless ($status) {
+      syslog(LOG_NOTICE, 'remote ACCEPT');
+      printf $client ("remote ACCEPT\n");
+      next;
+    }
+    my ($server_best, $ip_entry);
+
+    for my $country (@{%{$status}{'countries'}}) {
+      next unless ${$country}{'country_code'} eq 'nl';
+      $server_best = ${$country}{'server_best'};
+      last;
+    }
+    unless ($server_best) {
+      syslog(LOG_NOTICE, 'remote ACCEPT');
+      printf $client ("remote ACCEPT\n");
+      next;
+    }
+    syslog(LOG_NOTICE, 'server_best=%s', $server_best);
+
+    for my $server (@{%{$status}{'servers'}}) {
+      next unless ${$server}{'public_name'} eq $server_best;
+      $ip_entry = ${$server}{'ip_entry'};
+      last;
+    }
+    unless ($ip_entry) {
+      syslog(LOG_NOTICE, 'remote ACCEPT');
+      printf $client ("remote ACCEPT\n");
+      next;
+    }
+    syslog(LOG_NOTICE, 'ip_entry=%s', $ip_entry);
+
+    syslog(LOG_NOTICE, 'remote MOD %s %s', $ip_entry, $port);
+    printf $client ("remote MOD %s %s\n", $ip_entry, $port);
+  }
+}
+{% endraw %}
+
+close($server);

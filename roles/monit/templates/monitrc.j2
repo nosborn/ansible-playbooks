@@ -1,0 +1,245 @@
+set daemon 30 with start delay 60
+set logfile syslog
+
+set alert nick@{{ global_domain }} not on { instance, action }
+set mailserver localhost
+set mail-format {
+  subject: monit alert -- $EVENT $SERVICE
+  message: $EVENT Service $SERVICE
+
+        Date: $DATE
+      Action: $ACTION
+        Host: $HOST
+ Description: $DESCRIPTION
+}
+
+set httpd port 2812 address {{ lan_ipv4 | ipaddr('address') }}
+    signature disable
+    allow {{ lan_ipv4 | ipaddr('network') }}
+    allow admin:monit read-only
+
+###############################################################################
+## Services
+###############################################################################
+##
+## Check general system resources such as load average, cpu and memory
+## usage. Each test specifies a resource, conditions and the action to be
+## performed should a test fail.
+#
+#  check system $HOST
+#    if loadavg (1min) > 4 then alert
+#    if loadavg (5min) > 2 then alert
+#    if cpu usage > 95% for 10 cycles then alert
+#    if memory usage > 75% then alert
+#    if swap usage > 25% then alert
+#
+#
+## Check if a file exists, checksum, permissions, uid and gid. In addition
+## to alert recipients in the global section, customized alert can be sent to
+## additional recipients by specifying a local alert handler. The service may
+## be grouped using the GROUP option. More than one group can be specified by
+## repeating the 'group name' statement.
+#
+#  check file apache_bin with path /usr/local/apache/bin/httpd
+#    if failed checksum and
+#       expect the sum 8f7f419955cefa0b33a2ba316cba3659 then unmonitor
+#    if failed permission 755 then unmonitor
+#    if failed uid root then unmonitor
+#    if failed gid root then unmonitor
+#    alert security@foo.bar on {
+#           checksum, permission, uid, gid, unmonitor
+#        } with the mail-format { subject: Alarm! }
+#    group server
+#
+#
+## Check that a process is running, in this case Apache, and that it respond
+## to HTTP and HTTPS requests. Check its resource usage such as cpu and memory,
+## and number of children. If the process is not running, Monit will restart
+## it by default. In case the service is restarted very often and the
+## problem remains, it is possible to disable monitoring using the TIMEOUT
+## statement. This service depends on another service (apache_bin) which
+## is defined above.
+#
+#  check process apache with pidfile /usr/local/apache/logs/httpd.pid
+#    start program = "/etc/init.d/httpd start" with timeout 60 seconds
+#    stop program  = "/etc/init.d/httpd stop"
+#    if cpu > 60% for 2 cycles then alert
+#    if cpu > 80% for 5 cycles then restart
+#    if totalmem > 200.0 MB for 5 cycles then restart
+#    if children > 250 then restart
+#    if loadavg(5min) greater than 10 for 8 cycles then stop
+#    if failed host www.tildeslash.com port 80 protocol http
+#       and request "/somefile.html"
+#    then restart
+#    if failed port 443 type tcpssl protocol http
+#       with timeout 15 seconds
+#    then restart
+#    if 3 restarts within 5 cycles then unmonitor
+#    depends on apache_bin
+#    group server
+#
+check process c-icap with pidfile {{ c_icap_pid_file }}
+  #start program = "/usr/sbin/rcctl start c_icap"
+  #stop program = "/usr/sbin/rcctl stop c_icap"
+  #restart program = "/usr/sbin/rcctl restart c_icap"
+
+check process collectd with pidfile /var/collectd/collectd.pid
+  #start program = "/usr/sbin/rcctl start collectd"
+  #stop program = "/usr/sbin/rcctl stop collectd"
+  #restart program = "/usr/sbin/rcctl restart collectd"
+
+check process dhcpd matching "^/usr/sbin/dhcpd "
+  #start program = "/usr/sbin/rcctl start dhcpd"
+  #stop program = "/usr/sbin/rcctl stop dhcpd"
+  #restart program = "/usr/sbin/rcctl restart dhcpd"
+
+check process downtimed with pidfile /var/run/downtimed.pid
+  #start program = "/usr/sbin/rcctl start downtimed"
+  #stop program = "/usr/sbin/rcctl stop downtimed"
+  #restart program = "/usr/sbin/rcctl restart downtimed"
+
+check process mdnsd matching "^mdnsd: "
+  #start program = "/usr/sbin/rcctl start mdnsd"
+  #stop program = "/usr/sbin/rcctl stop mdnsd"
+  #restart program = "/usr/sbin/rcctl restart mdnsd"
+
+check process nginx with pidfile /var/run/nginx.pid
+  #start program = "/usr/sbin/rcctl start nginx"
+  #stop program = "/usr/sbin/rcctl stop nginx"
+  #restart program = "/usr/sbin/rcctl restart nginx"
+
+check process nsd with pidfile /var/nsd/run/nsd.pid
+  #start program = "/usr/sbin/rcctl start nsd"
+  #stop program = "/usr/sbin/rcctl stop nsd"
+  #restart program = "/usr/sbin/rcctl restart nsd"
+
+check process ntpd matching "^/usr/sbin/ntpd "
+  #start program = "/usr/sbin/rcctl start ntpd"
+  #stop program = "/usr/sbin/rcctl stop ntpd"
+  #restart program = "/usr/sbin/rcctl restart ntpd"
+
+#check process openvpn with pidfile /var/run/tun0.pid
+#  #start program = "/bin/sh /etc/netstart tun0"
+
+check process openvpnmgrd with pidfile /var/run/openvpnmgrd.pid
+  #start program = "/bin/sh /etc/netstart tun0"
+
+#check process relayd matching "^/usr/sbin/relayd$"
+#  #start program = "/usr/sbin/rcctl start relayd"
+#  #stop program = "/usr/sbin/rcctl stop relayd"
+#  #restart program = "/usr/sbin/rcctl restart relayd"
+
+check process smtpd matching "^/usr/sbin/smtpd$"
+  #start program = "/usr/sbin/rcctl start smtpd"
+  #stop program = "/usr/sbin/rcctl stop smtpd"
+  #restart program = "/usr/sbin/rcctl restart smtpd"
+
+check process sshd with pidfile /var/run/sshd.pid
+  #start program = "/usr/sbin/rcctl start sshd"
+  #stop program = "/usr/sbin/rcctl stop sshd"
+  #restart program = "/usr/sbin/rcctl restart sshd"
+
+check process syslogd with pidfile /var/run/syslog.pid
+  #start program = "/usr/sbin/rcctl start syslogd"
+  #stop program = "/usr/sbin/rcctl stop syslogd"
+  #restart program = "/usr/sbin/rcctl restart syslogd"
+
+check process unbound with pidfile /var/run/unbound.pid
+  #start program = "/usr/sbin/rcctl start unbound"
+  #stop program = "/usr/sbin/rcctl stop unbound"
+  #restart program = "/usr/sbin/rcctl restart unbound"
+
+## Check filesystem permissions, uid, gid, space and inode usage. Other services,
+## such as databases, may depend on this resource and an automatically graceful
+## stop may be cascaded to them before the filesystem will become full and data
+## lost.
+#
+#  check filesystem datafs with path /dev/sdb1
+#    start program  = "/bin/mount /data"
+#    stop program  = "/bin/umount /data"
+#    if failed permission 660 then unmonitor
+#    if failed uid root then unmonitor
+#    if failed gid disk then unmonitor
+#    if space usage > 80% for 5 times within 15 cycles then alert
+#    if space usage > 99% then stop
+#    if inode usage > 30000 then alert
+#    if inode usage > 99% then stop
+#    group server
+
+check filesystem root with path /dev/sd0a
+  if changed fsflags then alert
+  if space usage > 80% for 5 times within 15 cycles then alert
+  if inode usage > 80% for 5 times within 15 cycles then alert
+
+check filesystem home with path /dev/sd0d
+  if changed fsflags then alert
+  if space usage > 80% for 5 times within 15 cycles then alert
+  if inode usage > 80% for 5 times within 15 cycles then alert
+
+check filesystem tmp with path /dev/sd0e
+  if changed fsflags then alert
+  if space usage > 80% for 5 times within 15 cycles then alert
+  if inode usage > 80% for 5 times within 15 cycles then alert
+
+check filesystem usr with path /dev/sd0f
+  if changed fsflags for 5 cycles then alert
+  if space usage > 90% for 5 times within 15 cycles then alert
+  if inode usage > 90% for 5 times within 15 cycles then alert
+
+check filesystem usr_X11R6 with path /dev/sd0g
+  if changed fsflags for 5 cycles then alert
+  if space usage > 90% for 5 times within 15 cycles then alert
+  if inode usage > 90% for 5 times within 15 cycles then alert
+
+check filesystem usr_local with path /dev/sd0h
+  if changed fsflags then alert
+  if space usage > 80% for 5 times within 15 cycles then alert
+  if inode usage > 80% for 5 times within 15 cycles then alert
+
+check filesystem var with path /dev/sd0j
+  if changed fsflags then alert
+  if space usage > 80% for 5 times within 15 cycles then alert
+  if inode usage > 80% for 5 times within 15 cycles then alert
+
+## Check a file's timestamp. In this example, we test if a file is older
+## than 15 minutes and assume something is wrong if its not updated. Also,
+## if the file size exceed a given limit, execute a script
+#
+#  check file database with path /data/mydatabase.db
+#    if failed permission 700 then alert
+#    if failed uid data then alert
+#    if failed gid data then alert
+#    if timestamp > 15 minutes then alert
+#    if size > 100 MB then exec "/my/cleanup/script" as uid dba and gid dba
+#
+#
+## Check directory permission, uid and gid.  An event is triggered if the
+## directory does not belong to the user with uid 0 and gid 0.  In addition,
+## the permissions have to match the octal description of 755 (see chmod(1)).
+#
+#  check directory bin with path /bin
+#    if failed permission 755 then unmonitor
+#    if failed uid 0 then unmonitor
+#    if failed gid 0 then unmonitor
+
+check network LAN with interface re0
+  start program = "/bin/sh /etc/netstart re0"
+  if failed link then alert
+  if changed link capacity then alert
+
+check network VPN with interface tun0
+  start program = "/bin/sh /etc/netstart tun0"
+  if failed link then alert
+  if changed link capacity then alert
+
+check network WAN with interface pppoe0
+  start program = "/bin/sh /etc/netstart pppoe0"
+  if failed link then alert
+  if changed link capacity then alert
+
+{% if wan_ipv4_dest is defined %}
+check host Bottomless with address {{ wan_ipv4_dest }}
+  if failed ping then alert
+{% endif %}
+
+# include /etc/monit.d/*

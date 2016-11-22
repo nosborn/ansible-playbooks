@@ -1,0 +1,111 @@
+# See pf.conf(5) and /etc/examples/pf.conf
+
+# Options
+
+set block-policy return
+#set limit table-entries 400000
+set loginterface egress
+set skip on { axe0 enc0 lo }
+
+# Tables
+
+table <bruteforce> counters persist
+table <fullbogons4> counters persist file "/var/db/fullbogons-ipv4.txt"
+#table <fullbogons6> counters persist file "/var/db/fullbogons-ipv6.txt"
+
+#
+
+{% if ansible_hostname == 'tombstone' %}
+match on egress scrub (max-mss 1452)
+
+{% endif %}
+{% if ansible_hostname == 'tombstone' %}
+## match out on egress inet scrub
+match out on egress inet from re0:network nat-to (egress:0)
+match out on tun0 inet from re0:network nat-to (tun0:0)
+
+{% endif %}
+match in inet scrub (no-df random-id)
+
+# Packet Filtering
+
+block in # log
+
+block return out log quick on egress proto { tcp udp } user _tor
+pass out quick
+
+antispoof quick for { lo0 pppoe0 re0 vio0 }
+
+block drop in log quick on egress inet from <fullbogons4> label bogons4
+# TODO: figure out routeradv
+#block drop in log quick on egress inet6 from <fullbogons6> label bogons6
+block drop in log quick on egress from <bruteforce> label bruteforce
+
+block return out log quick on egress inet to <fullbogons4>
+#block return out log quick on egress inet6 to <fullbogons6>
+
+{% if ansible_hostname == 'tombstone' %}
+#pass in quick on re0 inet from re0:network to { pppoe0:0 re0 }
+
+## https://us.battle.net/support/en/article/300479
+pass in quick on re0 inet proto { tcp udp } from re0:network to port 1119 \
+  route-to (pppoe0 (pppoe0:peer))
+#pass in quick on re0 inet proto udp from re0:network to port { 1119 6120 } route-to (pppoe0 (pppoe0:peer))
+
+pass in quick on re0 inet from re0:network to {{ tor_virtual_addr_network_ipv4 }} \
+  divert-to 127.0.0.1 port {{ tor_trans_port }}
+
+pass in quick on re0 inet from re0:network
+pass in quick on re0 proto esp from re0:network to pppoe0
+#pass in quick on re0 inet6 from re0:network to { pppoe0 re0 }
+#block return in quick on re0 inet6
+
+#block return out log quick on tun0 inet proto tcp from pppoe0:0 to port 1119
+#block return out log quick on tun0 inet proto udp from pppoe0:0 to port { 1119 6120 }
+
+{% endif %}
+antispoof quick for (egress)
+# Troublesome with VPN...
+#block in log quick on egress from { no-route urpf-failed } to any
+
+{% if ansible_hostname == 'tombstone' %}
+pass in quick on pppoe0 inet proto tcp to {{ wan_ipv4 | ipaddr('address') }} port 22 \
+  keep state (max-src-conn-rate 10/10, overload <bruteforce> flush global) \
+  reply-to (pppoe0 (pppoe0:peer))
+pass in quick on egress inet proto { tcp udp } to {{ wan_ipv4 | ipaddr('address') }} port 53 \
+  reply-to (pppoe0 (pppoe0:peer))
+pass in quick on egress inet proto tcp to {{ wan_ipv4 | ipaddr('address') }} port { 80 443 } \
+  reply-to (pppoe0 (pppoe0:peer))
+pass in quick on egress inet proto udp to {{ wan_ipv4 | ipaddr('address') }} port { 500 4500 } \
+  reply-to (pppoe0 (pppoe0:peer))
+#pass in quick on egress inet proto udp to {{ wan_ipv4 | ipaddr('address') }} port 1194 \
+#  reply-to (pppoe0 (pppoe0:peer))
+#pass in quick on egress inet proto icmp to {{ wan_ipv4 | ipaddr('address') }} icmp-type echoreq \
+#  reply-to (pppoe0 (pppoe0:peer))
+{% if wan_ipv6 is defined %}
+#pass in quick on egress inet6 proto ipv6-icmp to {{ wan_ipv6 | ipaddr('address') }} icmp6-type echoreq
+{% endif %}
+
+pass in quick on egress proto esp \
+  reply-to (pppoe0 (pppoe0:peer))
+
+#block return out log quick on pppoe0 inet6 from re0:network
+#block return out log quick on tun0 inet6 from re0:network
+{% else %}
+pass in quick on egress inet proto tcp to {{ wan_ipv4 | ipaddr('address') }} port ssh \
+  keep state (max-src-conn-rate 10/10, overload <bruteforce> flush global)
+pass in quick on egress inet proto { tcp udp } to {{ wan_ipv4 | ipaddr('address') }} port domain
+pass in quick on egress inet proto tcp to {{ wan_ipv4 | ipaddr('address') }} port { http https }
+pass in quick on egress inet proto icmp to {{ wan_ipv4 | ipaddr('address') }} icmp-type echoreq
+{% if wan_ipv6 is defined %}
+pass in quick on egress inet6 proto tcp to {{ wan_ipv6 | ipaddr('address') }} port ssh \
+  keep state (max-src-conn-rate 10/10, overload <bruteforce> flush global)
+pass in quick on egress inet6 proto tcp to {{ wan_ipv6 | ipaddr('address') }} port { http https }
+pass in quick on egress inet6 proto ipv6-icmp to {{ wan_ipv6 | ipaddr('address') }} icmp6-type echoreq
+pass in quick on egress inet6 proto ipv6-icmp from fe80::/64 icmp6-type routeradv
+{% endif %}
+{% endif %}
+block drop in log quick on egress
+
+block return	# block stateless traffic
+pass		# establish keep-state

@@ -1,0 +1,5 @@
+# roles/squid/meta/main
+---
+dependencies:
+  - { role: c-icap }
+...

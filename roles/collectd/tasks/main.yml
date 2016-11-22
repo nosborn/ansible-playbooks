@@ -1,0 +1,18 @@
+# roles/collectd/tasks/main
+---
+- name: install system metrics collection engine
+  openbsd_pkg: name=collectd state=installed
+
+- name: install collectd rrdtool plugin
+  openbsd_pkg: name=collectd-rrdtool state=installed
+
+- name: configure system statistics collection daemon
+  template:
+    src=collectd.conf.j2 dest=/etc/collectd.conf
+    owner=root group=_collectd mode=0440
+    validate='/usr/local/sbin/collectd -C %s -t'
+  notify: restart collectd
+
+- name: start system statistics collection daemon
+  service: name=collectd enabled=yes state=started
+...

@@ -1,0 +1,26 @@
+# roles/nsd/tasks/main
+---
+- name: install zone files
+  template:
+    src=zones/{{ item }}.j2 dest=/var/nsd/zones/master/{{ item }}.zone
+    owner=root group=wheel mode=0644
+    validate='/usr/sbin/nsd-checkzone {{ item }} %s'
+  notify: reload nsd
+  with_items:
+    - 32.87.187.81.in-addr.arpa
+    - leavethegun.com
+    - osborn.io
+    - osborn.ws
+
+- name: install NSD configuration file
+  template:
+    src={{ item }}.j2 dest=/var/nsd/etc/{{ item }}
+    owner=root group=_nsd mode=0640
+    validate='/usr/sbin/nsd-checkconf %s'
+  notify: reload nsd
+  with_items:
+    - nsd.conf
+
+- name: Name Server Daemon (NSD)
+  service: name=nsd enabled=yes state=started
+...

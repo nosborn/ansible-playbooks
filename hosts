@@ -1,0 +1,10 @@
+[letsencrypt]
+perivale
+tombstone
+
+[macos]
+mac-mini
+
+[openbsd]
+perivale
+tombstone

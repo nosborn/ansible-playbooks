@@ -1,0 +1,18 @@
+# This is the smtpd server system-wide configuration file.
+# See smtpd.conf(5) for more information.
+
+limit mta inet4
+{% if smtpd_max_message_size is defined %}
+max-message-size {{ smtpd_max_message_size }}
+{% endif %}
+queue compression
+{% if smtpd_queue_encryption_key is defined %}
+queue encryption key {{ smtpd_queue_encryption_key }}
+{% endif %}
+
+table aliases file:/etc/mail/aliases
+
+listen on lo0
+
+accept for local alias <aliases> deliver to mbox
+accept from local for any relay via tls://smtp.aa.net.uk
