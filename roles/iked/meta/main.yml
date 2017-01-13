@@ -1,5 +1,0 @@
-# roles/iked/meta/main
----
-dependencies:
-  - { role: pf }
-...

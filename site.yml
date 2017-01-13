@@ -121,7 +121,6 @@
     - downtimed
     - goaccess
   # - httpd
-    - iked
     - nginx
     - nsd
     - ntpd
@@ -184,6 +183,9 @@
       sysctl: name={{ item.name }} reload=no sysctl_set=yes value={{ item.value }}
       with_items:
         - { name: ddb.panic, value: 0 }
+        - { name: net.inet.ah.enable, value: 0 }
+        - { name: net.inet.esp.enable, value: 0 }
+        - { name: net.inet.ipcomp.enable, value: 0 }
 
   handlers:
   - name: netstart

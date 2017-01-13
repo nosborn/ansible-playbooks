@@ -5,7 +5,7 @@
 set block-policy return
 #set limit table-entries 400000
 set loginterface egress
-set skip on { axe0 enc0 lo }
+set skip on { axe0 lo }
 
 # Tables
 
@@ -76,18 +76,13 @@ pass in quick on egress inet proto { tcp udp } to {{ wan_ipv4 | ipaddr('address'
   reply-to (pppoe0 (pppoe0:peer))
 pass in quick on egress inet proto tcp to {{ wan_ipv4 | ipaddr('address') }} port { 80 443 } \
   reply-to (pppoe0 (pppoe0:peer))
-pass in quick on egress inet proto udp to {{ wan_ipv4 | ipaddr('address') }} port { 500 4500 } \
+pass in quick on egress inet proto udp to {{ wan_ipv4 | ipaddr('address') }} port 1194 \
   reply-to (pppoe0 (pppoe0:peer))
-#pass in quick on egress inet proto udp to {{ wan_ipv4 | ipaddr('address') }} port 1194 \
-#  reply-to (pppoe0 (pppoe0:peer))
 #pass in quick on egress inet proto icmp to {{ wan_ipv4 | ipaddr('address') }} icmp-type echoreq \
 #  reply-to (pppoe0 (pppoe0:peer))
 {% if wan_ipv6 is defined %}
 #pass in quick on egress inet6 proto ipv6-icmp to {{ wan_ipv6 | ipaddr('address') }} icmp6-type echoreq
 {% endif %}
-
-pass in quick on egress proto esp \
-  reply-to (pppoe0 (pppoe0:peer))
 
 #block return out log quick on pppoe0 inet6 from re0:network
 #block return out log quick on tun0 inet6 from re0:network
