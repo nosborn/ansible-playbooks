@@ -227,8 +227,13 @@ check network LAN with interface re0
   if failed link then alert
   if changed link capacity then alert
 
-check network VPN with interface tun0
+check network VPN.CLIENT with interface tun0
   start program = "/bin/sh /etc/netstart tun0"
+  if failed link then alert
+  if changed link capacity then alert
+
+check network VPN.SERVER with interface tun1
+  start program = "/bin/sh /etc/netstart tun1"
   if failed link then alert
   if changed link capacity then alert
 

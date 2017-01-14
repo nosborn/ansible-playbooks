@@ -22,7 +22,7 @@ match on egress scrub (max-mss 1452)
 {% if ansible_hostname == 'tombstone' %}
 ## match out on egress inet scrub
 match out on egress inet from re0:network nat-to (egress:0)
-match out on tun0 inet from re0:network nat-to (tun0:0)
+match out on tun0 inet from { re0:network tun1:network } nat-to (tun0:0)
 
 {% endif %}
 match in inet scrub (no-df random-id)
@@ -56,12 +56,15 @@ pass in quick on re0 inet from re0:network to {{ tor_virtual_addr_network_ipv4 }
   divert-to 127.0.0.1 port {{ tor_trans_port }}
 
 pass in quick on re0 inet from re0:network
-pass in quick on re0 proto esp from re0:network to pppoe0
 #pass in quick on re0 inet6 from re0:network to { pppoe0 re0 }
 #block return in quick on re0 inet6
 
 #block return out log quick on tun0 inet proto tcp from pppoe0:0 to port 1119
 #block return out log quick on tun0 inet proto udp from pppoe0:0 to port { 1119 6120 }
+
+block return in log quick on tun1 inet to re0:network
+pass in quick on tun1 inet from tun1:network
+block return log quick on tun1 inet6 # bidirectional
 
 {% endif %}
 antispoof quick for (egress)

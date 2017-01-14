@@ -1,0 +1,22 @@
+# roles/openvpn/tasks/server
+---
+- name: configure secure IP tunnel daemon
+  copy:
+    content="{{ openvpn_server_config }}" dest=/etc/openvpn/tun1.conf
+    owner=root group=wheel mode=0400
+  notify: reload openvpn
+
+#- name: install scripts
+#  template:
+#    src={{ item }}.j2 dest=/usr/local/libexec/openvpn/{{ item }}
+#    owner=root group=wheel mode=0550
+#    validate='/bin/sh -n %s'
+#  with_items:
+#    - server-route-up.sh
+
+- name: interface-specific configuration file
+  template:
+    src=hostname.if.j2 dest=/etc/hostname.tun1
+    owner=root group=wheel mode=0440
+  # notify: restart openvpn
+...

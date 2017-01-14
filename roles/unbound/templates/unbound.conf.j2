@@ -5,6 +5,7 @@ server:
 
 	interface: 127.0.0.1
 	interface: {{ lan_ipv4 | ipaddr('address') }}
+	interface: {{ vpn_server_ipv4 | ipaddr('address') }}
 	interface: ::1
 
 #	outgoing-interface: {{ wan_ipv4 | ipaddr('address') }}
@@ -12,6 +13,7 @@ server:
 	access-control: 0.0.0.0/0 refuse
 	access-control: 127.0.0.0/8 allow
 	access-control: {{ lan_ipv4 | ipaddr('network') }}/{{ lan_ipv4 | ipaddr('prefix') }} allow
+	access-control: {{ vpn_server_ipv4 | ipaddr('network') }}/{{ vpn_server_ipv4 | ipaddr('prefix') }} allow
 	access-control: ::0/0 refuse
 	access-control: ::1 allow
 

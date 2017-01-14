@@ -72,10 +72,6 @@ LoadPlugin syslog
 ##############################################################################
 
 #LoadPlugin aggregation
-#LoadPlugin apache
-#LoadPlugin apcups
-#LoadPlugin ascent
-#LoadPlugin bind
 LoadPlugin cpu
 #LoadPlugin csv
 #LoadPlugin curl
@@ -97,12 +93,10 @@ LoadPlugin memory
 LoadPlugin nginx
 #LoadPlugin ntpd
 #LoadPlugin nut
-#LoadPlugin olsrd
 LoadPlugin openvpn
 LoadPlugin pf
 LoadPlugin ping
 #LoadPlugin postgresql
-#LoadPlugin powerdns
 #LoadPlugin processes
 #LoadPlugin python
 #LoadPlugin rrdcached
@@ -118,8 +112,6 @@ LoadPlugin swap
 #LoadPlugin uptime
 #LoadPlugin users
 #LoadPlugin uuid
-#LoadPlugin virt
-#LoadPlugin write_graphite
 #LoadPlugin write_http
 #LoadPlugin write_log
 
@@ -148,48 +140,6 @@ LoadPlugin swap
 #    CalculateMaximum false
 #    CalculateStddev false
 #  </Aggregation>
-#</Plugin>
-
-#<Plugin apache>
-#  <Instance "local">
-#    URL "http://localhost/status?auto"
-#    User "www-user"
-#    Password "secret"
-#    CACert "/etc/ssl/ca.crt"
-#  </Instance>
-#</Plugin>
-
-#<Plugin apcups>
-#	Host "localhost"
-#	Port "3551"
-#	ReportSeconds true
-#</Plugin>
-
-#<Plugin ascent>
-#	URL "http://localhost/ascent/status/"
-#	User "www-user"
-#	Password "secret"
-#	CACert "/etc/ssl/ca.crt"
-#</Plugin>
-
-#<Plugin "bind">
-#  URL "http://localhost:8053/"
-#  ParseTime       false
-#  OpCodes         true
-#  QTypes          true
-#
-#  ServerStats     true
-#  ZoneMaintStats  true
-#  ResolverStats   false
-#  MemoryStats     true
-#
-#  <View "_default">
-#    QTypes        true
-#    ResolverStats true
-#    CacheRRSets   true
-#
-#    Zone "127.in-addr.arpa/IN"
-#  </View>
 #</Plugin>
 
 <Plugin cpu>
@@ -470,14 +420,6 @@ LoadPlugin swap
 #	UPS "upsname@hostname:port"
 #</Plugin>
 
-#<Plugin olsrd>
-#	Host "127.0.0.1"
-#	Port "2006"
-#	CollectLinks "Summary"
-#	CollectRoutes "Summary"
-#	CollectTopology "Summary"
-#</Plugin>
-
 <Plugin openvpn>
 	StatusFile "/var/run/airvpn.status"
 #	ImprovedNamingSchema false
@@ -547,20 +489,6 @@ LoadPlugin swap
 #		# see collectd.conf(5) for details
 #		CommitInterval 30
 #	</Database>
-#</Plugin>
-
-#<Plugin powerdns>
-#  <Server "server_name">
-#    Collect "latency"
-#    Collect "udp-answers" "udp-queries"
-#    Socket "/var/run/pdns.controlsocket"
-#  </Server>
-#  <Recursor "recursor_name">
-#    Collect "questions"
-#    Collect "cache-hits" "cache-misses"
-#    Socket "/var/run/pdns_recursor.controlsocket"
-#  </Recursor>
-#  LocalSocket "/opt/collectd/var/run/collectd-powerdns"
 #</Plugin>
 
 #<Plugin processes>
@@ -726,32 +654,6 @@ LoadPlugin swap
 #	SocketGroup "collectd"
 #	SocketPerms "0660"
 #	DeleteSocket false
-#</Plugin>
-
-#<Plugin virt>
-#	Connection "xen:///"
-#	RefreshInterval 60
-#	Domain "name"
-#	BlockDevice "name:device"
-#	InterfaceDevice "name:device"
-#	IgnoreSelected false
-#	HostnameFormat name
-#	InterfaceFormat name
-#	PluginInstanceFormat name
-#</Plugin>
-
-#<Plugin write_graphite>
-#  <Node "example">
-#    Host "localhost"
-#    Port "2003"
-#    Protocol "tcp"
-#    LogSendErrors true
-#    Prefix "collectd"
-#    Postfix "collectd"
-#    StoreRates true
-#    AlwaysAppendDS false
-#    EscapeCharacter "_"
-#  </Node>
 #</Plugin>
 
 #<Plugin write_http>

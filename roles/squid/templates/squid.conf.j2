@@ -4,9 +4,8 @@
 # Example rule allowing access from your local networks.
 # Adapt to list your (internal) IP networks from where browsing
 # should be allowed
-acl localnet src 10.0.0.0/8	# RFC1918 possible internal network
-acl localnet src 172.16.0.0/12	# RFC1918 possible internal network
-acl localnet src 192.168.0.0/16	# RFC1918 possible internal network
+acl localnet src {{ lan_ipv4 | ipaddr('network') }}/{{ lan_ipv4 | ipaddr('prefix') }}
+acl localnet src {{ vpn_server_ipv4 | ipaddr('network') }}/{{ vpn_server_ipv4 | ipaddr('prefix') }}
 acl localnet src fc00::/7       # RFC 4193 local private network range
 acl localnet src fe80::/10      # RFC 4291 link-local (directly plugged) machines
 
@@ -59,6 +58,7 @@ http_access deny all
 
 # Squid normally listens to port 3128
 http_port {{ lan_ipv4 | ipaddr('address') }}:3128
+http_port {{ vpn_server_ipv4 | ipaddr('address') }}:3128
 
 # LOGFILE OPTIONS
 # -----------------------------------------------------------------------------

@@ -22,7 +22,7 @@ openlog('openvpnmgrd', 'ndelay,perror,pid', LOG_DAEMON);
 local $/ = "\r\n";
 
 my $server = IO::Socket::INET->new(LocalHost => '127.0.0.1',
-                                   LocalPort => {{ openvpn_management_port }},
+                                   LocalPort => {{ openvpn_client_management_port }},
                                    Proto => 'tcp',
                                    Listen => 1,
                                    Reuse => 1)
