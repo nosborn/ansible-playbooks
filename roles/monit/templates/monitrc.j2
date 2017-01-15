@@ -118,11 +118,11 @@ check process ntpd matching "^/usr/sbin/ntpd "
   #stop program = "/usr/sbin/rcctl stop ntpd"
   #restart program = "/usr/sbin/rcctl restart ntpd"
 
-#check process openvpn with pidfile /var/run/tun0.pid
-#  #start program = "/bin/sh /etc/netstart tun0"
-
-check process openvpnmgrd with pidfile /var/run/openvpnmgrd.pid
+check process openvpn-client with pidfile /var/openvpn/tun0.pid
   #start program = "/bin/sh /etc/netstart tun0"
+
+check process openvpn-server with pidfile /var/openvpn/tun1.pid
+  #start program = "/bin/sh /etc/netstart tun1"
 
 #check process relayd matching "^/usr/sbin/relayd$"
 #  #start program = "/usr/sbin/rcctl start relayd"

@@ -421,11 +421,10 @@ LoadPlugin swap
 #</Plugin>
 
 <Plugin openvpn>
-	StatusFile "/var/run/airvpn.status"
-#	ImprovedNamingSchema false
-	CollectCompression false
-#	CollectIndividualUsers true
-#	CollectUserCount false
+	StatusFile "/var/openvpn/client.status"
+	StatusFile "/var/openvpn/server.status"
+	ImprovedNamingSchema true
+	CollectCompression true
 </Plugin>
 
 <Plugin ping>

@@ -7,6 +7,7 @@
   with_items:
     - /etc/openvpn
     - /usr/local/libexec/openvpn
+    - /var/openvpn
 
 - include: client.yml
 - include: server.yml

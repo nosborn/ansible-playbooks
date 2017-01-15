@@ -12,7 +12,7 @@ use Sys::Syslog qw(:standard :macros);
 my $daemon = Proc::Daemon->new(
   workdir  => '/var/empty',
   setuid   => '_openvpn',
-  pid_file => '/var/run/openvpnmgrd.pid'
+  pid_file => '/var/openvpn/openvpnmgrd.pid'
 );
 
 my $pid = $daemon->Init();
