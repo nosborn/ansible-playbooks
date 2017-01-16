@@ -5,4 +5,7 @@
 
 - name: update aliases table
   command: /usr/sbin/smtpctl update table aliases
+
+- name: update secrets table
+  command: /usr/sbin/smtpctl update table secrets
 ...

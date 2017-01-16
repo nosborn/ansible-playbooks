@@ -11,8 +11,9 @@ queue encryption key {{ smtpd_queue_encryption_key }}
 {% endif %}
 
 table aliases file:/etc/mail/aliases
+table secrets file:/etc/mail/secrets
 
 listen on lo0
 
 accept for local alias <aliases> deliver to mbox
-accept from local for any relay via tls://smtp.aa.net.uk
+accept from local for any relay via {{ smtpd_relay_host }} auth <secrets>

@@ -2,7 +2,7 @@ $ORIGIN {{ global_domain }}.
 $TTL 300
 
 @		IN	SOA	tombstone hostmaster (
-				2016120501	; serial number
+				2017011602	; serial number
 				7200		; refresh = 2h
 				300		; update retry = 5m
 				1209600		; expiry = 2w
@@ -14,28 +14,40 @@ $TTL 300
 			NS	f.ns.buddyns.com.
 			NS	g.ns.buddyns.com.
 
-			MX	10 mx.runbox.com.
+			MX	10 in1-smtp.messagingengine.com.
+			MX	20 in2-smtp.messagingengine.com.
 
 			TXT	"google-site-verification=7sk8qJzYVrVYBq6gk135CfGRaLAa2fH5hWhEVEBNgqI"
 			TXT	"keybase-site-verification=DigpE0W0cWKVWeSr6oyT4wISNyTmw1omvLBBnDazHHs"
 			TXT	"protonmail-verification=64d919e28849f07ef74e8c24881ad547805bab3e"
-			TXT	"v=spf1 a:perivale.{{ global_domain }} a:tombstone.{{ global_domain }} include:spf.runbox.com -all"
+			TXT	"v=spf1 include:spf.messagingengine.com ?all"
 
 			A	81.187.87.32
 
-perivale		A	45.63.42.207
-			AAAA	2001:19f0:5001:d3:5400:ff:fe33:f491
-			SSHFP	2 1 78b0f6e1309484b5faf4d30bf56c60f3b388a1a9
-			SSHFP	2 2 616a92fd5b2e0ee363bc83663110e6fcbc169b5e367523ea26f6e2a35e926211
-			SSHFP	4 1 8ce48a843434895a903219dae5a51e6911a146ab
-			SSHFP	4 2 491d681f22c4da6a56f22059c59793a5aafb0af1247aff4ba49e1961e88dd21e
+mesmtp._domainkey	TXT	"v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCZUA/PvgavDXPo2qURa3GlsxZRqAKLmcDlDlFJL6hx00xj2vUdtWWvlHvofWWvK85xVKrKzdyo18riYrW5OU6GyoaNGDxrz2g5902cJoNT9f9FOHkK9TvOxb3AYX0FyLoOkLwW9cZ1uw6k00RvWwiwCFbOpJdzSNCbji/H5UlGcQIDAQAB"
+_adsp._domainkey	TXT	"dkim=unknown"
+
+_caldav._tcp		SRV	0 0 0 .
+_caldavs._tcp		SRV	0 1 443 caldav.fastmail.com.
+_carddav._tcp		SRV	0 0 0 .
+_carddavs._tcp		SRV	0 1 443 carddav.fastmail.com.
+_imap._tcpo		SRV	0 0 0 .
+_imaps._tcp		SRV	0 1 993 imap.fastmail.com.
+_pop3._tcp		SRV	0 0 0 .
+_pop3s._tcp		SRV	10 1 995 pop.fastmail.com.
+_submission._tcp	SRV	0 1 587 smtp.fastmail.com.
+
+*			MX	10 in1-smtp.messagingengine.com.
+			MX	20 in2-smtp.messagingengine.com.
 
 tombstone		A	81.187.87.32
+			MX	10 in1-smtp.messagingengine.com.
+			MX	20 in2-smtp.messagingengine.com.
 			SSHFP	2 1 8177bb5baed4239c788e3e304ab2fafeb7685211
 			SSHFP	2 2 bc4a08d3dc4d6e7708f330dad6c9e751c0d1c554992dc369f3d870417279dd0c
 			SSHFP	4 1 4a2b09f1cc59ae74bb6d2ef8f4d12e53acc7d042
 			SSHFP	4 2 e3b045563884c45623e22a3b98948a1f04888e9c1bdd080a485c0b2814fb777e
 
 www			A	81.187.87.32
-
-fd892a367abfaf3a4aecbd0291be8cef0e1f506e	TXT	"7b15a0f0607ac9c57cba148a60e5ab77240269cb"
+			MX	10 in1-smtp.messagingengine.com.
+			MX	20 in2-smtp.messagingengine.com.

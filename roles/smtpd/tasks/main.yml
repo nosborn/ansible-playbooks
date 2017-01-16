@@ -13,6 +13,11 @@
     owner=root group=wheel mode=0444
   notify: update aliases table
 
+- copy:
+    content="{{ smtpd_secrets_table }}" dest=/etc/mail/secrets
+    owner=root group=wheel mode=0400
+  notify: update secrets table
+
 - template:
     src=smtpd.conf.j2 dest=/etc/mail/smtpd.conf
     owner=root group=wheel mode=0444
