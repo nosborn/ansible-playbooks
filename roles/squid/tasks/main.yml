@@ -3,12 +3,30 @@
 - name: install WWW and FTP proxy cache and accelerator
   openbsd_pkg: name=squid state=installed
 
+- copy:
+    content="{{ squid_ssl_bump_cert }}" dest=/etc/squid/bumpca.pem
+    owner=root group=wheel mode=0400
+  notify: restart squid
+
+- copy:
+    src=errorpage.css dest=/etc/squid/errorpage.css
+    owner=root group=wheel mode=0444
+  notify: reload squid
+
 - name: configure HTTP web proxy caching server
   template:
     src=squid.conf.j2 dest=/etc/squid/squid.conf
     owner=root group=wheel mode=0444
     validate='/usr/local/sbin/squid -f %s -k parse'
   notify: restart squid
+
+# FIXME:
+#- name: initialise SSL certificate database directory
+#  command: /usr/local/libexec/squid/ssl_crtd -c -s /var/squid/ssl_db
+#  args:
+#    creates: /var/squid/ssl_db/index.txt
+#  become: true
+#  become_user: _squid
 
 - name: start squid
   service: name=squid enabled=yes state=started

@@ -2,4 +2,5 @@
 ---
 dependencies:
   - { role: c-icap }
+  - { role: doas }
 ...

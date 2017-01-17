@@ -1,3 +1,6 @@
 *.swp
 /.vault_password
+/airvpn.sh
+/airvpn_best.sh
 /backup/
+/roles/squid/files/bumpca.pem
