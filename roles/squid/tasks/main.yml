@@ -29,5 +29,5 @@
 #  become_user: _squid
 
 - name: start squid
-  service: name=squid enabled=yes state=started
+  service: name=squid enabled=no state=stopped
 ...

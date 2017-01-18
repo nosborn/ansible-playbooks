@@ -93,11 +93,6 @@ check process dhcpd matching "^/usr/sbin/dhcpd "
   #stop program = "/usr/sbin/rcctl stop dhcpd"
   #restart program = "/usr/sbin/rcctl restart dhcpd"
 
-check process downtimed with pidfile /var/run/downtimed.pid
-  #start program = "/usr/sbin/rcctl start downtimed"
-  #stop program = "/usr/sbin/rcctl stop downtimed"
-  #restart program = "/usr/sbin/rcctl restart downtimed"
-
 check process mdnsd matching "^mdnsd: "
   #start program = "/usr/sbin/rcctl start mdnsd"
   #stop program = "/usr/sbin/rcctl stop mdnsd"

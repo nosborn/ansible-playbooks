@@ -6,10 +6,14 @@
 # commented. Uncommented options override the default value.
 
 #Port 22
-AddressFamily inet
-{% for listen_address in sshd_listen_address %}
+{% if sshd_address_family is defined %}
+AddressFamily {{ sshd_address_family }}
+{% endif %}
+{% if sshd_listen_addresses is defined %}
+{%   for listen_address in sshd_listen_addresses %}
 ListenAddress {{ listen_address }}
-{% endfor %}
+{%   endfor %}
+{% endif %}
 
 HostKey /etc/ssh/ssh_host_rsa_key
 HostKey /etc/ssh/ssh_host_ed25519_key

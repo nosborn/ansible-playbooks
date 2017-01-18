@@ -90,10 +90,10 @@ LoadPlugin load
 LoadPlugin memory
 #LoadPlugin mysql
 #LoadPlugin network
-LoadPlugin nginx
+#LoadPlugin nginx
 #LoadPlugin ntpd
 #LoadPlugin nut
-LoadPlugin openvpn
+#LoadPlugin openvpn
 LoadPlugin pf
 LoadPlugin ping
 #LoadPlugin postgresql
@@ -402,12 +402,12 @@ LoadPlugin swap
 #	CacheFlush 1800
 #</Plugin>
 
-<Plugin nginx>
-	URL "http://localhost/status?auto"
-#	User "www-user"
-#	Password "secret"
-#	CACert "/etc/ssl/ca.crt"
-</Plugin>
+#<Plugin nginx>
+#	URL "http://localhost/status?auto"
+##	User "www-user"
+##	Password "secret"
+##	CACert "/etc/ssl/ca.crt"
+#</Plugin>
 
 #<Plugin ntpd>
 #	Host "localhost"
@@ -420,12 +420,12 @@ LoadPlugin swap
 #	UPS "upsname@hostname:port"
 #</Plugin>
 
-<Plugin openvpn>
-	StatusFile "/var/openvpn/client.status"
-	StatusFile "/var/openvpn/server.status"
-	ImprovedNamingSchema true
-	CollectCompression true
-</Plugin>
+#<Plugin openvpn>
+#	StatusFile "/var/openvpn/client.status"
+#	StatusFile "/var/openvpn/server.status"
+#	ImprovedNamingSchema true
+#	CollectCompression true
+#</Plugin>
 
 <Plugin ping>
 	Host "10.4.0.1"

@@ -5,80 +5,6 @@
   roles:
   # - ssh
 
-- hosts: perivale
-
-  pre_tasks:
-    - name: interface-specific configuration files
-      template:
-        src=hostname.{{ item }}.j2 dest=/etc/hostname.{{ item }}
-        owner=root group=wheel mode=0440
-      notify: netstart
-      with_items:
-        - vio0
-
-    - name: configure default gateway
-      copy:
-        content="45.63.40.1\n" dest=/etc/mygate
-        owner=root group=wheel mode=0444
-
-    - name: configure default hostname
-      copy:
-        content="perivale.{{ global_domain }}\n" dest=/etc/myname
-        owner=root group=wheel mode=0444
-
-    - name: System-wide package system configuration
-      template:
-        src=pkg.conf.j2 dest=/etc/pkg.conf
-        owner=root group=wheel mode=0444
-
-  roles:
-    - doas
-    - downtimed
-    - nginx
-    - nsd
-    - ntpd
-    - pf
-  # - relayd
-    - smtpd
-    - ssh
-    - sysclean
-  # - monit # do last
-
-  tasks:
-    - name: 'Host name database'
-      template:
-        src=hosts.j2 dest=/etc/hosts
-        owner=root group=wheel mode=0444
-
-    - name: copy daily.local
-      template:
-        src=daily.local.j2 dest=/etc/daily.local
-        owner=root group=wheel mode=0444
-        validate='/bin/sh -n %s'
-
-    - name: system login profile
-      copy:
-        content="PS1='\h\$ '\n" dest=/etc/profile
-        owner=root group=wheel mode=0444
-
-    - name: copy sysmerge.ignore
-      template:
-        src=sysmerge.ignore.j2 dest=/etc/sysmerge.ignore
-        owner=root group=wheel mode=0444
-
-    - name: disable audio/MIDI server
-      service: name=sndiod enabled=no state=stopped
-
-    - name: sysctl variables to set at system startup
-      sysctl: name={{ item.name }} reload=no sysctl_set=yes value={{ item.value }}
-      with_items:
-        - { name: ddb.panic, value: 0 }
-      # - { name: net.inet.ah.enable, value: 0 }
-
-  handlers:
-  - name: netstart
-    command: /bin/sh /etc/netstart
-
 - hosts: tombstone
 
   pre_tasks:
@@ -117,14 +43,12 @@
     - collectd
     - dhcpd
     - doas
-    - downtimed
     - goaccess
   # - httpd
     - nginx
     - nsd
     - ntpd
     - openvpn
-    - openvpnmgr
     - pf
     - pftop
   # - relayd
@@ -133,8 +57,6 @@
     - squid
     - ssh
     - sysclean
-    - syslogd
-    - tor
     - unbound
     - monit # do last
 
@@ -153,10 +75,10 @@
         owner=root group=wheel mode=0444
         validate='/bin/sh -n %s'
 
-    - name: system login profile
-      copy:
-        content="PS1='\h\$ '\n" dest=/etc/profile
-        owner=root group=wheel mode=0444
+    #- name: system login profile
+    #  copy:
+    #    content="PS1='\h\$ '\n" dest=/etc/profile
+    #    owner=root group=wheel mode=0444
 
     - name: copy sysmerge.ignore
       template:

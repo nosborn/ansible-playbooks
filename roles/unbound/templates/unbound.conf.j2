@@ -38,16 +38,14 @@ server:
 	private-address: fe80::/10
 
 	private-domain: local
-	private-domain: onion
 
-	do-not-query-localhost: no
+#	do-not-query-localhost: no
 
 	prefetch: yes
 
 	module-config: "iterator"
 
 	domain-insecure: local
-	domain-insecure: onion
 
 	local-zone: "local" static
 	local-data: "tombstone.local IN A {{ lan_ipv4 | ipaddr('1') | ipaddr('address') }}"
@@ -59,14 +57,8 @@ server:
 	local-data-ptr: "{{ lan_ipv4 | ipaddr('3') | ipaddr('address') }} airport-extreme.local"
 	local-data-ptr: "{{ lan_ipv4 | ipaddr('4') | ipaddr('address') }} mac-mini.local"
 
-	local-zone: "onion" nodefault
-
 	include: /var/unbound/etc/domains
 	include: /var/unbound/etc/hosts
-
-forward-zone:
-	name: "onion"
-	forward-addr: 127.0.0.1@{{ tor_dns_port }}
 {% for forward_zone in unbound_forward_zones %}
 
 forward-zone:

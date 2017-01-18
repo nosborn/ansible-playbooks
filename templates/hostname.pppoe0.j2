@@ -1,4 +1,4 @@
-inet {{ wan_ipv4 | ipaddr('address') }} 255.255.255.255 NONE mtu 1500 \
+inet {{ wan_ipv4 | ipaddr('address') }} 255.255.255.255 NONE mtu 1492 \
   pppoedev axe0 authproto chap \
   authkey '{{ pppoe_authkey }}' authname '{{ pppoe_authname }}' \
   up

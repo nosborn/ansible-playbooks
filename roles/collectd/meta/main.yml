@@ -1,7 +1,7 @@
 # roles/collectd/meta/main
 ---
 dependencies:
-  - { role: nginx }
-  - { role: openvpn }
+# - { role: nginx }
+# - { role: openvpn }
   - { role: pf }
 ...

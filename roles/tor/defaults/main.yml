@@ -1,7 +1,0 @@
-# role/tor/defaults/main
----
-tor_dns_port: 9053
-tor_trans_port: 9040
-tor_virtual_addr_network_ipv4: '10.92.0.0/10'
-#tor_virtual_addr_network_ipv6: '[Address]/bits'
-...
