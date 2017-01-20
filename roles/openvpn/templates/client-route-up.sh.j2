@@ -1,5 +1,9 @@
 #!/bin/sh
 
-if [[ -x /etc/rc.d/tor ]]; then
-  /usr/sbin/rcctl reload tor || :
+dns=$(env | egrep '^foreign_option_.+=dhcp-option DNS .+' | cut -d' ' -f3)
+
+if [[ -n "${dns}" ]]; then
+  unbound-control forward ${dns}
+else
+  unbound-control forward {{ wan_ipv4 | ipaddr('address') }}
 fi

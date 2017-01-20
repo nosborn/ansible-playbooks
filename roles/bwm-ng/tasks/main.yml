@@ -1,0 +1,5 @@
+# roles/bwm-ng/tasks/main
+---
+- name: install package
+  openbsd_pkg: name=bwm-ng state=installed
+...

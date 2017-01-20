@@ -13,6 +13,11 @@
     - hosts
   notify: reload unbound
 
+- command: /usr/sbin/unbound-control-setup
+  args:
+    creates: /var/unbound/etc/unbound_control.key
+  notify: reload unbound
+
 - name: temporary configuration file
   template:
     src=unbound.conf.j2 dest=/var/unbound/etc/.unbound.conf

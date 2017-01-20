@@ -59,8 +59,11 @@ server:
 
 	include: /var/unbound/etc/domains
 	include: /var/unbound/etc/hosts
-{% for forward_zone in unbound_forward_zones %}
 
+remote-control:
+	control-enable: yes
+
+{% for forward_zone in unbound_forward_zones %}
 forward-zone:
 	name: "{{ forward_zone.name }}"
 {%   for forward_addr in forward_zone.forward_addrs %}

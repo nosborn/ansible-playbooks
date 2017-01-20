@@ -15,7 +15,7 @@ set mail-format {
 
 set httpd port 2812 address {{ lan_ipv4 | ipaddr('address') }}
     signature disable
-    allow {{ lan_ipv4 | ipaddr('network') }}
+    allow {{ lan_ipv4 | ipaddr('network') }}/{{ lan_ipv4 | ipaddr('prefix') }}
     allow admin:monit read-only
 
 ###############################################################################
@@ -113,11 +113,11 @@ check process ntpd matching "^/usr/sbin/ntpd "
   #stop program = "/usr/sbin/rcctl stop ntpd"
   #restart program = "/usr/sbin/rcctl restart ntpd"
 
-check process openvpn-client with pidfile /var/openvpn/tun0.pid
-  #start program = "/bin/sh /etc/netstart tun0"
+#check process openvpn-client with pidfile /var/openvpn/tun0.pid
+#  #start program = "/bin/sh /etc/netstart tun0"
 
-check process openvpn-server with pidfile /var/openvpn/tun1.pid
-  #start program = "/bin/sh /etc/netstart tun1"
+#check process openvpn-server with pidfile /var/openvpn/tun1.pid
+#  #start program = "/bin/sh /etc/netstart tun1"
 
 #check process relayd matching "^/usr/sbin/relayd$"
 #  #start program = "/usr/sbin/rcctl start relayd"
@@ -163,38 +163,38 @@ check process unbound with pidfile /var/run/unbound.pid
 
 check filesystem root with path /dev/sd0a
   if changed fsflags then alert
-  if space usage > 80% for 5 times within 15 cycles then alert
-  if inode usage > 80% for 5 times within 15 cycles then alert
+  if space usage > 70% for 5 times within 15 cycles then alert
+  if inode usage > 70% for 5 times within 15 cycles then alert
 
 check filesystem home with path /dev/sd0d
   if changed fsflags then alert
-  if space usage > 80% for 5 times within 15 cycles then alert
-  if inode usage > 80% for 5 times within 15 cycles then alert
+  if space usage > 70% for 5 times within 15 cycles then alert
+  if inode usage > 70% for 5 times within 15 cycles then alert
 
 check filesystem tmp with path /dev/sd0e
   if changed fsflags then alert
-  if space usage > 80% for 5 times within 15 cycles then alert
-  if inode usage > 80% for 5 times within 15 cycles then alert
+  if space usage > 70% for 5 times within 15 cycles then alert
+  if inode usage > 70% for 5 times within 15 cycles then alert
 
 check filesystem usr with path /dev/sd0f
   if changed fsflags for 5 cycles then alert
-  if space usage > 90% for 5 times within 15 cycles then alert
-  if inode usage > 90% for 5 times within 15 cycles then alert
+  if space usage > 70% for 5 times within 15 cycles then alert
+  if inode usage > 70% for 5 times within 15 cycles then alert
 
 check filesystem usr_X11R6 with path /dev/sd0g
   if changed fsflags for 5 cycles then alert
-  if space usage > 90% for 5 times within 15 cycles then alert
-  if inode usage > 90% for 5 times within 15 cycles then alert
+  if space usage > 70% for 5 times within 15 cycles then alert
+  if inode usage > 70% for 5 times within 15 cycles then alert
 
 check filesystem usr_local with path /dev/sd0h
   if changed fsflags then alert
-  if space usage > 80% for 5 times within 15 cycles then alert
-  if inode usage > 80% for 5 times within 15 cycles then alert
+  if space usage > 70% for 5 times within 15 cycles then alert
+  if inode usage > 70% for 5 times within 15 cycles then alert
 
 check filesystem var with path /dev/sd0j
   if changed fsflags then alert
-  if space usage > 80% for 5 times within 15 cycles then alert
-  if inode usage > 80% for 5 times within 15 cycles then alert
+  if space usage > 70% for 5 times within 15 cycles then alert
+  if inode usage > 70% for 5 times within 15 cycles then alert
 
 ## Check a file's timestamp. In this example, we test if a file is older
 ## than 15 minutes and assume something is wrong if its not updated. Also,

@@ -39,6 +39,7 @@
   roles:
     - apmd
   # - backup
+    - bwm-ng
     - c-icap
     - collectd
     - dhcpd
