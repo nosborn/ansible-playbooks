@@ -1,29 +1,11 @@
 # roles/letsencrypt/tasks/main
 ---
-#- copy:
-#    content=""
-#    path=/etc/acme/privkey.pem
-#    owner=root mode=0400
+- copy:
+    content="{{ letsencrypt_account_key }}" dest=/etc/acme/privkey.pem
+    owner=root group=wheel mode=0400
 
-#- copy:
-#    content=""
-#    path=/etc/ssl/acme/private/privkey.pem
-#    owner=root mode=0400
-
-- template:
+- name: ACME client configuration file
+  template:
     src=acme-client.conf.j2 dest=/etc/acme-client.conf
     owner=root group=wheel mode=0440
-
-- command: /usr/sbin/acme-client -Nn {{ letsencrypt_domains | join(' ') }}
-  args:
-    creates: /etc/ssl/acme/cert.pem
-
-- fetch:
-    dest=backup fail_on_missing=yes src={{ item }}
-  with_items:
-    - /etc/acme/privkey.pem
-    - /etc/ssl/acme/cert.pem
-    - /etc/ssl/acme/chain.pem
-    - /etc/ssl/acme/fullchain.pem
-    - /etc/ssl/acme/private/privkey.pem
 ...

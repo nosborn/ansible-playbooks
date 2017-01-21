@@ -20,8 +20,12 @@ pfctl -q -t bruteforce -T expire 86400
 
 {% if letsencrypt_domains is defined %}
 next_part "Renewing certificates:"
-acme-client -b {{ letsencrypt_domains | join(' ') }}
-if [[ $? -eq 0 ]]; then
-  rcctl restart nginx || :
-fi
+for domain in {{ letsencrypt_domains | join(' ') }}; do
+  acme-client -bm -f /etc/acme/privkey.pem ${domain} && {
+    rcctl restart nginx || :
+  }
+done
+
 {% endif %}
+next_part "Restart OpenVPN client"
+pkill -USR1 -f '^/usr/local/sbin/openvpn .+ --dev tun0' -q -U root

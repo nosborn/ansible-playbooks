@@ -1,5 +1,7 @@
 # roles/nginx/meta/main
 ---
 dependencies:
+  - { role: dhparams }
+  - { role: letsencrypt }
   - { role: pf }
 ...

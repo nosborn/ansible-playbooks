@@ -1,5 +1,0 @@
-# roles/relayd/handlers/main
----
-- name: reload relayd
-  service: name=relayd state=reloaded
-...

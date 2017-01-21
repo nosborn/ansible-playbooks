@@ -1,0 +1,30 @@
+$ORIGIN cannoli.london.
+$TTL 300
+
+@		IN	SOA	tombstone.{{ global_domain }} hostmaster.{{ global_domain }} (
+				2017012102	; serial number
+				7200		; refresh = 2h
+				300		; update retry = 5m
+				1209600		; expiry = 2w
+				1800 )		; nxdomain ttl = 30m
+
+			NS	c.ns.buddyns.com.
+			NS	secondary-dns.co.uk.
+			NS	d.ns.buddyns.com.
+			NS	f.ns.buddyns.com.
+			NS	g.ns.buddyns.com.
+
+			MX	10 in1-smtp.messagingengine.com.
+			MX	20 in2-smtp.messagingengine.com.
+			TXT	"v=spf1 include:spf.messagingengine.com ?all"
+
+			CAA	0 issue "letsencrypt.org"
+			CAA	0 issuewild ";"
+
+			A	81.187.87.32
+
+mesmtp._domainkey	TXT	"v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCZUA/PvgavDXPo2qURa3GlsxZRqAKLmcDlDlFJL6hx00xj2vUdtWWvlHvofWWvK85xVKrKzdyo18riYrW5OU6GyoaNGDxrz2g5902cJoNT9f9FOHkK9TvOxb3AYX0FyLoOkLwW9cZ1uw6k00RvWwiwCFbOpJdzSNCbji/H5UlGcQIDAQAB"
+_adsp._domainkey	TXT	"dkim=unknown"
+
+*			MX	10 in1-smtp.messagingengine.com.
+			MX	20 in2-smtp.messagingengine.com.

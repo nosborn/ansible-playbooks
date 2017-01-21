@@ -45,14 +45,14 @@
     - dhcpd
     - doas
     - goaccess
-  # - httpd
+    - iked
+    - letsencrypt
     - nginx
     - nsd
     - ntpd
     - openvpn
     - pf
     - pftop
-  # - relayd
     - router
     - smtpd
     - squid

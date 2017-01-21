@@ -1,5 +1,0 @@
-# roles/letsencrypt/meta/main
----
-dependencies:
-  - { role: nginx, nginx_ssl: false }
-...

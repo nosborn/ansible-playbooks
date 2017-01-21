@@ -3,12 +3,18 @@
 - name: install package
   openbsd_pkg: name=nginx-- state=installed
 
-- copy:
-    content="{{ nginx_dhparam }}" dest=/etc/ssl/dhparam.pem
-    owner=root group=wheel mode=0444
-  notify: restart nginx
+- name: sites configuration directory
+  file:
+    path=/etc/nginx/sites.d state=directory
+    owner=root group=wheel mode=0755
 
-- template:
+- name: sites root directory
+  file:
+    path=/var/www/sites state=directory
+    owner=root group=daemon mode=0755
+
+- name: main configuration file
+  template:
     src=nginx.conf.j2 dest=/etc/nginx/nginx.conf
     owner=root group=wheel mode=0444
     validate='/usr/local/sbin/nginx -c %s -t'
@@ -16,4 +22,10 @@
 
 - name: start service
   service: name=nginx enabled=yes state=started
+
+- name: configure sites
+  include: site.yml name={{ nginx_item }}
+  with_items: "{{ letsencrypt_domains }}"
+  loop_control:
+    loop_var: nginx_item
 ...

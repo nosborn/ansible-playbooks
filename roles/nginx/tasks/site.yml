@@ -1,0 +1,14 @@
+# roles/nginx/tasks/site
+---
+- include: roles/letsencrypt/tasks/domain.yml domain={{ name }}
+  notify: restart nginx
+
+- file:
+    path=/var/www/sites/{{ name }} state=directory
+    owner=root group=daemon mode=0755
+
+- template:
+    src=site.conf.j2 dest=/etc/nginx/sites.d/{{ name }}.conf
+    owner=root group=wheel mode=0444
+  notify: restart nginx
+...

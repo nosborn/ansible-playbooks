@@ -53,26 +53,28 @@ http_access deny all
 # -----------------------------------------------------------------------------
 
 # Squid normally listens to port 3128
-http_port {{ lan_ipv4 | ipaddr('address') }}:3128 ssl-bump generate-host-certificates=on dynamic_cert_mem_cache_size=4MB cert=/etc/squid/bumpca.pem dhparams=/etc/ssl/dhparam.pem
-http_port {{ vpn_server_ipv4 | ipaddr('address') }}:3128 ssl-bump generate-host-certificates=on dynamic_cert_mem_cache_size=4MB cert=/etc/squid/bumpca.pem dhparams=/etc/ssl/dhparam.pem
+#http_port {{ lan_ipv4 | ipaddr('address') }}:3128 ssl-bump generate-host-certificates=on dynamic_cert_mem_cache_size=4MB cert=/etc/squid/bumpca.pem dhparams=/etc/ssl/ffdhe2048.pem
+#http_port {{ vpn_server_ipv4 | ipaddr('address') }}:3128 ssl-bump generate-host-certificates=on dynamic_cert_mem_cache_size=4MB cert=/etc/squid/bumpca.pem dhparams=/etc/ssl/ffdhe2048.pem
+http_port {{ lan_ipv4 | ipaddr('address') }}:3128
+http_port {{ vpn_server_ipv4 | ipaddr('address') }}:3128
 
 # SSL OPTIONS
 # -----------------------------------------------------------------------------
 
-sslproxy_options SINGLE_DH_USE
-sslproxy_cafile /etc/ssl/cert.pem
+#sslproxy_options SINGLE_DH_USE
+#sslproxy_cafile /etc/ssl/cert.pem
 
-ssl_bump stare all
-ssl_bump bump all
+#ssl_bump stare all
+#ssl_bump bump all
 
-#sslproxy_flags DONT_VERIFY_PEER
-#sslproxy_cert_error allow all
+##sslproxy_flags DONT_VERIFY_PEER
+##sslproxy_cert_error allow all
 
 # OPTIONS RELATING TO EXTERNAL SSL_CRTD
 # -----------------------------------------------------------------------------
 
-sslcrtd_program /usr/local/libexec/squid/ssl_crtd -s /var/squid/ssl_db -M 16MB -b 16KB
-sslcrtd_children 32 startup=1 idle=1
+#sslcrtd_program /usr/local/libexec/squid/ssl_crtd -s /var/squid/ssl_db -M 16MB -b 16KB
+#sslcrtd_children 32 startup=1 idle=1
 
 # LOGFILE OPTIONS
 # -----------------------------------------------------------------------------

@@ -17,6 +17,16 @@ zone:
 	outgoing-interface: {{ wan_ipv4 | ipaddr('address') }}
 
 zone:
+	name: "cannoli.london"
+	zonefile: "master/%s.zone"
+	notify: 81.187.81.32 NOKEY # secondary-dns.co.uk
+	provide-xfr: 81.187.81.32 NOKEY # secondary-dns.co.uk
+	provide-xfr: 88.198.106.11 NOKEY # b.transfer.buddyns.com
+	provide-xfr: 90.155.23.32 NOKEY # b.nameless.aa.net.uk
+	provide-xfr: 173.244.206.26 NOKEY # a.transfer.buddyns.com
+	outgoing-interface: {{ wan_ipv4 | ipaddr('address') }}
+
+zone:
 	name: "leavethegun.com"
 	zonefile: "master/%s.zone"
 	notify: 81.187.81.32 NOKEY # secondary-dns.co.uk

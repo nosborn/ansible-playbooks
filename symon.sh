@@ -29,34 +29,7 @@ rrdtool xport \
   'XPORT:write:Write' \
   >/var/www/symon/disk-sd0.json
 
-#for interface in pppoe0 tun0; do
-#  rrdtool graph /var/www/symon/if_${interface}.json \
-#    --start 'end-1h' \
-#    --end "${now}" \
-#    --title "if_${interface}" \
-#    --width 600 \
-#    --height 150 \
-#    --lazy \
-#    --imgformat JSONTIME \
-#    "DEF:ibytes=/var/db/symon/if_${interface}.rrd:ibytes:AVERAGE" \
-#    "DEF:obytes=/var/db/symon/if_${interface}.rrd:obytes:AVERAGE" \
-#    'AREA:ibytes#0000FF:ibytes' \
-#    'LINE:obytes#00FF00:obytes'
-#
-#  rrdtool graph /var/www/symon/if_${interface}.png \
-#    --start 'end-1h' \
-#    --end "${now}" \
-#    --title "if_${interface}" \
-#    --width 600 \
-#    --height 150 \
-#    --lazy \
-#    "DEF:ibytes=/var/db/symon/if_${interface}.rrd:ibytes:AVERAGE" \
-#    "DEF:obytes=/var/db/symon/if_${interface}.rrd:obytes:AVERAGE" \
-#    'AREA:ibytes#0000FF:ibytes\l' \
-#    'LINE:obytes#00FF00:obytes\l'
-#done
-
-for interface in pppoe0 tun0; do
+for interface in pppoe0 tun0 tun1; do
   rrdtool xport \
     --start 'end-1h' \
     --end "${now}" \

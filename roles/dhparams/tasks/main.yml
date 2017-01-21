@@ -1,0 +1,10 @@
+# roles/dhparams/tasks/main
+---
+- copy:
+    src={{ item }}.pem dest=/etc/ssl/{{ item }}.pem
+    owner=root group=wheel mode=0444
+  with_items:
+    - ffdhe2048
+  # - ffdhe3072
+  # - ffdhe4096
+...
