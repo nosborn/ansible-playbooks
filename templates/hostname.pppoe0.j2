@@ -4,7 +4,6 @@ inet {{ wan_ipv4 | ipaddr('address') }} 255.255.255.255 NONE mtu 1492 \
   up
 dest {{ wan_ipv4_dest }}
 
-!/sbin/route add -inet 5.196.64.52 -ifp \$if {{ wan_ipv4 | ipaddr('address') }}
 !/sbin/route add -inet 81.187.30.0/25 -ifp \$if {{ wan_ipv4 | ipaddr('address') }}
 !/sbin/route add -inet 81.187.81.0/24 -ifp \$if {{ wan_ipv4 | ipaddr('address') }}
 !/sbin/route add -inet 90.155.53.0/24 -ifp \$if {{ wan_ipv4 | ipaddr('address') }}
