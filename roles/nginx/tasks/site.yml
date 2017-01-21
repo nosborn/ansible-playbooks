@@ -4,8 +4,10 @@
   notify: restart nginx
 
 - file:
-    path=/var/www/sites/{{ name }} state=directory
+    path={{ item }} state=directory
     owner=root group=daemon mode=0755
+  with_items:
+    - /var/www/sites/{{ name }}
 
 - template:
     src=site.conf.j2 dest=/etc/nginx/sites.d/{{ name }}.conf

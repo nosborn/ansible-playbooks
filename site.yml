@@ -54,6 +54,7 @@
     - pf
     - pftop
     - router
+    - rsyncd
     - smtpd
     - squid
     - ssh

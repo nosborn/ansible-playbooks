@@ -1,0 +1,38 @@
+pid file = /var/run/rsyncd.pid
+address = {{ rsyncd_address }}
+
+use_chroot = true
+list = false
+secrets = /etc/rsyncd.secrets
+{% for module in rsyncd_modules %}
+
+[{{ module.name }}]
+	path = {{ module.path }}
+{%   if module.max_connections is defined %}
+	max_connections = {{ module.max_connections }}
+{%   endif %}
+{%   if module.read_only is defined %}
+	read only = {{ module.read_only }}
+{%   endif %}
+{%   if module.write_only is defined %}
+	write only = {{ module.write_only }}
+{%   endif %}
+{%   if module.list is defined %}
+	list = {{ module.list }}
+{%   endif %}
+{%   if module.uid is defined %}
+	uid = {{ module.uid }}
+{%   endif %}
+{%   if module.gid is defined %}
+	gid = {{ module.gid }}
+{%   endif %}
+{%   if module.auth_users is defined %}
+	auth users = {{ module.auth_users | join(' ') }}
+{%   endif %}
+{%   if module.hosts_allow is defined %}
+	hosts allow = {{ module.hosts_allow | join(' ') }}
+{%   endif %}
+{%   if module.hosts_deny is defined %}
+	hosts deny = {{ module.hosts_deny | join(' ') }}
+{%   endif %}
+{% endfor %}

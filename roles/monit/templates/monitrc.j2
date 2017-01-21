@@ -119,10 +119,10 @@ check process ntpd matching "^/usr/sbin/ntpd "
 #check process openvpn-server with pidfile /var/openvpn/tun1.pid
 #  #start program = "/bin/sh /etc/netstart tun1"
 
-#check process relayd matching "^/usr/sbin/relayd$"
-#  #start program = "/usr/sbin/rcctl start relayd"
-#  #stop program = "/usr/sbin/rcctl stop relayd"
-#  #restart program = "/usr/sbin/rcctl restart relayd"
+check process rsyncd with pidfile /var/run/rsyncd.pid
+  #start program = "/usr/sbin/rcctl start rsyncd"
+  #stop program = "/usr/sbin/rcctl stop rsyncd"
+  #restart program = "/usr/sbin/rcctl restart rsyncd"
 
 check process smtpd matching "^/usr/sbin/smtpd$"
   #start program = "/usr/sbin/rcctl start smtpd"
