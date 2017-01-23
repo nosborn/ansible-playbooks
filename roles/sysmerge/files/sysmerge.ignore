@@ -1,6 +1,7 @@
 /etc/acme-client.conf
 /etc/mail/aliases
 /etc/mail/smtpd.conf
+/etc/newsyslog.conf
 /etc/nginx/nginx.conf
 /etc/ntpd.conf
 /etc/pf.conf

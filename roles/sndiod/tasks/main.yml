@@ -1,0 +1,5 @@
+# roles/sndiod/tasks/main
+---
+- name: disable audio/MIDI server
+  service: name=sndiod enabled=no state=stopped
+...

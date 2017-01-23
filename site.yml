@@ -18,10 +18,6 @@
         - pppoe0
         - re0
 
-    #- copy:
-    #    content="{{ mygate }}\n" dest=/etc/mygate
-    #    owner=root group=wheel mode=0444
-
     - name: Default hostname
       copy:
         content="tombstone.{{ global_domain }}\n" dest=/etc/myname
@@ -36,6 +32,7 @@
       template:
         src=templates/resolv.conf.j2 dest=/etc/resolv.conf
         owner=root group=wheel mode=0444
+
   roles:
     - apmd
   # - backup
@@ -43,22 +40,27 @@
     - c-icap
     - collectd
     - dhcpd
+    - daily
     - doas
     - goaccess
     - iked
     - letsencrypt
+    - locale
+    - newsyslog
     - nginx
     - nsd
     - ntpd
+    - openmdns
     - openvpn
     - pf
     - pftop
     - router
-    - rsyncd
     - smtpd
+    - sndiod
     - squid
     - ssh
     - sysclean
+    - sysmerge
     - unbound
     - monit # do last
 
@@ -68,39 +70,16 @@
         src=hosts.j2 dest=/etc/hosts
         owner=root group=wheel mode=0444
 
-# #- name: set localtime link
-# #  file: force=yes dest=/etc/localtime src=/usr/share/zoneinfo/UTC state=link
-
-    - name: copy daily.local
-      template:
-        src=daily.local.j2 dest=/etc/daily.local
-        owner=root group=wheel mode=0444
-        validate='/bin/sh -n %s'
-
     #- name: system login profile
     #  copy:
     #    content="PS1='\h\$ '\n" dest=/etc/profile
     #    owner=root group=wheel mode=0444
-
-    - name: copy sysmerge.ignore
-      template:
-        src=sysmerge.ignore.j2 dest=/etc/sysmerge.ignore
-        owner=root group=wheel mode=0444
 
     - name: 'terminal initialization information'
       replace:
         dest=/etc/ttys
         regexp='^(console\s+.+)\s+secure$'
         replace='\1'
-
-    - name: install multicast DNS/DNS-SD daemon
-      openbsd_pkg: name=openmdns state=installed
-
-    - name: enable multicast DNS/DNS-SD daemon
-      service: name=mdnsd arguments="-w re0" enabled=yes state=started
-
-    - name: disable audio/MIDI server
-      service: name=sndiod enabled=no state=stopped
 
     - name: sysctl variables to set at system startup
       sysctl: name={{ item.name }} reload=no sysctl_set=yes value={{ item.value }}

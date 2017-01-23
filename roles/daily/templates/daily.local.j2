@@ -17,15 +17,15 @@ TMPFILE=`mktemp` && {
 
 next_part "Expiring bruteforce table:"
 pfctl -q -t bruteforce -T expire 86400
-
 {% if letsencrypt_domains is defined %}
+
 next_part "Renewing certificates:"
 for domain in {{ letsencrypt_domains | join(' ') }}; do
   acme-client -bm -f /etc/acme/privkey.pem ${domain} && {
     rcctl restart nginx || :
   }
 done
-
 {% endif %}
-next_part "Restart OpenVPN client"
-pkill -USR1 -f '^/usr/local/sbin/openvpn .+ --dev tun0' -q -U root
+
+#next_part "Restart OpenVPN client"
+#pkill -USR1 -f '^/usr/local/sbin/openvpn .+ --dev tun0' -q -U root

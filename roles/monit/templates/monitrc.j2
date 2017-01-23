@@ -119,11 +119,6 @@ check process ntpd matching "^/usr/sbin/ntpd "
 #check process openvpn-server with pidfile /var/openvpn/tun1.pid
 #  #start program = "/bin/sh /etc/netstart tun1"
 
-check process rsyncd with pidfile /var/run/rsyncd.pid
-  #start program = "/usr/sbin/rcctl start rsyncd"
-  #stop program = "/usr/sbin/rcctl stop rsyncd"
-  #restart program = "/usr/sbin/rcctl restart rsyncd"
-
 check process smtpd matching "^/usr/sbin/smtpd$"
   #start program = "/usr/sbin/rcctl start smtpd"
   #stop program = "/usr/sbin/rcctl stop smtpd"
@@ -191,7 +186,7 @@ check filesystem usr_local with path /dev/sd0h
   if space usage > 70% for 5 times within 15 cycles then alert
   if inode usage > 70% for 5 times within 15 cycles then alert
 
-check filesystem var with path /dev/sd0j
+check filesystem var with path /dev/sd0i
   if changed fsflags then alert
   if space usage > 70% for 5 times within 15 cycles then alert
   if inode usage > 70% for 5 times within 15 cycles then alert

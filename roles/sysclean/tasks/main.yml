@@ -3,7 +3,8 @@
 - name: install package
   openbsd_pkg: name=sysclean state=installed
 
-- template:
-    src=sysclean.ignore.j2 dest=/etc/sysclean.ignore
+- name: install ignore file
+  copy:
+    src=sysclean.ignore dest=/etc/sysclean.ignore
     owner=root group=wheel mode=0444
 ...
