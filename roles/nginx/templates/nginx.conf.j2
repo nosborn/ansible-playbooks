@@ -18,6 +18,7 @@ http {
   gzip on;
   gzip_types application/x-javascript application/xml \
     text/css text/javascript text/plain text/xml;
+  gzip_vary on;
 
   server_tokens off;
 
@@ -44,9 +45,6 @@ http {
 
   server {
     listen {{ wan_ipv4 | ipaddr('address') }}:80 default_server;
-{% if wan_ipv6 is defined %}
-  # listen [{{ wan_ipv6 | ipaddr('address') }}]:80 default_server;
-{% endif %}
     server_name _;
 
     gzip off;

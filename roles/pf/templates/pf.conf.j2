@@ -3,33 +3,24 @@
 # Options
 
 set block-policy return
-set limit table-entries 400000
+#set limit table-entries 400000
 set loginterface egress
 set skip on { {{ ['enc0', 'lo', pppoe_pppoedev] | sort | join(' ') }} }
 
 # Tables
 
 table <ISP_NETBLOCKS> const {
-{% for isp_netblock in isp_netblocks | sort %}
+{% for isp_netblock in isp_netblocks | ipv4 | sort %}
   {{ isp_netblock }}
 {% endfor %}
 }
 
 table <bogons-v4> counters persist file "/var/db/fullbogons-ipv4.txt"
-table <bogons-v6> counters persist file "/var/db/fullbogons-ipv6.txt"
+#table <bogons-v6> counters persist file "/var/db/fullbogons-ipv6.txt"
 
 #
 
-match on egress scrub (max-mss 1452)
-
 # match out on egress inet scrub
-{% for ipv4 in [lan_ipv4, vpn_server_ipv4] %}
-match out on egress inet from {{ ipv4 | ipaddr('network') }}/{{ ipv4 | ipaddr('prefix') }} nat-to {{ wan_ipv4 | ipaddr('address') }}
-{% endfor %}
-
-{% for ipv4 in [lan_ipv4, vpn_server_ipv4] %}
-match out on {{ vpn_client_if }} inet from {{ ipv4 | ipaddr('network') }}/{{ ipv4 | ipaddr('prefix') }} nat-to ({{ vpn_client_if }}:0)
-{% endfor %}
 
 match in inet scrub (no-df random-id)
 
@@ -52,6 +43,8 @@ antispoof quick for {{ ifspec }}
 
 # ==== PPPOE0 ====
 
+match on {{ wan_if }} scrub (max-mss 1452)
+
 # ---- IN on pppoe0 ----
 
 block drop in log on {{ wan_if }}
@@ -68,17 +61,15 @@ pass in on {{ wan_if }} inet proto udp to {{ wan_ipv4 | ipaddr('address') }} por
   reply-to ({{ wan_if }} ({{ wan_if }}:peer))
 pass in on {{ wan_if }} inet proto icmp to {{ wan_ipv4 | ipaddr('address') }} icmp-type echoreq \
   reply-to ({{ wan_if }} ({{ wan_if }}:peer))
-{% if wan_ipv6 is defined %}
-
-block in log quick on {{ wan_if }} inet6 from <bogons6>
-
-pass in on {{ wan_if }} inet6 proto { tcp udp } to {{ wan_ipv6 | ipaddr('address') }} port 53 \
-  reply-to ({{ wan_if }} ({{ wan_if }}:peer))
-pass in on {{ wan_if }} inet6 proto ipv6-icmp to {{ wan_ipv6 | ipaddr('address') }} icmp6-type echoreq \
-  reply-to ({{ wan_if }} ({{ wan_if }}:peer))
-{% endif %}
 
 # ---- OUT on pppoe0 ----
+
+match out on {{ wan_if }} inet \
+  from {{ lan_ipv4 | ipaddr('network') }}/{{ lan_ipv4 | ipaddr('prefix') }} \
+  nat-to {{ wan_ipv4 | ipaddr('address') }}
+match out on {{ wan_if }} inet \
+  from {{ vpn_server_ipv4 | ipaddr('network') }}/{{ vpn_server_ipv4 | ipaddr('prefix') }} \
+  nat-to {{ wan_ipv4 | ipaddr('address') }}
 
 block out log on {{ wan_if }}
 
@@ -87,10 +78,8 @@ block out log quick on {{ wan_if }} inet to <bogons4>
 pass out on {{ wan_if }} inet proto udp to port 2049
 pass out on {{ wan_if }} inet tagged DiabloIII
 
-{% if wan_ipv6 is defined %}
-block out log quick on {{ wan_if }} inet6 to <bogons6>
+block out log quick on {{ wan_if }} inet6
 
-{% endif %}
 pass out on {{ wan_if }} to <ISP_NETBLOCKS>
 
 # ==== RE0 ====
@@ -121,9 +110,13 @@ block drop in log on {{ vpn_client_if }}
 
 # ---- OUT on tun0 ----
 
+match out on {{ vpn_client_if }} inet from {{ lan_ipv4 | ipaddr('network') }}/{{ lan_ipv4 | ipaddr('prefix') }} nat-to ({{ vpn_client_if }}:0)
+match out on {{ vpn_client_if }} inet from {{ vpn_server_ipv4 | ipaddr('network') }}/{{ vpn_server_ipv4 | ipaddr('prefix') }} nat-to ({{ vpn_client_if }}:0)
+
 block out log on {{ vpn_client_if }}
 
 block out log quick on {{ vpn_client_if }} to <ISP_NETBLOCKS>
+block out log quick on {{ vpn_client_if }} inet6
 
 pass out on {{ vpn_client_if }} inet
 
@@ -133,9 +126,13 @@ pass out on {{ vpn_client_if }} inet
 
 pass in on {{ vpn_server_if }}
 
+pass in on {{ vpn_server_if }} inet proto tcp to port 80 divert-to 127.0.0.1 port 3129
+
 # ---- OUT on tun1 ----
 
 pass out on {{ vpn_server_if }}
+
+pass out on {{ vpn_server_if }} inet divert-reply
 
 # ==== END ====
 

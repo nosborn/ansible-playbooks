@@ -57,6 +57,7 @@ http_access deny all
 #http_port {{ vpn_server_ipv4 | ipaddr('address') }}:3128 ssl-bump generate-host-certificates=on dynamic_cert_mem_cache_size=4MB cert=/etc/squid/bumpca.pem dhparams=/etc/ssl/ffdhe2048.pem
 http_port {{ lan_ipv4 | ipaddr('address') }}:3128
 http_port {{ vpn_server_ipv4 | ipaddr('address') }}:3128
+http_port 127.0.0.1:3129 intercept
 
 # SSL OPTIONS
 # -----------------------------------------------------------------------------
@@ -106,6 +107,10 @@ icap_service url_check reqmod_precache icap://127.0.0.1:{{ c_icap_port }}/{{ c_i
 # -----------------------------------------------------------------------------
 
 adaptation_access url_check allow all
+
+via off
+
+request_header_access From deny all
 
 # MISCELLANEOUS
 # -----------------------------------------------------------------------------

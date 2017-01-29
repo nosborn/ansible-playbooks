@@ -7,20 +7,14 @@ server:
 	interface: {{ lan_ipv4 | ipaddr('address') }}
 	interface: {{ vpn_server_ipv4 | ipaddr('address') }}
 	interface: ::1
-{% if lan_ipv6 is defined %}
-	interface: {{ lan_ipv6 | ipaddr('address') }}
-{% endif %}
-{% if vpn_server_ipv6 is defined %}
-#	interface: {{ vpn_server_ipv6 | ipaddr('address') }}
-{% endif %}
 
-#	outgoing-interface: {{ wan_ipv4 | ipaddr('address') }}
-	outgoing-range: 450
+#	outgoing-interface: {{ vpn_client_if }}
+#	outgoing-range: 450
 
 	msg-cache-size: 50m
 	msg-cache-slabs: {{ ansible_processor_cores }}
 
-	num-queries-per-thread: 225
+#	num-queries-per-thread: 225
 
 	ip-transparent: yes
 

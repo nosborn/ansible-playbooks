@@ -1,15 +1,10 @@
 /etc/acme/privkey.pem
 /etc/daily.local
-/etc/iked/ca
-/etc/iked/certs
-/etc/iked/crls
-/etc/iked/export
 /etc/kbdtype
 /etc/mail/secrets
 /etc/openvpn
 /etc/ssl/acme
 /etc/ssl/ffdhe2048.pem
-/etc/ssl/vpn
 /etc/sysclean.ignore
 /var/nsd/etc
 /var/nsd/run

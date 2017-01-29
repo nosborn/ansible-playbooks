@@ -1,5 +1,0 @@
-# roles/rtavd/handlers/main
----
-- name: restart rtadvd
-  service: name=rtadvd state=restarted
-...

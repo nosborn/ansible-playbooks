@@ -4,7 +4,7 @@ PATH="/usr/local/bin:${PATH}"
 
 next_part "Updating fullbogon lists:"
 TMPFILE=`mktemp` && {
-  for v in 4 6; do
+  for v in 4; do
     DBFILE=/var/db/fullbogons-ipv${v}.txt
     ftp -4agMV -o $TMPFILE https://www.team-cymru.org/Services/Bogons/fullbogons-ipv${v}.txt
     test -s $TMPFILE && cmp -s $TMPFILE $DBFILE || {
