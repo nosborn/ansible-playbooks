@@ -426,12 +426,11 @@ LoadPlugin swap
 #</Plugin>
 
 <Plugin ping>
-	Host "10.4.0.1"
 	Host "{{ wan_ipv4_dest }}"
 #	Interval 1.0
 #	Timeout 0.9
 #	TTL 255
-#	SourceAddress "{{ wan_ipv4 | ipaddr('address') }}"
+	SourceAddress "{{ wan_ipv4 | ipaddr('address') }}"
 #	Device "eth0"
 #	MaxMissed -1
 </Plugin>

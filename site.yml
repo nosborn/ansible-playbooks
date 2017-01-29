@@ -55,6 +55,7 @@
     - pf
     - pftop
     - router
+    - rtadvd
     - smtpd
     - sndiod
     - squid

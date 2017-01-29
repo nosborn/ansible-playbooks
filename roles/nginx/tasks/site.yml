@@ -1,16 +1,15 @@
 # roles/nginx/tasks/site
 ---
-- include: roles/letsencrypt/tasks/domain.yml domain={{ name }}
+- include: roles/letsencrypt/tasks/domain.yml domain={{ site.name }}
   notify: restart nginx
 
 - file:
-    path={{ item }} state=directory
+    path=/var/www/sites/{{ site.name }} state=directory
     owner=root group=wheel mode=0775
-  with_items:
-    - /var/www/sites/{{ name }}
+  when: site.redirect is not defined
 
 - template:
-    src=site.conf.j2 dest=/etc/nginx/sites.d/{{ name }}.conf
+    src=site.conf.j2 dest=/etc/nginx/sites.d/{{ site.name }}.conf
     owner=root group=wheel mode=0444
   notify: restart nginx
 ...

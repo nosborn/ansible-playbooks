@@ -7,7 +7,7 @@
     owner=root group=wheel mode=0644
   with_items:
     - fullbogons-ipv4.txt
-  # - fullbogons-ipv6.txt
+    - fullbogons-ipv6.txt
   notify: reload pf
 
 - name: packet filter configuration file

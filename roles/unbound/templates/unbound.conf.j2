@@ -7,6 +7,12 @@ server:
 	interface: {{ lan_ipv4 | ipaddr('address') }}
 	interface: {{ vpn_server_ipv4 | ipaddr('address') }}
 	interface: ::1
+{% if lan_ipv6 is defined %}
+	interface: {{ lan_ipv6 | ipaddr('address') }}
+{% endif %}
+{% if vpn_server_ipv6 is defined %}
+#	interface: {{ vpn_server_ipv6 | ipaddr('address') }}
+{% endif %}
 
 #	outgoing-interface: {{ wan_ipv4 | ipaddr('address') }}
 	outgoing-range: 450
@@ -76,14 +82,16 @@ server:
 
 remote-control:
 	control-enable: yes
+{% if unbound_forward_zones is defined %}
+{%   for forward_zone in unbound_forward_zones %}
 
-{% for forward_zone in unbound_forward_zones %}
 forward-zone:
 	name: "{{ forward_zone.name }}"
-{%   for forward_addr in forward_zone.forward_addrs %}
+{%     for forward_addr in forward_zone.forward_addrs %}
 	forward-addr: {{ forward_addr }}
-{%   endfor %}
-{%   if forward_zone.forward_first is defined %}
+{%     endfor %}
+{%     if forward_zone.forward_first is defined %}
 	forward-first: {{ forward_zone.forward_first }}
-{%   endif %}
-{% endfor %}
+{%     endif %}
+{%   endfor %}
+{% endif %}

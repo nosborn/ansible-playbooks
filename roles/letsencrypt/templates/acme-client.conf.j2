@@ -11,13 +11,16 @@ authority letsencrypt-staging {
   account key "{{ letsencrypt_staging_account_key_file }}"
 }
 {% endif %}
-{% for domain in letsencrypt_domains | sort %}
+{% for site in sites | sort(attribute='name') %}
 
-domain {{ domain }} {
-  domain key "/etc/ssl/private/{{ domain }}.key"
-  domain certificate "/etc/ssl/{{ domain }}.crt"
-  domain chain certificate "/etc/ssl/{{ domain }}.chain.pem"
-  domain full chain certificate "/etc/ssl/{{ domain }}.fullchain.pem"
+domain {{ site.name }} {
+{% if site.aliases is defined %}
+  alternative names { {{ site.aliases | sort | join(' ' ) }} }
+{% endif %}
+  domain key "/etc/ssl/private/{{ site.name }}.key"
+  domain certificate "/etc/ssl/{{ site.name }}.crt"
+  domain chain certificate "/etc/ssl/{{ site.name }}.chain.pem"
+  domain full chain certificate "/etc/ssl/{{ site.name }}.fullchain.pem"
   sign with letsencrypt
 }
 {% endfor %}

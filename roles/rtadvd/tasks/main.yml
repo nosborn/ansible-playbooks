@@ -1,5 +1,11 @@
-# roles/router/tasks/rtadvd
+# roles/rtavd/tasks/main
 ---
+- sysctl:
+    name={{ item.name }} value={{ item.value }}
+    reload=no sysctl_set=yes
+  with_items:
+    - { name: net.inet6.ip6.forwarding, value: 1 }
+
 - template:
     src=rtadvd.conf.j2 dest=/etc/rtadvd.conf
     owner=root group=wheel mode=0444
