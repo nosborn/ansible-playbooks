@@ -113,11 +113,11 @@ check process ntpd matching "^/usr/sbin/ntpd "
   #stop program = "/usr/sbin/rcctl stop ntpd"
   #restart program = "/usr/sbin/rcctl restart ntpd"
 
-#check process openvpn-client with pidfile /var/openvpn/tun0.pid
-#  #start program = "/bin/sh /etc/netstart tun0"
+#check process openvpn-client with pidfile /var/openvpn/client.pid
+#  #start program = "/bin/sh /etc/netstart {{ vpn_client_if }}"
 
-#check process openvpn-server with pidfile /var/openvpn/tun1.pid
-#  #start program = "/bin/sh /etc/netstart tun1"
+#check process openvpn-server with pidfile /var/openvpn/server.pid
+#  #start program = "/bin/sh /etc/netstart {{ vpn_server_if }}"
 
 check process smtpd matching "^/usr/sbin/smtpd$"
   #start program = "/usr/sbin/rcctl start smtpd"
@@ -186,7 +186,7 @@ check filesystem usr_local with path /dev/sd0h
   if space usage > 70% for 5 times within 15 cycles then alert
   if inode usage > 70% for 5 times within 15 cycles then alert
 
-check filesystem var with path /dev/sd0i
+check filesystem var with path /dev/sd0j
   if changed fsflags then alert
   if space usage > 70% for 5 times within 15 cycles then alert
   if inode usage > 70% for 5 times within 15 cycles then alert
@@ -212,23 +212,23 @@ check filesystem var with path /dev/sd0i
 #    if failed uid 0 then unmonitor
 #    if failed gid 0 then unmonitor
 
-check network LAN with interface re0
-  start program = "/bin/sh /etc/netstart re0"
+check network LAN with interface {{ lan_if }}
+  start program = "/bin/sh /etc/netstart {{ lan_if }}"
   if failed link then alert
   if changed link capacity then alert
 
-check network VPN.CLIENT with interface tun0
-  start program = "/bin/sh /etc/netstart tun0"
+check network VPN.CLIENT with interface {{ vpn_client_if }}
+  start program = "/bin/sh /etc/netstart {{ vpn_client_if }}"
   if failed link then alert
   if changed link capacity then alert
 
-check network VPN.SERVER with interface tun1
-  start program = "/bin/sh /etc/netstart tun1"
+check network VPN.SERVER with interface {{ vpn_server_if }}
+  start program = "/bin/sh /etc/netstart {{ vpn_server_if }}"
   if failed link then alert
   if changed link capacity then alert
 
-check network WAN with interface pppoe0
-  start program = "/bin/sh /etc/netstart pppoe0"
+check network WAN with interface {{ wan_if }}
+  start program = "/bin/sh /etc/netstart {{ wan_if }}"
   if failed link then alert
   if changed link capacity then alert
 

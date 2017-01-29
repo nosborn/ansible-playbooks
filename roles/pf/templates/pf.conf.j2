@@ -5,7 +5,7 @@
 set block-policy return
 #set limit table-entries 400000
 set loginterface egress
-set skip on { axe0 enc0 lo }
+set skip on { {{ ['enc0', 'lo', pppoe_pppoedev] | sort | join(' ') }} }
 
 # Tables
 
@@ -17,9 +17,14 @@ table <fullbogons4> counters persist file "/var/db/fullbogons-ipv4.txt"
 
 match on egress scrub (max-mss 1452)
 
-## match out on egress inet scrub
-match out on egress inet from re0:network nat-to (egress:0)
-match out on tun0 inet from { re0:network (tun1:network) } nat-to (tun0:0)
+# match out on egress inet scrub
+{% for ipv4 in [lan_ipv4, vpn_server_ipv4] %}
+match out on egress inet from {{ ipv4 | ipaddr('network') }}/{{ ipv4 | ipaddr('prefix') }} nat-to {{ wan_ipv4 | ipaddr('address') }}
+{% endfor %}
+
+{% for ipv4 in [lan_ipv4, vpn_server_ipv4] %}
+match out on {{ vpn_client_if }} inet from {{ ipv4 | ipaddr('network') }}/{{ ipv4 | ipaddr('prefix') }} nat-to ({{ vpn_client_if }}:0)
+{% endfor %}
 
 match in inet scrub (no-df random-id)
 
@@ -28,7 +33,9 @@ match in inet scrub (no-df random-id)
 block in # log
 pass out quick
 
-antispoof quick for { lo0 pppoe0 re0 }
+{% for ifspec in ['lo0', lan_if, pppoe_pppoedev] | sort %}
+antispoof quick for {{ ifspec }}
+{% endfor %}
 
 block drop in log quick on egress inet from <fullbogons4> label bogons4
 # TODO: figure out routeradv
@@ -38,23 +45,26 @@ block drop in log quick on egress from <bruteforce> label bruteforce
 block return out log quick on egress inet to <fullbogons4>
 #block return out log quick on egress inet6 to <fullbogons6>
 
-#pass in quick on re0 inet from re0:network to { pppoe0:0 re0 }
+#pass in quick on {{ lan_if }} inet from {{ lan_if }}:network to { {{ lan_if }} pppoe0:0 }
 
 ## https://us.battle.net/support/en/article/300479
-pass in quick on re0 inet proto { tcp udp } from re0:network to port 1119 \
+pass in quick on {{ lan_if }} inet proto { tcp udp } \
+  from {{ lan_ipv4 | ipaddr('network') }}/{{ lan_ipv4 | ipaddr('prefix') }} to port 1119 \
   route-to (pppoe0 (pppoe0:peer))
-#pass in quick on re0 inet proto udp from re0:network to port { 1119 6120 } route-to (pppoe0 (pppoe0:peer))
+#pass in quick on {{ lan_if }} inet proto udp \
+#  from {{ lan_if }}:network to port { 1119 6120 } \
+#  route-to (pppoe0 (pppoe0:peer))
 
-pass in quick on re0 inet from re0:network
-#pass in quick on re0 inet6 from re0:network to { pppoe0 re0 }
-#block return in quick on re0 inet6
+pass in quick on {{ lan_if }} inet from {{ lan_if }}:network
+#pass in quick on {{ lan_if }} inet6 from {{ lan_if }}:network to { {{ lan_if }} pppoe0 }
+#block return in quick on {{ lan_if }} inet6
 
-#block return out log quick on tun0 inet proto tcp from pppoe0:0 to port 1119
-#block return out log quick on tun0 inet proto udp from pppoe0:0 to port { 1119 6120 }
+#block return out log quick on {{ vpn_client_if }} inet proto tcp from pppoe0:0 to port 1119
+#block return out log quick on {{ vpn_client_if }} inet proto udp from pppoe0:0 to port { 1119 6120 }
 
-block return in log quick on tun1 inet to re0:network
-pass in quick on tun1 inet from (tun1:network)
-block return log quick on tun1 inet6 # bidirectional
+block return in log quick on {{ vpn_server_if }} inet to {{ lan_if }}:network
+pass in quick on {{ vpn_server_if }} inet from ({{ vpn_server_if }}:network)
+block return log quick on {{ vpn_server_if }} inet6 # bidirectional
 
 antispoof quick for (egress)
 # Troublesome with VPN...
@@ -69,14 +79,14 @@ pass in quick on egress inet proto tcp to {{ wan_ipv4 | ipaddr('address') }} por
   reply-to (pppoe0 (pppoe0:peer))
 pass in quick on egress inet proto udp to {{ wan_ipv4 | ipaddr('address') }} port 1194 \
   reply-to (pppoe0 (pppoe0:peer))
-#pass in quick on egress inet proto icmp to {{ wan_ipv4 | ipaddr('address') }} icmp-type echoreq \
-#  reply-to (pppoe0 (pppoe0:peer))
+pass in quick on egress inet proto icmp to {{ wan_ipv4 | ipaddr('address') }} icmp-type echoreq \
+  reply-to (pppoe0 (pppoe0:peer))
 {% if wan_ipv6 is defined %}
 #pass in quick on egress inet6 proto ipv6-icmp to {{ wan_ipv6 | ipaddr('address') }} icmp6-type echoreq
 {% endif %}
 
-#block return out log quick on pppoe0 inet6 from re0:network
-#block return out log quick on tun0 inet6 from re0:network
+#block return out log quick on pppoe0 inet6 from {{ lan_if }}:network
+#block return out log quick on {{ vpn_client_if }} inet6 from {{ lan_if }}:network
 block drop in log quick on egress
 
 block return	# block stateless traffic

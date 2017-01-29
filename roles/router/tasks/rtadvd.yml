@@ -5,5 +5,5 @@
     owner=root group=wheel mode=0444
   notify: restart rtadvd
 
-- service: name=rtadvd arguments='-s re0' enabled=yes state=started
+- service: name=rtadvd arguments="-s {{ lan_if }}" enabled=yes state=started
 ...

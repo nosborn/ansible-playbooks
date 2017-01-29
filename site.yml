@@ -14,9 +14,9 @@
         owner=root group=wheel mode=0440
       notify: netstart
       with_items:
-        - axe0
-        - pppoe0
-        - re0
+        - "{{ lan_if }}"
+        - "{{ pppoe_pppoedev }}"
+        - "{{ wan_if }}"
 
     - name: Default hostname
       copy:
@@ -43,7 +43,7 @@
     - daily
     - doas
     - goaccess
-    - iked
+  # - iked
     - letsencrypt
     - locale
     - newsyslog
@@ -62,6 +62,7 @@
     - sysclean
     - sysmerge
     - unbound
+    - wscons
     - monit # do last
 
   tasks:
@@ -87,7 +88,6 @@
         - { name: ddb.panic, value: 0 }
         - { name: net.inet.ah.enable, value: 0 }
         - { name: net.inet.esp.enable, value: 0 }
-        - { name: net.inet.ipcomp.enable, value: 0 }
 
   handlers:
   - name: netstart

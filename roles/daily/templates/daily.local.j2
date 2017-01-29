@@ -28,4 +28,4 @@ done
 {% endif %}
 
 #next_part "Restart OpenVPN client"
-#pkill -USR1 -f '^/usr/local/sbin/openvpn .+ --dev tun0' -q -U root
+#pkill -USR1 -f '^/usr/local/sbin/openvpn .+ /etc/openvpn/client\.conf ' -q -U root

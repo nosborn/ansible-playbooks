@@ -4,5 +4,5 @@
   openbsd_pkg: name=openmdns state=installed
 
 - name: enable multicast DNS/DNS-SD daemon
-  service: name=mdnsd arguments='-w re0' enabled=yes state=started
+  service: name=mdnsd arguments="-w {{ lan_if }}" enabled=yes state=started
 ...

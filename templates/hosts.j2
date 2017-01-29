@@ -1,4 +1,4 @@
 127.0.0.1	localhost
 ::1		localhost
 
-{{ wan_ipv4 | ipaddr('address') }}	{{ ansible_hostname }}.{{ global_domain }}	{{ ansible_hostname }}
+{{ wan_ipv4 | ipaddr('address') }}	{{ ansible_fqdn }}	{{ ansible_hostname }}

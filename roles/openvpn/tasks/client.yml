@@ -2,7 +2,7 @@
 ---
 - name: configure secure IP tunnel daemon
   copy:
-    content="{{ openvpn_client_config }}" dest=/etc/openvpn/tun0.conf
+    content="{{ openvpn_client_config }}" dest=/etc/openvpn/client.conf
     owner=root group=wheel mode=0400
   notify: reload openvpn
 
@@ -22,7 +22,7 @@
 
 - name: interface-specific configuration file
   template:
-    src=hostname.if.j2 dest=/etc/hostname.tun0
+    src=hostname.client.j2 dest=/etc/hostname.{{ vpn_client_if }}
     owner=root group=wheel mode=0440
-  notify: restart openvpn
+# notify: restart openvpn
 ...

@@ -1,22 +1,14 @@
 # roles/letsencrypt/tasks/domain
 ---
-- file:
-    path=/etc/ssl/acme/{{ domain }} state=directory
-    owner=root group=wheel mode=0755
-
-- file:
-    path=/etc/ssl/acme/private/{{ domain }} state=directory
-    owner=root group=wheel mode=0700
-
-- command: /usr/sbin/acme-client -mN -f /etc/acme/privkey.pem {{ domain }} {{ altnames | default([]) | join(' ') }}
+- command: /usr/sbin/acme-client -D {{ domain }}
   args:
-    creates: /etc/ssl/acme/{{ domain }}/cert.pem
+    creates: /etc/ssl/{{ domain }}.crt
 
 - fetch:
     dest=backup fail_on_missing=yes src={{ item }}
   with_items:
-    - /etc/ssl/acme/{{ domain }}/cert.pem
-    - /etc/ssl/acme/{{ domain }}/chain.pem
-    - /etc/ssl/acme/{{ domain }}/fullchain.pem
-    - /etc/ssl/acme/private/{{ domain }}/privkey.pem
+    - /etc/ssl/{{ domain }}.crt
+    - /etc/ssl/{{ domain }}.chain.pem
+    - /etc/ssl/{{ domain }}.fullchain.pem
+    - /etc/ssl/private/{{ domain }}.key
 ...

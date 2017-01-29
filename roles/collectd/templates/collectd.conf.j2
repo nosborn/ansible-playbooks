@@ -313,12 +313,10 @@ LoadPlugin swap
 #</Plugin>
 
 <Plugin interface>
-	Interface "axe0"
-	Interface "enc0"
-	Interface "iwm0"
-	Interface "lo0"
-	Interface "pflog0"
-	IgnoreSelected true
+{% for interface in [lan_if, vpn_client_if, vpn_server_if, wan_if] | sort %}
+	Interface "{{ interface }}"
+{% endfor %}
+	IgnoreSelected false
 </Plugin>
 
 #<Plugin load>

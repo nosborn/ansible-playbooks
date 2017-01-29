@@ -33,7 +33,7 @@ PermitRootLogin no
 MaxAuthTries 3
 #MaxSessions 10
 {% if sshd_allow_users is defined %}
-AllowUsers {{ sshd_allow_users | join(' ') }}
+AllowUsers {{ sshd_allow_users | sort | unique | join(' ') }}
 {% endif %}
 
 #PubkeyAuthentication yes
@@ -87,3 +87,9 @@ ClientAliveInterval 15
 
 # no default banner path
 #Banner none
+
+Match Address {{ lan_ipv4 | ipaddr('network') }}/{{ lan_ipv4 | ipaddr('prefix') }}
+  PermitRootLogin prohibit-password
+{% if sshd_allow_users is defined %}
+  AllowUsers root {{ sshd_allow_users | sort | unique | join(' ') }}
+{% endif %}

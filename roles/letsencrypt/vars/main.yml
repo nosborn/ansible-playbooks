@@ -1,0 +1,5 @@
+# roles/letsencrypt/vars/main
+---
+letsencrypt_account_key_file: '/etc/acme/letsencrypt-privkey.pem'
+letsencrypt_staging_account_key_file: '/etc/acme/letsencrypt-staging-privkey.pem'
+...

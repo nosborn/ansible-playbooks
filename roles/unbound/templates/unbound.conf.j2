@@ -1,7 +1,7 @@
 server:
 	verbosity: {{ unbound_verbosity }}
 
-	num-threads: {{ ansible_processor_count }}
+	num-threads: {{ ansible_processor_cores }}
 
 	interface: 127.0.0.1
 	interface: {{ lan_ipv4 | ipaddr('address') }}
@@ -9,6 +9,18 @@ server:
 	interface: ::1
 
 #	outgoing-interface: {{ wan_ipv4 | ipaddr('address') }}
+	outgoing-range: 450
+
+	msg-cache-size: 50m
+	msg-cache-slabs: {{ ansible_processor_cores }}
+
+	num-queries-per-thread: 225
+
+	ip-transparent: yes
+
+	rrset-cache-size: 100m
+	rrset-cache-slabs: {{ ansible_processor_cores }}
+	infra-cache-slabs: {{ ansible_processor_cores }}
 
 	access-control: 0.0.0.0/0 refuse
 	access-control: 127.0.0.0/8 allow
@@ -46,6 +58,8 @@ server:
 	module-config: "iterator"
 
 	domain-insecure: local
+
+	key-cache-slabs: {{ ansible_processor_cores }}
 
 	local-zone: "local" static
 	local-data: "tombstone.local IN A {{ lan_ipv4 | ipaddr('1') | ipaddr('address') }}"
