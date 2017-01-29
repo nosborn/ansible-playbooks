@@ -20,8 +20,8 @@ pfctl -q -t bruteforce -T expire 86400
 {% if letsencrypt_domains is defined %}
 
 next_part "Renewing certificates:"
-for domain in {{ letsencrypt_domains | join(' ') }}; do
-  acme-client -bm -f /etc/acme/privkey.pem ${domain} && {
+for domain in {{ letsencrypt_domains | sort | join(' ') }}; do
+  acme-client ${domain} && {
     rcctl restart nginx || :
   }
 done
