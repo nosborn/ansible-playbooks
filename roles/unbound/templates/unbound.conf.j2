@@ -76,6 +76,7 @@ server:
 
 remote-control:
 	control-enable: yes
+	control-interface: ::1
 {% if unbound_forward_zones is defined %}
 {%   for forward_zone in unbound_forward_zones %}
 

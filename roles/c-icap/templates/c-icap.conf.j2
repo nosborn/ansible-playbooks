@@ -154,7 +154,7 @@ Group _c-icap
 #	about this server (logs, info service, etc)
 # Default:
 #	No value
-ServerAdmin nick@osborn.io
+ServerAdmin nick@{{ global_domain }}
 
 # TAG: ServerName
 # Format: ServerName aServerName
@@ -163,7 +163,7 @@ ServerAdmin nick@osborn.io
 #	server (logs, info service, etc)
 # Default:
 #	No value
-ServerName YourServerName
+ServerName {{ ansible_fqdn }}
 
 # TAG: TmpDir
 # Format: TmpDir dir
@@ -615,7 +615,6 @@ Service echo srv_echo.so
 #	Logger sys_logger
 Module logger sys_logger.so
 
-
 # TAG: sys_logger.Prefix
 # Format: sys_logger.Prefix string
 # Description:
@@ -699,57 +698,5 @@ Module logger sys_logger.so
 #	Module common dnsbl_tables.so
 
 # End module: dnsbl_tables
-
-# Module: ldap_module
-# Description:
-#	Add LDAP support to c-icap. The user can use LDAP based lookup tables
-#	using the following lookup table path:
-#	      ldap://[username:password@]ldapserver?base?attr1,attr2?filter[{[param=value, ...]}]
-#	The filter can contain the "%s" formating code which will be replaced by
-#	the search key.
-#	ldap table parameters can be one or more of the followings:
-#	     name=aName
-#		A unique name to use for this table
-#	     cache=no|cache_type
-#		The cache type to use or no for no cache.
-#	     cache-size=Size[K|M]
-#		The cache size in RAM
-#	     cache-ttl=ttl
-#		The cache ttl to use
-#	     cache-item-size=ItemSize[K|M]
-#		The maximum item size
-#
-#	Examples of supported ldap urls:
-#	     ldap://ldap.chtsanti.net?o=chtsanti?cn,uid?uid=%s{cache=memcached}
-#	     ldap://cn=Directory Manager:Apassword@ldap.chtsanti.net?o=chtsanti?mermberUid?(&(objectClass=posixGroup)(cn=%s))
-#
-#	WARNING: is not enough tested it may contain bugs!
-# Example:
-#	Module common ldap_module.so
-
-# End module: ldap_module
-
-# Module: memcached
-# Description:
-#       Add support for memcached c-icap cache.
-# Example:
-#       Module common memcached.so
-
-# TAG: memcached.servers
-# Format: memcached.servers hostname1 hostname2 ...
-# Description:
-#	Set the memcached servers to use
-# Default:
-#	memcached.servers 127.0.0.1
-
-# TAG: memcached.use_md5_keys
-# Format: memcached.use_md5_keys on|off
-# Description:
-#	Whether to use or not md5 hash as key when the key exceeds the
-#	MEMCACHED_MAX_KEY (normaly 251 bytes)
-# Default:
-#	memcached.use_md5_keys on
-
-# End module: memcached
 
 Include srv_url_check.conf
