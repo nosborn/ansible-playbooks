@@ -16,9 +16,23 @@
   notify: reload openvpn client
 
 - copy:
+    content="{{ openvpn_client_crl }}" dest=/etc/openvpn/client.crl
+    owner=root group=wheel mode=0400
+  when: openvpn_client_crl is defined
+  notify: reload openvpn client
+
+- file: path=/etc/openvpn/client.crl state=absent
+  when: openvpn_client_crl is not defined
+  notify: reload openvpn client
+
+- copy:
     content="{{ openvpn_client_auth_user_pass }}" dest=/etc/openvpn/client.up
     owner=root group=wheel mode=0400
   when: openvpn_client_auth_user_pass is defined
+  notify: reload openvpn client
+
+- file: path=/etc/openvpn/client.up state=absent
+  when: openvpn_client_auth_user_pass is not defined
   notify: reload openvpn client
 
 - name: interface-specific configuration file

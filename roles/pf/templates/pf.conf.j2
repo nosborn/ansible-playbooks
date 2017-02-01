@@ -82,7 +82,8 @@ block return out log on {{ wan_if }}
 
 block return out log quick on {{ wan_if }} inet to <bogons4>
 
-pass out on {{ wan_if }} inet proto udp to port 2049
+pass out on {{ wan_if }} inet proto udp to port { 149:151 1149:1151 }
+#pass out on {{ wan_if }} inet proto udp to port 2049
 pass out on {{ wan_if }} inet tagged DiabloIII
 
 pass out on {{ wan_if }} inet6 from {{ wan_if }} to ff02::2 # All Routers Address
