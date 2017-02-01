@@ -1,5 +1,8 @@
 server {
   listen {{ wan_ipv4 | ipaddr('address') }}:80;
+{% if wan_ipv6 is defined %}
+  listen {{ wan_ipv6 | ipaddr('address') | ipwrap }}:80;
+{% endif %}
 {% if site.aliases is defined %}
   server_name {{ site.name }} {{ site.aliases | sort | join(' ') }};
 {% else %}
@@ -23,6 +26,9 @@ server {
 
 server {
   listen {{ wan_ipv4 | ipaddr('address') }}:443 ssl http2;
+{% if wan_ipv6 is defined %}
+  listen {{ wan_ipv6 | ipaddr('address') | ipwrap }}:80;
+{% endif %}
 {% if site.aliases is defined %}
   server_name {{ site.name }} {{ site.aliases | sort | join(' ') }};
 {% else %}

@@ -4,7 +4,7 @@
   copy:
     content="{{ openvpn_server_config }}" dest=/etc/openvpn/server.conf
     owner=root group=wheel mode=0400
-  notify: reload openvpn
+  notify: reload openvpn server
 
 - name: interface-specific configuration file
   template:

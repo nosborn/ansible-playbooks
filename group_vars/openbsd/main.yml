@@ -1,9 +1,9 @@
 # group_vars/openbsd/main
 ---
-#ansible_become: true
-#ansible_become_method: 'doas'
+ansible_become: true
+ansible_become_method: 'doas'
 ansible_python_interpreter: '/usr/local/bin/python2.7'
-ansible_user: 'root'
+ansible_user: "{{ vault_ansible_user }}"
 pkg_installpath: "{{ vault_pkg_installpath }}"
 root_alias: "{{ vault_root_alias }}"
 sshd_allow_users: "{{ vault_sshd_allow_users }}"

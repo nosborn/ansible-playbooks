@@ -10,7 +10,7 @@ set skip on { {{ ['enc0', 'lo', pppoe_pppoedev] | sort | join(' ') }} }
 # Tables
 
 table <ISP_NETBLOCKS> const {
-{% for isp_netblock in isp_netblocks | ipv4 | sort %}
+{% for isp_netblock in isp_netblocks | sort %}
   {{ isp_netblock }}
 {% endfor %}
 }
@@ -49,7 +49,7 @@ match on {{ wan_if }} scrub (max-mss 1452)
 
 block drop in log on {{ wan_if }}
 
-block in log quick on {{ wan_if }} inet from <bogons4>
+block drop in log quick on {{ wan_if }} inet from <bogons4>
 
 pass in on {{ wan_if }} inet proto tcp to {{ wan_ipv4 | ipaddr('address') }} port 22 \
   reply-to ({{ wan_if }} ({{ wan_if }}:peer))
@@ -62,6 +62,13 @@ pass in on {{ wan_if }} inet proto udp to {{ wan_ipv4 | ipaddr('address') }} por
 pass in on {{ wan_if }} inet proto icmp to {{ wan_ipv4 | ipaddr('address') }} icmp-type echoreq \
   reply-to ({{ wan_if }} ({{ wan_if }}:peer))
 
+# TODO: reply-to
+pass in on {{ wan_if }} inet6 proto { tcp udp } to {{ wan_ipv6 | ipaddr('address') }} port 53
+pass in on {{ wan_if }} inet6 proto tcp to {{ wan_ipv6 | ipaddr('address') }} port { 80 443 }
+pass in on {{ wan_if }} inet6 proto icmp6 to {{ wan_ipv6 | ipaddr('address') }} icmp6-type echoreq
+
+pass in on {{ wan_if }} inet6 proto icmp6 from fe80::/16 to {{ wan_if }} icmp6-type routeradv
+
 # ---- OUT on pppoe0 ----
 
 match out on {{ wan_if }} inet \
@@ -71,14 +78,14 @@ match out on {{ wan_if }} inet \
   from {{ vpn_server_ipv4 | ipaddr('network') }}/{{ vpn_server_ipv4 | ipaddr('prefix') }} \
   nat-to {{ wan_ipv4 | ipaddr('address') }}
 
-block out log on {{ wan_if }}
+block return out log on {{ wan_if }}
 
-block out log quick on {{ wan_if }} inet to <bogons4>
+block return out log quick on {{ wan_if }} inet to <bogons4>
 
 pass out on {{ wan_if }} inet proto udp to port 2049
 pass out on {{ wan_if }} inet tagged DiabloIII
 
-block out log quick on {{ wan_if }} inet6
+pass out on {{ wan_if }} inet6 from {{ wan_if }} to ff02::2 # All Routers Address
 
 pass out on {{ wan_if }} to <ISP_NETBLOCKS>
 
@@ -113,10 +120,10 @@ block drop in log on {{ vpn_client_if }}
 match out on {{ vpn_client_if }} inet from {{ lan_ipv4 | ipaddr('network') }}/{{ lan_ipv4 | ipaddr('prefix') }} nat-to ({{ vpn_client_if }}:0)
 match out on {{ vpn_client_if }} inet from {{ vpn_server_ipv4 | ipaddr('network') }}/{{ vpn_server_ipv4 | ipaddr('prefix') }} nat-to ({{ vpn_client_if }}:0)
 
-block out log on {{ vpn_client_if }}
+block return out log on {{ vpn_client_if }}
 
-block out log quick on {{ vpn_client_if }} to <ISP_NETBLOCKS>
-block out log quick on {{ vpn_client_if }} inet6
+block return out log quick on {{ vpn_client_if }} to <ISP_NETBLOCKS>
+block return out log quick on {{ vpn_client_if }} inet6
 
 pass out on {{ vpn_client_if }} inet
 

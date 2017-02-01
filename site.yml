@@ -55,6 +55,7 @@
     - pf
     - pftop
     - router
+    - rtadvd
     - smtpd
     - sndiod
     - squid
@@ -83,11 +84,11 @@
         replace='\1'
 
     - name: sysctl variables to set at system startup
-      sysctl: name={{ item.name }} reload=no sysctl_set=yes value={{ item.value }}
-      with_items:
-        - { name: ddb.panic, value: 0 }
-        - { name: net.inet.ah.enable, value: 0 }
-        - { name: net.inet.esp.enable, value: 0 }
+      sysctl: name={{ item.key }} reload=no sysctl_set=yes value={{ item.value }}
+      with_dict:
+        ddb.panic: 0
+        net.inet.ah.enable: 0
+        net.inet.esp.enable: 0
 
   handlers:
   - name: netstart

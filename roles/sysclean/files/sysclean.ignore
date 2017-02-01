@@ -1,10 +1,13 @@
-/etc/acme/privkey.pem
+/etc/acme/letsencrypt-privkey.pem
 /etc/daily.local
 /etc/kbdtype
 /etc/mail/secrets
 /etc/openvpn
-/etc/ssl/acme
 /etc/ssl/ffdhe2048.pem
+/etc/ssl/*.crt
+/etc/ssl/*.chain.pem
+/etc/ssl/*.fullchain.pem
+/etc/ssl/private/*.key
 /etc/sysclean.ignore
 /var/nsd/etc
 /var/nsd/run

@@ -89,11 +89,7 @@ ClientAliveInterval 15
 #Banner none
 
 Match Address {{ lan_ipv4 | ipaddr('network') }}/{{ lan_ipv4 | ipaddr('prefix') }}
-  PermitRootLogin prohibit-password
 {% if sshd_allow_users is defined %}
   AllowUsers root {{ sshd_allow_users | sort | unique | join(' ') }}
 {% endif %}
-
-Match LocalAddress {{ wan_ipv4 | ipaddr('address') }}
-  AuthenticationMethods publickey,password
-  PasswordAuthentication yes
+  PermitRootLogin prohibit-password

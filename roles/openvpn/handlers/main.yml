@@ -1,5 +1,8 @@
 # roles/openvpn/handlers/main
 ---
-- name: reload openvpn
+- name: reload openvpn client
+  command: pkill -HUP openvpn
+
+- name: reload openvpn server
   command: pkill -HUP openvpn
 ...

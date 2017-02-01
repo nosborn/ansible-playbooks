@@ -2,7 +2,7 @@ $ORIGIN leavethegun.com.
 $TTL 3600
 
 @		IN	SOA	tombstone.{{ global_domain }}. hostmaster.{{ global_domain }}. (
-				2017012900	;serial
+				2017020100	;serial
 				10800		;refresh
 				1800		;retry
 				604800		;expire
@@ -24,6 +24,7 @@ $TTL 3600
 			CAA	0 issuewild ";"
 
 			A	81.187.87.32
+			AAAA	2001:8b0:d05:c72c::51bb:5720
 
 			TXT	"google-site-verification=q3d9ohB3rSLLF-yHppr5lTSjPPIcLpYh7PJlTqCqcV8"
 
@@ -33,3 +34,4 @@ londoncannolimap	CNAME	www
 m			CNAME	londoncannolimap
 mail			CNAME	ghs.google.com.
 www			A	81.187.87.32
+			AAAA	2001:8b0:d05:c72c::51bb:5720

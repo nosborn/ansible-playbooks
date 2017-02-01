@@ -1,0 +1,4 @@
+# roles/rtadvd/tasks/main
+---
+- service: name=rtadvd arguments="{{ lan_if }}" enabled=yes state=started
+...

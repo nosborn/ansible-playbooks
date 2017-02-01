@@ -10,13 +10,16 @@ events {
 
 http {
   include /etc/nginx/mime.types;
+  types {
+    application/json geojson;
+  }
   default_type application/octet-stream;
 
   sendfile on;
   tcp_nopush on;
 
   gzip on;
-  gzip_types application/javascript text/css text/plain text/xml;
+  gzip_types application/javascript application/json text/css text/plain text/xml;
   gzip_vary on;
 
   server_tokens off;
