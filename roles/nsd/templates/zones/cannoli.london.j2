@@ -1,8 +1,8 @@
 $ORIGIN cannoli.london.
 $TTL 3600
 
-@		IN	SOA	tombstone.{{ global_domain }} hostmaster.{{ global_domain }} (
-				2017020100	; serial number
+@		IN	SOA	tombstone.{{ global_domain }} hostmaster (
+				2017020501	; serial number
 				7200		; refresh = 2h
 				300		; update retry = 5m
 				1209600		; expiry = 2w
@@ -24,7 +24,7 @@ $TTL 3600
 			A	81.187.87.32
 			AAAA	2001:8b0:d05:c72c::51bb:5720
 
-mesmtp._domainkey	TXT	"v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCZUA/PvgavDXPo2qURa3GlsxZRqAKLmcDlDlFJL6hx00xj2vUdtWWvlHvofWWvK85xVKrKzdyo18riYrW5OU6GyoaNGDxrz2g5902cJoNT9f9FOHkK9TvOxb3AYX0FyLoOkLwW9cZ1uw6k00RvWwiwCFbOpJdzSNCbji/H5UlGcQIDAQAB"
+mesmtp._domainkey	TXT	"v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDN+3CBXpvW8j9VDa0+6VNxCixZQ3mR5cUG5JQljMSk+qMGBwTb+EglO6szqKUsWMhY5Wo1Fon4I2yrebyep8j4QV8eo9+fCTbItLIe8V3Tj+VaOQKOsApqRc+E/irDaAr1wu/o2RiEnfC9uCJh48tjdc3cyFLvck3Yx5CgjzDcMwIDAQAB"
 _adsp._domainkey	TXT	"dkim=unknown"
 
 *			MX	10 in1-smtp.messagingengine.com.

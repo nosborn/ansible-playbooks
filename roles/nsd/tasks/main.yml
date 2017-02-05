@@ -8,7 +8,6 @@
   notify: reload nsd
   with_items:
     - 32.87.187.81.in-addr.arpa
-    - cannoli.london
     - leavethegun.com
     - osborn.io
     - osborn.ws
