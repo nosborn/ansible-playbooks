@@ -1,5 +1,0 @@
-# roles/goaccess/handlers/main
----
-- name: restart goaccess
-  service: name=goaccess state=restarted
-...

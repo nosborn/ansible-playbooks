@@ -42,7 +42,6 @@
     - dhcpd
     - daily
     - doas
-    - goaccess
   # - iked
     - letsencrypt
     - locale

@@ -82,8 +82,7 @@ block return out log on {{ wan_if }}
 
 block return out log quick on {{ wan_if }} inet to <bogons4>
 
-pass out on {{ wan_if }} inet proto udp to port { 149:151 1149:1151 }
-#pass out on {{ wan_if }} inet proto udp to port 2049
+pass out on {{ wan_if }} inet proto udp to port { 149:151 1149:1151 2049 } user root
 pass out on {{ wan_if }} inet tagged DiabloIII
 
 pass out on {{ wan_if }} inet6 from {{ wan_if }} to ff02::2 # All Routers Address
@@ -143,46 +142,3 @@ pass out on {{ vpn_server_if }}
 pass out on {{ vpn_server_if }} inet divert-reply
 
 # ==== END ====
-
-##pass in quick on {{ lan_if }} inet from {{ lan_if }}:network to { {{ lan_if }} pppoe0:0 }
-#
-#pass in quick on {{ lan_if }} inet from {{ lan_if }}:network
-#pass in quick on {{ lan_if }} inet6 from {{ lan_if }}:network to { {{ lan_if }} pppoe0 }
-##block return in quick on {{ lan_if }} inet6
-#
-##block return out log quick on {{ vpn_client_if }} inet proto tcp from pppoe0:0 to port 1119
-##block return out log quick on {{ vpn_client_if }} inet proto udp from pppoe0:0 to port { 1119 6120 }
-#
-#block return in log quick on {{ vpn_server_if }} inet to {{ lan_if }}:network
-#pass in quick on {{ vpn_server_if }} inet from ({{ vpn_server_if }}:network)
-#block return log quick on {{ vpn_server_if }} inet6 # bidirectional
-#
-#antispoof quick for (egress)
-## Troublesome with VPN...
-##block in log quick on egress from { no-route urpf-failed } to any
-#
-#pass in quick on pppoe0 inet proto tcp to {{ wan_ipv4 | ipaddr('address') }} port 22 \
-#  keep state (max-src-conn-rate 10/10, overload <bruteforce> flush global) \
-#  reply-to (pppoe0 (pppoe0:peer))
-#pass in quick on egress inet proto { tcp udp } to {{ wan_ipv4 | ipaddr('address') }} port 53 \
-#  reply-to (pppoe0 (pppoe0:peer))
-#pass in quick on egress inet proto tcp to {{ wan_ipv4 | ipaddr('address') }} port { 80 443 } \
-#  reply-to (pppoe0 (pppoe0:peer))
-#pass in quick on egress inet proto udp to {{ wan_ipv4 | ipaddr('address') }} port 1194 \
-#  reply-to (pppoe0 (pppoe0:peer))
-#pass in quick on egress inet proto icmp to {{ wan_ipv4 | ipaddr('address') }} icmp-type echoreq \
-#  reply-to (pppoe0 (pppoe0:peer))
-#{% if wan_ipv6 is defined %}
-#pass in quick on egress inet6 proto { tcp udp } to {{ wan_ipv6 | ipaddr('address') }} port 53 \
-#  reply-to (pppoe0 (pppoe0:peer))
-#pass in quick on egress inet6 proto ipv6-icmp to {{ wan_ipv6 | ipaddr('address') }} icmp6-type echoreq \
-#  reply-to (pppoe0 (pppoe0:peer))
-#{% endif %}
-#
-##pass out quick on pppoe0 inet6 from {{ lan_if }}:network to 2001:8b0:0::/48
-#block return-icmp6 (admin-unr) out log quick on pppoe0 inet6 from {{ lan_if }}:network
-#block return-icmp6 (admin-unr) out log quick on {{ vpn_client_if }} inet6 from {{ lan_if }}:network
-#block drop in log quick on egress
-#
-#block return	# block stateless traffic
-#pass		# establish keep-state

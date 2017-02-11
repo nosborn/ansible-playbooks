@@ -15,7 +15,7 @@
 
 - copy:
     content="{{ smtpd_secrets_table }}" dest=/etc/mail/secrets
-    owner=root group=wheel mode=0400
+    owner=root group=_smtpd mode=0440
   notify: update secrets table
 
 - template:
