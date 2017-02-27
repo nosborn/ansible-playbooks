@@ -363,6 +363,7 @@ msg "${white}Fetching from: ${green}${URL}"
   fi
 
   echo 'cd /dev && sh MAKEDEV all' >/etc/rc.firsttime
+  echo 'rm -f /sbin/oreboot' >>/etc/rc.firsttime
   # echo '/usr/sbin/fw_update' >>/etc/rc.firsttime
   chmod +x /etc/rc.firsttime
 

@@ -1,4 +1,4 @@
-worker_processes {{ ansible_processor_cores }};
+worker_processes {{ nginx_worker_processes }};
 
 #error_log logs/error.log;
 #error_log logs/error.log notice;

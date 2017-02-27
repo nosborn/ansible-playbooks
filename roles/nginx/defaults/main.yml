@@ -1,4 +1,5 @@
 # role/nginx/defaults/main
 ---
 nginx_ssl: true
+nginx_worker_processes: "{{ ansible_processor_cores }}"
 ...
