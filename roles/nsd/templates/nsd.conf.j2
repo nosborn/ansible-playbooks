@@ -24,18 +24,12 @@ pattern:
 
 pattern:
 	name: buddyns
+	notify: 108.61.224.67 NOKEY
 	provide-xfr: 88.198.106.11 NOKEY	# b.transfer.buddyns.com
 	provide-xfr: 103.6.87.125 NOKEY		# c.transfer.buddyns.com
 	provide-xfr: 108.61.224.67 NOKEY
 	provide-xfr: 173.244.206.26 NOKEY	# a.transfer.buddyns.com
 	provide-xfr: 185.136.176.247 NOKEY
-{% if wan_ipv6 is defined %}
-	provide-xfr: 2001:19f0:6400:8642::3 NOKEY
-	provide-xfr: 2607:f0d0:1001:d::100 NOKEY
-	provide-xfr: 2403:2500:4000::f3e NOKEY
-	provide-xfr: 2a01:4f8:d12:d01::10:100 NOKEY
-	provide-xfr: 2a06:fdc0:fade:2f7::1 NOKEY
-{% endif %}
 	include-pattern: default
 
 zone:

@@ -8,5 +8,5 @@
   notify: restart ntpd
 
 - name: start NTP daemon
-  service: name=ntpd arguments='-s' enabled=yes state=started
+  service: name=ntpd enabled=yes state=started
 ...

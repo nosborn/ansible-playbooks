@@ -3,7 +3,7 @@
 - name: fetch bogons
   get_url:
     url=https://www.team-cymru.org/Services/Bogons/{{ item }}
-    dest=/var/db/{{ item }} force=no
+    dest=/var/db/{{ item }}
     owner=root group=wheel mode=0644
   with_items:
     - fullbogons-ipv4.txt

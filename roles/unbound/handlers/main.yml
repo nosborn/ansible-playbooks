@@ -2,5 +2,5 @@
 ---
 - name: reload unbound
   service: name=unbound state=reloaded
-  notify: reload openvpn client
+# notify: reload openvpn client
 ...

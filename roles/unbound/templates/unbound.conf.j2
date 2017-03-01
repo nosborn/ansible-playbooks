@@ -5,33 +5,43 @@ server:
 
 	interface: 127.0.0.1
 	interface: {{ lan_ipv4 | ipaddr('address') }}
+{% if vpn_server_if is defined %}
 	interface: {{ vpn_server_ipv4 | ipaddr('address') }}
+{% endif %}
 	interface: ::1
+{% if lan_ipv6 is defined %}
+	interface: {{ lan_ipv6 | ipaddr('address') }}
+{% endif %}
+{% if vpn_server_if is defined %}
+	interface: {{ vpn_server_ipv6 | ipaddr('address') }}
+{% endif %}
 
-#	outgoing-interface: {{ vpn_client_if }}
-#	outgoing-range: 450
+	outgoing-interface: {{ wan_ipv4 | ipaddr('address') }}
+{% if wan_ipv6 is defined %}
+	outgoing-interface: {{ wan_ipv6 | ipaddr('address') }}
+{% endif %}
+	outgoing-port-avoid: 1194
 
-	msg-cache-size: 50m
-	msg-cache-slabs: {{ unbound_num_threads }}
-
-#	num-queries-per-thread: 225
-
-	ip-transparent: yes
-
-	rrset-cache-size: 100m
-	rrset-cache-slabs: {{ unbound_num_threads }}
-	infra-cache-slabs: {{ unbound_num_threads }}
+	prefer-ip6: yes
 
 	access-control: 0.0.0.0/0 refuse
 	access-control: 127.0.0.0/8 allow
 	access-control: {{ lan_ipv4 | ipaddr('network') }}/{{ lan_ipv4 | ipaddr('prefix') }} allow
+{% if vpn_server_if is defined %}
 	access-control: {{ vpn_server_ipv4 | ipaddr('network') }}/{{ vpn_server_ipv4 | ipaddr('prefix') }} allow
+{% endif %}
 	access-control: ::0/0 refuse
 	access-control: ::1 allow
+{% if lan_ipv6 is defined %}
+	access-control: {{ lan_ipv6 | ipaddr('network') }}/{{ lan_ipv6 | ipaddr('prefix') }} allow
+{% endif %}
+{% if vpn_server_if is defined %}
+	access-control: {{ vpn_server_ipv6 | ipaddr('network') }}/{{ vpn_server_ipv6 | ipaddr('prefix') }} allow
+{% endif %}
 
 	pidfile: /var/run/unbound.pid
 
-	root-hints: /var/unbound/etc/named.root
+	root-hints: /var/unbound/etc/named.cache
 
 	hide-identity: yes
 	hide-version: yes
@@ -51,15 +61,13 @@ server:
 
 	private-domain: local
 
-#	do-not-query-localhost: no
-
 	prefetch: yes
 
 	module-config: "iterator"
 
 	domain-insecure: local
 
-	key-cache-slabs: {{ unbound_num_threads }}
+	key-cache-slabs: {{ 2 * unbound_num_threads }}
 
 	local-zone: "local" static
 	local-data: "tombstone.local IN A {{ lan_ipv4 | ipaddr('1') | ipaddr('address') }}"

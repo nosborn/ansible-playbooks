@@ -1,6 +1,6 @@
 # roles/locale/tasks/main
 ---
-- file:
+- copy:
     content="{{ locale_kbdtype }}\n" dest=/etc/kbdtype
     owner=root group=wheel mode=0444
 

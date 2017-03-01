@@ -1,7 +1,7 @@
 # roles/unbound/tasks/main
 ---
 - copy:
-    src=named.root dest=/var/unbound/etc/named.root
+    src=named.cache dest=/var/unbound/etc/named.cache
     owner=root group=wheel mode=0444
   notify: reload unbound
 

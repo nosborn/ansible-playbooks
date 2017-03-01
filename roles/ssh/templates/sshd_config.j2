@@ -11,7 +11,7 @@ AddressFamily {{ sshd_address_family }}
 {% endif %}
 {% if sshd_listen_addresses is defined %}
 {%   for listen_address in sshd_listen_addresses %}
-ListenAddress {{ listen_address }}
+ListenAddress {{ listen_address | ipwrap }}
 {%   endfor %}
 {% endif %}
 
@@ -89,6 +89,12 @@ ClientAliveInterval 15
 #Banner none
 
 Match Address {{ lan_ipv4 | ipaddr('network') }}/{{ lan_ipv4 | ipaddr('prefix') }}
+{% if sshd_allow_users is defined %}
+  AllowUsers root {{ sshd_allow_users | sort | unique | join(' ') }}
+{% endif %}
+  PermitRootLogin prohibit-password
+
+Match Address {{ lan_ipv6 | ipaddr('network') }}/{{ lan_ipv6 | ipaddr('prefix') }}
 {% if sshd_allow_users is defined %}
   AllowUsers root {{ sshd_allow_users | sort | unique | join(' ') }}
 {% endif %}

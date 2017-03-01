@@ -1,6 +1,0 @@
-# roles/wscons/tasks/main
----
-- copy:
-    src=wsconsctl.conf dest=/etc/wsconsctl.conf
-    owner=root group=wheel mode=0444
-...

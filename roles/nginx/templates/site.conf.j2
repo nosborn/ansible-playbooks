@@ -73,5 +73,9 @@ server {
   location = /favicon.ico {
     log_not_found off;
   }
+
+  location /shared/ {
+    root /var/www/sites/{{ site.name }}/;
+  }
 {% endif %}
 }

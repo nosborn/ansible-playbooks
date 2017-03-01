@@ -4,8 +4,11 @@
   notify: restart nginx
 
 - file:
-    path=/var/www/sites/{{ site.name }} state=directory
+    path={{ item }} state=directory
     owner=root group=wheel mode=0775
+  with_items:
+    - /var/www/sites/{{ site.name }}
+    - /var/www/sites/{{ site.name }}/shared
   when: site.redirect is not defined
 
 - template:

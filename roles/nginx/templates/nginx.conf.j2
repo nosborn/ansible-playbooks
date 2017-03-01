@@ -78,7 +78,9 @@ http {
   #  add_header X-XSS-Protection "1; mode=block" always;
   #
   #  allow {{ lan_ipv4 | ipaddr('network') }}//{{ lan_ipv4 | ipaddr('prefix') }};
+{% if vpn_server_if is defined %}
   #  allow {{ vpn_server_ipv4 | ipaddr('network') }}//{{ vpn_server_ipv4 | ipaddr('prefix') }};
+{% endif %}
   #  deny all;
   #
   #  root /var/www/symon;

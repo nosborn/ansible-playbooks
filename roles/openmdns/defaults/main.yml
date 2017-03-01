@@ -1,0 +1,5 @@
+# role/openmdns/defaults/main
+---
+mdnsd_enabled: 'no'
+mdnsd_state: 'stopped'
+...

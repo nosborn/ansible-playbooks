@@ -1,5 +1,5 @@
 inet {{ lan_ipv4 | ipaddr('address') }} {{ lan_ipv4 | ipaddr('netmask') }} NONE
-inet6 eui64
+inet6 {{ lan_ipv6 | ipaddr('address') }} {{ lan_ipv6 | ipaddr('prefix') }}
 up
 
 !/sbin/route add -net 169.254.0.0/16 -iface {{ lan_ipv4 | ipaddr('address') }}

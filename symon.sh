@@ -2,6 +2,18 @@
 
 readonly now=$(date +%s)
 readonly prefix=/var/collectd/$(hostname)
+readonly shared=/var/www/sites/$(hostname)/shared
+
+rrdtool xport \
+  --start 'end-24h' \
+  --end "${now}" \
+  --showtime \
+  --json \
+  "DEF:quota_monthly=${prefix}/curl_json-aaisp/bytes-info-0-quota_monthly.rrd:value:AVERAGE" \
+  "DEF:quota_remaining=${prefix}/curl_json-aaisp/bytes-info-0-quota_remaining.rrd:value:AVERAGE" \
+  'XPORT:quota_monthly:Quota Monthly' \
+  'XPORT:quota_remaining:Quota Remaining' \
+  >${shared}/aaisp.json
 
 rrdtool xport \
   --start 'end-1h' \
@@ -16,7 +28,7 @@ rrdtool xport \
   'XPORT:nice:Nice' \
   'XPORT:system:System' \
   'XPORT:user:User' \
-  >/var/www/symon/cpu.json
+  >${shared}/cpu.json
 
 rrdtool xport \
   --start 'end-1h' \
@@ -27,7 +39,7 @@ rrdtool xport \
   "DEF:write=${prefix}/disk-sd0/disk_octets.rrd:write:AVERAGE" \
   'XPORT:read:Read' \
   'XPORT:write:Write' \
-  >/var/www/symon/disk-sd0.json
+  >${shared}/disk-sd0.json
 
 for interface in pppoe0 tun0 tun1; do
   rrdtool xport \
@@ -43,21 +55,21 @@ for interface in pppoe0 tun0 tun1; do
     'XPORT:rx_octets:RX Octets' \
     'XPORT:tx_errors:TX Errors' \
     'XPORT:tx_octets:TX Octets' \
-    >/var/www/symon/interface-${interface}.json
+    >${shared}/interface-${interface}.json
 done
 
-rrdtool xport \
-  --start 'end-1h' \
-  --end "${now}" \
-  --showtime \
-  --json \
-  "DEF:shortterm=${prefix}/load/load.rrd:shortterm:AVERAGE" \
-  "DEF:midterm=${prefix}/load/load.rrd:midterm:AVERAGE" \
-  "DEF:longterm=${prefix}/load/load.rrd:longterm:AVERAGE" \
-  'XPORT:shortterm:1 min' \
-  'XPORT:midterm:5 min' \
-  'XPORT:longterm:15 min' \
-  >/var/www/symon/load.json
+#rrdtool xport \
+#  --start 'end-1h' \
+#  --end "${now}" \
+#  --showtime \
+#  --json \
+#  "DEF:shortterm=${prefix}/load/load.rrd:shortterm:AVERAGE" \
+#  "DEF:midterm=${prefix}/load/load.rrd:midterm:AVERAGE" \
+#  "DEF:longterm=${prefix}/load/load.rrd:longterm:AVERAGE" \
+#  'XPORT:shortterm:1 min' \
+#  'XPORT:midterm:5 min' \
+#  'XPORT:longterm:15 min' \
+#  >${shared}/load.json
 
 rrdtool xport \
   --start 'end-1h' \
@@ -66,7 +78,7 @@ rrdtool xport \
   --json \
   "DEF:states_current=${prefix}/pf/pf_states-current.rrd:value:AVERAGE" \
   'XPORT:states_current:State Table Entries' \
-  >/var/www/symon/pf.json
+  >${shared}/pf.json
 
 rrdtool xport \
   --start 'end-1h' \
@@ -76,16 +88,10 @@ rrdtool xport \
   "DEF:isp_average=${prefix}/ping/ping-81.187.81.187.rrd:value:AVERAGE" \
   "DEF:isp_min=${prefix}/ping/ping-81.187.81.187.rrd:value:MIN:step=60" \
   "DEF:isp_max=${prefix}/ping/ping-81.187.81.187.rrd:value:MAX:step=60" \
-  "DEF:vpn_average=${prefix}/ping/ping-10.4.0.1.rrd:value:AVERAGE" \
-  "DEF:vpn_min=${prefix}/ping/ping-10.4.0.1.rrd:value:MIN:step=60" \
-  "DEF:vpn_max=${prefix}/ping/ping-10.4.0.1.rrd:value:MAX:step=60" \
   'XPORT:isp_average:ISP Average' \
   'XPORT:isp_min:ISP Min' \
   'XPORT:isp_max:ISP Max' \
-  'XPORT:vpn_average:VPN Average' \
-  'XPORT:vpn_min:VPN Min' \
-  'XPORT:vpn_max:VPN Max' \
-  >/var/www/symon/ping.json
+  >${shared}/ping.json
 
 #rrdtool graph /var/www/symon/pf.png \
 #  --start 'end-1h' \

@@ -1,4 +1,0 @@
-# roles/backup/tasks/main
----
-- openbsd_pkg: name=borgbackup state=installed
-...

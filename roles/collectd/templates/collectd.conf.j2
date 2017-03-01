@@ -58,7 +58,7 @@
 LoadPlugin syslog
 
 #<Plugin syslog>
-#	LogLevel info
+#  LogLevel info
 #</Plugin>
 
 ##############################################################################
@@ -75,7 +75,7 @@ LoadPlugin syslog
 LoadPlugin cpu
 #LoadPlugin csv
 #LoadPlugin curl
-#LoadPlugin curl_json
+LoadPlugin curl_json
 #LoadPlugin curl_xml
 #LoadPlugin df
 LoadPlugin disk
@@ -93,7 +93,7 @@ LoadPlugin memory
 #LoadPlugin nginx
 #LoadPlugin ntpd
 #LoadPlugin nut
-#LoadPlugin openvpn
+LoadPlugin openvpn
 LoadPlugin pf
 LoadPlugin ping
 #LoadPlugin postgresql
@@ -144,7 +144,7 @@ LoadPlugin swap
 
 <Plugin cpu>
 # ReportByState true
-	ReportByCpu false
+  ReportByCpu false
 # ValuesPercentage false
 </Plugin>
 
@@ -176,71 +176,24 @@ LoadPlugin swap
 #  </Page>
 #</Plugin>
 
-#<Plugin curl_json>
-#  <URL "http://localhost:80/test.json">
-#    Instance "test_http_json"
-#    <Key "testArray/0">
-#      Type "gauge"
-#      # Expect: 1
-#    </Key>
-#    <Key "testArray/1">
-#      Type "gauge"
-#      # Expect: 2
-#    </Key>
-#    <Key "testArrayInbetween/0/blarg">
-#      Type "gauge"
-#      # Expect: 3
-#    </Key>
-#    <Key "testArrayInbetween/1/blub">
-#      Type "gauge"
-#      # Expect: 4
-#    </Key>
-#    <Key "testDirectHit">
-#      Type "gauge"
-#      # Expect: 5
-#    </Key>
-#    <Key "testSubLevelHit/oneMoreLevel">
-#      Type "gauge"
-#      # Expect: 6
-#    </Key>
-#  </URL>
-# put this as test.json on your webserver, the above config demonstraces
-# how to match them.
-# {
-#  "testArray":[1,2],
-#  "testArrayInbetween":[{"blarg":3},{"blub":4}],
-#  "testDirectHit":5,
-#  "testSubLevelHit":{"oneMoreLevel":6}
-# }
-## See: http://wiki.apache.org/couchdb/Runtime_Statistics
-#  <URL "http://localhost:5984/_stats">
-#    Instance "httpd"
-#    <Key "httpd/requests/count">
-#      Type "http_requests"
-#    </Key>
-#
-#    <Key "httpd_request_methods/*/count">
-#      Type "http_request_methods"
-#    </Key>
-#
-#    <Key "httpd_status_codes/*/count">
-#      Type "http_response_codes"
-#    </Key>
-#  </URL>
-## Database status metrics:
-#  <URL "http://localhost:5984/_all_dbs">
-#    Instance "dbs"
-#    <Key "*/doc_count">
-#      Type "gauge"
-#    </Key>
-#    <Key "*/doc_del_count">
-#      Type "counter"
-#    </Key>
-#    <Key "*/disk_size">
-#      Type "bytes"
-#    </Key>
-#  </URL>
-#</Plugin>
+<Plugin curl_json>
+  <URL "https://chaos2.aa.net.uk/broadband/info?control_login={{aaisp_control_login}}&control_password={{aaisp_control_password}}&service={{aaisp_service}}">
+    Instance "aaisp"
+    Interval 300
+    <Key "info/*/quota_monthly">
+      Type "bytes"
+    </Key>
+    <Key "info/*/quota_remaining">
+      Type "bytes"
+    </Key>
+    <Key "info/*/rx_rate">
+      Type "bitrate"
+    </Key>
+    <Key "info/*/tx_rate">
+      Type "bitrate"
+    </Key>
+  </URL>
+</Plugin>
 
 #<Plugin curl_xml>
 #  <URL "http://localhost/stats.xml">
@@ -313,10 +266,16 @@ LoadPlugin swap
 #</Plugin>
 
 <Plugin interface>
-{% for interface in [lan_if, vpn_client_if, vpn_server_if, wan_if] | sort %}
-	Interface "{{ interface }}"
+{% for interface in [lan_if, wan_if] | sort %}
+  Interface "{{ interface }}"
 {% endfor %}
-	IgnoreSelected false
+{% if vpn_client_if is defined %}
+  Interface "{{ vpn_client_if }}"
+{% endif %}
+{% if vpn_server_if is defined %}
+  Interface "{{ vpn_server_if }}"
+{% endif %}
+  IgnoreSelected false
 </Plugin>
 
 #<Plugin load>
@@ -418,21 +377,25 @@ LoadPlugin swap
 #	UPS "upsname@hostname:port"
 #</Plugin>
 
-#<Plugin openvpn>
-#	StatusFile "/var/openvpn/client.status"
-#	StatusFile "/var/openvpn/server.status"
-#	ImprovedNamingSchema true
-#	CollectCompression true
-#</Plugin>
+<Plugin openvpn>
+{% if vpn_client_if is defined %}
+  StatusFile "/var/openvpn/client.status"
+{% endif %}
+{% if vpn_server_if is defined %}
+  StatusFile "/var/openvpn/server.status"
+{% endif %}
+  ImprovedNamingSchema true
+  CollectUserCount true
+</Plugin>
 
 <Plugin ping>
-	Host "{{ wan_ipv4_dest }}"
-#	Interval 1.0
-#	Timeout 0.9
-#	TTL 255
-	SourceAddress "{{ wan_ipv4 | ipaddr('address') }}"
-#	Device "eth0"
-#	MaxMissed -1
+  Host "{{ wan_ipv4_dest }}"
+# Interval 1.0
+# Timeout 0.9
+# TTL 255
+  SourceAddress "{{ wan_ipv4 | ipaddr('address') }}"
+# Device "eth0"
+# MaxMissed -1
 </Plugin>
 
 #<Plugin postgresql>

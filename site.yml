@@ -17,6 +17,7 @@
         - "{{ lan_if }}"
         - "{{ pppoe_pppoedev }}"
         - "{{ wan_if }}"
+      # - "{{ wifi_if }}"
 
     - name: Default hostname
       copy:
@@ -24,20 +25,14 @@
         owner=root group=wheel mode=0444
 
     - name: System-wide package system configuration
-      template:
-        src=pkg.conf.j2 dest=/etc/pkg.conf
-        owner=root group=wheel mode=0444
-
-    - name: Resolver configuration file
-      template:
-        src=templates/resolv.conf.j2 dest=/etc/resolv.conf
+      copy:
+        content="{{ installurl }}\n" dest=/etc/installurl
         owner=root group=wheel mode=0444
 
   roles:
     - apmd
-  # - backup
     - bwm-ng
-    - c-icap
+  # - c-icap
     - collectd
     - dhcpd
     - daily
@@ -58,15 +53,20 @@
     - rtadvd
     - smtpd
     - sndiod
-    - squid
+  # - squid
     - ssh
+  # - symon
     - sysclean
     - sysmerge
     - unbound
-    - wscons
     - monit # do last
 
   tasks:
+    - name: 'boot configuration'
+      template:
+        src=boot.conf.j2 dest=/etc/boot.conf
+        owner=root group=wheel mode=0444
+
     - name: 'Host name database'
       template:
         src=hosts.j2 dest=/etc/hosts
@@ -89,6 +89,11 @@
         ddb.panic: 0
         net.inet.ah.enable: 0
         net.inet.esp.enable: 0
+
+    - name: Resolver configuration file
+      template:
+        src=templates/resolv.conf.j2 dest=/etc/resolv.conf
+        owner=root group=wheel mode=0444
 
   handlers:
   - name: netstart

@@ -9,7 +9,7 @@ TMPFILE=`mktemp` && {
     ftp -4agMV -o $TMPFILE https://www.team-cymru.org/Services/Bogons/fullbogons-ipv${v}.txt
     test -s $TMPFILE && cmp -s $TMPFILE $DBFILE || {
       mv -f $TMPFILE $DBFILE
-      pfctl -q -f $DBFILE -t fullbogons${v} -T replace
+      pfctl -q -f $DBFILE -t bogons-v${v} -T replace
     }
   done
   rm -f $TMPFILE
