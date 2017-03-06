@@ -37,6 +37,7 @@
     - dhcpd
     - daily
     - doas
+    - facette
     - flashrom
   # - iked
     - letsencrypt

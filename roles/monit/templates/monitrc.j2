@@ -95,6 +95,11 @@ check process dhcpd matching "^/usr/sbin/dhcpd "
   #stop program = "/usr/sbin/rcctl stop dhcpd"
   #restart program = "/usr/sbin/rcctl restart dhcpd"
 
+check process facette with pidfile /var/facette/facette.pid
+  #start program = "/usr/sbin/rcctl start facette"
+  #stop program = "/usr/sbin/rcctl stop facette"
+  #restart program = "/usr/sbin/rcctl restart facette"
+
 {% if mdnsd_state == 'started' %}
 check process mdnsd matching "^mdnsd: "
 #  #start program = "/usr/sbin/rcctl start mdnsd"
