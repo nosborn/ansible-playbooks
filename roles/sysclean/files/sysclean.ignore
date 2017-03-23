@@ -17,8 +17,6 @@
 /var/openvpn
 /var/unbound/etc
 /var/www/cache
-/var/www/report
 /var/www/sites
-/var/www/symon
 
 @include "/etc/changelist"

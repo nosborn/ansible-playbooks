@@ -1,8 +1,0 @@
-# roles/symon/handlers/main
----
-- name: restart symon
-  service: name=symon state=restarted
-
-- name: restart symux
-  service: name=symux state=restarted
-...
