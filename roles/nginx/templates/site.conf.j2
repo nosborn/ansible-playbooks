@@ -27,7 +27,7 @@ server {
 server {
   listen {{ wan_ipv4 | ipaddr('address') }}:443 ssl http2;
 {% if wan_ipv6 is defined %}
-  listen {{ wan_ipv6 | ipaddr('address') | ipwrap }}:80;
+  listen {{ wan_ipv6 | ipaddr('address') | ipwrap }}:443 ssl http2;
 {% endif %}
 {% if site.aliases is defined %}
   server_name {{ site.name }} {{ site.aliases | sort | join(' ') }};
@@ -73,9 +73,23 @@ server {
   location = /favicon.ico {
     log_not_found off;
   }
+{%   if site.locations is defined %}
+{%     for location in site.locations %}
 
-  location /shared/ {
-    root /var/www/sites/{{ site.name }}/;
+  location {{ location.uri }} {
+{%       if location.proxy_pass is defined %}
+    proxy_pass {{ location.proxy_pass }};
+{%         if location.proxy_set_header is defined %}
+{%           for header in location.proxy_set_header %}
+    proxy_set_header {{ header }};
+{%           endfor %}
+{%         endif %}
+{%       endif %}
+{%       if location.root is defined %}
+    root {{ location.root }};
+{%       endif %}
   }
+{%     endfor %}
+{%   endif %}
 {% endif %}
 }

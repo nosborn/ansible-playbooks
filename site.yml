@@ -17,7 +17,7 @@
         - "{{ lan_if }}"
         - "{{ pppoe_pppoedev }}"
         - "{{ wan_if }}"
-      # - "{{ wifi_if }}"
+        - "{{ wlan_if }}"
 
     - name: Default hostname
       copy:
@@ -39,7 +39,7 @@
     - doas
     - facette
     - flashrom
-  # - iked
+    - iked
     - letsencrypt
     - locale
     - newsyslog
@@ -54,9 +54,8 @@
     - rtadvd
     - smtpd
     - sndiod
-  # - squid
+    - squid
     - ssh
-  # - symon
     - sysclean
     - sysmerge
     - unbound
@@ -89,7 +88,12 @@
       with_dict:
         ddb.panic: 0
         net.inet.ah.enable: 0
-        net.inet.esp.enable: 0
+      # net.inet.esp.enable: 0
+        net.inet.ip.ifq.maxlen: 512
+        net.inet.tcp.mssdflt: 1440
+        net.inet.udp.recvspace: 131072
+        net.inet.udp.sendspace: 131072
+        net.inet6.ip6.ifq.maxlen: 512
 
     - name: Resolver configuration file
       template:

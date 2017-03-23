@@ -12,7 +12,7 @@ server:
 
 remote-control:
 	control-enable: yes
-	control-interface: ::1
+	control-interface: 127.0.0.1
 
 pattern:
 	name: default
@@ -24,7 +24,7 @@ pattern:
 
 pattern:
 	name: buddyns
-	notify: 108.61.224.67 NOKEY
+#	notify: 108.61.224.67 NOKEY
 	provide-xfr: 88.198.106.11 NOKEY	# b.transfer.buddyns.com
 	provide-xfr: 103.6.87.125 NOKEY		# c.transfer.buddyns.com
 	provide-xfr: 108.61.224.67 NOKEY

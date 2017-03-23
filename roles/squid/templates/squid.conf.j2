@@ -57,7 +57,7 @@ http_access deny all
 #http_port {{ vpn_server_ipv4 | ipaddr('address') }}:3128 ssl-bump generate-host-certificates=on dynamic_cert_mem_cache_size=4MB cert=/etc/squid/bumpca.pem dhparams=/etc/ssl/ffdhe2048.pem
 http_port {{ lan_ipv4 | ipaddr('address') }}:3128
 http_port {{ vpn_server_ipv4 | ipaddr('address') }}:3128
-http_port 127.0.0.1:3129 intercept
+#http_port 127.0.0.1:3129 intercept
 
 # SSL OPTIONS
 # -----------------------------------------------------------------------------
@@ -80,7 +80,7 @@ http_port 127.0.0.1:3129 intercept
 # LOGFILE OPTIONS
 # -----------------------------------------------------------------------------
 
-icap_log daemon:/var/squid/logs/icap.log
+#icap_log daemon:/var/squid/logs/icap.log
 
 # OPTIONS FOR TROUBLESHOOTING
 # -----------------------------------------------------------------------------
@@ -97,12 +97,14 @@ refresh_pattern ^gopher:          1440  0%  1440
 refresh_pattern -i (/cgi-bin/|\?)    0  0%     0
 refresh_pattern .                    0 20%  4320
 
+{% if c_icap_port is defined %}
 # ICAP OPTIONS
 
-icap_enable on
+#icap_enable on
 
-icap_service url_check reqmod_precache icap://127.0.0.1:{{ c_icap_port }}/{{ c_icap_url_check_id }}
+#icap_service url_check reqmod_precache icap://127.0.0.1:{{ c_icap_port }}/{{ c_icap_url_check_id }}
 
+{% endif %}
 # MESSSAGE ADAPTATION OPTIONS
 # -----------------------------------------------------------------------------
 

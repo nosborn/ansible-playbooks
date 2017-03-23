@@ -2,10 +2,10 @@
 
 # Options
 
-set block-policy return
 #set limit table-entries 400000
 set loginterface egress
 set skip on { {{ ['enc0', 'lo', pppoe_pppoedev] | sort | join(' ') }} }
+set state-policy if-bound
 
 # Tables
 
@@ -16,14 +16,14 @@ table <bogons-v4> counters persist file "/var/db/fullbogons-ipv4.txt"
 
 # match out on egress inet scrub
 
-match in inet scrub (no-df random-id)
+#match in inet scrub (no-df random-id)
 
 # Packet Filtering
 
 block return in log
 pass out
 
-{% for ifspec in ['lo0', lan_if, pppoe_pppoedev] | sort %}
+{% for ifspec in ['lo0', lan_if] | sort %}
 antispoof quick for {{ ifspec }}
 {% endfor %}
 
@@ -37,7 +37,7 @@ antispoof quick for {{ ifspec }}
 
 # ==== PPPOE0 ====
 
-#match on {{ wan_if }} scrub (max-mss 1452)
+match on {{ wan_if }} scrub (max-mss 1440, random-id, reassemble tcp)
 
 # ---- IN on pppoe0 ----
 
@@ -45,17 +45,26 @@ block drop in log on {{ wan_if }}
 
 block drop in log quick on {{ wan_if }} inet from <bogons4>
 
-pass in on {{ wan_if }} inet proto tcp to {{ wan_ipv4 | ipaddr('address') }} port 22
-pass in on {{ wan_if }} inet proto { tcp udp } to {{ wan_ipv4 | ipaddr('address') }} port 53
-pass in on {{ wan_if }} inet proto tcp to {{ wan_ipv4 | ipaddr('address') }} port { 80 443 }
-pass in on {{ wan_if }} inet proto udp to {{ wan_ipv4 | ipaddr('address') }} port 1194
-pass in on {{ wan_if }} inet proto icmp to {{ wan_ipv4 | ipaddr('address') }} icmp-type echoreq
+pass in on {{ wan_if }} inet proto tcp to {{ wan_ipv4 | ipaddr('address') }} port 22 \
+  reply-to ({{ wan_if }} ({{ wan_if }}:peer))
+pass in on {{ wan_if }} inet proto { tcp udp } to {{ wan_ipv4 | ipaddr('address') }} port 53 \
+  reply-to ({{ wan_if }} ({{ wan_if }}:peer))
+pass in on {{ wan_if }} inet proto tcp to {{ wan_ipv4 | ipaddr('address') }} port { 80 443 } \
+  reply-to ({{ wan_if }} ({{ wan_if }}:peer))
+pass in on {{ wan_if }} inet proto udp to {{ wan_ipv4 | ipaddr('address') }} port { 500 4500 } \
+  reply-to ({{ wan_if }} ({{ wan_if }}:peer))
+pass in on {{ wan_if }} inet proto udp to {{ wan_ipv4 | ipaddr('address') }} port 1194 \
+  reply-to ({{ wan_if }} ({{ wan_if }}:peer))
+pass in on {{ wan_if }} inet proto icmp to {{ wan_ipv4 | ipaddr('address') }} icmp-type echoreq \
+  reply-to ({{ wan_if }} ({{ wan_if }}:peer))
 
-# TODO: reply-to
+pass in on {{ wan_if }} inet proto esp to {{ wan_ipv4 | ipaddr('address') }} \
+  reply-to ({{ wan_if }} ({{ wan_if }}:peer))
+
 {% if wan_ipv6 is defined %}
 pass in on {{ wan_if }} inet6 proto { tcp udp } to {{ wan_ipv6 | ipaddr('address') }} port 53
 pass in on {{ wan_if }} inet6 proto tcp to {{ wan_ipv6 | ipaddr('address') }} port { 80 443 }
-#pass in on {{ wan_if }} inet6 proto tcp to {{ wan_ipv6 | ipaddr('address') }} port 1194
+pass in on {{ wan_if }} inet6 proto tcp to {{ wan_ipv6 | ipaddr('address') }} port 1194
 pass in on {{ wan_if }} inet6 proto icmp6 to {{ wan_ipv6 | ipaddr('address') }} icmp6-type echoreq
 
 #pass in on {{ wan_if }} inet6 proto icmp6 from fe80::/16 to {{ wan_if }} icmp6-type routeradv
@@ -66,43 +75,48 @@ pass in on {{ wan_if }} inet6 proto icmp6 to {{ wan_ipv6 | ipaddr('address') }} 
 match out on {{ wan_if }} inet from {{ lan_ipv4 | ipaddr('network') }}/{{ lan_ipv4 | ipaddr('prefix') }} nat-to {{ wan_ipv4 | ipaddr('address') }}
 match out on {{ wan_if }} inet from {{ vpn_server_ipv4 | ipaddr('network') }}/{{ vpn_server_ipv4 | ipaddr('prefix') }} nat-to {{ wan_ipv4 | ipaddr('address') }}
 
-block return out log quick on {{ wan_if }} inet to <bogons4>
-#block return out log quick on {{ wan_if }} inet6 to <bogons6>
+pass out on {{ wan_if }}
 
-#pass out on {{ wan_if }} inet6 from {{ wan_if }} to ff02::2 # All Routers Address
+block return out log quick on {{ wan_if }} inet to <bogons-v4>
+#block return out log quick on {{ wan_if }} inet6 to <bogons-v6>
 
-# ==== em1 ====
+# ==== {{ lan_if | upper }} ====
 
-# ---- IN on em1 ----
+# ---- IN on {{ lan_if }} ----
 
 pass in on {{ lan_if }}
 
-# ---- OUT on em1 ----
+# ---- OUT on {{ lan_if }} ----
 
 pass out on {{ lan_if }}
 
 {% if vpn_client_if is defined %}
 # ==== TUN0 ====
 
+antispoof quick for {{ vpn_client_if }}
+
+match on {{ vpn_client_if }} scrub (max-mss 1440, random-id, reassemble tcp)
+
 # ---- IN on tun0 ----
 
-#block drop in log on {{ vpn_client_if }}
+block drop in log on {{ vpn_client_if }}
 
 # ---- OUT on tun0 ----
 
-#match out on {{ vpn_client_if }} inet from {{ lan_ipv4 | ipaddr('network') }}/{{ lan_ipv4 | ipaddr('prefix') }} nat-to ({{ vpn_client_if }}:0)
-#match out on {{ vpn_client_if }} inet from {{ vpn_server_ipv4 | ipaddr('network') }}/{{ vpn_server_ipv4 | ipaddr('prefix') }} nat-to ({{ vpn_client_if }}:0)
+match out on {{ vpn_client_if }} inet from {{ lan_ipv4 | ipaddr('network') }}/{{ lan_ipv4 | ipaddr('prefix') }} nat-to ({{ vpn_client_if }}:0)
+match out on {{ vpn_client_if }} inet from {{ vpn_server_ipv4 | ipaddr('network') }}/{{ vpn_server_ipv4 | ipaddr('prefix') }} nat-to ({{ vpn_client_if }}:0)
 
-#block return out log on {{ vpn_client_if }}
+block return out log on {{ vpn_client_if }}
 
-#block return out log quick on {{ vpn_client_if }} to <ISP_NETBLOCKS>
 #block return out log quick on {{ vpn_client_if }} inet6
 
-#pass out on {{ vpn_client_if }} inet
+pass out on {{ vpn_client_if }} inet
 
 {% endif %}
 {% if vpn_server_if is defined %}
 # ==== TUN1 ====
+
+antispoof quick for {{ vpn_server_if }}
 
 # ---- IN on tun1 ----
 

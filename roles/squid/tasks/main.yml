@@ -3,10 +3,10 @@
 - name: install WWW and FTP proxy cache and accelerator
   openbsd_pkg: name=squid state=installed
 
-- copy:
-    content="{{ squid_ssl_bump_cert }}" dest=/etc/squid/bumpca.pem
-    owner=root group=wheel mode=0400
-  notify: restart squid
+#- copy:
+#    content="{{ squid_ssl_bump_cert }}" dest=/etc/squid/bumpca.pem
+#    owner=root group=wheel mode=0400
+#  notify: restart squid
 
 - copy:
     src=errorpage.css dest=/etc/squid/errorpage.css

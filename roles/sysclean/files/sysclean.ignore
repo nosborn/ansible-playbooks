@@ -1,5 +1,6 @@
 /etc/acme/letsencrypt-privkey.pem
 /etc/daily.local
+/etc/iked/export
 /etc/kbdtype
 /etc/mail/secrets
 /etc/openvpn
@@ -8,6 +9,7 @@
 /etc/ssl/*.chain.pem
 /etc/ssl/*.fullchain.pem
 /etc/ssl/private/*.key
+/etc/ssl/vpn
 /etc/sysclean.ignore
 /var/nsd/etc
 /var/nsd/run

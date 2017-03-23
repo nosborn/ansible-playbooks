@@ -20,7 +20,7 @@
 			<key>PayloadOrganization</key>
 			<string>Osborn.IO</string>
 			<key>UserDefinedName</key>
-			<string>Tombstone</string>
+			<string>Tombstone IKEv2</string>
 			<key>VPNType</key>
 			<string>IKEv2</string>
 			<key>IKEv2</key>
@@ -75,14 +75,19 @@
 				<key>ChildSecurityAssociationParameters</key>
 				<dict>
 					<key>EncryptionAlgorithm</key>
-					<string>AES-128</string>
+					<string>AES-128-GCM</string>
 					<key>IntegrityAlgorithm</key>
 					<string>SHA2-256</string>
 					<key>DiffieHellmanGroup</key>
-					<integer>14</integer>
+					<integer>19</integer>
 					<key>DisableRedirect</key>
-					<integer>1</integer>
+					<true/>
 				</dict>
+			</dict>
+			<key>IPv4</key>
+			<dict>
+				<key>OverridePrimary</key>
+				<integer>1</integer>
 			</dict>
 			<key>Proxies</key>
 			<dict>
@@ -102,7 +107,7 @@
 		</dict>
 	</array>
 	<key>PayloadDisplayName</key>
-	<string>Tombstone</string>
+	<string>Tombstone IKEv2</string>
 	<key>PayloadIdentifier</key>
 	<string>io.osborn.tombstone</string>
 	<key>PayloadOrganization</key>

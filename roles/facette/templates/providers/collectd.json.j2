@@ -8,6 +8,8 @@
     { "action": "sieve", "target": "metric", "pattern": "/average$" },
     { "action": "rewrite", "target": "metric", "pattern": "/average$", "into": "" },
     { "action": "rewrite", "target": "metric", "pattern": "/", "into": "." },
+    { "action": "rewrite", "target": "metric", "pattern": "^bitrate-info-0-(.+)_(rate)\\.value$", "into": "isp.$2.$1" },
+    { "action": "rewrite", "target": "metric", "pattern": "^bytes-info-0-(.+)_(.+)\\.value$", "into": "isp.$1.$2" },
     { "action": "rewrite", "target": "metric", "pattern": "^cpu-(\\d+)\\.cpu-(.+)\\.value$", "into": "cpu.$1.$2" },
     { "action": "rewrite", "target": "metric", "pattern": "^df-(.+)\\.df_complex-(.+)\\.value", "into": "df.$1.$2" },
     { "action": "rewrite", "target": "metric", "pattern": "^disk-(.+)\\.disk_(.+)", "into": "disk.$1.$2" },

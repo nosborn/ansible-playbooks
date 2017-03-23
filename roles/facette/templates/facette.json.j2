@@ -1,8 +1,10 @@
 {
-  "bind": ":12003",
+  "bind": "tcp4://localhost:12003",
   "base_dir": "/usr/local/share/facette",
-  "providers_dir": "/etc/facette/providers",
   "data_dir": "/var/facette/data",
   "pid_file": "/var/facette/facette.pid",
+  "providers_dir": "/etc/facette/providers",
+  "url_prefix": "/facette",
+  "read_only": true,
   "hide_build_details": true
 }

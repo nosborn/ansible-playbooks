@@ -1,0 +1,70 @@
+# roles/iked/tasks/pki
+---
+- name: create certificate authority
+  command: ikectl -q ca vpn create password '{{ ikeca_password }}'
+  args:
+    creates: /etc/ssl/vpn/ca.crt
+  environment:
+    CERT_C: .
+    CERT_ST: .
+    CERT_L: .
+    CERT_O: .
+    CERT_OU: iked
+    CERT_CN: VPN CA
+    CERT_EMAIL: .
+  when: false
+
+- name: create server certificate
+  command: ikectl -q ca vpn certificate {{ ansible_fqdn }} create server
+  args:
+    creates: /etc/ssl/vpn/{{ ansible_fqdn }}.crt
+  environment:
+    CERT_C: .
+    CERT_ST: .
+    CERT_L: .
+    CERT_O: .
+    CERT_OU: iked
+    CERT_CN: "{{ ansible_fqdn }}"
+    CERT_EMAIL: .
+  when: false
+
+- name: install server certificate
+  command: ikectl -q ca vpn certificate {{ ansible_fqdn }} install
+  args:
+    creates: /etc/iked/certs/{{ ansible_fqdn }}.crt
+  when: false
+
+#- command: ikectl -q ca vpn certificate {{ item }} create client
+#  args:
+#    creates: /etc/ssl/vpn/{{ item }}.crt
+#  environment:
+#    CERT_C: .
+#    CERT_ST: .
+#    CERT_L: .
+#    CERT_O: .
+#    CERT_OU: iked
+#    CERT_CN: "{{ item }}"
+#    CERT_EMAIL: .
+#  with_items:
+#    - nicks-ipad.{{ external_domain }}
+#    - nicks-iphone.{{ external_domain }}
+
+- name: install CA certificate and CRL
+  command: ikectl -q ca vpn install
+  args:
+    creates: /etc/iked/ca/ca.crt
+  when: false
+
+- fetch:
+    dest=backup fail_on_missing=yes src={{ item }}
+  with_items:
+    - /etc/iked/local.pub
+    - /etc/iked/private/local.key
+#    - /etc/ssl/vpn/ca.crl
+#    - /etc/ssl/vpn/ca.crt
+#  # - /etc/ssl/vpn/{{ ansible_fqdn }}.crt
+    - /etc/ssl/vpn/index.txt
+    - /etc/ssl/vpn/private/ca.key
+  # - /etc/ssl/vpn/private/{{ ansible_fqdn }}.key
+    - /etc/ssl/vpn/serial.txt
+...

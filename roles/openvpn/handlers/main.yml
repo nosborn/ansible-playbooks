@@ -1,8 +1,8 @@
 # roles/openvpn/handlers/main
 ---
 - name: reload openvpn client
-  shell: kill -HUP $(cat /var/openvpn/client.pid)
+  command: pkill -HUP -fq -P 1 -u root /etc/openvpn/client.conf
 
 - name: reload openvpn server
-  shell: kill -HUP $(cat /var/openvpn/server.pid)
+  command: pkill -HUP -fq -P 1 -u root /etc/openvpn/server.conf
 ...

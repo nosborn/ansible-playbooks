@@ -6,8 +6,7 @@
 - file: path={{ item }} owner=root group=wheel mode=0750 state=directory
   with_items:
     - /etc/openvpn
-    - /usr/local/libexec/openvpn
-    - /var/openvpn
+  # - /usr/local/libexec/openvpn
 
 - include: client.yml
   when: vpn_client_if is defined

@@ -9,7 +9,9 @@ user "{{ name }}" "{{ password }}"
 ikev2 ipcomp \
   from 0.0.0.0/0 to 0.0.0.0/0 \
   ikesa auth hmac-sha2-256 enc aes-256 prf hmac-sha2-256 group modp2048 \
-  childsa auth hmac-sha2-256 enc aes-128 \
+  childsa enc aes-128-gcm group ecp256 \
+  ikelifetime 24h \
+  lifetime 24h \
   eap MSCHAP-V2 \
   config address {{ lan_ipv4 | ipaddr('128') | ipaddr('address') }}/26 \
   config name-server {{ lan_ipv4 | ipaddr('address') }} \

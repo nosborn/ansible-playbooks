@@ -11,105 +11,25 @@
     src=iked.conf.j2 dest=/etc/iked.conf
     owner=root group=wheel mode=0400
   # validate='/sbin/iked -f %s -n'
-# notify: restart iked
+  notify: restart iked
 
-- copy:
-    src=iked dest=/etc/rc.d/iked
-    owner=root group=wheel mode=0555
-    validate='/bin/sh -n %s'
+#- copy:
+#    src=iked dest=/etc/rc.d/iked
+#    owner=root group=wheel mode=0555
+#    validate='/bin/sh -n %s'
 
-#- name: sysctl variables to set at system startup
-#  sysctl: name={{ item.name }} reload=no sysctl_set=yes value={{ item.value }}
-#  with_items:
-#    - { name: net.inet.ipcomp.enable, value: 1 }
+- name: sysctl variables to set at system startup
+  sysctl: name={{ item.name }} reload=no sysctl_set=yes value={{ item.value }}
+  with_items:
+    - { name: net.inet.ipcomp.enable, value: 1 }
 
 - meta: flush_handlers
 
 - name: start IKEv2 daemon
-  service: name=iked enabled=no state=stopped # TODO: enabled=yes state=started
+  service: name=iked enabled=yes state=started
 
-- name: create certificate authority
-  command: ikectl -q ca vpn create password '{{ ikeca_password }}'
-  args:
-    creates: /etc/ssl/vpn/ca.crt
-  environment:
-    CERT_C: .
-    CERT_ST: .
-    CERT_L: .
-    CERT_O: .
-    CERT_OU: iked
-    CERT_CN: VPN CA
-    CERT_EMAIL: .
+- include: 'pki.yml'
+  when: false
 
-- name: create server certificate
-  command: ikectl -q ca vpn certificate {{ ansible_fqdn }} create server
-  args:
-    creates: /etc/ssl/vpn/{{ ansible_fqdn }}.crt
-  environment:
-    CERT_C: .
-    CERT_ST: .
-    CERT_L: .
-    CERT_O: .
-    CERT_OU: iked
-    CERT_CN: "{{ ansible_fqdn }}"
-    CERT_EMAIL: .
-
-- name: install server certificate
-  command: ikectl -q ca vpn certificate {{ ansible_fqdn }} install
-  args:
-    creates: /etc/iked/certs/{{ ansible_fqdn }}.crt
-
-##- command: ikectl -q ca vpn certificate {{ item }} create client
-##  args:
-##    creates: /etc/ssl/vpn/{{ item }}.crt
-##  environment:
-##    CERT_C: .
-##    CERT_ST: .
-##    CERT_L: .
-##    CERT_O: .
-##    CERT_OU: iked
-##    CERT_CN: "{{ item }}"
-##    CERT_EMAIL: .
-##  with_items:
-##    - nicks-ipad.{{ external_domain }}
-##    - nicks-iphone.{{ external_domain }}
-
-- name: install CA certificate and CRL
-  command: ikectl -q ca vpn install
-  args:
-    creates: /etc/iked/ca/ca.crt
-
-- fetch:
-    dest=backup fail_on_missing=yes src={{ item }}
-  with_items:
-    - /etc/iked/local.pub
-    - /etc/iked/private/local.key
-    - /etc/ssl/vpn/ca.crl
-    - /etc/ssl/vpn/ca.crt
-  # - /etc/ssl/vpn/{{ ansible_fqdn }}.crt
-    - /etc/ssl/vpn/index.txt
-    - /etc/ssl/vpn/private/ca.key
-  # - /etc/ssl/vpn/private/{{ ansible_fqdn }}.key
-    - /etc/ssl/vpn/serial.txt
-
-##- set_fact:
-##    easyrsa_p12_export_password: "{{ (ansible_date_time.iso8601_basic | sha1 | to_uuid).split('-')[0] }}"
-
-##- name: Register CA PayloadContent
-##  shell: openssl base64 -A -in /etc/ssl/vpn/ca.crt
-##  register: PayloadContentCA
-
-##- name: Register p12 PayloadContent
-##  shell: >
-##    openssl pkcs12 -export -inkey /etc/ssl/vpn/private/{{ item }}.key -in /etc/ssl/vpn/{{ item }}.crt -passout pass:{{ easyrsa_p12_export_password }} | openssl base64 -A
-##  register: PayloadContent
-##  with_items:
-##    - 'nicks-ipad'
-##    - 'nicks-iphone'
-
-#- template:
-#    src=mobileconfig.j2 dest=/home/nick/{{ item.key }}.mobileconfig
-#    owner=nick group=nick mode=0600
-#  no_log: true
-#  with_dict: "{{ iked_users }}"
+- include: 'mobileconfig.yml'
 ...

@@ -5,39 +5,24 @@ server:
 
 	interface: 127.0.0.1
 	interface: {{ lan_ipv4 | ipaddr('address') }}
-{% if vpn_server_if is defined %}
 	interface: {{ vpn_server_ipv4 | ipaddr('address') }}
-{% endif %}
 	interface: ::1
-{% if lan_ipv6 is defined %}
 	interface: {{ lan_ipv6 | ipaddr('address') }}
-{% endif %}
-{% if vpn_server_if is defined %}
 	interface: {{ vpn_server_ipv6 | ipaddr('address') }}
-{% endif %}
 
 	outgoing-interface: {{ wan_ipv4 | ipaddr('address') }}
-{% if wan_ipv6 is defined %}
 	outgoing-interface: {{ wan_ipv6 | ipaddr('address') }}
-{% endif %}
 	outgoing-port-avoid: 1194
 
-	prefer-ip6: yes
+	do-ip6: no
+#	prefer-ip6: yes
 
-	access-control: 0.0.0.0/0 refuse
 	access-control: 127.0.0.0/8 allow
 	access-control: {{ lan_ipv4 | ipaddr('network') }}/{{ lan_ipv4 | ipaddr('prefix') }} allow
-{% if vpn_server_if is defined %}
 	access-control: {{ vpn_server_ipv4 | ipaddr('network') }}/{{ vpn_server_ipv4 | ipaddr('prefix') }} allow
-{% endif %}
-	access-control: ::0/0 refuse
 	access-control: ::1 allow
-{% if lan_ipv6 is defined %}
 	access-control: {{ lan_ipv6 | ipaddr('network') }}/{{ lan_ipv6 | ipaddr('prefix') }} allow
-{% endif %}
-{% if vpn_server_if is defined %}
 	access-control: {{ vpn_server_ipv6 | ipaddr('network') }}/{{ vpn_server_ipv6 | ipaddr('prefix') }} allow
-{% endif %}
 
 	pidfile: /var/run/unbound.pid
 
@@ -48,12 +33,12 @@ server:
 
 	harden-below-nxdomain: yes
 
-#	use-caps-for-id: yes
-#	qname-minimisation: yes
+	use-caps-for-id: yes
+	qname-minimisation: yes
 
 	private-address: 10.0.0.0/8
-	private-address: 172.16.0.0/12
 	private-address: 169.254.0.0/16
+	private-address: 172.16.0.0/12
 	private-address: 192.168.0.0/16
 	private-address: ::ffff:0:0/96
 	private-address: fd00::/8
@@ -84,7 +69,7 @@ server:
 
 remote-control:
 	control-enable: yes
-	control-interface: ::1
+	control-interface: 127.0.0.1
 {% if unbound_forward_zones is defined %}
 {%   for forward_zone in unbound_forward_zones %}
 

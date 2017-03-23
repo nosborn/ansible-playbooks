@@ -1,0 +1,23 @@
+# roles/iked/tasks/mobileconfig
+---
+#- set_fact:
+#    easyrsa_p12_export_password: "{{ (ansible_date_time.iso8601_basic | sha1 | to_uuid).split('-')[0] }}"
+
+#- name: Register CA PayloadContent
+#  shell: openssl base64 -A -in /etc/ssl/vpn/ca.crt
+#  register: PayloadContentCA
+
+#- name: Register p12 PayloadContent
+#  shell: >
+#    openssl pkcs12 -export -inkey /etc/ssl/vpn/private/{{ item }}.key -in /etc/ssl/vpn/{{ item }}.crt -passout pass:{{ easyrsa_p12_export_password }} | openssl base64 -A
+#  register: PayloadContent
+#  with_items:
+#    - 'nicks-ipad'
+#    - 'nicks-iphone'
+
+- template:
+    src=mobileconfig.j2 dest=/home/nick/{{ item.key }}-ikev2.mobileconfig
+    owner=nick group=nick mode=0600
+  no_log: true
+  with_dict: "{{ iked_users }}"
+...

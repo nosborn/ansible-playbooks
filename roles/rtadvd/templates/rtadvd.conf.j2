@@ -1,0 +1,4 @@
+{{ lan_if }}:\
+  :addr="{{ lan_ipv6 | ipaddr('network') }}":prefixlen#{{ lan_ipv6 | ipaddr('prefix') }}:\
+  :rdnss="{{ lan_ipv6 | ipaddr('address') }}":\
+  :dnssl={{ global_domain }}:

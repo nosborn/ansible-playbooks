@@ -1,5 +1,5 @@
 # roles/iked/handlers/main
 ---
-#- name: restart iked
-#  service: name=iked state=restarted
+- name: restart iked
+  service: name=iked state=restarted
 ...

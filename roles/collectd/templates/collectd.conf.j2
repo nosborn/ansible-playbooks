@@ -93,7 +93,7 @@ LoadPlugin memory
 #LoadPlugin nginx
 #LoadPlugin ntpd
 #LoadPlugin nut
-LoadPlugin openvpn
+#LoadPlugin openvpn
 LoadPlugin pf
 LoadPlugin ping
 #LoadPlugin postgresql
@@ -377,16 +377,16 @@ LoadPlugin swap
 #	UPS "upsname@hostname:port"
 #</Plugin>
 
-<Plugin openvpn>
+#<Plugin openvpn>
 {% if vpn_client_if is defined %}
-  StatusFile "/var/openvpn/client.status"
+#  StatusFile "/tmp/openvpn-client.status"
 {% endif %}
 {% if vpn_server_if is defined %}
-  StatusFile "/var/openvpn/server.status"
+#  StatusFile "/tmp/openvpn-server.status"
 {% endif %}
-  ImprovedNamingSchema true
-  CollectUserCount true
-</Plugin>
+#  ImprovedNamingSchema true
+#  CollectUserCount true
+#</Plugin>
 
 <Plugin ping>
   Host "{{ wan_ipv4_dest }}"
@@ -463,13 +463,6 @@ LoadPlugin swap
 #	<Module spam>
 #		spam "wonderful" "lovely"
 #	</Module>
-#</Plugin>
-
-#<Plugin rrdcached>
-#	DaemonAddress "127.0.0.1"
-#	CreateFiles true
-#	CreateFilesAsync true
-#	CollectStatistics false
 #</Plugin>
 
 <Plugin rrdtool>

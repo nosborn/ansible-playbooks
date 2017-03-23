@@ -6,14 +6,14 @@
     owner=root group=wheel mode=0400
   notify: reload openvpn client
 
-- name: install scripts
-  template:
-    src={{ item }}.j2 dest=/usr/local/libexec/openvpn/{{ item }}
-    owner=root group=wheel mode=0550
-    validate='/bin/sh -n %s'
-  with_items:
-    - client-route-up.sh
-  notify: reload openvpn client
+#- name: install scripts
+#  template:
+#    src={{ item }}.j2 dest=/usr/local/libexec/openvpn/{{ item }}
+#    owner=root group=wheel mode=0550
+#    validate='/bin/sh -n %s'
+#  with_items:
+#    - client-route-up.sh
+#  notify: reload openvpn client
 
 - copy:
     content="{{ openvpn_client_crl }}" dest=/etc/openvpn/client.crl

@@ -100,6 +100,11 @@ check process facette with pidfile /var/facette/facette.pid
   #stop program = "/usr/sbin/rcctl stop facette"
   #restart program = "/usr/sbin/rcctl restart facette"
 
+check process iked matching "^iked: parent"
+#  #start program = "/usr/sbin/rcctl start iked"
+#  #stop program = "/usr/sbin/rcctl stop iked"
+#  #restart program = "/usr/sbin/rcctl restart iked"
+
 {% if mdnsd_state == 'started' %}
 check process mdnsd matching "^mdnsd: "
 #  #start program = "/usr/sbin/rcctl start mdnsd"
@@ -123,19 +128,24 @@ check process ntpd matching "^/usr/sbin/ntpd "
   #restart program = "/usr/sbin/rcctl restart ntpd"
 
 {% if vpn_client_if is defined %}
-check process openvpn.client with pidfile /var/openvpn/client.pid
-  #start program = "/bin/sh /etc/netstart {{ vpn_client_if }}"
+#check process openvpn.client with pidfile /tmp/openvpn-client.pid
+#  #start program = "/bin/sh /etc/netstart {{ vpn_client_if }}"
 
 {% endif %}
 {% if vpn_server_if is defined %}
-check process openvpn.server with pidfile /var/openvpn/server.pid
-  #start program = "/bin/sh /etc/netstart {{ vpn_server_if }}"
+#check process openvpn.server with pidfile /tmp/openvpn-server.pid
+#  #start program = "/bin/sh /etc/netstart {{ vpn_server_if }}"
 
 {% endif %}
 check process smtpd matching "^/usr/sbin/smtpd$"
   #start program = "/usr/sbin/rcctl start smtpd"
   #stop program = "/usr/sbin/rcctl stop smtpd"
   #restart program = "/usr/sbin/rcctl restart smtpd"
+
+check process squid with pidfile /var/run/squid.pid
+  #start program = "/usr/sbin/rcctl start squid"
+  #stop program = "/usr/sbin/rcctl stop squid"
+  #restart program = "/usr/sbin/rcctl restart squid"
 
 check process sshd with pidfile /var/run/sshd.pid
   #start program = "/usr/sbin/rcctl start sshd"
