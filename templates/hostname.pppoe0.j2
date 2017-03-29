@@ -12,8 +12,8 @@ dest {{ wan_ipv4_dest }}
 
 inet6 {{ wan_ipv6 | ipaddr('address') }} {{ wan_ipv6 | ipaddr('prefix') }}
 
-{% for isp_netblock in isp_netblocks | ipv6 %}
+{%   for isp_netblock in isp_netblocks | ipv6 %}
 !/sbin/route add -inet6 {{ isp_netblock }} -ifp \$if {{ wan_ipv6 | ipaddr('address') }}
-{% endfor %}
+{%   endfor %}
 !/sbin/route add -inet6 default -ifp \$if {{ wan_ipv6 | ipaddr('address') }}
 {% endif %}

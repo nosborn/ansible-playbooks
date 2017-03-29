@@ -93,9 +93,11 @@ Match Address {{ lan_ipv4 | ipaddr('network') }}/{{ lan_ipv4 | ipaddr('prefix') 
   AllowUsers root {{ sshd_allow_users | sort | unique | join(' ') }}
 {% endif %}
   PermitRootLogin prohibit-password
+{% if lan_ipv6 is defined %}
 
 Match Address {{ lan_ipv6 | ipaddr('network') }}/{{ lan_ipv6 | ipaddr('prefix') }}
-{% if sshd_allow_users is defined %}
+{%   if sshd_allow_users is defined %}
   AllowUsers root {{ sshd_allow_users | sort | unique | join(' ') }}
-{% endif %}
+{%   endif %}
   PermitRootLogin prohibit-password
+{% endif %}

@@ -3,9 +3,9 @@
 # Options
 
 #set limit table-entries 400000
-set loginterface egress
+set loginterface {{ wan_if }}
 set skip on { {{ ['enc0', 'lo', pppoe_pppoedev] | sort | join(' ') }} }
-set state-policy if-bound
+#set state-policy if-bound
 
 # Tables
 
@@ -46,20 +46,20 @@ block drop in log on {{ wan_if }}
 block drop in log quick on {{ wan_if }} inet from <bogons4>
 
 pass in on {{ wan_if }} inet proto tcp to {{ wan_ipv4 | ipaddr('address') }} port 22 \
-  reply-to ({{ wan_if }} ({{ wan_if }}:peer))
+  reply-to ({{ wan_if }} {{ wan_ipv4_dest }})
 pass in on {{ wan_if }} inet proto { tcp udp } to {{ wan_ipv4 | ipaddr('address') }} port 53 \
-  reply-to ({{ wan_if }} ({{ wan_if }}:peer))
+  reply-to ({{ wan_if }} {{ wan_ipv4_dest }})
 pass in on {{ wan_if }} inet proto tcp to {{ wan_ipv4 | ipaddr('address') }} port { 80 443 } \
-  reply-to ({{ wan_if }} ({{ wan_if }}:peer))
+  reply-to ({{ wan_if }} {{ wan_ipv4_dest }})
 pass in on {{ wan_if }} inet proto udp to {{ wan_ipv4 | ipaddr('address') }} port { 500 4500 } \
-  reply-to ({{ wan_if }} ({{ wan_if }}:peer))
+  reply-to ({{ wan_if }} {{ wan_ipv4_dest }})
 pass in on {{ wan_if }} inet proto udp to {{ wan_ipv4 | ipaddr('address') }} port 1194 \
-  reply-to ({{ wan_if }} ({{ wan_if }}:peer))
+  reply-to ({{ wan_if }} {{ wan_ipv4_dest }})
 pass in on {{ wan_if }} inet proto icmp to {{ wan_ipv4 | ipaddr('address') }} icmp-type echoreq \
-  reply-to ({{ wan_if }} ({{ wan_if }}:peer))
+  reply-to ({{ wan_if }} {{ wan_ipv4_dest }})
 
 pass in on {{ wan_if }} inet proto esp to {{ wan_ipv4 | ipaddr('address') }} \
-  reply-to ({{ wan_if }} ({{ wan_if }}:peer))
+  reply-to ({{ wan_if }} {{ wan_ipv4_dest }})
 
 {% if wan_ipv6 is defined %}
 pass in on {{ wan_if }} inet6 proto { tcp udp } to {{ wan_ipv6 | ipaddr('address') }} port 53
@@ -68,27 +68,19 @@ pass in on {{ wan_if }} inet6 proto tcp to {{ wan_ipv6 | ipaddr('address') }} po
 pass in on {{ wan_if }} inet6 proto icmp6 to {{ wan_ipv6 | ipaddr('address') }} icmp6-type echoreq
 
 #pass in on {{ wan_if }} inet6 proto icmp6 from fe80::/16 to {{ wan_if }} icmp6-type routeradv
-{% endif %}
 
+{% endif %}
 # ---- OUT on pppoe0 ----
 
 match out on {{ wan_if }} inet from {{ lan_ipv4 | ipaddr('network') }}/{{ lan_ipv4 | ipaddr('prefix') }} nat-to {{ wan_ipv4 | ipaddr('address') }}
 match out on {{ wan_if }} inet from {{ vpn_server_ipv4 | ipaddr('network') }}/{{ vpn_server_ipv4 | ipaddr('prefix') }} nat-to {{ wan_ipv4 | ipaddr('address') }}
 
-pass out on {{ wan_if }}
+#pass out on {{ wan_if }}
 
 block return out log quick on {{ wan_if }} inet to <bogons-v4>
 #block return out log quick on {{ wan_if }} inet6 to <bogons-v6>
 
-# ==== {{ lan_if | upper }} ====
-
-# ---- IN on {{ lan_if }} ----
-
-pass in on {{ lan_if }}
-
-# ---- OUT on {{ lan_if }} ----
-
-pass out on {{ lan_if }}
+block return out log quick on {{ wan_if }} inet6
 
 {% if vpn_client_if is defined %}
 # ==== TUN0 ====
@@ -106,11 +98,12 @@ block drop in log on {{ vpn_client_if }}
 match out on {{ vpn_client_if }} inet from {{ lan_ipv4 | ipaddr('network') }}/{{ lan_ipv4 | ipaddr('prefix') }} nat-to ({{ vpn_client_if }}:0)
 match out on {{ vpn_client_if }} inet from {{ vpn_server_ipv4 | ipaddr('network') }}/{{ vpn_server_ipv4 | ipaddr('prefix') }} nat-to ({{ vpn_client_if }}:0)
 
-block return out log on {{ vpn_client_if }}
+block return out quick on {{ vpn_client_if }} inet from {{ wan_ipv4 | ipaddr('address') }}
+#block return out log on {{ vpn_client_if }}
 
 #block return out log quick on {{ vpn_client_if }} inet6
 
-pass out on {{ vpn_client_if }} inet
+#pass out on {{ vpn_client_if }} inet
 
 {% endif %}
 {% if vpn_server_if is defined %}
@@ -131,4 +124,24 @@ pass out on {{ vpn_server_if }}
 #pass out on {{ vpn_server_if }} inet divert-reply
 
 {% endif %}
+# ==== {{ lan_if | upper }} ====
+
+# ---- IN on {{ lan_if }} ----
+
+pass in on {{ lan_if }}
+
+# https://us.battle.net/support/en/article/300479
+pass in on {{ lan_if }} inet proto { tcp udp } \
+  from {{ lan_ipv4 | ipaddr('network') }}/{{ lan_ipv4 | ipaddr('prefix') }} to port 1119 \
+  tag DiabloIII \
+  route-to ({{ wan_if }} {{ wan_ipv4_dest }})
+pass in on {{ lan_if }} inet proto udp \
+  from {{ lan_if }}:network to port 6120 \
+  tag DiabloIII \
+  route-to ({{ wan_if }} {{ wan_ipv4_dest }})
+
+# ---- OUT on {{ lan_if }} ----
+
+pass out on {{ lan_if }}
+
 # ==== END ====

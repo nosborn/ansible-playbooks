@@ -88,12 +88,14 @@
       with_dict:
         ddb.panic: 0
         net.inet.ah.enable: 0
+        net.inet.divert.recvspace: 131072
       # net.inet.esp.enable: 0
         net.inet.ip.ifq.maxlen: 512
         net.inet.tcp.mssdflt: 1440
         net.inet.udp.recvspace: 131072
         net.inet.udp.sendspace: 131072
-        net.inet6.ip6.ifq.maxlen: 512
+      # net.inet6.divert.recvspace: 131072
+      # net.inet6.ip6.ifq.maxlen: 512
 
     - name: Resolver configuration file
       template:

@@ -1,7 +1,10 @@
 # roles/router/tasks/main
 ---
-- sysctl: name={{ item.key }} reload=no sysctl_set=yes value={{ item.value }}
-  with_dict:
-    net.inet.ip.forwarding: 1
-    net.inet6.ip6.forwarding: 1
+- sysctl: name=net.inet.ip.forwarding reload=no sysctl_set=yes value=1
+
+- sysctl: name=net.inet6.ip6.forwarding reload=no sysctl_set=yes value=0 state=absent
+  when: wan_ipv6 is not defined
+
+- sysctl: name=net.inet6.ip6.forwarding reload=no sysctl_set=yes value=1
+  when: wan_ipv6 is defined
 ...
