@@ -1,7 +1,7 @@
 # roles/openmdns/tasks/main
 ---
 - name: install package
-  openbsd_pkg: name=openmdns state=latest
+  openbsd_pkg: name=openmdns state=installed
 
 - name: enable multicast DNS/DNS-SD daemon
   service:

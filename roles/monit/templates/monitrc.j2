@@ -128,13 +128,13 @@ check process ntpd matching "^/usr/sbin/ntpd "
   #restart program = "/usr/sbin/rcctl restart ntpd"
 
 {% if vpn_client_if is defined %}
-#check process openvpn.client with pidfile /tmp/openvpn-client.pid
-#  #start program = "/bin/sh /etc/netstart {{ vpn_client_if }}"
+check process openvpn.client with pidfile /var/openvpn/client.pid
+  #start program = "/bin/sh /etc/netstart {{ vpn_client_if }}"
 
 {% endif %}
 {% if vpn_server_if is defined %}
-#check process openvpn.server with pidfile /tmp/openvpn-server.pid
-#  #start program = "/bin/sh /etc/netstart {{ vpn_server_if }}"
+check process openvpn.server with pidfile /var/openvpn/server.pid
+  #start program = "/bin/sh /etc/netstart {{ vpn_server_if }}"
 
 {% endif %}
 check process smtpd matching "^/usr/sbin/smtpd$"
@@ -260,8 +260,8 @@ check network WAN with interface {{ wan_if }}
   if changed link capacity then alert
 
 {% if wan_ipv4_dest is defined %}
-check host Bottomless with address {{ wan_ipv4_dest }}
-  if failed ping then alert
+#check host Bottomless with address {{ wan_ipv4_dest }}
+#  if failed ping then alert
 
 {% endif %}
 # include /etc/monit.d/*

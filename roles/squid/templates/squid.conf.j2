@@ -5,7 +5,9 @@
 # Adapt to list your (internal) IP networks from where browsing
 # should be allowed.
 acl localnet src {{ lan_ipv4 | ipaddr('network') }}/{{ lan_ipv4 | ipaddr('prefix') }}
+{% if vpn_server_ipv4 is defined %}
 acl localnet src {{ vpn_server_ipv4 | ipaddr('network') }}/{{ vpn_server_ipv4 | ipaddr('prefix') }}
+{% endif %}
 acl localnet src fc00::/7       # RFC 4193 local private network range
 acl localnet src fe80::/10      # RFC 4291 link-local (directly plugged) machines
 
@@ -54,9 +56,13 @@ http_access deny all
 
 # Squid normally listens to port 3128
 #http_port {{ lan_ipv4 | ipaddr('address') }}:3128 ssl-bump generate-host-certificates=on dynamic_cert_mem_cache_size=4MB cert=/etc/squid/bumpca.pem dhparams=/etc/ssl/ffdhe2048.pem
+{% if vpn_server_ipv4 is defined %}
 #http_port {{ vpn_server_ipv4 | ipaddr('address') }}:3128 ssl-bump generate-host-certificates=on dynamic_cert_mem_cache_size=4MB cert=/etc/squid/bumpca.pem dhparams=/etc/ssl/ffdhe2048.pem
+{% endif %}
 http_port {{ lan_ipv4 | ipaddr('address') }}:3128
+{% if vpn_server_ipv4 is defined %}
 http_port {{ vpn_server_ipv4 | ipaddr('address') }}:3128
+{% endif %}
 #http_port 127.0.0.1:3129 intercept
 
 # SSL OPTIONS

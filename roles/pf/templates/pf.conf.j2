@@ -37,7 +37,8 @@ antispoof quick for {{ ifspec }}
 
 # ==== PPPOE0 ====
 
-match on {{ wan_if }} scrub (max-mss 1440, random-id, reassemble tcp)
+#match on {{ wan_if }} scrub (max-mss 1460, random-id, reassemble tcp)
+match on {{ wan_if }} scrub (random-id, reassemble tcp)
 
 # ---- IN on pppoe0 ----
 
@@ -73,7 +74,9 @@ pass in on {{ wan_if }} inet6 proto icmp6 to {{ wan_ipv6 | ipaddr('address') }} 
 # ---- OUT on pppoe0 ----
 
 match out on {{ wan_if }} inet from {{ lan_ipv4 | ipaddr('network') }}/{{ lan_ipv4 | ipaddr('prefix') }} nat-to {{ wan_ipv4 | ipaddr('address') }}
+{% if vpn_server_ipv4 is defined %}
 match out on {{ wan_if }} inet from {{ vpn_server_ipv4 | ipaddr('network') }}/{{ vpn_server_ipv4 | ipaddr('prefix') }} nat-to {{ wan_ipv4 | ipaddr('address') }}
+{% endif %}
 
 #pass out on {{ wan_if }}
 
@@ -87,7 +90,8 @@ block return out log quick on {{ wan_if }} inet6
 
 antispoof quick for {{ vpn_client_if }}
 
-match on {{ vpn_client_if }} scrub (max-mss 1440, random-id, reassemble tcp)
+#match on {{ vpn_client_if }} scrub (max-mss 1440, random-id, reassemble tcp)
+match on {{ vpn_client_if }} scrub (random-id, reassemble tcp)
 
 # ---- IN on tun0 ----
 
@@ -96,7 +100,9 @@ block drop in log on {{ vpn_client_if }}
 # ---- OUT on tun0 ----
 
 match out on {{ vpn_client_if }} inet from {{ lan_ipv4 | ipaddr('network') }}/{{ lan_ipv4 | ipaddr('prefix') }} nat-to ({{ vpn_client_if }}:0)
+{% if vpn_server_ipv4 is defined %}
 match out on {{ vpn_client_if }} inet from {{ vpn_server_ipv4 | ipaddr('network') }}/{{ vpn_server_ipv4 | ipaddr('prefix') }} nat-to ({{ vpn_client_if }}:0)
+{% endif %}
 
 block return out quick on {{ vpn_client_if }} inet from {{ wan_ipv4 | ipaddr('address') }}
 #block return out log on {{ vpn_client_if }}

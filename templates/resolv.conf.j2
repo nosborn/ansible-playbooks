@@ -2,6 +2,3 @@
 nameserver {{ nameserver }}
 {% endfor %}
 domain {{ global_domain }}
-{% if wan_ip46 is not defined %}
-family inet4
-{% endif %}

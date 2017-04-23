@@ -95,7 +95,7 @@ LoadPlugin memory
 #LoadPlugin nut
 #LoadPlugin openvpn
 LoadPlugin pf
-LoadPlugin ping
+#LoadPlugin ping
 #LoadPlugin postgresql
 #LoadPlugin processes
 #LoadPlugin python
@@ -388,15 +388,15 @@ LoadPlugin swap
 #  CollectUserCount true
 #</Plugin>
 
-<Plugin ping>
-  Host "{{ wan_ipv4_dest }}"
-# Interval 1.0
-# Timeout 0.9
-# TTL 255
-  SourceAddress "{{ wan_ipv4 | ipaddr('address') }}"
-# Device "eth0"
-# MaxMissed -1
-</Plugin>
+#<Plugin ping>
+#  Host "{{ wan_ipv4_dest }}"
+## Interval 1.0
+## Timeout 0.9
+## TTL 255
+#  SourceAddress "{{ wan_ipv4 | ipaddr('address') }}"
+## Device "eth0"
+## MaxMissed -1
+#</Plugin>
 
 #<Plugin postgresql>
 #	<Query magic>
