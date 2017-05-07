@@ -88,10 +88,10 @@ set httpd port 2812 address 127.0.0.1
 #  #restart program = "/usr/sbin/rcctl restart c_icap"
 
 {% endif %}
-#check process collectd with pidfile /var/collectd/collectd.pid
-#  #start program = "/usr/sbin/rcctl start collectd"
-#  #stop program = "/usr/sbin/rcctl stop collectd"
-#  #restart program = "/usr/sbin/rcctl restart collectd"
+check process collectd with pidfile /var/collectd/collectd.pid
+  #start program = "/usr/sbin/rcctl start collectd"
+  #stop program = "/usr/sbin/rcctl stop collectd"
+  #restart program = "/usr/sbin/rcctl restart collectd"
 
 check process dhcpd matching "^/usr/sbin/dhcpd "
   #start program = "/usr/sbin/rcctl start dhcpd"

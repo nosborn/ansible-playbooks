@@ -266,7 +266,7 @@ LoadPlugin swap
 #</Plugin>
 
 <Plugin interface>
-{% for interface in [lan_if, wan_if] | sort %}
+{% for interface in [lan_if, wan_if, wlan_if] | sort %}
   Interface "{{ interface }}"
 {% endfor %}
 {% if vpn_client_if is defined %}

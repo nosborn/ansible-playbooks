@@ -38,7 +38,7 @@
     - apmd
   # - bwm-ng
   # - c-icap
-  # - collectd
+    - collectd
   # - dhcpcd
     - dhcpd
   # - daily
@@ -98,8 +98,8 @@
       # net.inet.esp.enable: 0
       # net.inet.ip.ifq.maxlen: 512
       # net.inet.tcp.mssdflt: 1460
-      # net.inet.udp.recvspace: 131072
-      # net.inet.udp.sendspace: 131072
+        net.inet.udp.recvspace: 131072
+        net.inet.udp.sendspace: 131072
       # net.inet6.divert.recvspace: 131072
       # net.inet6.ip6.ifq.maxlen: 512
 
