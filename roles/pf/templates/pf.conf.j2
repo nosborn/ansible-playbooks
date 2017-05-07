@@ -1,153 +1,60 @@
+#	$OpenBSD: pf.conf,v 1.54 2014/08/23 05:49:42 deraadt Exp $
+#
 # See pf.conf(5) and /etc/examples/pf.conf
 
-# Options
+#set skip on lo
 
-#set limit table-entries 400000
-set loginterface {{ wan_if }}
-set skip on { {{ ['enc0', 'lo', pppoe_pppoedev] | sort | join(' ') }} }
-#set state-policy if-bound
+match out on rdomain 0 to {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }} rtable 1
+match out on rdomain 1 to {{ wan_ipv4|ipaddr('address') }} rtable 0
+{% if isp_netblocks is defined %}
+{%   for isp_netblock in isp_netblocks|ipv4 %}
+#match out on rdomain 1 to {{ isp_netblock }} rtable 0
+{%   endfor %}
+{% endif %}
+pass quick on lo
 
-# Tables
+block return log	# block stateless traffic
+pass		# establish keep-state
 
-table <bogons-v4> counters persist file "/var/db/fullbogons-ipv4.txt"
-#table <bogons-v6> counters persist file "/var/db/fullbogons-ipv6.txt"
+# WAN_IF
 
-#
-
-# match out on egress inet scrub
-
-#match in inet scrub (no-df random-id)
-
-# Packet Filtering
-
-block return in log
-pass out
-
-{% for ifspec in ['lo0', lan_if] | sort %}
-antispoof quick for {{ ifspec }}
-{% endfor %}
-
-#block drop in log quick on egress inet from <bogons-v4>
-## TODO: figure out routeradv
-#block drop in log quick on egress inet6 from <bogons-v6>
-#block drop in log quick on egress from <bruteforce>
-
-#block return out log quick on egress inet to <bogons4>
-#block return out log quick on egress inet6 to <bogons6>
-
-# ==== PPPOE0 ====
-
-#match on {{ wan_if }} scrub (max-mss 1460, random-id, reassemble tcp)
-match on {{ wan_if }} scrub (random-id, reassemble tcp)
-
-# ---- IN on pppoe0 ----
+match out on {{ wan_if }} inet from {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }} nat-to {{ wan_ipv4|ipaddr('address') }}
 
 block drop in log on {{ wan_if }}
 
-block drop in log quick on {{ wan_if }} inet from <bogons4>
+#block drop in log quick on {{ wan_if }} inet from <bogons4>
 
-pass in on {{ wan_if }} inet proto tcp to {{ wan_ipv4 | ipaddr('address') }} port 22 \
-  reply-to ({{ wan_if }} {{ wan_ipv4_dest }})
-pass in on {{ wan_if }} inet proto { tcp udp } to {{ wan_ipv4 | ipaddr('address') }} port 53 \
-  reply-to ({{ wan_if }} {{ wan_ipv4_dest }})
-pass in on {{ wan_if }} inet proto tcp to {{ wan_ipv4 | ipaddr('address') }} port { 80 443 } \
-  reply-to ({{ wan_if }} {{ wan_ipv4_dest }})
-pass in on {{ wan_if }} inet proto udp to {{ wan_ipv4 | ipaddr('address') }} port { 500 4500 } \
-  reply-to ({{ wan_if }} {{ wan_ipv4_dest }})
-pass in on {{ wan_if }} inet proto udp to {{ wan_ipv4 | ipaddr('address') }} port 1194 \
-  reply-to ({{ wan_if }} {{ wan_ipv4_dest }})
-pass in on {{ wan_if }} inet proto icmp to {{ wan_ipv4 | ipaddr('address') }} icmp-type echoreq \
-  reply-to ({{ wan_if }} {{ wan_ipv4_dest }})
-
-pass in on {{ wan_if }} inet proto esp to {{ wan_ipv4 | ipaddr('address') }} \
-  reply-to ({{ wan_if }} {{ wan_ipv4_dest }})
+pass in on {{ wan_if }} inet proto tcp to {{ wan_ipv4|ipaddr('address') }} port 22
+pass in on {{ wan_if }} inet proto tcp to {{ wan_ipv4|ipaddr('address') }} port 53
+pass in on {{ wan_if }} inet proto tcp to {{ wan_ipv4|ipaddr('address') }} port { 80 443 }
+pass in on {{ wan_if }} inet proto udp to {{ wan_ipv4|ipaddr('address') }} port 53
+#pass in on {{ wan_if }} inet proto udp to {{ wan_ipv4|ipaddr('address') }} port { 500 4500 }
+pass in on {{ wan_if }} inet proto icmp to {{ wan_ipv4|ipaddr('address') }} icmp-type echoreq
+#pass in on {{ wan_if }} inet proto esp to {{ wan_ipv4|ipaddr('address') }}
 
 {% if wan_ipv6 is defined %}
-pass in on {{ wan_if }} inet6 proto { tcp udp } to {{ wan_ipv6 | ipaddr('address') }} port 53
-pass in on {{ wan_if }} inet6 proto tcp to {{ wan_ipv6 | ipaddr('address') }} port { 80 443 }
-pass in on {{ wan_if }} inet6 proto tcp to {{ wan_ipv6 | ipaddr('address') }} port 1194
-pass in on {{ wan_if }} inet6 proto icmp6 to {{ wan_ipv6 | ipaddr('address') }} icmp6-type echoreq
+#pass in on {{ wan_if }} inet6 proto tcp to {{ wan_ipv6|ipaddr('address') }} port 22
+pass in on {{ wan_if }} inet6 proto tcp to {{ wan_ipv6|ipaddr('address') }} port 53
+#pass in on {{ wan_if }} inet6 proto tcp to {{ wan_ipv6|ipaddr('address') }} port { 80 443 }
+pass in on {{ wan_if }} inet6 proto udp to {{ wan_ipv6|ipaddr('address') }} port 53
+pass in on {{ wan_if }} inet6 proto icmp6 to {{ wan_ipv6|ipaddr('address') }} icmp6-type echoreq
+#pass in on {{ wan_if }} inet6 proto esp to {{ wan_ipv4|ipaddr('address') }}
 
+{% endif %}
 #pass in on {{ wan_if }} inet6 proto icmp6 from fe80::/16 to {{ wan_if }} icmp6-type routeradv
+pass in on {{ wan_if }} inet6
 
-{% endif %}
-# ---- OUT on pppoe0 ----
+# VPN_CLIENT_IF
 
-match out on {{ wan_if }} inet from {{ lan_ipv4 | ipaddr('network') }}/{{ lan_ipv4 | ipaddr('prefix') }} nat-to {{ wan_ipv4 | ipaddr('address') }}
-{% if vpn_server_ipv4 is defined %}
-match out on {{ wan_if }} inet from {{ vpn_server_ipv4 | ipaddr('network') }}/{{ vpn_server_ipv4 | ipaddr('prefix') }} nat-to {{ wan_ipv4 | ipaddr('address') }}
-{% endif %}
+block drop in log quick on {{ vpn_client_if }}
 
-#pass out on {{ wan_if }}
+match out on {{ vpn_client_if }} inet \
+  from {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }} \
+  nat-to ({{ vpn_client_if }}:0)
 
-block return out log quick on {{ wan_if }} inet to <bogons-v4>
-#block return out log quick on {{ wan_if }} inet6 to <bogons-v6>
+# LAN_IF
 
-block return out log quick on {{ wan_if }} inet6
-
-{% if vpn_client_if is defined %}
-# ==== TUN0 ====
-
-antispoof quick for {{ vpn_client_if }}
-
-#match on {{ vpn_client_if }} scrub (max-mss 1440, random-id, reassemble tcp)
-match on {{ vpn_client_if }} scrub (random-id, reassemble tcp)
-
-# ---- IN on tun0 ----
-
-block drop in log on {{ vpn_client_if }}
-
-# ---- OUT on tun0 ----
-
-match out on {{ vpn_client_if }} inet from {{ lan_ipv4 | ipaddr('network') }}/{{ lan_ipv4 | ipaddr('prefix') }} nat-to ({{ vpn_client_if }}:0)
-{% if vpn_server_ipv4 is defined %}
-match out on {{ vpn_client_if }} inet from {{ vpn_server_ipv4 | ipaddr('network') }}/{{ vpn_server_ipv4 | ipaddr('prefix') }} nat-to ({{ vpn_client_if }}:0)
-{% endif %}
-
-block return out quick on {{ vpn_client_if }} inet from {{ wan_ipv4 | ipaddr('address') }}
-#block return out log on {{ vpn_client_if }}
-
-#block return out log quick on {{ vpn_client_if }} inet6
-
-#pass out on {{ vpn_client_if }} inet
-
-{% endif %}
-{% if vpn_server_if is defined %}
-# ==== TUN1 ====
-
-antispoof quick for {{ vpn_server_if }}
-
-# ---- IN on tun1 ----
-
-pass in on {{ vpn_server_if }}
-
-#pass in on {{ vpn_server_if }} inet proto tcp to port 80 divert-to 127.0.0.1 port 3129
-
-# ---- OUT on tun1 ----
-
-pass out on {{ vpn_server_if }}
-
-#pass out on {{ vpn_server_if }} inet divert-reply
-
-{% endif %}
-# ==== {{ lan_if | upper }} ====
-
-# ---- IN on {{ lan_if }} ----
-
-pass in on {{ lan_if }}
-
-# https://us.battle.net/support/en/article/300479
-pass in on {{ lan_if }} inet proto { tcp udp } \
-  from {{ lan_ipv4 | ipaddr('network') }}/{{ lan_ipv4 | ipaddr('prefix') }} to port 1119 \
-  tag DiabloIII \
-  route-to ({{ wan_if }} {{ wan_ipv4_dest }})
-pass in on {{ lan_if }} inet proto udp \
-  from {{ lan_if }}:network to port 6120 \
-  tag DiabloIII \
-  route-to ({{ wan_if }} {{ wan_ipv4_dest }})
-
-# ---- OUT on {{ lan_if }} ----
-
-pass out on {{ lan_if }}
-
-# ==== END ====
+pass in on vether0 inet proto tcp \
+  from {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }} \
+  to {{ lan_ipv4|ipaddr('address') }} port 22 \
+  rdr-to {{ wan_ipv4|ipaddr('address') }} port 22

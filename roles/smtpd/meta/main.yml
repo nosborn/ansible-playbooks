@@ -1,7 +1,0 @@
-# roles/smtpd/meta/main
----
-dependencies:
-# - { role: dkimproxy }
-  - { role: letsencrypt }
-# - { role: spampd }
-...

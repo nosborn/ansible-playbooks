@@ -3,11 +3,6 @@
 - include_vars: secrets.yml
   no_log: true
 
-#- copy:
-#    content="{{ ansible_fqdn }}\n" dest=/etc/mail/mailname
-#    owner=root group=wheel mode=0444
-#  notify: restart smtpd
-
 - copy:
     content="{{ mail_aliases }}" dest=/etc/mail/aliases
     owner=root group=wheel mode=0444

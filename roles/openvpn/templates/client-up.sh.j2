@@ -1,0 +1,11 @@
+#!/bin/sh
+
+ifconfig "${dev}" inet "${ifconfig_local}" "${route_vpn_gateway}" mtu "${tun_mtu}" netmask "${ifconfig_netmask}" rdomain 1 up
+route -n -T1 add -net "${route_vpn_gateway}" -netmask "${ifconfig_netmask}" "${route_vpn_gateway}"
+
+if [ -n "${ifconfig_ipv6_local}" ]; then
+  ifconfig "${dev}" inet6 "${ifconfig_ipv6_local}/${ifconfig_ipv6_netbits}"
+  route -n -T1 add -inet6 -net "${ifconfig_ipv6_remote}" -prefixlen "${ifconfig_ipv6_netbits}" "${ifconfig_ipv6_local}"
+else
+  ifconfig "${dev}" -inet6
+fi

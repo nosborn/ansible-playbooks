@@ -3,6 +3,14 @@
 - name: install package
   openbsd_pkg: name=openmdns state=installed
 
+- lineinfile:
+    path: /etc/rc.conf.local
+    regexp: '^mdnsd_rtable='
+    line: 'mdnsd_rtable=1'
+    insertafter: '^mdnsd_flags='
+  # notify: restart mdnsd
+  when: mdnsd_enabled == 'yes'
+
 - name: enable multicast DNS/DNS-SD daemon
   service:
     name=mdnsd arguments="-w {{ lan_if }}"

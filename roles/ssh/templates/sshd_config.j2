@@ -1,21 +1,31 @@
-# This is the sshd server system-wide configuration file. See sshd_config(5)
-# for more information.
+#	$OpenBSD: sshd_config,v 1.101 2017/03/14 07:19:07 djm Exp $
 
-# The strategy used for options in the default sshd_config shipped with OpenSSH
-# is to specify options with their default value where possible, but leave them
-# commented. Uncommented options override the default value.
+# This is the sshd server system-wide configuration file.  See
+# sshd_config(5) for more information.
+
+# The strategy used for options in the default sshd_config shipped with
+# OpenSSH is to specify options with their default value where
+# possible, but leave them commented.  Uncommented options override the
+# default value.
 
 #Port 22
 {% if sshd_address_family is defined %}
 AddressFamily {{ sshd_address_family }}
+{% else %}
+#AddressFamily any
 {% endif %}
 {% if sshd_listen_addresses is defined %}
 {%   for listen_address in sshd_listen_addresses %}
 ListenAddress {{ listen_address | ipwrap }}
 {%   endfor %}
+{% else %}
+#ListenAddress 0.0.0.0
+#ListenAddress ::
 {% endif %}
 
 HostKey /etc/ssh/ssh_host_rsa_key
+#HostKey /etc/ssh/ssh_host_dsa_key
+#HostKey /etc/ssh/ssh_host_ecdsa_key
 HostKey /etc/ssh/ssh_host_ed25519_key
 
 # Ciphers and keying
@@ -40,7 +50,7 @@ AllowUsers {{ sshd_allow_users | sort | unique | join(' ') }}
 
 # The default is to check both .ssh/authorized_keys and .ssh/authorized_keys2
 # but this is overridden so installations will only check .ssh/authorized_keys
-AuthorizedKeysFile .ssh/authorized_keys
+AuthorizedKeysFile	.ssh/authorized_keys
 
 #AuthorizedPrincipalsFile none
 
@@ -73,7 +83,6 @@ ChallengeResponseAuthentication no
 #PrintLastLog yes
 #TCPKeepAlive yes
 #UseLogin no
-#UsePrivilegeSeparation sandbox
 #PermitUserEnvironment no
 #Compression delayed
 ClientAliveInterval 15
@@ -88,16 +97,19 @@ ClientAliveInterval 15
 # no default banner path
 #Banner none
 
+# override default of no subsystems
+Subsystem	sftp	/usr/libexec/sftp-server
+
 Match Address {{ lan_ipv4 | ipaddr('network') }}/{{ lan_ipv4 | ipaddr('prefix') }}
 {% if sshd_allow_users is defined %}
-  AllowUsers root {{ sshd_allow_users | sort | unique | join(' ') }}
+	AllowUsers root {{ sshd_allow_users | sort | unique | join(' ') }}
 {% endif %}
-  PermitRootLogin prohibit-password
+	PermitRootLogin prohibit-password
 {% if lan_ipv6 is defined %}
 
 Match Address {{ lan_ipv6 | ipaddr('network') }}/{{ lan_ipv6 | ipaddr('prefix') }}
 {%   if sshd_allow_users is defined %}
-  AllowUsers root {{ sshd_allow_users | sort | unique | join(' ') }}
+	AllowUsers root {{ sshd_allow_users | sort | unique | join(' ') }}
 {%   endif %}
-  PermitRootLogin prohibit-password
+	PermitRootLogin prohibit-password
 {% endif %}

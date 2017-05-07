@@ -1,0 +1,17 @@
+rdomain 1
+
+add {{ wlan_if }}
+blocknonip {{ wlan_if }}
+
+add {{ lan_if }}
+blocknonip {{ lan_if }}
+
+add em2
+blocknonip em2
+
+add vether0
+-discover vether0
+-learn vether0
+blocknonip vether0
+
+up

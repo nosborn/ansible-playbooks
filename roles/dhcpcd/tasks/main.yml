@@ -1,0 +1,17 @@
+# roles/dhcpcd/tasks/main
+---
+- name: install package
+  openbsd_pkg: name=dhcpcd state=installed
+
+- template:
+    src=dhcpcd.conf.j2 dest=/etc/dhcpcd.conf
+    owner=root group=wheel mode=0444
+# notify: 'reload dhcpcd'
+
+- name: enable DNS client
+  service:
+    name=dhcpcd enabled={{ dhcpcd_enabled }} state={{ dhcpcd_state }}
+
+- fetch:
+    dest=backup fail_on_missing=no src=/etc/dhcpcd.duid
+...

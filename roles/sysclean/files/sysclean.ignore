@@ -1,5 +1,6 @@
 /etc/acme/letsencrypt-privkey.pem
 /etc/daily.local
+/etc/dhcpcd.duid
 /etc/iked/export
 /etc/kbdtype
 /etc/mail/secrets

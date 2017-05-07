@@ -1,0 +1,5 @@
+# roles/dhcpcd/handlers/main
+---
+- name: reload dhcpcd
+  service: name=dhcpcd state=reloaded
+...

@@ -14,10 +14,15 @@
         owner=root group=wheel mode=0440
       notify: netstart
       with_items:
+        - bridge0
+        - em2
+        - lo0
+        - lo1
+        - vether0
         - "{{ lan_if }}"
         - "{{ pppoe_pppoedev }}"
+        - "{{ wan_if }}"
         - "{{ wlan_if }}"
-        - em2
 
     - name: Default hostname
       copy:
@@ -31,30 +36,31 @@
 
   roles:
     - apmd
-    - bwm-ng
+  # - bwm-ng
   # - c-icap
-    - collectd
+  # - collectd
+  # - dhcpcd
     - dhcpd
-    - daily
+  # - daily
     - doas
-    - facette
+  # - facette
     - flashrom
-    - iked
-    - letsencrypt
+  # - iked
+  # - letsencrypt
     - locale
-    - newsyslog
-    - nginx
+  # - newsyslog
+  # - nginx
     - nsd
     - ntpd
-    - openmdns
     - openvpn
+    - openmdns
     - pf
-    - pftop
+  # - pftop
     - router
-    - rtadvd
+  # - rtadvd
     - smtpd
     - sndiod
-    - squid
+  # - squid
     - ssh
     - sysclean
     - sysmerge
@@ -62,9 +68,9 @@
     - monit # do last
 
   tasks:
-    - name: 'boot configuration'
-      template:
-        src=boot.conf.j2 dest=/etc/boot.conf
+    - name: boot configuration
+      copy:
+        src=boot.conf dest=/etc/boot.conf
         owner=root group=wheel mode=0444
 
     - name: 'Host name database'
@@ -72,28 +78,28 @@
         src=hosts.j2 dest=/etc/hosts
         owner=root group=wheel mode=0444
 
-    #- name: system login profile
-    #  copy:
-    #    content="PS1='\h\$ '\n" dest=/etc/profile
-    #    owner=root group=wheel mode=0444
+          #- name: system login profile
+          #  copy:
+            #    content="PS1='\h\$ '\n" dest=/etc/profile
+            #    owner=root group=wheel mode=0444
 
-    - name: 'terminal initialization information'
-      replace:
-        dest=/etc/ttys
-        regexp='^(console\s+.+)\s+secure$'
-        replace='\1'
+            #   - name: 'terminal initialization information'
+            #     replace:
+              #       dest=/etc/ttys
+              #       regexp='^(console\s+.+)\s+secure$'
+              #       replace='\1'
 
     - name: sysctl variables to set at system startup
       sysctl: name={{ item.key }} reload=no sysctl_set=yes value={{ item.value }}
       with_dict:
         ddb.panic: 0
-        net.inet.ah.enable: 0
-        net.inet.divert.recvspace: 131072
+      # net.inet.ah.enable: 0
+      # net.inet.divert.recvspace: 131072
       # net.inet.esp.enable: 0
-        net.inet.ip.ifq.maxlen: 512
-        net.inet.tcp.mssdflt: 1460
-        net.inet.udp.recvspace: 131072
-        net.inet.udp.sendspace: 131072
+      # net.inet.ip.ifq.maxlen: 512
+      # net.inet.tcp.mssdflt: 1460
+      # net.inet.udp.recvspace: 131072
+      # net.inet.udp.sendspace: 131072
       # net.inet6.divert.recvspace: 131072
       # net.inet6.ip6.ifq.maxlen: 512
 

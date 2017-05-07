@@ -12,8 +12,10 @@
     owner=root group=wheel mode=0550
     validate='/bin/sh -n %s'
   with_items:
-    - client-route-pre-down.sh
+    - client-down.sh
     - client-route-up.sh
+    - client-route-pre-down.sh
+    - client-up.sh
   notify: reload openvpn client
 
 - copy:
@@ -40,5 +42,5 @@
   template:
     src=hostname.client.j2 dest=/etc/hostname.{{ vpn_client_if }}
     owner=root group=wheel mode=0440
-# notify: restart openvpn
+# notify: restart openvpn client
 ...
