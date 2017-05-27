@@ -1,0 +1,42 @@
+{
+    "id": "d7b13bb7-4ca9-497a-50ae-e834b1cf9de9",
+    "name": "Octets",
+    "description": "",
+    "type": 1,
+    "stack_mode": 1,
+    "unit_type": 2,
+    "unit_legend": "bytes/s",
+    "groups": [
+        {
+            "name": "rx",
+            "type": 1,
+            "stack_id": 0,
+            "series": [
+                {
+                    "name": "rx",
+                    "origin": "collectd",
+                    "source": "interface-pppoe0",
+                    "metric": "if_octets.rx",
+                    "options": null
+                }
+            ],
+            "options": {}
+        },
+        {
+            "name": "tx",
+            "type": 1,
+            "stack_id": 0,
+            "series": [
+                {
+                    "name": "tx",
+                    "origin": "collectd",
+                    "source": "interface-pppoe0",
+                    "metric": "if_octets.tx",
+                    "options": null
+                }
+            ],
+            "options": {}
+        }
+    ],
+    "template": false
+}

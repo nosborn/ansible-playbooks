@@ -7,14 +7,6 @@
     validate='/usr/sbin/sshd -f %s -t'
   notify: restart sshd
 
-- lineinfile:
-    path: /etc/rc.conf.local
-    regexp: '^sshd_rtable='
-    line: 'sshd_rtable=1'
-    insertafter: '^sshd_flags='
-  notify: restart sshd
-  when: false
-
 - name: Enable OpenSSH SSH daemon
   service: name=sshd enabled=yes state=started
 

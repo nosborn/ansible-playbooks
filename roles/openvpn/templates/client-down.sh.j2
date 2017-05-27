@@ -1,3 +1,4 @@
-#!/bin/sh
+#!/bin/ksh
 
-echo "DOWN: $@" >&2
+ifconfig "${dev}" -inet6
+ifconfig "${dev}" -inet

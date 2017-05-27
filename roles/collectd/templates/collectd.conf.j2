@@ -90,10 +90,10 @@ LoadPlugin load
 LoadPlugin memory
 #LoadPlugin mysql
 #LoadPlugin network
-#LoadPlugin nginx
+LoadPlugin nginx
 #LoadPlugin ntpd
 #LoadPlugin nut
-#LoadPlugin openvpn
+LoadPlugin openvpn
 LoadPlugin pf
 #LoadPlugin ping
 #LoadPlugin postgresql
@@ -266,7 +266,7 @@ LoadPlugin swap
 #</Plugin>
 
 <Plugin interface>
-{% for interface in [lan_if, wan_if, wlan_if] | sort %}
+{% for interface in [lan_if, wan_if, wlan_if]|sort %}
   Interface "{{ interface }}"
 {% endfor %}
 {% if vpn_client_if is defined %}
@@ -359,12 +359,9 @@ LoadPlugin swap
 #	CacheFlush 1800
 #</Plugin>
 
-#<Plugin nginx>
-#	URL "http://localhost/status?auto"
-##	User "www-user"
-##	Password "secret"
-##	CACert "/etc/ssl/ca.crt"
-#</Plugin>
+<Plugin nginx>
+	URL "http://[::1]/status?auto"
+</Plugin>
 
 #<Plugin ntpd>
 #	Host "localhost"
@@ -377,25 +374,23 @@ LoadPlugin swap
 #	UPS "upsname@hostname:port"
 #</Plugin>
 
-#<Plugin openvpn>
+<Plugin openvpn>
 {% if vpn_client_if is defined %}
-#  StatusFile "/tmp/openvpn-client.status"
+  StatusFile "/var/openvpn/client.status"
 {% endif %}
 {% if vpn_server_if is defined %}
-#  StatusFile "/tmp/openvpn-server.status"
+  StatusFile "/var/openvpn/server.status"
 {% endif %}
-#  ImprovedNamingSchema true
-#  CollectUserCount true
-#</Plugin>
+  ImprovedNamingSchema true
+r CollectUserCount true
+</Plugin>
 
 #<Plugin ping>
 #  Host "{{ wan_ipv4_dest }}"
 ## Interval 1.0
 ## Timeout 0.9
-## TTL 255
-#  SourceAddress "{{ wan_ipv4 | ipaddr('address') }}"
-## Device "eth0"
-## MaxMissed -1
+#  SourceAddress "{{ wan_ipv4|ipaddr('address') }}"
+## Device "{{ wan_if }}"
 #</Plugin>
 
 #<Plugin postgresql>

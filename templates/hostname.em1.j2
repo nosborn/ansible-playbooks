@@ -1,2 +1,9 @@
-rdomain 1
+inet {{ lan_ipv4|ipaddr('address') }} {{ lan_ipv4|ipaddr('netmask') }} NONE
+{% if lan_ipv6 is defined %}
+inet6 {{ lan_ipv6|ipaddr('address') }} {{ lan_ipv6|ipaddr('prefix') }}
+{% else %}
+inet6 eui64
+{% endif %}
 up
+
+!/sbin/route -n -T1 add -inet 169.254/16 -iface {{ lan_ipv4|ipaddr('address') }}

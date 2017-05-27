@@ -1,0 +1,5 @@
+# roles/openmdns/handlers/main
+---
+- name: restart mdnsd
+  service: name=mdnsd state=restarted
+...

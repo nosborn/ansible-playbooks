@@ -1,0 +1,29 @@
+{
+    "id": "29a483b8-21ba-4cc7-4632-96c42bd5fe23",
+    "name": "Quota",
+    "description": "",
+    "title": "Quota",
+    "type": 1,
+    "stack_mode": 1,
+    "unit_type": 2,
+    "groups": [
+        {
+            "name": "isp.quota.remaining",
+            "type": 1,
+            "stack_id": 0,
+            "series": [
+                {
+                    "name": "isp.quota.remaining",
+                    "origin": "collectd",
+                    "source": "curl_json-aaisp",
+                    "metric": "isp.quota.remaining",
+                    "options": null
+                }
+            ],
+            "options": {
+                "unit": ""
+            }
+        }
+    ],
+    "template": false
+}

@@ -1,12 +1,19 @@
-#!/bin/sh
+#!/bin/ksh
 
-route -n -T1 add -inet -host "${trusted_ip}" 127.0.0.1 -reject
-route -n -T1 add -inet default "${route_vpn_gateway}"
+route -n add -inet -host "${trusted_ip}" "${route_net_gateway}"
+route -n add -inet -net 0/1 -ifp "${dev}" -label VPN "${route_vpn_gateway}"
+route -n add -inet -net 128/1 -ifp "${dev}" -label VPN "${route_vpn_gateway}"
 
-readonly dns=$(env | egrep '^foreign_option_.+=dhcp-option DNS .+' | cut -d' ' -f3)
+#for n in $(env|sed -En '/^route_ipv6_network_([0-9]+)=.+/s//\1/p'); do
+#  route_ipv6_network=$(env | sed -En "/^route_ipv6_network_${n}=/s///p")
+#  route_ipv6_gateway=$(env | sed -En "/^route_ipv6_gateway_${n}=/s///p")
+#  route -n add -inet6 -net "${route_ipv6_network}" "${route_ipv6_gateway}"
+#done
+
+readonly dns=$(env|grep -E '^foreign_option_.+=dhcp-option DNS .+'|cut -d' ' -f3)
 
 if [[ -n "${dns}" ]]; then
   unbound-control forward $(echo "${dns}")
 else
-  unbound-control off
+  unbound-control forward off
 fi

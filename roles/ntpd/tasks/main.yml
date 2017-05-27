@@ -9,5 +9,4 @@
 
 - name: start NTP daemon
   service: name=ntpd arguments="-s" enabled=yes state=started
-  when: false
 ...

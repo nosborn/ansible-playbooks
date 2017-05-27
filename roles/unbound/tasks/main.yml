@@ -31,13 +31,6 @@
     validate='/usr/sbin/unbound-checkconf %s'
   notify: reload unbound
 
-- lineinfile:
-    path: /etc/rc.conf.local
-    regexp: '^unbound_rtable='
-    line: 'unbound_rtable=1'
-    insertafter: '^unbound_flags='
-  notify: restart unbound
-
 - name: start DNS resolver
   service: name=unbound enabled=yes state=started
 ...

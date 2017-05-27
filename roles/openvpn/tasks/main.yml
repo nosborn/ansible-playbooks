@@ -10,7 +10,4 @@
     - /var/openvpn
 
 - include: client.yml
-
-- include: server.yml
-  when: false
 ...

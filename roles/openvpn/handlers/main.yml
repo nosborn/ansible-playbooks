@@ -3,8 +3,4 @@
 - name: reload openvpn client
   shell: kill -HUP `cat /var/openvpn/client.pid`
   ignore_errors: yes
-
-#- name: reload openvpn server
-#  shell: kill -HUP `cat /var/openvpn/server.pid`
-#  ignore_errors: yes
 ...

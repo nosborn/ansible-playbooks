@@ -3,18 +3,16 @@ server:
 
 	num-threads: {{ unbound_num_threads }}
 
-#	interface: 127.0.0.1
+	interface: 127.0.0.1
 	interface: {{ lan_ipv4 | ipaddr('address') }}
-#	interface: ::1
+	interface: ::1
 {% if lan_ipv6 is defined %}
 	interface: {{ lan_ipv6 | ipaddr('address') }}
 {% endif %}
 
-#	outgoing-port-avoid: 1194
-
-#	access-control: 127.0.0.0/8 allow
+	access-control: 127.0.0.0/8 allow
 	access-control: {{ lan_ipv4 | ipaddr('network') }}/{{ lan_ipv4 | ipaddr('prefix') }} allow
-#	access-control: ::1 allow
+	access-control: ::1 allow
 {% if lan_ipv6 is defined %}
 	access-control: {{ lan_ipv6 | ipaddr('network') }}/{{ lan_ipv6 | ipaddr('prefix') }} allow
 {% endif %}
@@ -28,8 +26,8 @@ server:
 
 	harden-below-nxdomain: yes
 
-	use-caps-for-id: yes
-	qname-minimisation: yes
+#	use-caps-for-id: yes
+#	qname-minimisation: yes
 
 	private-address: 10.0.0.0/8
 	private-address: 169.254.0.0/16
@@ -40,6 +38,8 @@ server:
 	private-address: fe80::/10
 
 	private-domain: local
+
+#	prefetch: yes
 
 	module-config: "iterator"
 
@@ -62,7 +62,6 @@ server:
 
 remote-control:
 	control-enable: yes
-#	control-interface: 127.0.0.1
 	control-interface: /var/run/unbound.control
 {% if unbound_forward_zones is defined %}
 {%   for forward_zone in unbound_forward_zones %}

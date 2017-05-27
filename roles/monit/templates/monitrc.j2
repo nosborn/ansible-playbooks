@@ -15,11 +15,9 @@ set mail-format {
  Description: $DESCRIPTION
 }
 
-#set httpd port 2812 address {{ lan_ipv4|ipaddr('address') }}
-set httpd port 2812 address 127.0.0.1
+set httpd port 2812 address "{{ lan_ipv6|ipaddr('address') }}"
     signature disable
-    #allow {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }}
-    allow admin:monit read-only
+    allow {{ monit_username }}:{{ monit_password }} read-only
 
 ###############################################################################
 ## Services
@@ -88,37 +86,40 @@ set httpd port 2812 address 127.0.0.1
 #  #restart program = "/usr/sbin/rcctl restart c_icap"
 
 {% endif %}
+check process avahi-daemon with pidfile /var/run/avahi-daemon/pid
+  #start program = "/usr/sbin/rcctl start avahi_daemon"
+  #stop program = "/usr/sbin/rcctl stop avahi_daemon"
+  #restart program = "/usr/sbin/rcctl restart avahi_daemon"
+
 check process collectd with pidfile /var/collectd/collectd.pid
   #start program = "/usr/sbin/rcctl start collectd"
   #stop program = "/usr/sbin/rcctl stop collectd"
   #restart program = "/usr/sbin/rcctl restart collectd"
+
+#check process dhcpcd with pidfile /var/run/dhcpcd.pid
+#  #start program = "/usr/sbin/rcctl start dhcpcd"
+#  #stop program = "/usr/sbin/rcctl stop dhcpcd"
+#  #restart program = "/usr/sbin/rcctl restart dhcpcd"
 
 check process dhcpd matching "^/usr/sbin/dhcpd "
   #start program = "/usr/sbin/rcctl start dhcpd"
   #stop program = "/usr/sbin/rcctl stop dhcpd"
   #restart program = "/usr/sbin/rcctl restart dhcpd"
 
-#check process facette with pidfile /var/facette/facette.pid
-#  #start program = "/usr/sbin/rcctl start facette"
-#  #stop program = "/usr/sbin/rcctl stop facette"
-#  #restart program = "/usr/sbin/rcctl restart facette"
+check process facette with pidfile /var/facette/facette.pid
+  #start program = "/usr/sbin/rcctl start facette"
+  #stop program = "/usr/sbin/rcctl stop facette"
+  #restart program = "/usr/sbin/rcctl restart facette"
 
 #check process iked matching "^iked: parent"
 #  #start program = "/usr/sbin/rcctl start iked"
 #  #stop program = "/usr/sbin/rcctl stop iked"
 #  #restart program = "/usr/sbin/rcctl restart iked"
 
-{% if mdnsd_state == 'started' %}
-#check process mdnsd matching "^mdnsd: "
-##  #start program = "/usr/sbin/rcctl start mdnsd"
-##  #stop program = "/usr/sbin/rcctl stop mdnsd"
-##  #restart program = "/usr/sbin/rcctl restart mdnsd"
-
-{% endif %}
-#check process nginx with pidfile /var/run/nginx.pid
-#  #start program = "/usr/sbin/rcctl start nginx"
-#  #stop program = "/usr/sbin/rcctl stop nginx"
-#  #restart program = "/usr/sbin/rcctl restart nginx"
+check process nginx with pidfile /var/run/nginx.pid
+  #start program = "/usr/sbin/rcctl start nginx"
+  #stop program = "/usr/sbin/rcctl stop nginx"
+  #restart program = "/usr/sbin/rcctl restart nginx"
 
 check process nsd with pidfile /var/nsd/run/nsd.pid
   #start program = "/usr/sbin/rcctl start nsd"
@@ -131,15 +132,15 @@ check process ntpd matching "^/usr/sbin/ntpd "
   #restart program = "/usr/sbin/rcctl restart ntpd"
 
 {% if vpn_client_if is defined %}
-check process openvpn.client with pidfile /var/openvpn/client.pid
-  #start program = "/bin/sh /etc/netstart {{ vpn_client_if }}"
+#check process openvpn.client with pidfile /var/openvpn/client.pid
+#  #start program = "/bin/sh /etc/netstart {{ vpn_client_if }}"
 
 {% endif %}
-{% if vpn_server_if is defined %}
-#check process openvpn.server with pidfile /var/openvpn/server.pid
-#  #start program = "/bin/sh /etc/netstart {{ vpn_server_if }}"
+check process rtadvd matching "^/usr/sbin/rtadvd "
+  #start program = "/usr/sbin/rcctl start rtadvd"
+  #stop program = "/usr/sbin/rcctl stop rtadvd"
+  #restart program = "/usr/sbin/rcctl restart rtadvd"
 
-{% endif %}
 check process smtpd matching "^/usr/sbin/smtpd$"
   #start program = "/usr/sbin/rcctl start smtpd"
   #stop program = "/usr/sbin/rcctl stop smtpd"
@@ -238,41 +239,28 @@ check filesystem var with path /dev/sd0j
 #    if failed uid 0 then unmonitor
 #    if failed gid 0 then unmonitor
 
-check network BRIDGE with interface bridge0
-  #start program = "/bin/sh /etc/netstart bridg0
-  if failed link then alert
-  if changed link then alert
-
-check network BRIDGE.LAN with interface {{ lan_if }}
+check network LAN with interface {{ lan_if }}
   #start program = "/bin/sh /etc/netstart {{ lan_if }}"
-  if failed link then alert
-  if changed link capacity then alert
-
-check network BRIDGE.WLAN with interface {{ wlan_if }}
-  #start program = "/bin/sh /etc/netstart {{ wlan_if }}"
-  if failed link then alert
-  if changed link capacity then alert
-
-check network WAN with interface {{ wan_if }}
-  #start program = "/bin/sh /etc/netstart {{ wan_if }}"
-  if failed link then alert
-  if changed link then alert
+  #if failed link then alert
+  #if changed link capacity then alert
 
 {% if vpn_client_if is defined %}
-check network WAN.VPN.CLIENT with interface {{ vpn_client_if }}
+check network VPN.CLIENT with interface {{ vpn_client_if }}
   #start program = "/bin/sh /etc/netstart {{ vpn_client_if }}"
   if failed link then alert
   if changed link then alert
 
 {% endif %}
-
-{% if vpn_server_if is defined %}
-check network WAN.VPN.SERVER with interface {{ vpn_server_if }}
-  #start program = "/bin/sh /etc/netstart {{ vpn_server_if }}"
+check network WAN with interface {{ wan_if }}
+  #start program = "/bin/sh /etc/netstart {{ wan_if }}"
   if failed link then alert
   if changed link then alert
 
-{% endif %}
+#check network WLAN with interface {{ wlan_if }}
+#  #start program = "/bin/sh /etc/netstart {{ wlan_if }}"
+#  #if failed link then alert
+#  #if changed link capacity then alert
+
 {% if wan_ipv4_dest is defined %}
 #check host Bottomless with address {{ wan_ipv4_dest }}
 #  if failed ping then alert

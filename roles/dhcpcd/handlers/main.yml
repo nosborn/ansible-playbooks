@@ -2,4 +2,7 @@
 ---
 - name: reload dhcpcd
   service: name=dhcpcd state=reloaded
+
+- name: restart dhcpcd
+  service: name=dhcpcd state=restarted
 ...

@@ -1,0 +1,5 @@
+# roles/rtadvd/meta/main
+---
+dependencies:
+  - { role: router }
+...

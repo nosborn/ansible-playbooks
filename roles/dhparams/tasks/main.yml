@@ -1,10 +1,10 @@
 # roles/dhparams/tasks/main
 ---
-- copy:
-    src={{ item }}.pem dest=/etc/ssl/{{ item }}.pem
-    owner=root group=wheel mode=0444
-  with_items:
-    - ffdhe2048
-  # - ffdhe3072
-  # - ffdhe4096
+- command: /usr/bin/openssl dhparam -out {{ dhparams_file }} 2048
+  args:
+    creates: "{{ dhparams_file }}"
+
+- file: path={{ dhparams_file }} owner=root group=wheel mode=0444
+
+- fetch: dest=backup fail_on_missing=yes src={{ dhparams_file }}
 ...

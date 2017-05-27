@@ -14,11 +14,6 @@
         owner=root group=wheel mode=0440
       notify: netstart
       with_items:
-        - bridge0
-        - em2
-        - lo0
-        - lo1
-        - vether0
         - "{{ lan_if }}"
         - "{{ pppoe_pppoedev }}"
         - "{{ wan_if }}"
@@ -36,28 +31,31 @@
 
   roles:
     - apmd
-  # - bwm-ng
+    - avahi
+    - bwm-ng
   # - c-icap
     - collectd
+    - daily
   # - dhcpcd
     - dhcpd
-  # - daily
+    - dhparams
     - doas
-  # - facette
+    - facette
     - flashrom
+    - goaccess
+    - iftop
   # - iked
-  # - letsencrypt
+    - letsencrypt
     - locale
   # - newsyslog
-  # - nginx
+    - nginx
     - nsd
     - ntpd
     - openvpn
-    - openmdns
     - pf
-  # - pftop
+    - pftop
     - router
-  # - rtadvd
+    - rtadvd
     - smtpd
     - sndiod
   # - squid

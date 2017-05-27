@@ -1,0 +1,4 @@
+# roles/dhparams/var/main
+---
+dhparams_file: '/etc/ssl/dhparams.pem'
+...

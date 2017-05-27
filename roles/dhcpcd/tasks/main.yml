@@ -8,7 +8,7 @@
     owner=root group=wheel mode=0444
 # notify: 'reload dhcpcd'
 
-- name: enable DNS client
+- name: enable DHCP client
   service:
     name=dhcpcd enabled={{ dhcpcd_enabled }} state={{ dhcpcd_state }}
 

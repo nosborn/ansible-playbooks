@@ -1,0 +1,6 @@
+# roles/facette/meta/main
+---
+dependencies:
+  - { role: collectd }
+  - { role: nginx }
+...

@@ -28,4 +28,6 @@
   with_items: "{{ sites }}"
   loop_control:
     loop_var: nginx_item
+
+- command: /usr/local/bin/gixy
 ...

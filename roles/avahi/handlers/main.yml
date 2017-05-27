@@ -1,0 +1,5 @@
+# roles/avahi/handlers/main
+---
+- name: restart avahi-daemon
+  service: name=avahi_daemon state=restarted
+...

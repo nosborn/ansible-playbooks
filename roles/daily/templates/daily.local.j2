@@ -1,22 +1,37 @@
-#!/bin/sh
+#!/bin/ksh
 
 PATH="/usr/local/bin:${PATH}"
+{% if pf_bogons_v4_table is defined or pf_bogons_v6_table is defined %}
 
-next_part "Updating fullbogon lists:"
+next_part "Updating bogon lists:"
+{%   if pf_bogons_v4_table is defined %}
 TMPFILE=`mktemp` && {
-  for v in 4; do
-    DBFILE=/var/db/fullbogons-ipv${v}.txt
-    ftp -4agMV -o $TMPFILE https://www.team-cymru.org/Services/Bogons/fullbogons-ipv${v}.txt
-    test -s $TMPFILE && cmp -s $TMPFILE $DBFILE || {
-      mv -f $TMPFILE $DBFILE
-      pfctl -q -f $DBFILE -t bogons-v${v} -T replace
-    }
-  done
-  rm -f $TMPFILE
+  DBFILE=/var/db/{{ pf_bogons_v4_file }}
+  ftp -agMV -o ${TMPFILE} https://www.team-cymru.org/Services/Bogons/{{ pf_bogons_v4_file }}
+  test -s ${TMPFILE} && cmp -s ${TMPFILE} ${DBFILE} || {
+    mv -f ${TMPFILE} ${DBFILE}
+    pfctl -q -f ${DBFILE} -t {{ pf_bogons_v4_table }} -T replace
+  }
+  rm -f ${TMPFILE}
 }
+{%   endif %}
+{%   if pf_bogons_v6_table is defined %}
+TMPFILE=`mktemp` && {
+  DBFILE=/var/db/{{ pf_bogons_v6_file }}
+  ftp -agMV -o ${TMPFILE} https://www.team-cymru.org/Services/Bogons/{{ pf_bogons_v6_file }}
+  test -s ${TMPFILE} && cmp -s ${TMPFILE} ${DBFILE} || {
+    mv -f ${TMPFILE} ${DBFILE}
+    pfctl -q -f ${DBFILE} -t {{ pf_bogons_v6_table }} -T replace
+  }
+  rm -f ${TMPFILE}
+}
+{%   endif %}
+{% endif %}
+{% if pf_bruteforce_table is defined %}
 
-#next_part "Expiring bruteforce table:"
-#pfctl -q -t bruteforce -T expire 86400
+next_part "Expiring bruteforce table:"
+pfctl -q -t {{ pf_bruteforce_table }} -T expire 86400
+{% endif %}
 {% if sites is defined %}
 
 next_part "Renewing certificates:"

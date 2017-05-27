@@ -13,5 +13,10 @@
     owner=root group=wheel mode=0444
   notify: restart facette
 
+- copy:
+    src=data dest=/var/facette
+    owner=_facette group=_facette directory_mode=0755 mode=0644
+  notify: restart facette
+
 - service: name=facette enabled=yes state=started
 ...

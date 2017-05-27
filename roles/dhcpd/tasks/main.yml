@@ -7,14 +7,6 @@
     validate='/usr/sbin/dhcpd -c %s -n'
   notify: restart dhcpd
 
-- lineinfile:
-    path: /etc/rc.conf.local
-    regexp: '^dhcpd_rtable='
-    line: 'dhcpd_rtable=1'
-    insertafter: '^dhcpd_flags='
-  notify: restart dhcpd
-
 - name: start DHCP server
-  service: name=dhcpd arguments=vether0 enabled=yes state=started
-# service: name=dhcpd arguments={{ lan_if }} enabled=yes state=started
+  service: name=dhcpd arguments="{{ lan_if }}" enabled=yes state=started
 ...

@@ -1,0 +1,27 @@
+{
+    "id": "4e3c8c7f-84b7-42a3-5cb7-29ac1a49250c",
+    "name": "Ping",
+    "description": "",
+    "title": "Ping",
+    "type": 1,
+    "stack_mode": 1,
+    "unit_type": 1,
+    "groups": [
+        {
+            "name": "ping-81.187.81.187.value",
+            "type": 1,
+            "stack_id": 0,
+            "series": [
+                {
+                    "name": "ping-81.187.81.187.value",
+                    "origin": "collectd",
+                    "source": "ping",
+                    "metric": "ping-81.187.81.187.value",
+                    "options": null
+                }
+            ],
+            "options": {}
+        }
+    ],
+    "template": false
+}

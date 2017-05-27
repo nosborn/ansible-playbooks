@@ -5,14 +5,12 @@
 
 - lineinfile:
     path: /etc/rc.conf.local
-    regexp: '^mdnsd_rtable='
-    line: 'mdnsd_rtable=1'
+    regexp: '^multicast='
+    line: 'multicast=YES'
     insertafter: '^mdnsd_flags='
-  # notify: restart mdnsd
-  when: mdnsd_enabled == 'yes'
+  notify: netstart
+  when: false
 
 - name: enable multicast DNS/DNS-SD daemon
-  service:
-    name=mdnsd arguments="-w {{ lan_if }}"
-    enabled={{ mdnsd_enabled }} state={{ mdnsd_state }}
+  service: name=mdnsd arguments="{{ lan_if }}" enabled=yes state=started
 ...

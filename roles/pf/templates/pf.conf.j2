@@ -1,52 +1,98 @@
-#	$OpenBSD: pf.conf,v 1.54 2014/08/23 05:49:42 deraadt Exp $
-#
 # See pf.conf(5) and /etc/examples/pf.conf
 
-#set skip on lo
+# Options
 
-match out on rdomain 0 to {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }} rtable 1
-match out on rdomain 1 to {{ wan_ipv4|ipaddr('address') }} rtable 0
-{% if isp_netblocks is defined %}
-{%   for isp_netblock in isp_netblocks|ipv4 %}
-#match out on rdomain 1 to {{ isp_netblock }} rtable 0
-{%   endfor %}
+{% if pf_bogons_v6_table is defined %}
+set limit table-entries 500000
 {% endif %}
-pass quick on lo
+set loginterface {{ wan_if }}
+set skip on { lo {{ pppoe_pppoedev }} }
 
-block return log	# block stateless traffic
-pass		# establish keep-state
+# Tables
+
+table <{{ pf_bruteforce_table }}> persist
+
+{% if pf_bogons_v4_table is defined or pf_bogons_v6_table is defined %}
+{%   if pf_bogons_v4_table %}
+table <{{ pf_bogons_v4_table }}> counters persist file "/var/db/{{ pf_bogons_v4_file }}"
+{%   endif %}
+{%   if pf_bogons_v6_table is defined %}
+table <{{ pf_bogons_v6_table }}> counters persist file "/var/db/{{ pf_bogons_v6_file }}"
+{%   endif %}
+{% endif %}
+
+#
+
+block return log  # block stateless traffic
+pass              # establish keep-state
 
 # WAN_IF
-
-match out on {{ wan_if }} inet from {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }} nat-to {{ wan_ipv4|ipaddr('address') }}
+# in on WAN_IF
 
 block drop in log on {{ wan_if }}
 
-#block drop in log quick on {{ wan_if }} inet from <bogons4>
+pass in on {{ wan_if }} inet proto tcp to {{ wan_ipv4|ipaddr('address') }} port 22 \
+  flags S/SA keep state \
+    (max-src-conn 15, max-src-conn-rate 5/3, overload <bruteforce> flush global) \
+  reply-to {{ wan_ipv4_dest }}@{{ wan_if }}
+pass in on {{ wan_if }} inet proto tcp to {{ wan_ipv4|ipaddr('address') }} port 53 \
+  reply-to {{ wan_ipv4_dest }}@{{ wan_if }}
+pass in on {{ wan_if }} inet proto tcp to {{ wan_ipv4|ipaddr('address') }} port { 80 443 } \
+  reply-to {{ wan_ipv4_dest }}@{{ wan_if }}
+pass in on {{ wan_if }} inet proto udp to {{ wan_ipv4|ipaddr('address') }} port 53 \
+  reply-to {{ wan_ipv4_dest }}@{{ wan_if }}
+pass in on {{ wan_if }} inet proto icmp to {{ wan_ipv4|ipaddr('address') }} icmp-type echoreq \
+  reply-to {{ wan_ipv4_dest }}@{{ wan_if }}
 
-pass in on {{ wan_if }} inet proto tcp to {{ wan_ipv4|ipaddr('address') }} port 22
-pass in on {{ wan_if }} inet proto tcp to {{ wan_ipv4|ipaddr('address') }} port 53
-pass in on {{ wan_if }} inet proto tcp to {{ wan_ipv4|ipaddr('address') }} port { 80 443 }
-pass in on {{ wan_if }} inet proto udp to {{ wan_ipv4|ipaddr('address') }} port 53
-#pass in on {{ wan_if }} inet proto udp to {{ wan_ipv4|ipaddr('address') }} port { 500 4500 }
-pass in on {{ wan_if }} inet proto icmp to {{ wan_ipv4|ipaddr('address') }} icmp-type echoreq
-#pass in on {{ wan_if }} inet proto esp to {{ wan_ipv4|ipaddr('address') }}
-
-{% if wan_ipv6 is defined %}
-#pass in on {{ wan_if }} inet6 proto tcp to {{ wan_ipv6|ipaddr('address') }} port 22
-pass in on {{ wan_if }} inet6 proto tcp to {{ wan_ipv6|ipaddr('address') }} port 53
-#pass in on {{ wan_if }} inet6 proto tcp to {{ wan_ipv6|ipaddr('address') }} port { 80 443 }
-pass in on {{ wan_if }} inet6 proto udp to {{ wan_ipv6|ipaddr('address') }} port 53
-pass in on {{ wan_if }} inet6 proto icmp6 to {{ wan_ipv6|ipaddr('address') }} icmp6-type echoreq
-#pass in on {{ wan_if }} inet6 proto esp to {{ wan_ipv4|ipaddr('address') }}
+{% if pf_bogons_v4_table %}
+block drop in log on {{ wan_if }} inet from <{{ pf_bogons_v4_table }}>
 
 {% endif %}
-#pass in on {{ wan_if }} inet6 proto icmp6 from fe80::/16 to {{ wan_if }} icmp6-type routeradv
-pass in on {{ wan_if }} inet6
+{% if wan_ipv6 is defined %}
+pass in on {{ wan_if }} inet6 proto tcp to {{ wan_ipv6|ipaddr('address') }} port 22 \
+  flags S/SA keep state \
+    (max-src-conn 15, max-src-conn-rate 5/3, overload <bruteforce> flush global)
+pass in on {{ wan_if }} inet6 proto tcp to {{ wan_ipv6|ipaddr('address') }} port 53
+pass in on {{ wan_if }} inet6 proto tcp to {{ wan_ipv6|ipaddr('address') }} port { 80 443 }
+pass in on {{ wan_if }} inet6 proto udp to {{ wan_ipv6|ipaddr('address') }} port 53
+pass in on {{ wan_if }} inet6 proto icmp6 to {{ wan_ipv6|ipaddr('address') }} icmp6-type echoreq
+
+{% if pf_bogons_v6_table is defined %}
+block drop in log on {{ wan_if }} inet6 from <{{ pf_bogons_v6_table }}>
+
+{% endif %}
+pass in on {{ wan_if }} inet6 proto icmp6 from fe80::/10 to ({{ wan_if }}) icmp6-type routeradv
+pass in on {{ wan_if }} inet6 proto icmp6 from fe80::/10 to ff02::1 icmp6-type routeradv
+
+{% endif %}
+block drop in log on {{ wan_if }} from <{{ pf_bruteforce_table }}>
+
+# out on WAN_IF
+
+pass out on {{ wan_if }} modulate state set prio (3, 6)
+
+#match out on {{ wan_if }} tagged FaceTime set prio (4, 7)
+
+{% if pf_bogons_v4_table %}
+block return out log on {{ wan_if }} inet to <{{ pf_bogons_v4_table }}>
+
+{% endif %}
+match out on {{ wan_if }} inet \
+  from {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }} \
+  nat-to {{ wan_ipv4|ipaddr('address') }}
 
 # VPN_CLIENT_IF
 
-block drop in log quick on {{ vpn_client_if }}
+block drop in log on {{ vpn_client_if }}
+pass out on {{ vpn_client_if }} modulate state set prio (3, 6)
+
+{% if pf_bogons_v4_table %}
+block drop in log on {{ vpn_client_if }} inet from <{{ pf_bogons_v4_table }}>
+pass out on {{ vpn_client_if }} inet to ({{vpn_client_if}}:network)
+{% endif %}
+{% for isp_netblock in isp_netblocks %}
+block return out log on {{ vpn_client_if }} to {{ isp_netblock }}
+{% endfor %}
 
 match out on {{ vpn_client_if }} inet \
   from {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }} \
@@ -54,7 +100,29 @@ match out on {{ vpn_client_if }} inet \
 
 # LAN_IF
 
-pass in on vether0 inet proto tcp \
-  from {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }} \
-  to {{ lan_ipv4|ipaddr('address') }} port 22 \
-  rdr-to {{ wan_ipv4|ipaddr('address') }} port 22
+pass on {{ lan_if }}
+
+pass in on {{ lan_if }} inet proto udp to 224.0.0.251 port 5353 allow-opts
+
+# https://us.battle.net/support/en/article/300479
+pass in on {{ lan_if }} inet proto { tcp udp } \
+  from {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }} port 1024:65535 \
+  to port 1119 \
+  label diablo \
+  route-to {{ wan_ipv4_dest }}@{{ wan_if }}
+pass in on {{ lan_if }} inet proto udp \
+  from {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }} port 1024:65535 \
+  to port 6120 \
+  label diablo \
+  route-to {{ wan_ipv4_dest }}@{{ wan_if }}
+
+pass in on {{ lan_if }} inet proto tcp \
+  from {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }} port 1024:65535 \
+  to 17.0.0.0/8 port 5223 \
+  label facetime \
+  route-to {{ wan_ipv4_dest }}@{{ wan_if }}
+pass in on {{ lan_if }} inet proto udp \
+  from {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }} port 1024:65535 \
+  to port { 3478:3497 16384:16387 16393:16402 } \
+  label facetime \
+  route-to {{ wan_ipv4_dest }}@{{ wan_if }}

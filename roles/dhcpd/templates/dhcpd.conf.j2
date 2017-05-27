@@ -5,7 +5,7 @@ authoritative;
 subnet {{ lan_ipv4 | ipaddr('network') }} netmask {{ lan_ipv4 | ipaddr('netmask') }} {
 	option domain-name "{{ global_domain }}";
 	option domain-name-servers {{ lan_ipv4 | ipaddr('address') }};
-#	option ntp-servers {{ lan_ipv4 | ipaddr('address') }};
+	option ntp-servers {{ lan_ipv4 | ipaddr('address') }};
 	option routers {{ lan_ipv4 | ipaddr('address') }};
 
 	range {{ lan_ipv4 | ipaddr('64') | ipaddr('address') }} {{ lan_ipv4 | ipaddr('127') | ipaddr('address') }};
