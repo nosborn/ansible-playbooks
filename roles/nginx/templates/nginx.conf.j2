@@ -24,7 +24,7 @@ http {
 
   server_tokens off;
 
-  resolver {{ nameservers|ipwrap|join(' ') }} valid=300s;
+  resolver [::1] valid=300s;
   resolver_timeout 10s;
 
   log_format vcombined '$host: $remote_addr - $remote_user [$time_local] '
@@ -46,7 +46,10 @@ http {
   }
 
   server {
-    listen {{ wan_ipv4 | ipaddr('address') }}:80 default_server;
+    listen {{ wan_ipv4|ipaddr('address') }}:80 default_server;
+{% if lan_ipv6 is defined %}
+    listen {{ lan_ipv6|ipaddr('address')|ipwrap }}:80 default_server;
+{% endif %}
     server_name _;
 
     gzip off;
@@ -67,7 +70,10 @@ http {
   }
 
   #server {
-  #  listen {{ lan_ipv4 | ipaddr('address') }}:80 default_server;
+  #  listen {{ lan_ipv4|ipaddr('address') }}:80 default_server;
+{% if lan_ipv6 is defined %}
+  #  listen {{ lan_ipv6|ipaddr('address')|ipwrap }}:80 default_server;
+{% endif %}
   #  server_name _;
   #
   #  gzip off;
@@ -77,9 +83,9 @@ http {
   #  add_header X-Frame-Options "SAMEORIGIN" always;
   #  add_header X-XSS-Protection "1; mode=block" always;
   #
-  #  allow {{ lan_ipv4 | ipaddr('network') }}//{{ lan_ipv4 | ipaddr('prefix') }};
-{% if vpn_server_if is defined %}
-  #  allow {{ vpn_server_ipv4 | ipaddr('network') }}//{{ vpn_server_ipv4 | ipaddr('prefix') }};
+  #  allow {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }};
+{% if lan_ipv6 is defined %}
+  #  allow [{{ lan_ipv6|ipaddr('network') }}]/{{ lan_ipv6|ipaddr('prefix') }};
 {% endif %}
   #  deny all;
   #

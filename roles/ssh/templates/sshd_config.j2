@@ -16,7 +16,7 @@ AddressFamily {{ sshd_address_family }}
 {% endif %}
 {% if sshd_listen_addresses is defined %}
 {%   for listen_address in sshd_listen_addresses %}
-ListenAddress {{ listen_address | ipwrap }}
+ListenAddress {{ listen_address|ipwrap }}
 {%   endfor %}
 {% else %}
 #ListenAddress 0.0.0.0
@@ -43,7 +43,7 @@ PermitRootLogin no
 MaxAuthTries 1
 #MaxSessions 10
 {% if sshd_allow_users is defined %}
-AllowUsers {{ sshd_allow_users | sort | unique | join(' ') }}
+AllowUsers {{ sshd_allow_users|sort|unique|join(' ') }}
 {% endif %}
 
 #PubkeyAuthentication yes
@@ -100,16 +100,16 @@ ClientAliveInterval 15
 # override default of no subsystems
 Subsystem	sftp	/usr/libexec/sftp-server
 
-Match Address {{ lan_ipv4 | ipaddr('network') }}/{{ lan_ipv4 | ipaddr('prefix') }}
+Match Address {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }}
 {% if sshd_allow_users is defined %}
-	AllowUsers root {{ sshd_allow_users | sort | unique | join(' ') }}
+	AllowUsers root {{ sshd_allow_users|sort|unique|join(' ') }}
 {% endif %}
 	PermitRootLogin prohibit-password
 {% if lan_ipv6 is defined %}
 
-Match Address {{ lan_ipv6 | ipaddr('network') }}/{{ lan_ipv6 | ipaddr('prefix') }}
+Match Address {{ lan_ipv6|ipaddr('network') }}/{{ lan_ipv6|ipaddr('prefix') }}
 {%   if sshd_allow_users is defined %}
-	AllowUsers root {{ sshd_allow_users | sort | unique | join(' ') }}
+	AllowUsers root {{ sshd_allow_users|sort|unique|join(' ') }}
 {%   endif %}
 	PermitRootLogin prohibit-password
 {% endif %}

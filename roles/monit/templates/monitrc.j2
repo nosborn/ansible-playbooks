@@ -111,10 +111,10 @@ check process facette with pidfile /var/facette/facette.pid
   #stop program = "/usr/sbin/rcctl stop facette"
   #restart program = "/usr/sbin/rcctl restart facette"
 
-#check process iked matching "^iked: parent"
-#  #start program = "/usr/sbin/rcctl start iked"
-#  #stop program = "/usr/sbin/rcctl stop iked"
-#  #restart program = "/usr/sbin/rcctl restart iked"
+check process iked matching "^iked: parent"
+  #start program = "/usr/sbin/rcctl start iked"
+  #stop program = "/usr/sbin/rcctl stop iked"
+  #restart program = "/usr/sbin/rcctl restart iked"
 
 check process nginx with pidfile /var/run/nginx.pid
   #start program = "/usr/sbin/rcctl start nginx"
@@ -131,11 +131,6 @@ check process ntpd matching "^/usr/sbin/ntpd "
   #stop program = "/usr/sbin/rcctl stop ntpd"
   #restart program = "/usr/sbin/rcctl restart ntpd"
 
-{% if vpn_client_if is defined %}
-#check process openvpn.client with pidfile /var/openvpn/client.pid
-#  #start program = "/bin/sh /etc/netstart {{ vpn_client_if }}"
-
-{% endif %}
 check process rtadvd matching "^/usr/sbin/rtadvd "
   #start program = "/usr/sbin/rcctl start rtadvd"
   #stop program = "/usr/sbin/rcctl stop rtadvd"
@@ -146,10 +141,10 @@ check process smtpd matching "^/usr/sbin/smtpd$"
   #stop program = "/usr/sbin/rcctl stop smtpd"
   #restart program = "/usr/sbin/rcctl restart smtpd"
 
-#check process squid with pidfile /var/run/squid.pid
-#  #start program = "/usr/sbin/rcctl start squid"
-#  #stop program = "/usr/sbin/rcctl stop squid"
-#  #restart program = "/usr/sbin/rcctl restart squid"
+check process squid with pidfile /var/run/squid.pid
+  #start program = "/usr/sbin/rcctl start squid"
+  #stop program = "/usr/sbin/rcctl stop squid"
+  #restart program = "/usr/sbin/rcctl restart squid"
 
 check process sshd with pidfile /var/run/sshd.pid
   #start program = "/usr/sbin/rcctl start sshd"
@@ -244,13 +239,6 @@ check network LAN with interface {{ lan_if }}
   #if failed link then alert
   #if changed link capacity then alert
 
-{% if vpn_client_if is defined %}
-check network VPN.CLIENT with interface {{ vpn_client_if }}
-  #start program = "/bin/sh /etc/netstart {{ vpn_client_if }}"
-  if failed link then alert
-  if changed link then alert
-
-{% endif %}
 check network WAN with interface {{ wan_if }}
   #start program = "/bin/sh /etc/netstart {{ wan_if }}"
   if failed link then alert
@@ -262,8 +250,8 @@ check network WAN with interface {{ wan_if }}
 #  #if changed link capacity then alert
 
 {% if wan_ipv4_dest is defined %}
-#check host Bottomless with address {{ wan_ipv4_dest }}
-#  if failed ping then alert
+check host Bottomless with address {{ wan_ipv4_dest }}
+  if failed ping then alert
 
 {% endif %}
 # include /etc/monit.d/*

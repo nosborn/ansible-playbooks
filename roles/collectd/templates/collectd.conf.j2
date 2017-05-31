@@ -93,7 +93,7 @@ LoadPlugin memory
 LoadPlugin nginx
 #LoadPlugin ntpd
 #LoadPlugin nut
-LoadPlugin openvpn
+#LoadPlugin openvpn
 LoadPlugin pf
 #LoadPlugin ping
 #LoadPlugin postgresql
@@ -269,12 +269,6 @@ LoadPlugin swap
 {% for interface in [lan_if, wan_if, wlan_if]|sort %}
   Interface "{{ interface }}"
 {% endfor %}
-{% if vpn_client_if is defined %}
-  Interface "{{ vpn_client_if }}"
-{% endif %}
-{% if vpn_server_if is defined %}
-  Interface "{{ vpn_server_if }}"
-{% endif %}
   IgnoreSelected false
 </Plugin>
 
@@ -374,16 +368,16 @@ LoadPlugin swap
 #	UPS "upsname@hostname:port"
 #</Plugin>
 
-<Plugin openvpn>
+#<Plugin openvpn>
 {% if vpn_client_if is defined %}
-  StatusFile "/var/openvpn/client.status"
+#  StatusFile "/var/openvpn/client.status"
 {% endif %}
 {% if vpn_server_if is defined %}
-  StatusFile "/var/openvpn/server.status"
+#  StatusFile "/var/openvpn/server.status"
 {% endif %}
-  ImprovedNamingSchema true
-r CollectUserCount true
-</Plugin>
+#  ImprovedNamingSchema true
+#  CollectUserCount true
+#</Plugin>
 
 #<Plugin ping>
 #  Host "{{ wan_ipv4_dest }}"

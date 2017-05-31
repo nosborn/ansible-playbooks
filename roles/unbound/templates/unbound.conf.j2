@@ -4,17 +4,22 @@ server:
 	num-threads: {{ unbound_num_threads }}
 
 	interface: 127.0.0.1
-	interface: {{ lan_ipv4 | ipaddr('address') }}
+	interface: {{ lan_ipv4|ipaddr('address') }}
 	interface: ::1
 {% if lan_ipv6 is defined %}
-	interface: {{ lan_ipv6 | ipaddr('address') }}
+	interface: {{ lan_ipv6|ipaddr('address') }}
+{% endif %}
+
+	outgoing-interface: {{ wan_ipv4|ipaddr('address') }}
+{% if lan_ipv6 is defined %}
+	outgoing-interface: {{ wan_ipv6|ipaddr('address') }}
 {% endif %}
 
 	access-control: 127.0.0.0/8 allow
-	access-control: {{ lan_ipv4 | ipaddr('network') }}/{{ lan_ipv4 | ipaddr('prefix') }} allow
+	access-control: {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }} allow
 	access-control: ::1 allow
 {% if lan_ipv6 is defined %}
-	access-control: {{ lan_ipv6 | ipaddr('network') }}/{{ lan_ipv6 | ipaddr('prefix') }} allow
+	access-control: {{ lan_ipv6|ipaddr('network') }}/{{ lan_ipv6|ipaddr('prefix') }} allow
 {% endif %}
 
 	pidfile: /var/run/unbound.pid
@@ -48,14 +53,14 @@ server:
 	key-cache-slabs: {{ 2 * unbound_num_threads }}
 
 	local-zone: "local" static
-	local-data: "tombstone.local IN A {{ lan_ipv4 | ipaddr('1') | ipaddr('address') }}"
-	local-data: "airport-time-capsule.local IN A {{ lan_ipv4 | ipaddr('2') | ipaddr('address') }}"
-	local-data: "airport-extreme.local IN A {{ lan_ipv4 | ipaddr('3') | ipaddr('address') }}"
-	local-data: "mac-mini.local IN A {{ lan_ipv4 | ipaddr('4') | ipaddr('address') }}"
-	local-data-ptr: "{{ lan_ipv4 | ipaddr('1') | ipaddr('address') }} tombstone.local"
-	local-data-ptr: "{{ lan_ipv4 | ipaddr('2') | ipaddr('address') }} airport-time-capsule.local"
-	local-data-ptr: "{{ lan_ipv4 | ipaddr('3') | ipaddr('address') }} airport-extreme.local"
-	local-data-ptr: "{{ lan_ipv4 | ipaddr('4') | ipaddr('address') }} mac-mini.local"
+	local-data: "tombstone.local IN A {{ lan_ipv4|ipaddr('1')|ipaddr('address') }}"
+	local-data: "airport-time-capsule.local IN A {{ lan_ipv4|ipaddr('2')|ipaddr('address') }}"
+	local-data: "airport-extreme.local IN A {{ lan_ipv4|ipaddr('3')|ipaddr('address') }}"
+	local-data: "mac-mini.local IN A {{ lan_ipv4|ipaddr('4')|ipaddr('address') }}"
+	local-data-ptr: "{{ lan_ipv4|ipaddr('1')|ipaddr('address') }} tombstone.local"
+	local-data-ptr: "{{ lan_ipv4|ipaddr('2')|ipaddr('address') }} airport-time-capsule.local"
+	local-data-ptr: "{{ lan_ipv4|ipaddr('3')|ipaddr('address') }} airport-extreme.local"
+	local-data-ptr: "{{ lan_ipv4|ipaddr('4')|ipaddr('address') }} mac-mini.local"
 
 	include: /var/unbound/etc/domains
 	include: /var/unbound/etc/hosts

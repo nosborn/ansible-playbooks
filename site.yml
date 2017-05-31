@@ -30,40 +30,41 @@
         owner=root group=wheel mode=0444
 
   roles:
-    - apmd
-    - avahi
-    - bwm-ng
-  # - c-icap
-    - collectd
-    - daily
-  # - dhcpcd
-    - dhcpd
+    - { role: apmd, tags: ['apmd'] }
+    - { role: avahi, tags: ['avahi'] }
+    - { role: bwm-ng, tags: ['bwm-ng'] }
+    # - c-icap
+    - { role: collectd, tags: ['collectd'] }
+    - { role: daily, tags: ['daily'] }
+    # - dhcpcd
+    - { role: dhcpd, tags: ['dhcpd'] }
     - dhparams
-    - doas
-    - facette
-    - flashrom
-    - goaccess
-    - iftop
-  # - iked
+    - { role: doas, tags: ['doas'] }
+    - { role: facette, tags: ['facette'] }
+    - { role: flashrom, tags: ['flashrom'] }
+    - { role: goaccess, tags: ['goaccess'] }
+    - { role: iftop, tags: ['iftop'] }
+    - { role: iked, tags: ['iked'] }
     - letsencrypt
-    - locale
-  # - newsyslog
-    - nginx
-    - nsd
-    - ntpd
-    - openvpn
-    - pf
-    - pftop
+    - { role: locale, tags: ['locale'] }
+    # - newsyslog
+    - { role: nginx, tags: ['nginx'] }
+    - { role: nsd, tags: ['nsd'] }
+    - { role: ntpd, tags: ['ntpd'] }
+    - { role: pf, tags: ['pf'] }
+    - { role: pftop, tags: ['pftop'] }
+    - { role: python, tags: ['python'] }
     - router
-    - rtadvd
-    - smtpd
-    - sndiod
-  # - squid
-    - ssh
-    - sysclean
-    - sysmerge
-    - unbound
-    - monit # do last
+    - { role: rtadvd, tags: ['rtadvd'] }
+  # - { role: slaacd, tags: ['slaacd'] }
+    - { role: smtpd, tags: ['smtpd'] }
+    - { role: sndiod, tags: ['sndiod'] }
+    - { role: squid, tags: ['squid'] }
+    - { role: ssh, tags: ['ssh'] }
+    - { role: sysclean, tags: ['sysclean'] }
+    - { role: sysmerge, tags: ['sysmerge'] }
+    - { role: unbound, tags: ['unbound'] }
+    - { role: monit, tags: ['monit'] } # do last
 
   tasks:
     - name: boot configuration
@@ -91,7 +92,7 @@
       sysctl: name={{ item.key }} reload=no sysctl_set=yes value={{ item.value }}
       with_dict:
         ddb.panic: 0
-      # net.inet.ah.enable: 0
+        net.inet.ah.enable: 0
       # net.inet.divert.recvspace: 131072
       # net.inet.esp.enable: 0
       # net.inet.ip.ifq.maxlen: 512

@@ -46,7 +46,7 @@
 					</dict>
 				</array>
 				<key>RemoteAddress</key>
-				<string>{{ wan_ipv4 | ipaddr('address') }}</string>
+				<string>{{ wan_ipv4|ipaddr('address') }}</string>
 				<key>RemoteIdentifier</key>
 				<string>{{ ansible_fqdn }}</string>
 				<key>LocalIdentifier</key>
@@ -92,17 +92,19 @@
 			<key>Proxies</key>
 			<dict>
 				<key>HTTPEnable</key>
-				<false/>
+				<true/>
 				<key>HTTPProxy</key>
-				<string>{{ lan_ipv4 | ipaddr('address') }}</string>
+				<string>{{ lan_ipv4|ipaddr('address') }}</string>
 				<key>HTTPPort</key>
 				<integer>3128</integer>
 				<key>HTTPSEnable</key>
 				<false/>
+{% if false %}
 				<key>HTTPSProxy</key>
-				<string>{{ lan_ipv4 | ipaddr('address') }}</string>
+				<string>{{ lan_ipv4|ipaddr('address') }}</string>
 				<key>HTTPSPort</key>
 				<integer>3128</integer>
+{% endif %}
 			</dict>
 		</dict>
 	</array>

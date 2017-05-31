@@ -2,7 +2,7 @@ $ORIGIN {{ global_domain }}.
 $TTL 3600
 
 @		IN	SOA	tombstone hostmaster (
-				2017050700	; serial number
+				2017053000	; serial number
 				7200		; refresh = 2h
 				300		; update retry = 5m
 				1209600		; expiry = 2w
@@ -42,13 +42,14 @@ _pop3._tcp		SRV	0 0 0 .
 _pop3s._tcp		SRV	10 1 995 pop.fastmail.com.
 _submission._tcp	SRV	0 1 587 smtp.fastmail.com.
 
+nick			MX	10 in1-smtp.messagingengine.com.
+			MX	20 in2-smtp.messagingengine.com.
+
 tombstone		A	81.187.87.32
+			AAAA	2001:8b0:1111:1111:0:ffff:51bb:5720
 			MX	10 in1-smtp.messagingengine.com.
 			MX	20 in2-smtp.messagingengine.com.
 			SSHFP	1 1 dfc75923ded7175f1cb8e26495d22ba45df7f3ff
 			SSHFP	1 2 a729d5af82fd1ade3b1f9a7814a04348cb2a0fd9a138717708621f3a0cd71b32
 			SSHFP	4 1 b78aa7fa82ec85e5b8d11e28c30f3acf9472eedc
 			SSHFP	4 2 b481cef51455680bd551811350b3d834d1f44aed4406003b2374acc2bbacf301
-
-*			MX	10 in1-smtp.messagingengine.com.
-			MX	20 in2-smtp.messagingengine.com.

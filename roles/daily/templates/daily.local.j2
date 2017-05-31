@@ -36,7 +36,7 @@ pfctl -q -t {{ pf_bruteforce_table }} -T expire 86400
 
 next_part "Renewing certificates:"
 _restart=0
-{%   for site in sites | sort(attribute='name') %}
+{%   for site in sites|sort(attribute='name') %}
 acme-client {{ site.name }} && _restart=1
 {%   endfor %}
 [[ ${_restart} -eq 1 ]] && rcctl restart nginx

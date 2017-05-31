@@ -1,9 +1,9 @@
 # See iked.conf(5) for syntax and examples.
 
 {% if iked_users is defined %}
-{% for name, password in iked_users.iteritems() %}
+{%   for name, password in iked_users.iteritems() %}
 user "{{ name }}" "{{ password }}"
-{% endfor %}
+{%   endfor %}
 
 {% endif %}
 ikev2 \
@@ -13,6 +13,6 @@ ikev2 \
   ikelifetime 24h \
   lifetime 24h \
   eap MSCHAP-V2 \
-  config address {{ lan_ipv4 | ipaddr('128') | ipaddr('address') }}/26 \
-  config name-server {{ lan_ipv4 | ipaddr('address') }} \
+  config address {{ lan_ipv4|ipaddr('128')|ipaddr('address') }}/26 \
+  config name-server {{ lan_ipv4|ipaddr('address') }} \
   tag "$name-$id"

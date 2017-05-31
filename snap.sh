@@ -215,7 +215,7 @@ VER=$(get_conf_var 'VER' || echo "$(uname -r)")
 REBOOT=$(get_conf_var 'REBOOT' || echo 'false')
 AFTER=$(get_conf_var 'AFTER' || echo 'false')
 
-MIRROR=$(get_conf_var 'MIRROR' || echo 'https://ftp.eu.openbsd.org')
+MIRROR=$(get_conf_var 'MIRROR' || echo 'http://ftp.eu.openbsd.org')
 
 while getopts "b:Bc:ehiIkKm:M:nrRsSuUv:V:x" arg; do
   case $arg in

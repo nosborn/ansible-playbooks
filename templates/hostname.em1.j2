@@ -6,4 +6,4 @@ inet6 eui64
 {% endif %}
 up
 
-!/sbin/route -n -T1 add -inet 169.254/16 -iface {{ lan_ipv4|ipaddr('address') }}
+!/sbin/route -n add -inet 169.254/16 -iface {{ lan_ipv4|ipaddr('address') }}

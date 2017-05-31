@@ -10,26 +10,23 @@
   template:
     src=iked.conf.j2 dest=/etc/iked.conf
     owner=root group=wheel mode=0400
-  # validate='/sbin/iked -f %s -n'
+    # validate='/sbin/iked -f %s -n'
   notify: restart iked
 
-#- copy:
-#    src=iked dest=/etc/rc.d/iked
-#    owner=root group=wheel mode=0555
-#    validate='/bin/sh -n %s'
+- copy:
+    src=iked dest=/etc/rc.d/iked
+    owner=root group=wheel mode=0555
+    validate='/bin/sh -n %s'
 
-#- name: sysctl variables to set at system startup
-#  sysctl: name={{ item.name }} reload=no sysctl_set=yes value={{ item.value }}
-#  with_items:
-#    - { name: net.inet.ipcomp.enable, value: 1 }
+- template:
+    src=ikeca.cnf dest=/etc/ssl/ikeca.cnf
+    owner=root group=wheel mode=0444
 
 - meta: flush_handlers
 
 - name: start IKEv2 daemon
-  service: name=iked enabled=yes state=started
+  service: name=iked arguments='-6' enabled=yes state=started
 
 - include: 'pki.yml'
-  when: false
-
 - include: 'mobileconfig.yml'
 ...

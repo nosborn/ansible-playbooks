@@ -8,12 +8,12 @@ daemon="/sbin/iked"
 
 pexp="iked: parent.*"
 
-#rc_pre() {
-#	[ X"${sasyncd_flags}" != X"NO" ] && \
-#		daemon_flags="-S ${daemon_flags}"
-#	#return 0
-#	# child will not return a config parsing error to the parent
-#	${daemon} -n ${daemon_flags}
-#}
+rc_pre() {
+	[ X"${sasyncd_flags}" != X"NO" ] && \
+		daemon_flags="-S ${daemon_flags}"
+	return 0
+	# child will not return a config parsing error to the parent
+	${daemon} -n ${daemon_flags}
+}
 
 rc_cmd $1

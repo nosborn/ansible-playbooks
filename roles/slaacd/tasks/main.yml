@@ -1,0 +1,5 @@
+# roles/slaacd/tasks/main
+---
+- name: start stateless address autoconfiguration daemon
+  service: name=slaacd enabled=yes state=started
+...

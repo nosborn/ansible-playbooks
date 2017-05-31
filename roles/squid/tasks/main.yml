@@ -8,9 +8,17 @@
 #    owner=root group=wheel mode=0400
 #  notify: restart squid
 
-- copy:
+- name: Error page stylesheet
+  copy:
     src=errorpage.css dest=/etc/squid/errorpage.css
     owner=root group=wheel mode=0444
+  notify: reload squid
+
+- name: url_rewriter script
+  copy:
+    src=url_rewriter.py dest=/usr/local/libexec/squid/url_rewriter
+    owner=root group=wheel mode=0555
+    validate='/usr/local/bin/python -mpy_compile %s'
   notify: reload squid
 
 - name: configure HTTP web proxy caching server

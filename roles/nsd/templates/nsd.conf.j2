@@ -1,7 +1,7 @@
 server:
-	ip-address: {{ wan_ipv4 | ipaddr('address') }}
+	ip-address: {{ wan_ipv4|ipaddr('address') }}
 {% if wan_ipv6 is defined %}
-	ip-address: {{ wan_ipv6 | ipaddr('address') }}
+	ip-address: {{ wan_ipv6|ipaddr('address') }}
 {% endif %}
 	ip-transparent: yes
 	database: "" # disable database
@@ -20,7 +20,7 @@ pattern:
 	notify: 81.187.81.32 NOKEY		# secondary-dns.co.uk
 	provide-xfr: 81.187.81.32 NOKEY		# secondary-dns.co.uk
 	provide-xfr: 90.155.23.32 NOKEY		# b.nameless.aa.net.uk
-	outgoing-interface: {{ wan_ipv4 | ipaddr('address') }}
+	outgoing-interface: {{ wan_ipv4|ipaddr('address') }}
 
 pattern:
 	name: buddyns

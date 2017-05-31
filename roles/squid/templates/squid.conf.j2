@@ -4,11 +4,10 @@
 # Example rule allowing access from your local networks.
 # Adapt to list your (internal) IP networks from where browsing
 # should be allowed.
-acl localnet src {{ lan_ipv4 | ipaddr('network') }}/{{ lan_ipv4 | ipaddr('prefix') }}
-{% if vpn_server_ipv4 is defined %}
-acl localnet src {{ vpn_server_ipv4 | ipaddr('network') }}/{{ vpn_server_ipv4 | ipaddr('prefix') }}
+acl localnet src {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }}
+{% if lan_ipv6 is defined %}
+acl localnet src {{ lan_ipv6|ipaddr('network') }}/{{ lan_ipv6|ipaddr('prefix') }}
 {% endif %}
-acl localnet src fc00::/7       # RFC 4193 local private network range
 acl localnet src fe80::/10      # RFC 4291 link-local (directly plugged) machines
 
 acl SSL_ports port 443
@@ -55,36 +54,23 @@ http_access deny all
 # -----------------------------------------------------------------------------
 
 # Squid normally listens to port 3128
-#http_port {{ lan_ipv4 | ipaddr('address') }}:3128 ssl-bump generate-host-certificates=on dynamic_cert_mem_cache_size=4MB cert=/etc/squid/bumpca.pem dhparams=/etc/ssl/ffdhe2048.pem
-{% if vpn_server_ipv4 is defined %}
-#http_port {{ vpn_server_ipv4 | ipaddr('address') }}:3128 ssl-bump generate-host-certificates=on dynamic_cert_mem_cache_size=4MB cert=/etc/squid/bumpca.pem dhparams=/etc/ssl/ffdhe2048.pem
-{% endif %}
-http_port {{ lan_ipv4 | ipaddr('address') }}:3128
-{% if vpn_server_ipv4 is defined %}
-http_port {{ vpn_server_ipv4 | ipaddr('address') }}:3128
+http_port {{ lan_ipv4|ipaddr('address') }}:3128
+{% if lan_ipv6 is defined %}
+http_port {{ lan_ipv6|ipaddr('address')|ipwrap }}:3128
 {% endif %}
 #http_port 127.0.0.1:3129 intercept
 
-# SSL OPTIONS
-# -----------------------------------------------------------------------------
+tcp_outgoing_address {{ wan_ipv4|ipaddr('address') }}
+{% if wan_ipv6 is defined %}
+tcp_outgoing_address {{ wan_ipv6|ipaddr('address') }}
+{% endif %}
 
-#sslproxy_options SINGLE_DH_USE
-#sslproxy_cafile /etc/ssl/cert.pem
-
-#ssl_bump stare all
-#ssl_bump bump all
-
-##sslproxy_flags DONT_VERIFY_PEER
-##sslproxy_cert_error allow all
-
-# OPTIONS RELATING TO EXTERNAL SSL_CRTD
-# -----------------------------------------------------------------------------
-
-#sslcrtd_program /usr/local/libexec/squid/ssl_crtd -s /var/squid/ssl_db -M 16MB -b 16KB
-#sslcrtd_children 32 startup=1 idle=1
+host_verify_strict on
 
 # LOGFILE OPTIONS
 # -----------------------------------------------------------------------------
+
+#access_log none
 
 #icap_log daemon:/var/squid/logs/icap.log
 
@@ -93,6 +79,13 @@ http_port {{ vpn_server_ipv4 | ipaddr('address') }}:3128
 
 # Leave coredumps in the first cache dir
 coredump_dir /var/squid/cache
+
+# OPTIONS FOR URL REWRITING
+# -----------------------------------------------------------------------------
+
+url_rewrite_program /usr/local/libexec/squid/url_rewriter
+
+#url_rewrite_children 20 startup=0 idle=1 concurrency=0
 
 # OPTIONS FOR TUNING THE CACHE
 # -----------------------------------------------------------------------------
@@ -103,24 +96,44 @@ refresh_pattern ^gopher:          1440  0%  1440
 refresh_pattern -i (/cgi-bin/|\?)    0  0%     0
 refresh_pattern .                    0 20%  4320
 
+# HTTP OPTIONS
+# -----------------------------------------------------------------------------
+
+#via off
+
+request_header_access From deny all
+
+# ADMINISTRATIVE OPTIONS
+# -----------------------------------------------------------------------------
+
+httpd_suppress_version_string on
+
+visible_hostname {{ ansible_fqdn }}
+
 {% if c_icap_port is defined %}
 # ICAP OPTIONS
+# -----------------------------------------------------------------------------
 
 #icap_enable on
 
 #icap_service url_check reqmod_precache icap://127.0.0.1:{{ c_icap_port }}/{{ c_icap_url_check_id }}
 
 {% endif %}
+{% if c_icap_port is defined %}
 # MESSSAGE ADAPTATION OPTIONS
 # -----------------------------------------------------------------------------
 
 adaptation_access url_check allow all
 
-via off
+{% endif %}
+# DNS OPTIONS
+# -----------------------------------------------------------------------------
 
-request_header_access From deny all
+dns_nameservers 127.0.0.1
 
 # MISCELLANEOUS
 # -----------------------------------------------------------------------------
 
-forwarded_for delete
+forwarded_for off
+
+pipeline_prefetch 3

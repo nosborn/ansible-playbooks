@@ -4,10 +4,7 @@ inet {{ wan_ipv4|ipaddr('address') }} 255.255.255.255 NONE mtu 1500 \
   up
 dest {{ wan_ipv4_dest }}
 
-{% for isp_netblock in isp_netblocks|ipv4 %}
-!/sbin/route add -inet {{ isp_netblock }} -ifp \$if {{ wan_ipv4_dest }}
-{% endfor %}
-!/sbin/route add -inet default -ifp \$if {{ wan_ipv4_dest }}
+!/sbin/route -n add -inet default -ifp \$if {{ wan_ipv4_dest }}
 {% if wan_ipv6 is defined %}
 
 inet6 {{ wan_ipv6|ipaddr('address') }} {{ wan_ipv6|ipaddr('prefix') }} autoconf

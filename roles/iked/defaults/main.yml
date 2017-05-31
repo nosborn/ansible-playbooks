@@ -1,12 +1,12 @@
 # role/iked/defaults/main
 ---
-CA_PayloadIdentifier: "{{ 700000 | random | to_uuid | upper }}"
+CA_PayloadIdentifier: "{{ 700000|random|to_uuid|upper }}"
 IP_subject_alt_name: "{{ ansible_ssh_host }}"
 WIFI_EXCLUDE_LIST:
-  - Nick's Wi-Fi Network
-  - Nick's Wi-Fi Network 5GHz
-VPN_PayloadIdentifier: "{{ 800000 | random | to_uuid | upper }}"
+  - "Nick's Wi-Fi Network"
+  - "Nick's Wi-Fi Network 5GHz"
+VPN_PayloadIdentifier: "{{ 800000|random|to_uuid|upper }}"
 easyrsa_p12_export_password: 'password'
 ikeca_password: 'shaeMu3ahf3eF7ie'
-pkcs12_PayloadCertificateUUID: "{{ 900000 | random | to_uuid | upper }}"
+pkcs12_PayloadCertificateUUID: "{{ 900000|random|to_uuid|upper }}"
 ...
