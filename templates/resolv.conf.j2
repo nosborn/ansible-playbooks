@@ -1,4 +1,4 @@
-{% for nameserver in nameservers|default('::1') %}
+{% for nameserver in nameservers|default(['::1']) %}
 nameserver {{ nameserver }}
 {% endfor %}
 domain {{ global_domain }}

@@ -1,0 +1,12 @@
+# roles/darkstat/tasks/main
+---
+- openbsd_pkg: name=darkstat state=installed
+
+- file:
+    path=/var/darkstat state=directory
+    owner=_darkstat group=_darkstat mode=0755
+
+- service:
+    name=darkstat enabled=yes state=started
+    arguments="-i {{ wan_if }} --syslog --no-promisc -b {{ lan_ipv6|ipaddr('address') }} --chroot /var/darkstat --pidfile darkstat.pid"
+...

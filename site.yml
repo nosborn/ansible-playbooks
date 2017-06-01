@@ -36,6 +36,7 @@
     # - c-icap
     - { role: collectd, tags: ['collectd'] }
     - { role: daily, tags: ['daily'] }
+    - { role: darkstat, tags: ['darkstat'] }
     # - dhcpcd
     - { role: dhcpd, tags: ['dhcpd'] }
     - dhparams
@@ -56,7 +57,6 @@
     - { role: python, tags: ['python'] }
     - router
     - { role: rtadvd, tags: ['rtadvd'] }
-  # - { role: slaacd, tags: ['slaacd'] }
     - { role: smtpd, tags: ['smtpd'] }
     - { role: sndiod, tags: ['sndiod'] }
     - { role: squid, tags: ['squid'] }

@@ -96,6 +96,11 @@ check process collectd with pidfile /var/collectd/collectd.pid
   #stop program = "/usr/sbin/rcctl stop collectd"
   #restart program = "/usr/sbin/rcctl restart collectd"
 
+check process darkstat with pidfile /var/darkstat/darkstat.pid
+  #start program = "/usr/sbin/rcctl start darkstat"
+  #stop program = "/usr/sbin/rcctl stop darkstat"
+  #restart program = "/usr/sbin/rcctl restart darkstat"
+
 #check process dhcpcd with pidfile /var/run/dhcpcd.pid
 #  #start program = "/usr/sbin/rcctl start dhcpcd"
 #  #stop program = "/usr/sbin/rcctl stop dhcpcd"
@@ -135,6 +140,11 @@ check process rtadvd matching "^/usr/sbin/rtadvd "
   #start program = "/usr/sbin/rcctl start rtadvd"
   #stop program = "/usr/sbin/rcctl stop rtadvd"
   #restart program = "/usr/sbin/rcctl restart rtadvd"
+
+check process slaacd matching "^/usr/sbin/slaacd$"
+  #start program = "/usr/sbin/rcctl start slaacd"
+  #stop program = "/usr/sbin/rcctl stop slaacd"
+  #restart program = "/usr/sbin/rcctl restart slaacd"
 
 check process smtpd matching "^/usr/sbin/smtpd$"
   #start program = "/usr/sbin/rcctl start smtpd"
