@@ -65,10 +65,14 @@ block drop in log on {{ wan_if }} from <{{ pf_bruteforce_table }}>
 
 pass out on {{ wan_if }}
 
-{% if pf_bogons_v4_table %}
+{% if pf_bogons_v4_table is defined %}
 block return out log on {{ wan_if }} inet to <{{ pf_bogons_v4_table }}>
-
 {% endif %}
+{% if pf_bogons_v6_table is defined %}
+block return out log on {{ wan_if }} inet6 to <{{ pf_bogons_v6_table }}>
+{% endif %}
+block return out log on {{ wan_if }} proto tcp from ({{ lan_if }}) to port 25
+
 match out on {{ wan_if }} inet \
   from {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }} \
   nat-to {{ wan_ipv4|ipaddr('address') }}

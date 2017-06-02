@@ -6,7 +6,6 @@
 /etc/ntpd.conf
 /etc/pf.conf
 /etc/ssh/sshd_config
-/etc/ssl/ikeca.cnf
 /etc/ttys
 /var/nsd/etc/nsd.conf
 /var/unbound/etc/unbound.conf

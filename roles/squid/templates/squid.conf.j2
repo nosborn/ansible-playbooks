@@ -29,7 +29,7 @@ http_access deny !Safe_ports
 http_access deny CONNECT !SSL_ports
 
 # Only allow cachemgr access from localhost
-http_access allow localhost manager
+#http_access allow localhost manager
 http_access deny manager
 
 # We strongly recommend the following be uncommented to protect innocent
@@ -45,7 +45,7 @@ http_access deny to_localhost
 # Adapt localnet in the ACL section to list your (internal) IP networks
 # from where browsing should be allowed
 http_access allow localnet
-http_access allow localhost
+#http_access allow localhost
 
 # And finally deny all other access to this proxy
 http_access deny all
@@ -58,7 +58,7 @@ http_port {{ lan_ipv4|ipaddr('address') }}:3128
 {% if lan_ipv6 is defined %}
 http_port {{ lan_ipv6|ipaddr('address')|ipwrap }}:3128
 {% endif %}
-#http_port 127.0.0.1:3129 intercept
+#http_port [::1]:3128
 
 tcp_outgoing_address {{ wan_ipv4|ipaddr('address') }}
 {% if wan_ipv6 is defined %}
@@ -85,7 +85,7 @@ coredump_dir /var/squid/cache
 
 url_rewrite_program /usr/local/libexec/squid/url_rewriter
 
-#url_rewrite_children 20 startup=0 idle=1 concurrency=0
+url_rewrite_children {{ ansible_processor_cores * 4 }} startup=1 idle=1 concurrency=0
 
 # OPTIONS FOR TUNING THE CACHE
 # -----------------------------------------------------------------------------

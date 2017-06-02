@@ -2,7 +2,6 @@
 /etc/bwm-ng.conf
 /etc/daily.local
 /etc/dhcpcd.duid
-/etc/iked/export
 /etc/kbdtype
 /etc/mail/secrets
 /etc/rc.firsttime
@@ -12,8 +11,8 @@
 /etc/ssl/*.chain.pem
 /etc/ssl/*.fullchain.pem
 /etc/ssl/private/*.key
-/etc/ssl/vpn
 /etc/sysclean.ignore
+/var/darkstat
 /var/nsd/etc
 /var/nsd/run
 /var/nsd/zones

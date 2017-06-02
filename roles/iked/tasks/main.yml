@@ -18,15 +18,10 @@
     owner=root group=wheel mode=0555
     validate='/bin/sh -n %s'
 
-- template:
-    src=ikeca.cnf dest=/etc/ssl/ikeca.cnf
-    owner=root group=wheel mode=0444
-
 - meta: flush_handlers
 
 - name: start IKEv2 daemon
   service: name=iked arguments='-6' enabled=yes state=started
 
-- include: 'pki.yml'
 - include: 'mobileconfig.yml'
 ...

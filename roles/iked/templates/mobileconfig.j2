@@ -31,18 +31,31 @@
 				<array>
 					<dict>
 						<key>Action</key>
-						<string>Disconnect</string>
+						<string>Ignore</string>
 						<key>InterfaceTypeMatch</key>
-						<string>WiFi</string>
+						<string>Cellular</string>
+					</dict>
+					<dict>
+						<key>Action</key>
+						<string>Disconnect</string>
+						<key>DNSServerAddressMatch</key>
+						<array>
+							<string>{{ lan_ipv4|ipaddr('address') }}</string>
+						</array>
 						<key>SSIDMatch</key>
 						<array>
-							<string>Nick's Wi-Fi Network</string>
-							<string>Nick's Wi-Fi Network 5GHz</string>
+{% for ssid in iked_trusted_ssids %}
+							<string>{{ ssid }}</string>
+{% endfor %}
 						</array>
+						<key>InterfaceTypeMatch</key>
+						<string>WiFi</string>
 					</dict>
 					<dict>
 						<key>Action</key>
 						<string>Connect</string>
+						<key>URLStringProbe</key>
+						<string>http://captive.apple.com/hotspot-detect.html</string>
 					</dict>
 				</array>
 				<key>RemoteAddress</key>
@@ -50,7 +63,7 @@
 				<key>RemoteIdentifier</key>
 				<string>{{ ansible_fqdn }}</string>
 				<key>LocalIdentifier</key>
-				<string>{{ item.key }}.{{ global_domain }}</string>
+				<string>{{ item.key }}@{{ global_domain }}</string>
 				<key>AuthenticationMethod</key>
 				<string>None</string>
 				<key>ExtendedAuthEnabled</key>
