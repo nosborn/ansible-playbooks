@@ -1,15 +1,17 @@
 # roles/smtpd/tasks/main
 ---
-- include_vars: secrets.yml
+- include_vars: vault.yml
   no_log: true
 
 - copy:
-    content="{{ mail_aliases }}" dest=/etc/mail/aliases
+    content="{{ mail_aliases }}"
+    dest=/etc/mail/aliases
     owner=root group=wheel mode=0444
   notify: update aliases table
 
 - copy:
-    content="{{ smtpd_secrets_table }}" dest=/etc/mail/secrets
+    content="{{ smtpd_secrets_table }}"
+    dest=/etc/mail/secrets
     owner=root group=_smtpd mode=0440
   notify: update secrets table
 

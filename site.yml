@@ -3,7 +3,7 @@
 - hosts: mac-mini
 
   roles:
-  # - ssh
+  # - { role: ssh, tags: ['ssh'] }
 
 - hosts: tombstone
 
@@ -12,50 +12,53 @@
       template:
         src=hostname.{{ item }}.j2 dest=/etc/hostname.{{ item }}
         owner=root group=wheel mode=0440
-      notify: netstart
       with_items:
         - "{{ lan_if }}"
         - "{{ pppoe_pppoedev }}"
         - "{{ wan_if }}"
         - "{{ wlan_if }}"
+      notify: netstart
 
     - name: Default hostname
       copy:
-        content="tombstone.{{ global_domain }}\n" dest=/etc/myname
+        content="tombstone.{{ global_domain }}\n"
+        dest=/etc/myname
         owner=root group=wheel mode=0444
 
     - name: System-wide package system configuration
       copy:
-        content="{{ installurl }}\n" dest=/etc/installurl
+        content="{{ installurl }}\n"
+        dest=/etc/installurl
         owner=root group=wheel mode=0444
 
   roles:
     - { role: apmd, tags: ['apmd'] }
     - { role: avahi, tags: ['avahi'] }
     - { role: bwm-ng, tags: ['bwm-ng'] }
-    # - c-icap
+  # - c-icap
     - { role: collectd, tags: ['collectd'] }
     - { role: daily, tags: ['daily'] }
-    - { role: darkstat, tags: ['darkstat'] }
-    # - dhcpcd
     - { role: dhcpd, tags: ['dhcpd'] }
-    - dhparams
+    - { role: dhparams, tags: ['dhparams'] }
     - { role: doas, tags: ['doas'] }
     - { role: facette, tags: ['facette'] }
     - { role: flashrom, tags: ['flashrom'] }
+    - { role: gixy, tags: ['flashrom'] }
     - { role: goaccess, tags: ['goaccess'] }
     - { role: iftop, tags: ['iftop'] }
     - { role: iked, tags: ['iked'] }
-    - letsencrypt
+    - { role: letsencrypt, tags: ['letsencrypt'] }
     - { role: locale, tags: ['locale'] }
-    # - newsyslog
+    - { role: monit, tags: ['monit'] }
+  # - newsyslog
     - { role: nginx, tags: ['nginx'] }
     - { role: nsd, tags: ['nsd'] }
     - { role: ntpd, tags: ['ntpd'] }
+    - { role: openvpn, tags: ['openvpn'] }
     - { role: pf, tags: ['pf'] }
     - { role: pftop, tags: ['pftop'] }
     - { role: python, tags: ['python'] }
-    - router
+    - { role: router, tags: ['router'] }
     - { role: rtadvd, tags: ['rtadvd'] }
     - { role: smtpd, tags: ['smtpd'] }
     - { role: sndiod, tags: ['sndiod'] }
@@ -64,7 +67,6 @@
     - { role: sysclean, tags: ['sysclean'] }
     - { role: sysmerge, tags: ['sysmerge'] }
     - { role: unbound, tags: ['unbound'] }
-    - { role: monit, tags: ['monit'] } # do last
 
   tasks:
     - name: boot configuration
@@ -72,29 +74,24 @@
         src=boot.conf dest=/etc/boot.conf
         owner=root group=wheel mode=0444
 
-    - name: 'Host name database'
+    - name: Host name database
       template:
         src=hosts.j2 dest=/etc/hosts
         owner=root group=wheel mode=0444
 
-          #- name: system login profile
-          #  copy:
-            #    content="PS1='\h\$ '\n" dest=/etc/profile
-            #    owner=root group=wheel mode=0444
-
-            #   - name: 'terminal initialization information'
-            #     replace:
-              #       dest=/etc/ttys
-              #       regexp='^(console\s+.+)\s+secure$'
-              #       replace='\1'
+  # - name: 'terminal initialization information'
+  #   replace:
+  #     dest=/etc/ttys
+  #     regexp='^(console\s+.+)\s+secure$'
+  #     replace='\1'
 
     - name: sysctl variables to set at system startup
-      sysctl: name={{ item.key }} reload=no sysctl_set=yes value={{ item.value }}
+      sysctl:
+        name={{ item.key }} value={{ item.value }}
+        reload=no sysctl_set=yes
       with_dict:
         ddb.panic: 0
-        net.inet.ah.enable: 0
       # net.inet.divert.recvspace: 131072
-      # net.inet.esp.enable: 0
       # net.inet.ip.ifq.maxlen: 512
       # net.inet.tcp.mssdflt: 1460
         net.inet.udp.recvspace: 131072

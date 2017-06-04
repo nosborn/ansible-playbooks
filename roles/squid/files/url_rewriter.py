@@ -9,7 +9,6 @@ to_https = frozenset([
     '123-reg.co.uk', 'www.123-reg.co.uk',
     'amazon.co.uk', 'www.amazon.co.uk',
     'amazon.com', 'aws.amazon.com', 'www.amazon.com',
-    'bbc.co.uk', 'www.bbc.co.uk',
     'buddyns.com', 'www.buddyns.com',
     'cdnjs.com', 'www.cdnjs.com',
     'circleci.com', 'www.circleci.com',
@@ -30,6 +29,7 @@ to_https = frozenset([
     'linkedin.com', 'www.linkedin.com',
     'marc.info', 'www.marc.info',
     'meetup.com', 'www.meetup.com',
+    'nic.io', 'my.nic.io', 'www.nic.io',
     'nytimes.com', 'www.nytimes.com',
     'openbsd.org', 'www.openbsd.org',
     'paypal.co.uk', 'www.paypal.co.uk',
@@ -38,6 +38,7 @@ to_https = frozenset([
     'reddit.com', 'www.reddit.com',
     'statuscake.com', 'www.statuscake.com',
     'theguardian.com', 'www.theguardian.com',
+    'thepiratebay.org', 'www.thepiratebay.org',
     'theregister.co.uk', 'www.theregister.co.uk',
     'unpkg.com',  # no www.
     'vultr.com', 'www.vultr.com',

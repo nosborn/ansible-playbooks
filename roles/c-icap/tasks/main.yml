@@ -1,14 +1,14 @@
 # roles/c-icap/tasks/main
 ---
-- name: install ICAP server for use with web proxies
-  openbsd_pkg: name={{ item }} state=installed
+- name: install packages
+  openbsd_pkg: name={{ item }} state=present
   with_items:
     - c-icap
     - c-icap-urlcheck
 
 - name: configure ICAP filtering service
   template:
-    src={{ item }}.j2 dest=/etc/c-icap/{{ item }}
+    src="{{ item }}.j2" dest=/etc/c-icap/{{ item }}
     owner=root group=wheel mode=0444
   with_items:
     - c-icap.conf

@@ -2,11 +2,11 @@
 
 set -eu
 
-red="\033[01;31m"
-yellow="\033[01;33m"
-green="\033[01;32m"
-bold="\033[01;39m"
-white="\033[0m"
+readonly red="\033[01;31m"
+readonly yellow="\033[01;33m"
+readonly green="\033[01;32m"
+readonly bold="\033[01;39m"
+readonly white="\033[0m"
 
 bsds=''
 sets=''
@@ -15,11 +15,10 @@ xsets=''
 set -A bsds 'bsd' 'bsd.mp' 'bsd.rd'
 set -A sets 'comp' 'man' 'base'
 set -A xsets 'xbase' 'xfont' 'xshare'
-base_sig='SHA256.sig'
-build_info='BUILDINFO'
+readonly base_sig='SHA256.sig'
+readonly build_info='BUILDINFO'
 
-spath=$(dirname -- "$(command -v -- "$0")")
-sname="${0##*/}"
+readonly sname="${0##*/}"
 
 function usage {
   cat <<EOF
@@ -68,12 +67,12 @@ EOF
 function get_conf_var {
   RET=''
   if [[ -e $CONF_FILE ]]; then
-    RET=$(grep $1 $CONF_FILE | awk -F : '{if ($1 !~ /^#/) {print $2}}')
+    RET=$(grep "$1" "$CONF_FILE" | awk -F : '{if ($1 !~ /^#/) {print $2}}')
   fi
   if [[ "${RET}X" == "X" ]]; then
     return 1
   fi
-  echo $RET
+  echo "$RET"
 }
 
 function msg {
@@ -144,16 +143,16 @@ function rollback {
 }
 
 function verisigs {
-  KEY=/etc/signify/openbsd-${SETVER}-base.pub
-  VALID=true
+  local KEY=/etc/signify/openbsd-${SETVER}-base.pub
+  local VALID=true
 
-  if [ -f "$KEY" ]; then
+  if [[ -f "${KEY}" ]]; then
     for i in "$@"; do
-      signify -V -e -p ${KEY} -x SHA256.sig -m - | sha256 -C - ${i} || VALID=false
+      signify -V -e -p "${KEY}" -x SHA256.sig -m - | sha256 -C - ${i} || VALID=false
     done
 
-    if [ $VALID == false ]; then
-      error "Invalid signature found! They are after you!" true
+    if [ ${VALID} == false ]; then
+      error 'Invalid signature found! They are after you!' true
     fi
   else
     error "No pub key found for this release! (${KEY})" false
@@ -161,12 +160,12 @@ function verisigs {
 }
 
 function update_kernel {
-  FAIL=0
+  local FAIL=0
 
   verisigs "bsd*"
 
-  cp ${KERNEL} /bsd || FAIL=1
-  cp ${RD} /bsd.rd || FAIL=1
+  cp "${KERNEL}" /bsd || FAIL=1
+  cp "${RD}" /bsd.rd || FAIL=1
 
   if [[ "${KERNEL}" == 'bsd.mp' ]]; then
     cp bsd /bsd.sp || FAIL=1
@@ -181,17 +180,17 @@ function update_kernel {
 }
 
 function fetch {
-  DF=$(echo $1 | awk -F/ '{print $NF}')
-  TDF="${DF}.out"
-  R=0
+  local DF=$(echo "$1" | awk -F/ '{print $NF}')
+  local TDF="${DF}.out"
+  local R=0
 
   # this check may cause signature issues.. if old files exist in
   # the DEST directory.
-  if [ ! -e $DF ]; then
-    /usr/bin/ftp $FTP_OPTS -o $TDF $1
+  if [[ ! -e "${DF}" ]]; then
+    /usr/bin/ftp $FTP_OPTS -o "$TDF" "$1"
     R=$?
     # move the tmp file to actual file name so we can use -C
-    mv $TDF $DF
+    mv "$TDF" "$DF"
   fi
 
   return $R
@@ -205,15 +204,14 @@ function extract {
 CONF_FILE=~/.snaprc
 USE_BUILDINFO=true
 INTERACTIVE=$(get_conf_var 'INTERACTIVE' || echo 'false')
-DST=$(get_conf_var 'DST' || echo '/tmp/upgrade')
 FTP_OPTS=$(get_conf_var 'FTP_OPTS' || echo " -4V ")
 INSTBOOT=$(get_conf_var 'INSTBOOT' || echo 'sd0')
 MACHINE=$(machine)
 MERGE=$(get_conf_var 'MERGE' || echo 'false')
 SETVER=$(uname -r | tr -d \.)
-VER=$(get_conf_var 'VER' || echo "$(uname -r)")
+VER=$(get_conf_var 'VER' || uname -r)
 REBOOT=$(get_conf_var 'REBOOT' || echo 'false')
-AFTER=$(get_conf_var 'AFTER' || echo 'false')
+# AFTER=$(get_conf_var 'AFTER' || echo 'false')
 
 MIRROR=$(get_conf_var 'MIRROR' || echo 'http://ftp.eu.openbsd.org')
 
@@ -244,16 +242,19 @@ while getopts "b:Bc:ehiIkKm:M:nrRsSuUv:V:x" arg; do
       VER=$OPTARG
       ;;
     V)
-      SETVER=$(echo $OPTARG | tr -d \.)
+      SETVER=$(echo "$OPTARG" | tr -d \.)
       ;;
     *)
       exit 1
   esac
 done
 
+DST=$(mktemp -dt snap.XXXXXXXX)
+trap 'rm -rf ${DST}' EXIT
+
 # [[ $(id -u) -ne 0 ]] && error "need root privileges" false
 
-if [ $VER != "snapshots" ]; then
+if [ "$VER" != "snapshots" ]; then
   kern_ver=$(sysctl kern.version | grep -oE "\-(current|beta)")
   if [ $? == 0 ]; then
     msg "kern.version: ${white}reporting as $kern_ver on ${MACHINE}"
@@ -291,6 +292,7 @@ msg "${white}Fetching from: ${green}${URL}"
         warn "No new snaps available, mirror has: ${current_snap}!"
         exit 1
       fi
+      msg "current snap: ${white}${current_snap}"
     fi
   fi
 
@@ -337,15 +339,30 @@ msg "${white}Fetching from: ${green}${URL}"
     fi
   done
 
-  msg "Rebuilding whatis databases:"
-  makewhatis -Q
+  msg 'Rebuilding locate database'
+  if [[ -f /var/db/locate.database ]]; then
+    if TMP=$(mktemp /var/db/locate.database.XXXXXXXXXX); then
+      trap 'rm -f $TMP; exit 1' 0 1 15
+      readonly UPDATEDB='/usr/libexec/locate.updatedb'
+      echo "${UPDATEDB} --fcodes=- --tmpdir=${TMPDIR:-/tmp}" | \
+        nice -5 su -m nobody 2>/dev/null 1>"$TMP"
+      if [[ -s "$TMP" ]]; then
+        chmod 444 "$TMP"
+        chown root:wheel "$TMP"
+        mv -f "$TMP" /var/db/locate.database
+      fi
+    fi
+  fi
 
-  msg "Remounting filesystems (ro)"
+  msg 'Rebuilding whatis databases'
+  makewhatis
+
+  msg 'Remounting filesystems (ro)'
   mount -o ro -u /usr || error "Can't remount /usr partition!" false
   mount -o ro -u /usr/X11R6 || error "Can't remount /usr/X11R6 partition!" false
 
-  if [ $MERGE == true ]; then
-    msg "Running sysmerge"
+  if [ ${MERGE} == true ]; then
+    msg 'Running sysmerge'
     sysmerge || error 'Failed to sysmerge!' false
   else
     echo '/usr/sbin/sysmerge -b' >/etc/rc.sysmerge
@@ -354,20 +371,20 @@ msg "${white}Fetching from: ${green}${URL}"
   fi
 
   msg "Installing bootstrap on ${INSTBOOT}"
-  installboot -v $INSTBOOT || error "Something bad happened - check your boot disk!" false
+  installboot -v "$INSTBOOT" || error "Something bad happened - check your boot disk!" false
 
-  if [ $USE_BUILDINFO ]; then
-    awk -F- '{print $2}' "$build_info" | sed 's/^ //' > ~/.last_snap
+  if [ ${USE_BUILDINFO} ]; then
+    awk -F- '{print $2}' "${build_info}" | sed 's/^ //' > ~/.last_snap
   else
     date > ~/.last_snap
   fi
 
-  echo 'cd /dev && sh MAKEDEV all' >/etc/rc.firsttime
-  echo 'rm -f /sbin/oreboot' >>/etc/rc.firsttime
-  # echo '/usr/sbin/fw_update' >>/etc/rc.firsttime
+  echo 'rm -f /sbin/oreboot' >/etc/rc.firsttime
+  echo 'cd /dev && sh MAKEDEV all' >>/etc/rc.firsttime
+  echo '/usr/sbin/fw_update' >>/etc/rc.firsttime
   chmod +x /etc/rc.firsttime
 
-  if [ $REBOOT == true ]; then
+  if [[ ${REBOOT} == true ]]; then
     msg 'Rebooting'
     /sbin/oreboot || error "Something really bad happened - Can't reboot!" false
   fi

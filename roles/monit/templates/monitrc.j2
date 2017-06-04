@@ -96,16 +96,6 @@ check process collectd with pidfile /var/collectd/collectd.pid
   #stop program = "/usr/sbin/rcctl stop collectd"
   #restart program = "/usr/sbin/rcctl restart collectd"
 
-check process darkstat with pidfile /var/darkstat/darkstat.pid
-  #start program = "/usr/sbin/rcctl start darkstat"
-  #stop program = "/usr/sbin/rcctl stop darkstat"
-  #restart program = "/usr/sbin/rcctl restart darkstat"
-
-#check process dhcpcd with pidfile /var/run/dhcpcd.pid
-#  #start program = "/usr/sbin/rcctl start dhcpcd"
-#  #stop program = "/usr/sbin/rcctl stop dhcpcd"
-#  #restart program = "/usr/sbin/rcctl restart dhcpcd"
-
 check process dhcpd matching "^/usr/sbin/dhcpd "
   #start program = "/usr/sbin/rcctl start dhcpd"
   #stop program = "/usr/sbin/rcctl stop dhcpd"
@@ -131,6 +121,16 @@ check process nsd with pidfile /var/nsd/run/nsd.pid
   #stop program = "/usr/sbin/rcctl stop nsd"
   #restart program = "/usr/sbin/rcctl restart nsd"
 
+{% if vpn_client_if is defined %}
+check process openvpn.client with pidfile /var/openvpn/client.pid
+  #start program = "/bin/sh /etc/netstart {{ vpn_client_if }}"
+
+{% endif %}
+{% if vpn_server_if is defined %}
+check process openvpn.server with pidfile /var/openvpn/server.pid
+  #start program = "/bin/sh /etc/netstart {{ vpn_server_if }}"
+
+{% endif %}
 check process ntpd matching "^/usr/sbin/ntpd "
   #start program = "/usr/sbin/rcctl start ntpd"
   #stop program = "/usr/sbin/rcctl stop ntpd"
@@ -141,7 +141,7 @@ check process rtadvd matching "^/usr/sbin/rtadvd "
   #stop program = "/usr/sbin/rcctl stop rtadvd"
   #restart program = "/usr/sbin/rcctl restart rtadvd"
 
-check process slaacd matching "^/usr/sbin/slaacd$"
+check process slaacd matching "^/sbin/slaacd$"
   #start program = "/usr/sbin/rcctl start slaacd"
   #stop program = "/usr/sbin/rcctl stop slaacd"
   #restart program = "/usr/sbin/rcctl restart slaacd"
@@ -218,7 +218,7 @@ check filesystem usr.local with path /dev/sd0h
   if space usage > 70% for 5 times within 15 cycles then alert
   if inode usage > 70% for 5 times within 15 cycles then alert
 
-check filesystem var with path /dev/sd0j
+check filesystem var with path /dev/sd0i
   if changed fsflags then alert
   if space usage > 70% for 5 times within 15 cycles then alert
   if inode usage > 70% for 5 times within 15 cycles then alert
@@ -249,6 +249,20 @@ check network LAN with interface {{ lan_if }}
   #if failed link then alert
   #if changed link capacity then alert
 
+{% if vpn_client_if is defined %}
+check network VPN.CLIENT with interface {{ vpn_client_if }}
+  #start program = "/bin/sh /etc/netstart {{ vpn_client_if }}"
+  if failed link then alert
+  if changed link then alert
+
+{% endif %}
+{% if vpn_server_if is defined %}
+check network VPN.SERVER with interface {{ vpn_server_if }}
+  #start program = "/bin/sh /etc/netstart {{ vpn_server_if }}"
+  if failed link then alert
+  if changed link then alert
+
+{% endif %}
 check network WAN with interface {{ wan_if }}
   #start program = "/bin/sh /etc/netstart {{ wan_if }}"
   if failed link then alert

@@ -1,5 +1,8 @@
 # roles/iked/tasks/main
 ---
+- include_vars: vault.yml
+  no_log: true
+
 - name: interface-specific configuration file
   template:
     src=hostname.enc0.j2 dest=/etc/hostname.enc0
@@ -10,7 +13,7 @@
   template:
     src=iked.conf.j2 dest=/etc/iked.conf
     owner=root group=wheel mode=0400
-    # validate='/sbin/iked -f %s -n'
+  # validate='/sbin/iked -f %s -n'
   notify: restart iked
 
 - copy:
@@ -18,10 +21,18 @@
     owner=root group=wheel mode=0555
     validate='/bin/sh -n %s'
 
+- name: sysctl variables to set at system startup
+  sysctl:
+    name={{ item.key }} value={{ item.value }}
+    reload=no sysctl_set=yes
+  with_dict:
+  # net.inet.ah.enable: 0
+    net.inet.ipcomp.enable: 1
+
 - meta: flush_handlers
 
 - name: start IKEv2 daemon
-  service: name=iked arguments='-6' enabled=yes state=started
+  service: name=iked arguments=-6 enabled=yes state=started
 
-- include: 'mobileconfig.yml'
+- include: mobileconfig.yml
 ...

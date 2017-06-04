@@ -1,7 +1,7 @@
 # roles/facette/tasks/main
 ---
 - name: install package
-  openbsd_pkg: name=facette state=installed
+  openbsd_pkg: name=facette state=present
 
 - template:
     src=providers/collectd.json.j2 dest=/etc/facette/providers/collectd.json

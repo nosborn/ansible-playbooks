@@ -1,9 +1,9 @@
 /etc/acme/letsencrypt-privkey.pem
 /etc/bwm-ng.conf
 /etc/daily.local
-/etc/dhcpcd.duid
 /etc/kbdtype
 /etc/mail/secrets
+/etc/openvpn
 /etc/rc.firsttime
 /etc/rc.sysmerge
 /etc/ssl/dhparams.pem
@@ -12,10 +12,10 @@
 /etc/ssl/*.fullchain.pem
 /etc/ssl/private/*.key
 /etc/sysclean.ignore
-/var/darkstat
 /var/nsd/etc
 /var/nsd/run
 /var/nsd/zones
+/var/openvpn
 /var/unbound/etc
 /var/www/cache
 /var/www/sites

@@ -1,8 +1,9 @@
 # roles/iked/tasks/mobileconfig
 ---
-- template:
+- name: generate mobileconfig
+  template:
     src=mobileconfig.j2 dest={{ ansible_user_dir }}/{{ item.key }}.mobileconfig
     owner={{ ansible_user_uid }} group={{ ansible_user_gid }} mode=0600
-  no_log: true
   with_dict: "{{ iked_users }}"
+  no_log: true
 ...

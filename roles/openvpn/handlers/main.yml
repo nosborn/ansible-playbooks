@@ -1,0 +1,10 @@
+# roles/openvpn/handlers/main
+---
+- name: reload openvpn client
+  command: pkill -HUP openvpn
+  when: false
+
+- name: reload openvpn server
+  command: pkill -HUP openvpn
+  when: false
+...

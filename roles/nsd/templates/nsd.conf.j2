@@ -3,7 +3,6 @@ server:
 {% if wan_ipv6 is defined %}
 	ip-address: {{ wan_ipv6|ipaddr('address') }}
 {% endif %}
-	ip-transparent: yes
 	database: "" # disable database
 	identity: ""
 	server-count: {{ nsd_server_count }}

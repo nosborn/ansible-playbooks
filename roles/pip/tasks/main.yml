@@ -1,5 +1,5 @@
 # roles/pip/tasks/main
 ---
 - name: install package
-  openbsd_pkg: name=py-pip state=installed
+  openbsd_pkg: name=py-pip state=present
 ...

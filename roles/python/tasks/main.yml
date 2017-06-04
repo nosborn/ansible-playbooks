@@ -1,7 +1,9 @@
 # roles/python/tasks/main
 ---
-- file: src=python2.7 dest=/usr/local/bin/python state=link
-- file: src=python2.7-2to3 dest=/usr/local/bin/2to3 state=link
-- file: src=python2.7-config dest=/usr/local/bin/python-config state=link
-- file: src=pydoc2.7 dest=/usr/local/bin/pydoc state=link
+- file: src={{ item.key }} state=link dest=/usr/local/bin/{{ item.value }}
+  with_dict:
+    pydoc2.7: pydoc
+    python2.7-2to3: 2to3
+    python2.7-config: python-config
+    python2.7: python
 ...

@@ -1,0 +1,26 @@
+# roles/openvpn/tasks/client
+---
+- name: configure secure IP tunnel daemon
+  copy:
+    content="{{ openvpn_client_config }}" dest=/etc/openvpn/client.conf
+    owner=root group=wheel mode=0400
+  notify: reload openvpn client
+
+- name: install scripts
+  template:
+    src={{ item }}.j2 dest=/usr/local/libexec/openvpn/{{ item }}
+    owner=root group=wheel mode=0550
+    validate='/bin/ksh -n %s'
+  with_items:
+    - client-down.sh
+    - client-route-up.sh
+    - client-route-pre-down.sh
+    - client-up.sh
+  notify: reload openvpn client
+
+- name: interface-specific configuration file
+  template:
+    src=hostname.client.j2 dest=/etc/hostname.{{ vpn_client_if }}
+    owner=root group=wheel mode=0440
+# notify: restart openvpn client
+...

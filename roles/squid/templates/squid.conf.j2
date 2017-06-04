@@ -99,7 +99,7 @@ refresh_pattern .                    0 20%  4320
 # HTTP OPTIONS
 # -----------------------------------------------------------------------------
 
-#via off
+via off
 
 request_header_access From deny all
 
@@ -134,6 +134,6 @@ dns_nameservers 127.0.0.1
 # MISCELLANEOUS
 # -----------------------------------------------------------------------------
 
-forwarded_for off
+forwarded_for delete
 
 pipeline_prefetch 3

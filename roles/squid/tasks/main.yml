@@ -1,7 +1,10 @@
 # roles/squid/tasks/main
 ---
-- name: install WWW and FTP proxy cache and accelerator
-  openbsd_pkg: name=squid state=installed
+- include_vars: vault.yml
+  no_log: true
+
+- name: install package
+  openbsd_pkg: name=squid state=present
 
 #- copy:
 #    content="{{ squid_ssl_bump_cert }}" dest=/etc/squid/bumpca.pem
@@ -10,22 +13,31 @@
 
 - name: Error page stylesheet
   copy:
-    src=errorpage.css dest=/etc/squid/errorpage.css
-    owner=root group=wheel mode=0444
+    src: errorpage.css
+    dest: /etc/squid/errorpage.css
+    owner: root
+    group: wheel
+    mode: 0444
   notify: reload squid
 
 - name: url_rewriter script
   copy:
-    src=url_rewriter.py dest=/usr/local/libexec/squid/url_rewriter
-    owner=root group=wheel mode=0555
-    validate='/usr/local/bin/python -mpy_compile %s'
+    src: url_rewriter.py
+    dest: /usr/local/libexec/squid/url_rewriter
+    owner: root
+    group: wheel
+    mode: 0555
+    validate: /usr/local/bin/python -mpy_compile %s
   notify: reload squid
 
 - name: configure HTTP web proxy caching server
   template:
-    src=squid.conf.j2 dest=/etc/squid/squid.conf
-    owner=root group=wheel mode=0444
-    validate='/usr/local/sbin/squid -f %s -k parse'
+    src: squid.conf.j2
+    dest: /etc/squid/squid.conf
+    owner: root
+    group: wheel
+    mode: 0444
+    validate: /usr/local/sbin/squid -f %s -k parse
   notify: restart squid
 
 # FIXME:

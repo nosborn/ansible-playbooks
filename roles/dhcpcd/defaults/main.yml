@@ -1,5 +1,0 @@
-# role/dhcpcd/defaults/main
----
-dhcpcd_enabled: 'no'
-dhcpcd_state: 'stopped'
-...

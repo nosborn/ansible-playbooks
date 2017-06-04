@@ -1,18 +1,25 @@
 # roles/letsencrypt/tasks/main
 ---
 - copy:
-    content="{{ letsencrypt_account_key }}"
-    dest={{ letsencrypt_account_key_file }}
-    owner=root group=wheel mode=0400
+    content: "{{ letsencrypt_account_key }}"
+    dest: "{{ letsencrypt_account_key_file }}"
+    owner: root
+    group: wheel
+    mode: 0400
 
 - copy:
-    content="{{ letsencrypt_staging_account_key }}"
-    dest={{ letsencrypr_staging_account_key_file }}
-    owner=root group=wheel mode=0400
+    content: "{{ letsencrypt_staging_account_key }}"
+    dest: "{{ letsencrypr_staging_account_key_file }}"
+    owner: root
+    group: wheel
+    mode: 0400
   when: letsencrypt_staging_account_key is defined
 
 - template:
-    src=acme-client.conf.j2 dest=/etc/acme-client.conf
-    owner=root group=wheel mode=0444
-  # validate='/usr/sbin/acme-client -n -f %s'
+    src: acme-client.conf.j2
+    dest: /etc/acme-client.conf
+    owner: root
+    group: wheel
+    mode: 0444
+  # validate: /usr/sbin/acme-client -n -f %s
 ...

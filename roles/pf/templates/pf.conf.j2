@@ -23,7 +23,7 @@ table <{{ pf_bogons_v6_table }}> counters persist file "/var/db/{{ pf_bogons_v6_
 block return log  # block stateless traffic
 pass out          # establish keep-state
 
-match proto tcp set prio (3, 7)
+match proto tcp set prio (3, 6)
 
 # WAN_IF
 # in on WAN_IF
@@ -77,25 +77,60 @@ match out on {{ wan_if }} inet \
   from {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }} \
   nat-to {{ wan_ipv4|ipaddr('address') }}
 
+{% if vpn_client_if is defined %}
+# VPN_CLIENT_IF
+# in on VPN_CLIENT_IF
+
+block drop in log on {{ vpn_client_if }}
+
+# out on VPN_CLIENT_IF
+
+pass out on {{ vpn_client_if }}
+
+{% if pf_bogons_v4_table is defined %}
+block return out log on {{ vpn_client_if }} inet to <{{ pf_bogons_v4_table }}>
+pass out on {{ vpn_client_if }} inet to ({{ vpn_client_if }}:network)
+{% endif %}
+{% if pf_bogons_v6_table is defined %}
+block return out log on {{ vpn_client_if }} inet6 to <{{ pf_bogons_v6_table }}>
+pass out on {{ vpn_client_if }} inet6 to ({{ vpn_client_if }}:network)
+{% endif %}
+#block return out log on {{ vpn_client_if }} inet to {{ wan_ipv4|ipaddr('address') }}
+
+block return out log on {{ vpn_client_if }} inet6
+
+block return out log on {{ vpn_client_if }} proto tcp to port 25
+
+match out on {{ vpn_client_if }} inet \
+  from {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }} \
+  nat-to ({{ vpn_client_if }}:0)
+
+{% endif %}
 # LAN_IF
 
 pass on {{ lan_if }}
 pass in on {{ lan_if }} inet proto udp to 224.0.0.251 port 5353 allow-opts
 
-## https://us.battle.net/support/en/article/300479
-#pass in on {{ lan_if }} inet proto { tcp udp } \
-#  from {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }} port 1024:65535 \
-#  to port 1119 \
-#  label diablo \
-#  route-to {{ wan_ipv4_dest }}@{{ wan_if }}
-#pass in on {{ lan_if }} inet proto udp \
-#  from {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }} port 1024:65535 \
-#  to port 6120 \
-#  label diablo \
-#  route-to {{ wan_ipv4_dest }}@{{ wan_if }}
-#
-#pass in on {{ lan_if }} inet proto udp \
-#  from {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }} port 1024:65535 \
-#  to port { 3478:3497 16384:16387 16393:16402 } \
-#  label facetime \
-#  route-to {{ wan_ipv4_dest }}@{{ wan_if }}
+# Battle.net Chat/Game Protocol
+# https://us.battle.net/support/en/article/300479
+match in on {{ lan_if }} proto { tcp udp } \
+  from port 1024:65535 \
+  to port 1119 \
+  set prio (4, 7) \
+  label "bnetgame-$proto"
+
+# Apple FaceTime, Game Center
+# https://support.apple.com/en-us/HT202944
+match in on {{ lan_if }} proto udp \
+  from port 1024:65535 \
+  to port 3478:3497 \
+  set prio 5 \
+  label "facetime-stun"
+
+# Apple FaceTime, Game Center
+# https://support.apple.com/en-us/HT202944
+match in on {{ lan_if }} proto udp \
+  from port 1024:65535 \
+  to port { 16384:16387 16393:16402 } \
+  set prio 5 \
+  label "facetime-rtp-$nr"

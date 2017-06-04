@@ -6,8 +6,9 @@ user "{{ name }}" "{{ password }}"
 {%   endfor %}
 
 {% endif %}
-ikev2 \
+ikev2 ipcomp \
   from 0.0.0.0/0 to 0.0.0.0/0 \
+  from ::/0 to ::/0 \
   local {{ wan_ipv4|ipaddr('address') }} peer any \
   ikesa auth hmac-sha2-256 enc aes-256 prf hmac-sha2-256 group modp2048 \
   childsa enc aes-128-gcm group ecp256 \
@@ -15,5 +16,6 @@ ikev2 \
   lifetime 24h \
   eap MSCHAP-V2 \
   config address {{ lan_ipv4|ipaddr('128')|ipaddr('address') }}/26 \
+  config address {{ lan_ipv6|ipsubnet(72,69) }} \
   config name-server {{ lan_ipv4|ipaddr('address') }} \
   tag "$name-$id"

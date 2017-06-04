@@ -5,21 +5,19 @@
     src=zones/{{ item }}.j2 dest=/var/nsd/zones/master/{{ item }}.zone
     owner=root group=wheel mode=0444
     validate='/usr/sbin/nsd-checkzone {{ item }} %s'
-  notify: reload nsd
   with_items:
     - 32.87.187.81.in-addr.arpa
     - leavethegun.com
     - osborn.io
     - osborn.ws
+  notify: reload nsd
 
 - name: install NSD configuration file
   template:
-    src={{ item }}.j2 dest=/var/nsd/etc/{{ item }}
+    src=nsd.conf.j2 dest=/var/nsd/etc/nsd.conf
     owner=root group=_nsd mode=0440
     validate='/usr/sbin/nsd-checkconf %s'
   notify: reload nsd
-  with_items:
-    - nsd.conf
 
 - name: Name Server Daemon (NSD)
   service: name=nsd enabled=yes state=started

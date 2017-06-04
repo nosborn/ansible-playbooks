@@ -1,7 +1,7 @@
 # roles/gixy/tasks/main
 ---
 - name: install dependencies
-  openbsd_pkg: name={{ item }} state=installed
+  openbsd_pkg: name={{ item }} state=present
   with_items:
     - py-ConfigArgParse
     - py-jinja2

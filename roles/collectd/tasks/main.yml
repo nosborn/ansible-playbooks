@@ -1,10 +1,13 @@
 # roles/collectd/tasks/main
 ---
-- name: install system metrics collection engine
-  openbsd_pkg: name=collectd state=installed
+- include_vars: vault.yml
+  no_log: true
 
-- name: install collectd rrdtool plugin
-  openbsd_pkg: name=collectd-rrdtool state=installed
+- name: install packages
+  openbsd_pkg: name={{ item }} state=present
+  with_items:
+    - collectd
+    - collectd-rrdtool
 
 - name: configure system statistics collection daemon
   template:

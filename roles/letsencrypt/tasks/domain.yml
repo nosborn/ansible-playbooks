@@ -4,8 +4,7 @@
   args:
     creates: /etc/ssl/{{ domain }}.crt
 
-- fetch:
-    dest=backup fail_on_missing=yes src={{ item }}
+- fetch: src={{ item }} dest=backup fail_on_missing=yes
   with_items:
     - /etc/ssl/{{ domain }}.crt
     - /etc/ssl/{{ domain }}.chain.pem

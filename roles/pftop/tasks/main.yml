@@ -1,5 +1,5 @@
 # roles/pftop/tasks/main
 ---
 - name: install package
-  openbsd_pkg: name=pftop state=installed
+  openbsd_pkg: name=pftop state=present
 ...

@@ -21,6 +21,9 @@ server:
 {% if lan_ipv6 is defined %}
 	access-control: {{ lan_ipv6|ipaddr('network') }}/{{ lan_ipv6|ipaddr('prefix') }} allow
 {% endif %}
+{% if vpn_server_ipv6 is defined %}
+	access-control: {{ vpn_server_ipv6|ipaddr('network') }}/{{ vpn_server_ipv6|ipaddr('prefix') }} allow
+{% endif %}
 
 	pidfile: /var/run/unbound.pid
 

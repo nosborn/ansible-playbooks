@@ -3,6 +3,9 @@
 {% for address in ntpd_listen_on|default([]) %}
 listen on {{ address }}
 {% endfor %}
+{% for address in ntpd_query_from|default([]) %}
+query from {{ address }}
+{% endfor %}
 {% for address in ntpd_server|default([]) %}
 server {{ address }}
 {% endfor %}

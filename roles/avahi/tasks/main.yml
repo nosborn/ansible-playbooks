@@ -1,7 +1,7 @@
 # roles/avahi/tasks/main
 ---
 - name: install package
-  openbsd_pkg: name=avahi state=installed
+  openbsd_pkg: name=avahi state=present
 
 - name: avahi-daemon configuration file
   template:
@@ -14,7 +14,6 @@
     src=services/{{ item }}.j2 dest=/etc/avahi/services/{{ item }}
     owner=root group=wheel mode=0444
   with_items:
-    - darkstat.service
     - facette.service
     - monit.service
     - sftp-ssh.service

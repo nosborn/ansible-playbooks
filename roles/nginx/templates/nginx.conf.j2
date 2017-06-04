@@ -24,7 +24,7 @@ http {
 
   server_tokens off;
 
-  resolver [::1] valid=300s;
+  resolver 127.0.0.1 valid=300s;
   resolver_timeout 10s;
 
   log_format vcombined '$host: $remote_addr - $remote_user [$time_local] '
@@ -47,8 +47,8 @@ http {
 
   server {
     listen {{ wan_ipv4|ipaddr('address') }}:80 default_server;
-{% if lan_ipv6 is defined %}
-    listen {{ lan_ipv6|ipaddr('address')|ipwrap }}:80 default_server;
+{% if wan_ipv6 is defined %}
+    listen {{ wan_ipv6|ipaddr('address')|ipwrap }}:80 default_server;
 {% endif %}
     server_name _;
 
@@ -68,33 +68,6 @@ http {
       return 404;
     }
   }
-
-  #server {
-  #  listen {{ lan_ipv4|ipaddr('address') }}:80 default_server;
-{% if lan_ipv6 is defined %}
-  #  listen {{ lan_ipv6|ipaddr('address')|ipwrap }}:80 default_server;
-{% endif %}
-  #  server_name _;
-  #
-  #  gzip off;
-  #
-  ## add_header Content-Security-Policy "default-src 'self'" always;
-  #  add_header X-Content-Type-Options "nosniff" always;
-  #  add_header X-Frame-Options "SAMEORIGIN" always;
-  #  add_header X-XSS-Protection "1; mode=block" always;
-  #
-  #  allow {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }};
-{% if lan_ipv6 is defined %}
-  #  allow [{{ lan_ipv6|ipaddr('network') }}]/{{ lan_ipv6|ipaddr('prefix') }};
-{% endif %}
-  #  deny all;
-  #
-  #  root /var/www/symon;
-  #
-  #  location /.well-known/acme-challenge/ {
-  #    deny all;
-  #  }
-  #}
 
   include /etc/nginx/sites.d/*.conf;
 }

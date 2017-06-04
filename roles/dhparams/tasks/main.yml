@@ -4,7 +4,7 @@
   args:
     creates: "{{ dhparams_file }}"
 
-- file: path={{ dhparams_file }} owner=root group=wheel mode=0444
+- file: path="{{ dhparams_file }}" mode=0444
 
-- fetch: dest=backup fail_on_missing=yes src={{ dhparams_file }}
+- fetch: src="{{ dhparams_file }}" dest=backup fail_on_missing=yes
 ...

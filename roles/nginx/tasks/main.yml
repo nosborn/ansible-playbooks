@@ -1,7 +1,7 @@
 # roles/nginx/tasks/main
 ---
 - name: install package
-  openbsd_pkg: name=nginx state=installed
+  openbsd_pkg: name=nginx state=present
 
 - name: sites configuration directory
   file:
@@ -20,7 +20,7 @@
     validate='/usr/local/sbin/nginx -c %s -t'
   notify: restart nginx
 
-- name: start service
+- name: enable and start service
   service: name=nginx enabled=yes state=started
 
 - name: configure sites

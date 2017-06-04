@@ -1,5 +1,0 @@
-# roles/dhcpcd/meta/main
----
-dependencies:
-  - { role: router }
-...

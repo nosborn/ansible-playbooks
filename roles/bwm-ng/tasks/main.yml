@@ -1,7 +1,7 @@
 # roles/bwm-ng/tasks/main
 ---
 - name: install package
-  openbsd_pkg: name=bwm-ng state=installed
+  openbsd_pkg: name=bwm-ng state=present
 
 - template:
     src=bwm-ng.conf.j2 dest=/etc/bwm-ng.conf

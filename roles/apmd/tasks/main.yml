@@ -1,5 +1,5 @@
 # roles/apmd/tasks/main
 ---
 - name: start Advanced Power Management daemon
-  service: name=apmd arguments='-A' enabled=yes state=started
+  service: name=apmd arguments=-A enabled=yes state=started
 ...

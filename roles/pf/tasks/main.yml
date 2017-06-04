@@ -2,9 +2,11 @@
 ---
 - name: fetch IPv4 bogons
   get_url:
-    url=https://www.team-cymru.org/Services/Bogons/{{ item }}
-    dest=/var/db/{{ item }}
-    owner=root group=wheel mode=0644
+    url: https://www.team-cymru.org/Services/Bogons/{{ item }}
+    dest: /var/db/{{ item }}
+    owner: root
+    group: wheel
+    mode: 0644
   with_items:
     - "{{ pf_bogons_v4_file }}"
   notify: reload pf
@@ -12,9 +14,11 @@
 
 - name: fetch IPv6 bogons
   get_url:
-    url=https://www.team-cymru.org/Services/Bogons/{{ item }}
-    dest=/var/db/{{ item }}
-    owner=root group=wheel mode=0644
+    url: https://www.team-cymru.org/Services/Bogons/{{ item }}
+    dest: /var/db/{{ item }}
+    owner: root
+    group: wheel
+    mode: 0644
   with_items:
     - "{{ pf_bogons_v6_file }}"
   notify: reload pf

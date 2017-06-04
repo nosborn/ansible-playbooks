@@ -1,0 +1,5 @@
+# roles/openvpn/meta/main
+---
+dependencies:
+  - { role: dhparams }
+...

@@ -10,8 +10,7 @@
 - name: Enable OpenSSH SSH daemon
   service: name=sshd enabled=yes state=started
 
-- fetch:
-    dest=backup fail_on_missing=yes src={{ item }}
+- fetch: src={{ item }} dest=backup fail_on_missing=yes
   with_items:
     - /etc/ssh/ssh_host_dsa_key
     - /etc/ssh/ssh_host_dsa_key.pub
