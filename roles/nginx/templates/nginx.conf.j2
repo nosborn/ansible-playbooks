@@ -24,7 +24,7 @@ http {
 
   server_tokens off;
 
-  resolver 127.0.0.1 valid=300s;
+  resolver [::1] valid=300s;
   resolver_timeout 10s;
 
   log_format vcombined '$host: $remote_addr - $remote_user [$time_local] '
@@ -55,9 +55,10 @@ http {
     gzip off;
 
     add_header Content-Security-Policy "default-src 'self'" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy strict-origin-when-cross-origin always;
+    add_header X-Content-Type-Options nosniff always;
+    add_header X-Frame-Options SAMEORIGIN always;
+    add_header X-XSS-Protection '1; mode=block' always;
 
     location /.well-known/acme-challenge/ {
       alias /acme/;

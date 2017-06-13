@@ -1,0 +1,5 @@
+# roles/squid/defaults/main
+---
+squid_enabled: yes
+squid_state: 'started'
+...

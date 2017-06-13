@@ -5,18 +5,25 @@ server:
 
 	interface: 127.0.0.1
 	interface: {{ lan_ipv4|ipaddr('address') }}
+{% if vpn_server_ipv4 is defined %}
+	interface: {{ vpn_server_ipv4|ipaddr('address') }}
+{% endif %}
 	interface: ::1
 {% if lan_ipv6 is defined %}
 	interface: {{ lan_ipv6|ipaddr('address') }}
 {% endif %}
+{% if vpn_server_ipv6 is defined %}
+	interface: {{ vpn_server_ipv6|ipaddr('address') }}
+{% endif %}
 
 	outgoing-interface: {{ wan_ipv4|ipaddr('address') }}
-{% if lan_ipv6 is defined %}
 	outgoing-interface: {{ wan_ipv6|ipaddr('address') }}
-{% endif %}
 
 	access-control: 127.0.0.0/8 allow
 	access-control: {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }} allow
+{% if vpn_server_ipv4 is defined %}
+	access-control: {{ vpn_server_ipv4|ipaddr('network') }}/{{ vpn_server_ipv4|ipaddr('prefix') }} allow
+{% endif %}
 	access-control: ::1 allow
 {% if lan_ipv6 is defined %}
 	access-control: {{ lan_ipv6|ipaddr('network') }}/{{ lan_ipv6|ipaddr('prefix') }} allow

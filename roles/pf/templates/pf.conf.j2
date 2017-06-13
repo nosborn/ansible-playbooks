@@ -6,7 +6,9 @@
 set limit table-entries 500000
 {% endif %}
 set loginterface {{ wan_if }}
-set skip on { enc lo {{ pppoe_pppoedev }} }
+set reassemble yes no-df
+set skip on { lo {{ pppoe_pppoedev }} }
+set state-policy if-bound
 
 # Tables
 
@@ -23,7 +25,7 @@ table <{{ pf_bogons_v6_table }}> counters persist file "/var/db/{{ pf_bogons_v6_
 block return log  # block stateless traffic
 pass out          # establish keep-state
 
-match proto tcp set prio (3, 6)
+#match proto tcp set prio (3, 6)
 
 # WAN_IF
 # in on WAN_IF
@@ -32,11 +34,10 @@ block drop in log on {{ wan_if }}
 
 pass in on {{ wan_if }} inet proto tcp to {{ wan_ipv4|ipaddr('address') }} port 22 \
   modulate state (max-src-conn 15, max-src-conn-rate 5/3, overload <bruteforce> flush global)
-pass in on {{ wan_if }} inet proto tcp to {{ wan_ipv4|ipaddr('address') }} port { 53 80 443 } modulate state
-pass in on {{ wan_if }} inet proto udp to {{ wan_ipv4|ipaddr('address') }} port { 53 500 4500 }
+pass in on {{ wan_if }} inet proto tcp to {{ wan_ipv4|ipaddr('address') }} port { 53 80 443 } \
+  modulate state
+pass in on {{ wan_if }} inet proto udp to {{ wan_ipv4|ipaddr('address') }} port 53
 pass in on {{ wan_if }} inet proto icmp to {{ wan_ipv4|ipaddr('address') }} icmp-type echoreq
-
-pass in on {{ wan_if }} inet proto esp
 
 {% if pf_bogons_v4_table %}
 block drop in log on {{ wan_if }} inet from <{{ pf_bogons_v4_table }}>
@@ -45,11 +46,10 @@ block drop in log on {{ wan_if }} inet from <{{ pf_bogons_v4_table }}>
 {% if wan_ipv6 is defined %}
 pass in on {{ wan_if }} inet6 proto tcp to {{ wan_ipv6|ipaddr('address') }} port 22 \
   modulate state (max-src-conn 15, max-src-conn-rate 5/3, overload <bruteforce> flush global)
-pass in on {{ wan_if }} inet6 proto tcp to {{ wan_ipv6|ipaddr('address') }} port { 53 80 443 } modulate state
-pass in on {{ wan_if }} inet6 proto udp to {{ wan_ipv6|ipaddr('address') }} port { 53 500 4500 }
+pass in on {{ wan_if }} inet6 proto tcp to {{ wan_ipv6|ipaddr('address') }} port { 53 80 443 } \
+  modulate state
+pass in on {{ wan_if }} inet6 proto udp to {{ wan_ipv6|ipaddr('address') }} port 53
 pass in on {{ wan_if }} inet6 proto icmp6 to {{ wan_ipv6|ipaddr('address') }} icmp6-type echoreq
-
-pass in on {{ wan_if }} inet6 proto esp
 
 {% if pf_bogons_v6_table is defined %}
 block drop in log on {{ wan_if }} inet6 from <{{ pf_bogons_v6_table }}>
@@ -71,12 +71,17 @@ block return out log on {{ wan_if }} inet to <{{ pf_bogons_v4_table }}>
 {% if pf_bogons_v6_table is defined %}
 block return out log on {{ wan_if }} inet6 to <{{ pf_bogons_v6_table }}>
 {% endif %}
-block return out log on {{ wan_if }} proto tcp from ({{ lan_if }}) to port 25
 
 match out on {{ wan_if }} inet \
   from {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }} \
   nat-to {{ wan_ipv4|ipaddr('address') }}
 
+{% if vpn_server_if is defined %}
+match out on {{ wan_if }} inet \
+  from {{ vpn_server_ipv4|ipaddr('network') }}/{{ vpn_server_ipv4|ipaddr('prefix') }} \
+  nat-to {{ wan_ipv4|ipaddr('address') }}
+
+{% endif %}
 {% if vpn_client_if is defined %}
 # VPN_CLIENT_IF
 # in on VPN_CLIENT_IF
@@ -97,13 +102,21 @@ pass out on {{ vpn_client_if }} inet6 to ({{ vpn_client_if }}:network)
 {% endif %}
 #block return out log on {{ vpn_client_if }} inet to {{ wan_ipv4|ipaddr('address') }}
 
-block return out log on {{ vpn_client_if }} inet6
+match out on {{ vpn_client_if }} received-on {{ lan_if }} nat-to ({{ vpn_client_if }})
+{% if vpn_server_if is defined %}
+match out on {{ vpn_client_if }} received-on {{ vpn_server_if }} nat-to ({{ vpn_client_if }})
+{% endif %}
 
-block return out log on {{ vpn_client_if }} proto tcp to port 25
+{% endif %}
+{% if vpn_server_if is defined %}
+# VPN_SERVER_IF
+# in on VPN_SERVER_IF
 
-match out on {{ vpn_client_if }} inet \
-  from {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }} \
-  nat-to ({{ vpn_client_if }}:0)
+pass in on {{ vpn_server_if }}
+
+# out on VPN_SERVER_IF
+
+pass out on {{ vpn_server_if }}
 
 {% endif %}
 # LAN_IF
@@ -113,7 +126,7 @@ pass in on {{ lan_if }} inet proto udp to 224.0.0.251 port 5353 allow-opts
 
 # Battle.net Chat/Game Protocol
 # https://us.battle.net/support/en/article/300479
-match in on {{ lan_if }} proto { tcp udp } \
+match in on {{ lan_if }} inet proto { tcp udp } \
   from port 1024:65535 \
   to port 1119 \
   set prio (4, 7) \
@@ -121,16 +134,16 @@ match in on {{ lan_if }} proto { tcp udp } \
 
 # Apple FaceTime, Game Center
 # https://support.apple.com/en-us/HT202944
-match in on {{ lan_if }} proto udp \
+match in on {{ lan_if }} inet proto udp \
   from port 1024:65535 \
   to port 3478:3497 \
   set prio 5 \
   label "facetime-stun"
 
-# Apple FaceTime, Game Center
-# https://support.apple.com/en-us/HT202944
-match in on {{ lan_if }} proto udp \
-  from port 1024:65535 \
-  to port { 16384:16387 16393:16402 } \
-  set prio 5 \
-  label "facetime-rtp-$nr"
+## Apple FaceTime, Game Center
+## https://support.apple.com/en-us/HT202944
+#match in on {{ lan_if }} inet proto udp \
+#  from port 1024:65535 \
+#  to port { 16384:16387 16393:16402 } \
+#  set prio 5 \
+#  label "facetime-rtp-$nr"

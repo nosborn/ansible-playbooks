@@ -13,31 +13,22 @@
 
 - name: Error page stylesheet
   copy:
-    src: errorpage.css
-    dest: /etc/squid/errorpage.css
-    owner: root
-    group: wheel
-    mode: 0444
+    src=errorpage.css dest=/etc/squid/errorpage.css
+    owner=root group=wheel mode=0444
   notify: reload squid
 
 - name: url_rewriter script
   copy:
-    src: url_rewriter.py
-    dest: /usr/local/libexec/squid/url_rewriter
-    owner: root
-    group: wheel
-    mode: 0555
-    validate: /usr/local/bin/python -mpy_compile %s
+    src=url_rewriter.py dest=/usr/local/libexec/squid/url_rewriter
+    owner=root group=wheel mode=0555
+    validate='/usr/local/bin/python -mpy_compile %s'
   notify: reload squid
 
 - name: configure HTTP web proxy caching server
   template:
-    src: squid.conf.j2
-    dest: /etc/squid/squid.conf
-    owner: root
-    group: wheel
-    mode: 0444
-    validate: /usr/local/sbin/squid -f %s -k parse
+    src=squid.conf.j2 dest=/etc/squid/squid.conf
+    owner=root group=wheel mode=0444
+    validate='/usr/local/sbin/squid -f %s -k parse'
   notify: restart squid
 
 # FIXME:
@@ -49,5 +40,5 @@
 #  become_user: _squid
 
 - name: start squid
-  service: name=squid enabled=yes state=started
+  service: name=squid enabled={{ squid_enabled }} state={{ squid_state }}
 ...

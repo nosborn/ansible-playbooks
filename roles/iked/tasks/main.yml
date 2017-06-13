@@ -21,18 +21,17 @@
     owner=root group=wheel mode=0555
     validate='/bin/sh -n %s'
 
-- name: sysctl variables to set at system startup
-  sysctl:
-    name={{ item.key }} value={{ item.value }}
-    reload=no sysctl_set=yes
-  with_dict:
-  # net.inet.ah.enable: 0
-    net.inet.ipcomp.enable: 1
+#- name: sysctl variables to set at system startup
+#  sysctl:
+#    name={{ item.key }} value={{ item.value }}
+#    reload=no sysctl_set=yes
+#  with_dict:
+#  # net.inet.ah.enable: 0
 
 - meta: flush_handlers
 
 - name: start IKEv2 daemon
-  service: name=iked arguments=-6 enabled=yes state=started
+  service: name=iked arguments=-6 enabled={{ iked_enabled }} state={{ iked_state }}
 
 - include: mobileconfig.yml
 ...

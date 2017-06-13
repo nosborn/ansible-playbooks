@@ -1,10 +1,11 @@
 # roles/dhparams/tasks/main
 ---
-- command: /usr/bin/openssl dhparam -out {{ dhparams_file }} 2048
-  args:
-    creates: "{{ dhparams_file }}"
-
-- file: path="{{ dhparams_file }}" mode=0444
-
-- fetch: src="{{ dhparams_file }}" dest=backup fail_on_missing=yes
+- copy:
+    src={{ item }} dest=/etc/ssl/{{ item }}
+    owner=root group=wheel mode=0444
+    validate='/usr/bin/openssl dhparam -in %s -noout'
+  with_items:
+    - ffdhe2048.pem
+    - ffdhe3072.pem
+    - ffdhe4096.pem
 ...

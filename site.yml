@@ -45,8 +45,8 @@
     - { role: flashrom, tags: ['flashrom'] }
     - { role: gixy, tags: ['flashrom'] }
     - { role: goaccess, tags: ['goaccess'] }
+  # - { role: httpd, tags: ['httpd'] }
     - { role: iftop, tags: ['iftop'] }
-    - { role: iked, tags: ['iked'] }
     - { role: letsencrypt, tags: ['letsencrypt'] }
     - { role: locale, tags: ['locale'] }
     - { role: monit, tags: ['monit'] }

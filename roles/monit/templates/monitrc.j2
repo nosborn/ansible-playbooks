@@ -106,11 +106,6 @@ check process facette with pidfile /var/facette/facette.pid
   #stop program = "/usr/sbin/rcctl stop facette"
   #restart program = "/usr/sbin/rcctl restart facette"
 
-check process iked matching "^iked: parent"
-  #start program = "/usr/sbin/rcctl start iked"
-  #stop program = "/usr/sbin/rcctl stop iked"
-  #restart program = "/usr/sbin/rcctl restart iked"
-
 check process nginx with pidfile /var/run/nginx.pid
   #start program = "/usr/sbin/rcctl start nginx"
   #stop program = "/usr/sbin/rcctl stop nginx"
@@ -151,11 +146,13 @@ check process smtpd matching "^/usr/sbin/smtpd$"
   #stop program = "/usr/sbin/rcctl stop smtpd"
   #restart program = "/usr/sbin/rcctl restart smtpd"
 
+{% if squid_enabled %}
 check process squid with pidfile /var/run/squid.pid
   #start program = "/usr/sbin/rcctl start squid"
   #stop program = "/usr/sbin/rcctl stop squid"
   #restart program = "/usr/sbin/rcctl restart squid"
 
+{% endif %}
 check process sshd with pidfile /var/run/sshd.pid
   #start program = "/usr/sbin/rcctl start sshd"
   #stop program = "/usr/sbin/rcctl stop sshd"
@@ -274,8 +271,8 @@ check network WAN with interface {{ wan_if }}
 #  #if changed link capacity then alert
 
 {% if wan_ipv4_dest is defined %}
-check host Bottomless with address {{ wan_ipv4_dest }}
-  if failed ping then alert
+#check host Bottomless with address {{ wan_ipv4_dest }}
+#  if failed ping then alert
 
 {% endif %}
 # include /etc/monit.d/*

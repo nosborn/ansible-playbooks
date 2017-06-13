@@ -5,8 +5,14 @@
 # Adapt to list your (internal) IP networks from where browsing
 # should be allowed.
 acl localnet src {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }}
+{% if vpn_server_ipv4 is defined %}
+acl localnet src {{ vpn_server_ipv4|ipaddr('network') }}/{{ vpn_server_ipv4|ipaddr('prefix') }}
+{% endif %}
 {% if lan_ipv6 is defined %}
 acl localnet src {{ lan_ipv6|ipaddr('network') }}/{{ lan_ipv6|ipaddr('prefix') }}
+{% endif %}
+{% if vpn_server_ipv6 is defined %}
+acl localnet src {{ vpn_server_ipv6|ipaddr('network') }}/{{ vpn_server_ipv6|ipaddr('prefix') }}
 {% endif %}
 acl localnet src fe80::/10      # RFC 4291 link-local (directly plugged) machines
 
@@ -55,10 +61,15 @@ http_access deny all
 
 # Squid normally listens to port 3128
 http_port {{ lan_ipv4|ipaddr('address') }}:3128
+{% if vpn_server_ipv4 is defined %}
+http_port {{ vpn_server_ipv4|ipaddr('address') }}:3128
+{% endif %}
 {% if lan_ipv6 is defined %}
 http_port {{ lan_ipv6|ipaddr('address')|ipwrap }}:3128
 {% endif %}
-#http_port [::1]:3128
+{% if vpn_server_ipv6 is defined %}
+http_port {{ vpn_server_ipv6|ipaddr('address')|ipwrap }}:3128
+{% endif %}
 
 tcp_outgoing_address {{ wan_ipv4|ipaddr('address') }}
 {% if wan_ipv6 is defined %}

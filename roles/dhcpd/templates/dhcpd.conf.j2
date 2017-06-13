@@ -8,7 +8,7 @@ subnet {{ lan_ipv4|ipaddr('network') }} netmask {{ lan_ipv4|ipaddr('netmask') }}
 	option ntp-servers {{ lan_ipv4|ipaddr('address') }};
 	option routers {{ lan_ipv4|ipaddr('address') }};
 
-	range {{ lan_ipv4|ipaddr('64')|ipaddr('address') }} {{ lan_ipv4|ipaddr('127')|ipaddr('address') }};
+	range {{ lan_ipv4|ipaddr('100')|ipaddr('address') }} {{ lan_ipv4|ipaddr('199')|ipaddr('address') }};
 
 	host AirPort-Time-Capsule {
 		hardware ethernet 6c:70:9f:d5:33:77;

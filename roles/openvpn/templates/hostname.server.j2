@@ -1,1 +1,12 @@
+inet {{ vpn_server_ipv4|ipaddr('address') }} {{ vpn_server_ipv4|ipaddr('netmask') }} NONE up
+dest {{ vpn_server_ipv4|ipaddr('2')|ipaddr('address') }}
+
+!/sbin/route -n add -inet {{ vpn_server_ipv4|ipaddr('network') }}/{{ vpn_server_ipv4|ipaddr('prefix') }} -ifp \$if {{ vpn_server_ipv4|ipaddr('2')|ipaddr('address') }}
+
+{% if vpn_server_ipv6 is defined %}
+inet6 {{ vpn_server_ipv6|ipaddr('address') }} {{ vpn_server_ipv6|ipaddr('prefix') }}
+
+!/sbin/route -n add -inet6 {{ vpn_server_ipv6|ipaddr('network') }}/{{ vpn_server_ipv6|ipaddr('prefix') }} -ifp \$if {{ vpn_server_ipv6|ipaddr('address') }}
+
+{% endif %}
 !/usr/local/sbin/openvpn --config /etc/openvpn/server.conf --daemon --dev \$if

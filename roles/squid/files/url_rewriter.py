@@ -44,6 +44,7 @@ to_https = frozenset([
     'vultr.com', 'www.vultr.com',
     'website.ws', 'www.website.ws',
     'wikipedia.org', 'en.wikipedia.org', 'www.wikipedia.org',
+    'withings.com', 'my.withings.com', 'www.withings.com',
     'ycombinator.com', 'news.ycombinator.com',
 ])
 

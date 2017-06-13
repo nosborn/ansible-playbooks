@@ -6,7 +6,9 @@
 /etc/openvpn
 /etc/rc.firsttime
 /etc/rc.sysmerge
-/etc/ssl/dhparams.pem
+/etc/ssl/ffdhe2048.pem
+/etc/ssl/ffdhe3072.pem
+/etc/ssl/ffdhe4096.pem
 /etc/ssl/*.crt
 /etc/ssl/*.chain.pem
 /etc/ssl/*.fullchain.pem
