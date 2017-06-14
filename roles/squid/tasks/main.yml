@@ -41,4 +41,26 @@
 
 - name: start squid
   service: name=squid enabled={{ squid_enabled }} state={{ squid_state }}
+
+- lineinfile:
+    path=/etc/newsyslog.conf
+    regexp='^/var/squid/logs/access.log\s'
+    line='/var/squid/logs/access.log\t_squid:_squid\t640  4     *    $W0   ZB /var/run/squid.pid SIGUSR1'
+
+- lineinfile:
+    path=/etc/newsyslog.conf
+    regexp='^/var/squid/logs/cache.log\s'
+    line='/var/squid/logs/cache.log\t_squid:_squid\t640  7     250  *     ZB /var/run/squid.pid SIGUSR1'
+
+- lineinfile:
+    path=/etc/newsyslog.conf
+    regexp='^/var/squid/logs/icap.log\s'
+    line='/var/squid/logs/icap.log\t_squid:_squid\t640  4     *    $W0   ZB /var/run/squid.pid SIGUSR1'
+  when: c_icap_port is defined
+
+- lineinfile:
+    path=/etc/newsyslog.conf
+    regexp='^/var/squid/logs/icap.log\s'
+    state=absent
+  when: c_icap_port is not defined
 ...

@@ -30,4 +30,14 @@
     loop_var: nginx_item
 
 - command: /usr/local/bin/gixy
+
+- lineinfile:
+    path=/etc/newsyslog.conf
+    regexp='^/var/www/logs/access.log\s'
+    line='/var/www/logs/access.log\t\t644  4     *    $W0   ZB /var/run/nginx.pid SIGUSR1'
+
+- lineinfile:
+    path=/etc/newsyslog.conf
+    regexp='^/var/www/logs/error.log\s'
+    line='/var/www/logs/error.log\t\t644  7     250  *     ZB /var/run/nginx.pid SIGUSR1'
 ...

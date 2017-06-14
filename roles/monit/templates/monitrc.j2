@@ -110,11 +110,25 @@ check process nginx with pidfile /var/run/nginx.pid
   #start program = "/usr/sbin/rcctl start nginx"
   #stop program = "/usr/sbin/rcctl stop nginx"
   #restart program = "/usr/sbin/rcctl restart nginx"
+# if failed host tombstone.osborn.io port 80 ipv4 proto https request "/ping.txt" status = 307 then alert
+# if failed host tombstone.osborn.io port 80 ipv6 proto https request "/ping.txt" status = 307 then alert
+  if failed host {{ wan_ipv4|ipaddr('address') }} port 443 ipv4
+    proto https
+    request "/ping.txt" http headers [Host: {{ ansible_fqdn }}]
+    content = "pong"
+  then alert
+  if failed host {{ wan_ipv6|ipaddr('address') }} port 443 ipv6
+    proto https
+    request "/ping.txt" http headers [Host: {{ ansible_fqdn }}]
+    content = "pong"
+  then alert
 
 check process nsd with pidfile /var/nsd/run/nsd.pid
   #start program = "/usr/sbin/rcctl start nsd"
   #stop program = "/usr/sbin/rcctl stop nsd"
   #restart program = "/usr/sbin/rcctl restart nsd"
+  if failed host {{ wan_ipv4|ipaddr('address') }} port 53 type udp ipv4 proto dns then alert
+  if failed host {{ wan_ipv6|ipaddr('address') }} port 53 type udp ipv6 proto dns then alert
 
 {% if vpn_client_if is defined %}
 check process openvpn.client with pidfile /var/openvpn/client.pid
@@ -130,6 +144,8 @@ check process ntpd matching "^/usr/sbin/ntpd "
   #start program = "/usr/sbin/rcctl start ntpd"
   #stop program = "/usr/sbin/rcctl stop ntpd"
   #restart program = "/usr/sbin/rcctl restart ntpd"
+  if failed host {{ lan_ipv4|ipaddr('address') }} port 123 type udp proto ntp3 then alert
+  if failed host {{ lan_ipv6|ipaddr('address') }} port 123 type udp proto ntp3 then alert
 
 check process rtadvd matching "^/usr/sbin/rtadvd "
   #start program = "/usr/sbin/rcctl start rtadvd"
@@ -145,6 +161,8 @@ check process smtpd matching "^/usr/sbin/smtpd$"
   #start program = "/usr/sbin/rcctl start smtpd"
   #stop program = "/usr/sbin/rcctl stop smtpd"
   #restart program = "/usr/sbin/rcctl restart smtpd"
+  if failed host 127.0.0.1 port 25 ipv4 proto smtp then alert
+  if failed host ::1 port 25 ipv6 proto smtp then alert
 
 {% if squid_enabled %}
 check process squid with pidfile /var/run/squid.pid
@@ -167,6 +185,10 @@ check process unbound with pidfile /var/run/unbound.pid
   #start program = "/usr/sbin/rcctl start unbound"
   #stop program = "/usr/sbin/rcctl stop unbound"
   #restart program = "/usr/sbin/rcctl restart unbound"
+  if failed host 127.0.0.1 port 53 ipv4 type udp proto dns then alert
+  if failed host {{ lan_ipv4|ipaddr('address') }} port 53 ipv4 type udp proto dns then alert
+  if failed host ::1 port 53 ipv6 type udp proto dns then alert
+  if failed host {{ wan_ipv6|ipaddr('address') }} port 53 ipv6 type udp proto dns then alert
 
 ## Check filesystem permissions, uid, gid, space and inode usage. Other services,
 ## such as databases, may depend on this resource and an automatically graceful
@@ -271,8 +293,8 @@ check network WAN with interface {{ wan_if }}
 #  #if changed link capacity then alert
 
 {% if wan_ipv4_dest is defined %}
-#check host Bottomless with address {{ wan_ipv4_dest }}
-#  if failed ping then alert
+check host Bottomless with address {{ wan_ipv4_dest }}
+  if failed ping then alert
 
 {% endif %}
 # include /etc/monit.d/*

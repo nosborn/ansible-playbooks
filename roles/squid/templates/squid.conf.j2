@@ -83,7 +83,11 @@ host_verify_strict on
 
 #access_log none
 
-#icap_log daemon:/var/squid/logs/icap.log
+{% if c_icap_port is defined %}
+icap_log daemon:/var/squid/logs/icap.log
+
+{% endif %}
+logfile_rotate 0
 
 # OPTIONS FOR TROUBLESHOOTING
 # -----------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 #!/bin/ksh
 
-PATH="/usr/local/bin:${PATH}"
+PATH="/usr/local/sbin:/usr/local/bin:${PATH}"
 {% if pf_bogons_v4_table is defined or pf_bogons_v6_table is defined %}
 
 next_part "Updating bogon lists:"
@@ -32,11 +32,6 @@ TMPFILE=`mktemp` && {
 next_part "Expiring bruteforce table:"
 pfctl -q -t {{ pf_bruteforce_table }} -T expire 86400
 {% endif %}
-
-if [[ -e /usr/local/sbin/squid ]]; then
-  next_part "Rotating squid logs:"
-  squid -k rotate
-fi
 {% if sites is defined %}
 
 next_part "Renewing certificates:"
