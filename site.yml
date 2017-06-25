@@ -43,10 +43,12 @@
     - { role: doas, tags: ['doas'] }
     - { role: facette, tags: ['facette'] }
     - { role: flashrom, tags: ['flashrom'] }
-    - { role: gixy, tags: ['flashrom'] }
-    - { role: goaccess, tags: ['goaccess'] }
+    - { role: geoip, tags: ['geoip'] }
+  # - { role: gixy, tags: ['flashrom'] }
+  # - { role: goaccess, tags: ['goaccess'] }
   # - { role: httpd, tags: ['httpd'] }
     - { role: iftop, tags: ['iftop'] }
+    - { role: iked, tags: ['iked'] }
     - { role: letsencrypt, tags: ['letsencrypt'] }
     - { role: locale, tags: ['locale'] }
     - { role: monit, tags: ['monit'] }
@@ -64,7 +66,7 @@
     - { role: sndiod, tags: ['sndiod'] }
     - { role: squid, tags: ['squid'] }
     - { role: ssh, tags: ['ssh'] }
-    - { role: sysclean, tags: ['sysclean'] }
+  # - { role: sysclean, tags: ['sysclean'] }
     - { role: sysmerge, tags: ['sysmerge'] }
     - { role: unbound, tags: ['unbound'] }
 

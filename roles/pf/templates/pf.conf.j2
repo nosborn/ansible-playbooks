@@ -1,3 +1,5 @@
+#	$OpenBSD: pf.conf,v 1.54 2014/08/23 05:49:42 deraadt Exp $
+#
 # See pf.conf(5) and /etc/examples/pf.conf
 
 # Options
@@ -39,6 +41,11 @@ pass in on {{ wan_if }} inet proto tcp to {{ wan_ipv4|ipaddr('address') }} port 
 pass in on {{ wan_if }} inet proto udp to {{ wan_ipv4|ipaddr('address') }} port 53
 pass in on {{ wan_if }} inet proto icmp to {{ wan_ipv4|ipaddr('address') }} icmp-type echoreq
 
+{% if iked_enabled %}
+pass in on {{ wan_if }} inet proto udp to {{ wan_ipv4|ipaddr('address') }} port { 500 4500 }
+pass in on {{ wan_if }} inet proto esp
+
+{% endif %}
 {% if pf_bogons_v4_table %}
 block drop in log on {{ wan_if }} inet from <{{ pf_bogons_v4_table }}>
 
@@ -80,6 +87,23 @@ match out on {{ wan_if }} inet \
 match out on {{ wan_if }} inet \
   from {{ vpn_server_ipv4|ipaddr('network') }}/{{ vpn_server_ipv4|ipaddr('prefix') }} \
   nat-to {{ wan_ipv4|ipaddr('address') }}
+
+{% endif %}
+{% if iked_enabled %}
+# IPSEC_IF
+# in on IPSEC_IF
+
+pass in on enc0
+block return in log on enc0 to ({{ lan_if }}:network)
+pass in on enc0 proto { tcp udp } to ({{ lan_if }}) port 53
+pass in on enc0 proto tcp to ({{ lan_if }}) port 3128
+{%   if vpn_server_if is defined %}
+block return in log on enc0 to ({{ vpn_server_if }})
+{%   endif %}
+
+# out on IPSEC_IF
+
+block return out log on enc0
 
 {% endif %}
 {% if vpn_client_if is defined %}

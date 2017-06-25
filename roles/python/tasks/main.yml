@@ -2,8 +2,13 @@
 ---
 - file: src={{ item.key }} state=link dest=/usr/local/bin/{{ item.value }}
   with_dict:
-    pydoc2.7: pydoc
-    python2.7-2to3: 2to3
-    python2.7-config: python-config
-    python2.7: python
+    pydoc2.7: pydoc2
+    python2.7-config: python2-config
+    python2.7: python2
+
+- file: src={{ item.key }} state=link dest=/usr/local/bin/{{ item.value }}
+  with_dict:
+    pydoc2: pydoc
+    python2-config: python-config
+    python2: python
 ...

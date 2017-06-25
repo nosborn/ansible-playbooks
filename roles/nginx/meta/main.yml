@@ -2,7 +2,6 @@
 ---
 dependencies:
   - { role: dhparams }
-  - { role: gixy }
   - { role: letsencrypt }
   - { role: pf }
 ...

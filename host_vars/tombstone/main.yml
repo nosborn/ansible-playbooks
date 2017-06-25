@@ -1,6 +1,7 @@
 # host_vars/tombstone/main
 ---
 ansible_host: "{{ wan_ipv4|ipaddr('address') }}"
+dhcpd_hosts: "{{ vault_dhcpd_hosts }}"
 global_domain: "{{ vault_global_domain }}"
 lan_if: "{{ vault_lan_if }}"
 lan_ipv4: "{{ vault_lan_ipv4 }}"
@@ -10,7 +11,6 @@ locale_timezone: "{{ vault_locale_timezone }}"
 nameservers: "{{ vault_nameservers }}"
 # ntpd_constraints: "{{ vault_ntpd_constraints }}"
 ntpd_listen_on: "{{ vault_ntpd_listen_on }}"
-ntpd_query_from: "{{ vault_ntpd_query_from }}"
 ntpd_servers: "{{ vault_ntpd_servers }}"
 pppoe_authkey: "{{ vault_pppoe_authkey }}"
 pppoe_authname: "{{ vault_pppoe_authname }}"

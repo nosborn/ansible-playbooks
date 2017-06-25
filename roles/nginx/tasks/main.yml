@@ -29,8 +29,6 @@
   loop_control:
     loop_var: nginx_item
 
-- command: /usr/local/bin/gixy
-
 - lineinfile:
     path=/etc/newsyslog.conf
     regexp='^/var/www/logs/access.log\s'

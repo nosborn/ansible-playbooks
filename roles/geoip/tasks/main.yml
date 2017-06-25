@@ -1,0 +1,14 @@
+# roles/geoip/tasks/main
+---
+- name: install packages
+  openbsd_pkg: name={{ item }} state=present
+  with_items:
+    - GeoIP
+    - py-GeoIP
+
+- name: install databases
+  openbsd_pkg: name={{ item }} state=present
+  with_items:
+    - geolite-city
+    - geolite-country
+...

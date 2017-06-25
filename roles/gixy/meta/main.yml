@@ -1,5 +1,0 @@
-# roles/gixy/meta/main
----
-dependencies:
-  - { role: pip }
-...

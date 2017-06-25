@@ -3,12 +3,6 @@
 - include_vars: vault.yml
   no_log: true
 
-- name: interface-specific configuration file
-  template:
-    src=hostname.enc0.j2 dest=/etc/hostname.enc0
-    owner=root group=wheel mode=0440
-  notify: netstart
-
 - name: IKEv2 configuration file
   template:
     src=iked.conf.j2 dest=/etc/iked.conf
@@ -26,7 +20,7 @@
 #    name={{ item.key }} value={{ item.value }}
 #    reload=no sysctl_set=yes
 #  with_dict:
-#  # net.inet.ah.enable: 0
+#    net.inet.ah.enable: 0
 
 - meta: flush_handlers
 

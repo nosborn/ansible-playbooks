@@ -323,8 +323,8 @@ msg "${white}Fetching from: ${green}${URL}"
   verisigs "*.tgz"
 
   msg "Remounting filesystems (rw)"
-  mount -o rw -u /usr || error "Can't remount /usr partition!" false
-  mount -o rw -u /usr/X11R6 || error "Can't remount /usr/X11R6 partition!" false
+  mount -u -w /usr || error "Can't remount /usr partition!" false
+  mount -u -w /usr/X11R6 || error "Can't remount /usr/X11R6 partition!" false
 
   msg "Extracting sets"
   for set in "${sets[@]}"; do
@@ -338,6 +338,24 @@ msg "${white}Fetching from: ${green}${URL}"
       done
     fi
   done
+
+  #msg "Reordering kernel"
+  #if [[ -f /usr/share/compile.tgz ]]; then
+  #  readonly compile_dir=/usr/share/compile
+  #  readonly kernel=GENERIC.MP
+  #  readonly kernel_dir=${compile_dir}/${kernel}
+  #  readonly sha256=${kernel_dir}/SHA256
+  #  rm -rf ${compile_dir}
+  #  mkdir -m 0700 -p ${compile_dir}
+  #  tar -C ${compile_dir} -xzf /usr/share/compile.tgz ${kernel}
+  #  rm -f /usr/share/compile.tgz
+  #  [[ -f ${sha256} ]] && sha256 -q -C ${sha256} /bsd
+  #  cd -- ${kernel_dir}
+  #  make newbsd
+  #  make install
+  #  sha256 -h ${sha256} /bsd
+  #  cd -- - >/dev/null
+  #fi
 
   msg 'Rebuilding locate database'
   if [[ -f /var/db/locate.database ]]; then
@@ -358,8 +376,8 @@ msg "${white}Fetching from: ${green}${URL}"
   makewhatis
 
   msg 'Remounting filesystems (ro)'
-  mount -o ro -u /usr || error "Can't remount /usr partition!" false
-  mount -o ro -u /usr/X11R6 || error "Can't remount /usr/X11R6 partition!" false
+  mount -u -r /usr/X11R6 || error "Can't remount /usr/X11R6 partition!" false
+  mount -u -r /usr || error "Can't remount /usr partition!" false
 
   if [ ${MERGE} == true ]; then
     msg 'Running sysmerge'

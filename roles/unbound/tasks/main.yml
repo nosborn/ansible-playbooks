@@ -13,6 +13,15 @@
     - hosts
   notify: reload unbound
 
+- name: setup the root trust anchor
+  command: /usr/sbin/unbound-anchor
+  args:
+    creates: /var/unbound/db/root.key
+  register: command_result
+  failed_when: 'command_result.rc > 1'
+  changed_when: 'command_result.rc == 1'
+  notify: reload unbound
+
 - command: /usr/sbin/unbound-control-setup
   args:
     creates: /var/unbound/etc/unbound_control.key

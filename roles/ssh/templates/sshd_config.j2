@@ -37,10 +37,10 @@ HostKey /etc/ssh/ssh_host_ed25519_key
 
 # Authentication:
 
-LoginGraceTime 1m
+#LoginGraceTime 2m
 PermitRootLogin no
 #StrictModes yes
-MaxAuthTries 1
+#MaxAuthTries 6
 #MaxSessions 10
 {% if sshd_allow_users is defined %}
 AllowUsers {{ sshd_allow_users|sort|unique|join(' ') }}

@@ -1,3 +1,5 @@
+# $OpenBSD: unbound.conf,v 1.7 2016/03/30 01:41:25 sthen Exp $
+
 server:
 	verbosity: {{ unbound_verbosity }}
 
@@ -18,6 +20,15 @@ server:
 
 	outgoing-interface: {{ wan_ipv4|ipaddr('address') }}
 	outgoing-interface: {{ wan_ipv6|ipaddr('address') }}
+
+{% if vpn_server_if is defined %}
+	outgoing-port-avoid: 1194
+
+	rrset-cache-size: 8m
+	cache-min-ttl: 3600
+
+{% endif %}
+	prefer-ip6: yes
 
 	access-control: 127.0.0.0/8 allow
 	access-control: {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }} allow
@@ -41,9 +52,6 @@ server:
 
 	harden-below-nxdomain: yes
 
-#	use-caps-for-id: yes
-#	qname-minimisation: yes
-
 	private-address: 10.0.0.0/8
 	private-address: 169.254.0.0/16
 	private-address: 172.16.0.0/12
@@ -54,13 +62,16 @@ server:
 
 	private-domain: local
 
-#	prefetch: yes
+	prefetch: yes
+	prefetch-key: yes
 
-	module-config: "iterator"
+	auto-trust-anchor-file: /var/unbound/db/root.key
 
 	domain-insecure: local
 
+	key-cache-size: 32m
 	key-cache-slabs: {{ 2 * unbound_num_threads }}
+	msg-cache-size: 128k
 
 	local-zone: "local" static
 	local-data: "tombstone.local IN A {{ lan_ipv4|ipaddr('1')|ipaddr('address') }}"

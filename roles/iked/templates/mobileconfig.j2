@@ -25,6 +25,7 @@
 			<string>IKEv2</string>
 			<key>IKEv2</key>
 			<dict>
+{% if item.value.on_demand_enabled %}
 				<key>OnDemandEnabled</key>
 				<integer>1</integer>
 				<key>OnDemandRules</key>
@@ -44,9 +45,9 @@
 						</array>
 						<key>SSIDMatch</key>
 						<array>
-{% for ssid in iked_trusted_ssids %}
+{%   for ssid in iked_trusted_ssids %}
 							<string>{{ ssid }}</string>
-{% endfor %}
+{%   endfor %}
 						</array>
 						<key>InterfaceTypeMatch</key>
 						<string>WiFi</string>
@@ -58,6 +59,10 @@
 						<string>http://captive.apple.com/hotspot-detect.html</string>
 					</dict>
 				</array>
+{% else %}
+				<key>OnDemandEnabled</key>
+				<integer>0</integer>
+{% endif %}
 				<key>RemoteAddress</key>
 				<string>{{ wan_ipv4|ipaddr('address') }}</string>
 				<key>RemoteIdentifier</key>
@@ -71,7 +76,7 @@
 				<key>AuthName</key>
 				<string>{{ item.key }}</string>
 				<key>AuthPassword</key>
-				<string>{{ item.value }}</string>
+				<string>{{ item.value.auth_password }}</string>
 				<key>EnablePFS</key>
 				<true/>
 				<key>IKESecurityAssociationParameters</key>

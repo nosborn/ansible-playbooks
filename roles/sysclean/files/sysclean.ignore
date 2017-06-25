@@ -18,6 +18,7 @@
 /var/nsd/run
 /var/nsd/zones
 /var/openvpn
+/var/unbound/db/root.key
 /var/unbound/etc
 /var/www/cache
 /var/www/sites
