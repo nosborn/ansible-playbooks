@@ -1,0 +1,8 @@
+vnetid {{ guest_vlan }} parent {{ lan_if }}
+lladdr random
+
+inet {{ guest_ipv4|ipaddr('address') }} {{ guest_ipv4|ipaddr('netmask') }} NONE
+-inet6
+up
+
+#!/sbin/route -n add -inet 169.254/16 -iface {{ guest_ipv4|ipaddr('address') }}

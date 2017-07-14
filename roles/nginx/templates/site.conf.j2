@@ -85,6 +85,18 @@ server {
     {{ access }};
 {%         endfor %}
 {%       endif %}
+{%       if location.fastcgi_pass is defined %}
+  fastcgi_pass {{ location.fastcgi_pass }};
+{%         if location.fastcgi_split_path_info is defined %}
+  fastcgi_split_path_info {{ location.fastcgi_split_path_info }};
+{%         endif %}
+{%         if location.fastcgi_params is defined %}
+{%           for parameter, value in location.fastcgi_params.iteritems() %}
+  fastcgi_param {{ parameter }} {{ value }};
+{%           endfor %}
+{%         endif %}
+  include fastcgi_params;
+{%       endif %}
 {%       if location.proxy_pass is defined %}
     proxy_pass {{ location.proxy_pass }};
 {%         if location.proxy_set_header is defined %}

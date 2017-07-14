@@ -95,7 +95,9 @@ LoadPlugin nginx
 #LoadPlugin nut
 #LoadPlugin openvpn
 LoadPlugin pf
-#LoadPlugin ping
+{% if collectd_ping_hosts is defined %}
+LoadPlugin ping
+{% endif %}
 #LoadPlugin postgresql
 #LoadPlugin processes
 #LoadPlugin python
@@ -266,10 +268,8 @@ LoadPlugin swap
 #</Plugin>
 
 <Plugin interface>
-{% for interface in [lan_if, wan_if, wlan_if]|sort %}
-  Interface "{{ interface }}"
-{% endfor %}
-  IgnoreSelected false
+  Interface "{{ wan_if }}"
+# IgnoreSelected false
 </Plugin>
 
 #<Plugin load>
@@ -354,7 +354,7 @@ LoadPlugin swap
 #</Plugin>
 
 <Plugin nginx>
-	URL "http://[::1]/status?auto"
+  URL "http://[::1]/status?auto"
 </Plugin>
 
 #<Plugin ntpd>
@@ -379,14 +379,19 @@ LoadPlugin swap
 #  CollectUserCount true
 #</Plugin>
 
-#<Plugin ping>
-#  Host "{{ wan_ipv4_dest }}"
-## Interval 1.0
-## Timeout 0.9
-#  SourceAddress "{{ wan_ipv4|ipaddr('address') }}"
-## Device "{{ wan_if }}"
-#</Plugin>
+{% if collectd_ping_hosts is defined %}
+<Plugin ping>
+{%   for host in collectd_ping_hosts %}
+  Host "{{ host }}"
+{%   endfor %}
+  Interval 5.0
+  Timeout 2.0
+  SourceAddress "{{ wan_ipv4|ipaddr('address') }}"
+# Device "{{ wan_if }}"
+  MaxMissed 10
+</Plugin>
 
+{% endif %}
 #<Plugin postgresql>
 #	<Query magic>
 #		Statement "SELECT magic FROM wizard WHERE host = $1;"
@@ -455,12 +460,12 @@ LoadPlugin swap
 #</Plugin>
 
 <Plugin rrdtool>
-#	DataDir "/var/lib/collectd/rrd"
-	CreateFilesAsync true
-#	CacheFlush 900
-	CacheTimeout 120
-#	WritesPerSecond 50
-	RandomTimeout 60
+# DataDir "/var/lib/collectd/rrd"
+  CreateFilesAsync true
+# CacheFlush 900
+  CacheTimeout 120
+# WritesPerSecond 50
+  RandomTimeout 60
 </Plugin>
 
 #<Plugin snmp>

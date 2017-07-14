@@ -1,0 +1,13 @@
+#!/bin/ksh
+
+PATH="/usr/local/sbin:/usr/local/bin:${PATH}"
+{% if sites is defined %}
+
+next_part "Renewing certificates:"
+_restart=0
+{%   for site in sites|sort(attribute='name') %}
+acme-client {{ site.name }} && _restart=1
+{%   endfor %}
+[[ ${_restart} -eq 1 ]] && rcctl restart nginx
+unset _restart
+{% endif %}

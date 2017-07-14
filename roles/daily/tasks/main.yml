@@ -1,8 +1,0 @@
-# roles/daily/tasks/main
----
-- name: copy daily.local
-  template:
-    src=daily.local.j2 dest=/etc/daily.local
-    owner=root group=wheel mode=0444
-    validate='/bin/sh -n %s'
-...

@@ -1,0 +1,27 @@
+{
+    "id": "9e4834d4-d409-48d2-6748-eb600d343f2b",
+    "name": "speedtest10.vqbn.com",
+    "description": "",
+    "type": 2,
+    "stack_mode": 1,
+    "unit_type": 1,
+    "unit_legend": "ms",
+    "groups": [
+        {
+            "name": "ping-speedtest10.vqbn.com.value",
+            "type": 1,
+            "stack_id": 0,
+            "series": [
+                {
+                    "name": "ping-speedtest10.vqbn.com.value",
+                    "origin": "collectd",
+                    "source": "ping",
+                    "metric": "ping-speedtest10.vqbn.com.value",
+                    "options": null
+                }
+            ],
+            "options": {}
+        }
+    ],
+    "template": false
+}

@@ -1,8 +1,13 @@
 # host_vars/tombstone/main
 ---
 ansible_host: "{{ wan_ipv4|ipaddr('address') }}"
+collectd_ping_hosts: "{{ vault_collectd_ping_hosts }}"
 dhcpd_hosts: "{{ vault_dhcpd_hosts }}"
 global_domain: "{{ vault_global_domain }}"
+guest_if: "{{ vault_guest_if }}"
+guest_ipv4: "{{ vault_guest_ipv4 }}"
+guest_nameservers: "{{ vault_guest_nameservers }}"
+guest_vlan: "{{ vault_guest_vlan }}"
 lan_if: "{{ vault_lan_if }}"
 lan_ipv4: "{{ vault_lan_ipv4 }}"
 lan_ipv6: "{{ vault_lan_ipv6 }}"

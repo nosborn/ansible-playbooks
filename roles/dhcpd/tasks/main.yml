@@ -8,5 +8,5 @@
   notify: restart dhcpd
 
 - name: enable and start service
-  service: name=dhcpd arguments={{ lan_if }} enabled=yes state=started
+  service: name=dhcpd arguments="{{ lan_if }} {{ guest_if }}" enabled=yes state=started
 ...

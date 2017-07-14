@@ -9,13 +9,20 @@ subnet {{ lan_ipv4|ipaddr('network') }} netmask {{ lan_ipv4|ipaddr('netmask') }}
 	option routers {{ lan_ipv4|ipaddr('address') }};
 
 	range {{ lan_ipv4|ipaddr('100')|ipaddr('address') }} {{ lan_ipv4|ipaddr('199')|ipaddr('address') }};
-{% if dhcpd_hosts is defined %}
-{%   for key, value in dhcpd_hosts.iteritems() %}
+{% for dhcpd_host in dhcpd_hosts|default([]) %}
 
-	host {{ key }} {
-		fixed-address {{ value.fixed_address }};
-		hardware ethernet {{ value.hardware_ethernet }};
+	host {{ dhcpd_host.hostname }} {
+		fixed-address {{ dhcpd_host.fixed_address }};
+		hardware ethernet {{ dhcpd_host.hardware_ethernet }};
 	}
-{%   endfor %}
-{% endif %}
+{% endfor %}
+}
+
+subnet {{ guest_ipv4|ipaddr('network') }} netmask {{ guest_ipv4|ipaddr('netmask') }} {
+#	option domain-name "{{ global_domain }}";
+	option domain-name-servers {{ guest_nameservers|ipv4|join(', ') }};
+#	option ntp-servers {{ guest_ipv4|ipaddr('address') }};
+	option routers {{ guest_ipv4|ipaddr('address') }};
+
+	range {{ guest_ipv4|ipaddr('100')|ipaddr('address') }} {{ guest_ipv4|ipaddr('199')|ipaddr('address') }};
 }

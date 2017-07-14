@@ -8,21 +8,33 @@
 - hosts: tombstone
 
   pre_tasks:
-    - name: interface-specific configuration files
+
+    - name: Default hostname
+      copy:
+        content="tombstone.{{ global_domain }}\n"
+        dest=/etc/myname
+        owner=root group=wheel mode=0444
+
+    - name: Host name database
+      template:
+        src=hosts.j2 dest=/etc/hosts
+        owner=root group=wheel mode=0444
+
+    - name: Interface-specific configuration files
       template:
         src=hostname.{{ item }}.j2 dest=/etc/hostname.{{ item }}
         owner=root group=wheel mode=0440
       with_items:
+        - "{{ guest_if }}"
         - "{{ lan_if }}"
         - "{{ pppoe_pppoedev }}"
         - "{{ wan_if }}"
         - "{{ wlan_if }}"
       notify: netstart
 
-    - name: Default hostname
-      copy:
-        content="tombstone.{{ global_domain }}\n"
-        dest=/etc/myname
+    - name: Resolver configuration file
+      template:
+        src=templates/resolv.conf.j2 dest=/etc/resolv.conf
         owner=root group=wheel mode=0444
 
     - name: System-wide package system configuration
@@ -31,13 +43,14 @@
         dest=/etc/installurl
         owner=root group=wheel mode=0444
 
+    - meta: flush_handlers
+
   roles:
     - { role: apmd, tags: ['apmd'] }
     - { role: avahi, tags: ['avahi'] }
     - { role: bwm-ng, tags: ['bwm-ng'] }
   # - c-icap
     - { role: collectd, tags: ['collectd'] }
-    - { role: daily, tags: ['daily'] }
     - { role: dhcpd, tags: ['dhcpd'] }
     - { role: dhparams, tags: ['dhparams'] }
     - { role: doas, tags: ['doas'] }
@@ -57,6 +70,7 @@
     - { role: nsd, tags: ['nsd'] }
     - { role: ntpd, tags: ['ntpd'] }
     - { role: openvpn, tags: ['openvpn'] }
+    - { role: periodic, tags: ['periodic'] }
     - { role: pf, tags: ['pf'] }
     - { role: pftop, tags: ['pftop'] }
     - { role: python, tags: ['python'] }
@@ -66,7 +80,7 @@
     - { role: sndiod, tags: ['sndiod'] }
     - { role: squid, tags: ['squid'] }
     - { role: ssh, tags: ['ssh'] }
-  # - { role: sysclean, tags: ['sysclean'] }
+    - { role: sysclean, tags: ['sysclean'] }
     - { role: sysmerge, tags: ['sysmerge'] }
     - { role: unbound, tags: ['unbound'] }
 
@@ -74,11 +88,6 @@
     - name: boot configuration
       copy:
         src=boot.conf dest=/etc/boot.conf
-        owner=root group=wheel mode=0444
-
-    - name: Host name database
-      template:
-        src=hosts.j2 dest=/etc/hosts
         owner=root group=wheel mode=0444
 
   # - name: 'terminal initialization information'
@@ -100,11 +109,6 @@
         net.inet.udp.sendspace: 131072
       # net.inet6.divert.recvspace: 131072
       # net.inet6.ip6.ifq.maxlen: 512
-
-    - name: Resolver configuration file
-      template:
-        src=templates/resolv.conf.j2 dest=/etc/resolv.conf
-        owner=root group=wheel mode=0444
 
   handlers:
   - name: netstart

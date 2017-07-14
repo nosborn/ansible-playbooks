@@ -1,0 +1,29 @@
+{
+    "id": "704024fa-13e5-46f1-4011-9f1b71a22bc3",
+    "name": "speedtest.com.sg",
+    "description": "",
+    "type": 2,
+    "stack_mode": 1,
+    "unit_type": 1,
+    "unit_legend": "ms",
+    "groups": [
+        {
+            "name": "ping-speedtest.com.sg.value",
+            "type": 1,
+            "stack_id": 0,
+            "series": [
+                {
+                    "name": "ping-speedtest.com.sg.value",
+                    "origin": "collectd",
+                    "source": "ping",
+                    "metric": "ping-speedtest.com.sg.value",
+                    "options": null
+                }
+            ],
+            "options": {
+                "formatter": ""
+            }
+        }
+    ],
+    "template": false
+}

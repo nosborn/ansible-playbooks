@@ -1,0 +1,11 @@
+{
+    "id": "cc8882dc-5a4f-4526-4655-675349f98561",
+    "name": "ping-81.187.81.187",
+    "description": "",
+    "entries": [
+        {
+            "pattern": "glob:ping*81.187.81.187*.value",
+            "origin": "collectd"
+        }
+    ]
+}

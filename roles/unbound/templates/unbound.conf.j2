@@ -82,6 +82,7 @@ server:
 	local-data-ptr: "{{ lan_ipv4|ipaddr('2')|ipaddr('address') }} airport-time-capsule.local"
 	local-data-ptr: "{{ lan_ipv4|ipaddr('3')|ipaddr('address') }} airport-extreme.local"
 	local-data-ptr: "{{ lan_ipv4|ipaddr('4')|ipaddr('address') }} mac-mini.local"
+	local-data-ptr: "{{ guest_ipv4|ipaddr('1')|ipaddr('address') }} tombstone.local"
 
 	include: /var/unbound/etc/domains
 	include: /var/unbound/etc/hosts

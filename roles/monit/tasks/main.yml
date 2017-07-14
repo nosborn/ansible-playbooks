@@ -9,7 +9,7 @@
 - template:
     src=monitrc.j2 dest=/etc/monitrc
     owner=root group=wheel mode=0400
-  # validate='/usr/local/bin/monit -c %s -t'
+    validate='/usr/local/bin/monit -c %s -t'
   notify: reload monit
 
 - service: name=monit enabled=yes state=started
