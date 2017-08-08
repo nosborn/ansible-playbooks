@@ -27,7 +27,7 @@ table <{{ pf_bogons_v6_table }}> counters persist file "/var/db/{{ pf_bogons_v6_
 block return log  # block stateless traffic
 pass out          # establish keep-state
 
-#match proto tcp set prio (3, 6)
+match proto tcp set prio (3, 7)
 
 # WAN_IF
 # in on WAN_IF
@@ -62,8 +62,8 @@ pass in on {{ wan_if }} inet6 proto icmp6 to {{ wan_ipv6|ipaddr('address') }} ic
 block drop in log on {{ wan_if }} inet6 from <{{ pf_bogons_v6_table }}>
 
 {% endif %}
-pass in on {{ wan_if }} inet6 proto icmp6 from fe80::/10 to ({{ wan_if }}) icmp6-type routeradv
-pass in on {{ wan_if }} inet6 proto icmp6 from fe80::/10 to ff02::1 icmp6-type routeradv
+pass in on {{ wan_if }} inet6 proto icmp6 to { ({{ wan_if }}), ff02::1/16 } \
+  icmp6-type { echoreq, routersol, routeradv, neighbrsol, neighbradv, redir }
 
 {% endif %}
 block drop in log on {{ wan_if }} from <{{ pf_bruteforce_table }}>
@@ -163,29 +163,29 @@ pass on {{ lan_if }}
 block return in log on {{ lan_if }} to ({{ guest_if }}:network)
 pass in on {{ lan_if }} inet proto udp to 224.0.0.251 port 5353 allow-opts
 
-# Battle.net Chat/Game Protocol
-# https://us.battle.net/support/en/article/300479
-match in on {{ lan_if }} inet proto { tcp udp } \
-  from port 1024:65535 \
-  to port 1119 \
-  set prio (4, 7) \
-  label "bnetgame-$proto"
-
-# Apple FaceTime, Game Center
-# https://support.apple.com/en-us/HT202944
-match in on {{ lan_if }} inet proto udp \
-  from port 1024:65535 \
-  to port 3478:3497 \
-  set prio 5 \
-  label "facetime-stun"
+## Battle.net Chat/Game Protocol
+## https://us.battle.net/support/en/article/300479
+#match in on {{ lan_if }} inet proto { tcp udp } \
+#  from port 1024:65535 \
+#  to port 1119 \
+#  set prio (4, 7) \
+#  label "bnetgame-$proto"
 
 ## Apple FaceTime, Game Center
 ## https://support.apple.com/en-us/HT202944
 #match in on {{ lan_if }} inet proto udp \
 #  from port 1024:65535 \
-#  to port { 16384:16387 16393:16402 } \
+#  to port 3478:3497 \
 #  set prio 5 \
-#  label "facetime-rtp-$nr"
+#  label "facetime-stun"
+
+### Apple FaceTime, Game Center
+### https://support.apple.com/en-us/HT202944
+##match in on {{ lan_if }} inet proto udp \
+##  from port 1024:65535 \
+##  to port { 16384:16387 16393:16402 } \
+##  set prio 5 \
+##  label "facetime-rtp-$nr"
 
 # out on LAN_IF
 

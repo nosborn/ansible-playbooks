@@ -177,6 +177,8 @@ function update_kernel {
     msg "Set primary kernel to ${KERNEL}:
     ${KERNEL} => /bsd"
   fi
+
+  (umask 077 && sha256 -h /var/db/kernel.SHA256 /bsd)
 }
 
 function fetch {
@@ -213,7 +215,9 @@ VER=$(get_conf_var 'VER' || uname -r)
 REBOOT=$(get_conf_var 'REBOOT' || echo 'false')
 # AFTER=$(get_conf_var 'AFTER' || echo 'false')
 
-MIRROR=$(get_conf_var 'MIRROR' || echo 'http://ftp.eu.openbsd.org')
+MIRROR=$(get_conf_var 'MIRROR' || \
+  awk -F/ 'match($3, /[a-z]/) {print $3}' /etc/installurl 2>/dev/null || \
+  echo 'http://ftp2.eu.openbsd.org')
 
 while getopts "b:Bc:ehiIkKm:M:nrRsSuUv:V:x" arg; do
   case $arg in
@@ -322,9 +326,9 @@ msg "${white}Fetching from: ${green}${URL}"
 
   verisigs "*.tgz"
 
-  msg "Remounting filesystems (rw)"
-  mount -u -w /usr || error "Can't remount /usr partition!" false
-  mount -u -w /usr/X11R6 || error "Can't remount /usr/X11R6 partition!" false
+  #msg "Remounting filesystems (rw)"
+  #mount -u -w /usr || error "Can't remount /usr partition!" false
+  #mount -u -w /usr/X11R6 || error "Can't remount /usr/X11R6 partition!" false
 
   msg "Extracting sets"
   for set in "${sets[@]}"; do
@@ -375,9 +379,9 @@ msg "${white}Fetching from: ${green}${URL}"
   msg 'Rebuilding whatis databases'
   makewhatis
 
-  msg 'Remounting filesystems (ro)'
-  mount -u -r /usr/X11R6 || error "Can't remount /usr/X11R6 partition!" false
-  mount -u -r /usr || error "Can't remount /usr partition!" false
+  #msg 'Remounting filesystems (ro)'
+  #mount -u -r /usr/X11R6 || error "Can't remount /usr/X11R6 partition!" false
+  #mount -u -r /usr || error "Can't remount /usr partition!" false
 
   if [ ${MERGE} == true ]; then
     msg 'Running sysmerge'

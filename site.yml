@@ -52,7 +52,8 @@
   # - c-icap
     - { role: collectd, tags: ['collectd'] }
     - { role: dhcpd, tags: ['dhcpd'] }
-    - { role: dhparams, tags: ['dhparams'] }
+  # - { role: dhparams, tags: ['dhparams'] }
+    - { role: dnscrypt_proxy, tags: ['dnscrypt_proxy'] }
     - { role: doas, tags: ['doas'] }
     - { role: facette, tags: ['facette'] }
     - { role: flashrom, tags: ['flashrom'] }
@@ -62,19 +63,19 @@
   # - { role: httpd, tags: ['httpd'] }
     - { role: iftop, tags: ['iftop'] }
     - { role: iked, tags: ['iked'] }
-    - { role: letsencrypt, tags: ['letsencrypt'] }
+  # - { role: letsencrypt, tags: ['letsencrypt'] }
     - { role: locale, tags: ['locale'] }
     - { role: monit, tags: ['monit'] }
   # - newsyslog
-    - { role: nginx, tags: ['nginx'] }
+  # - { role: nginx, tags: ['nginx'] }
     - { role: nsd, tags: ['nsd'] }
     - { role: ntpd, tags: ['ntpd'] }
     - { role: openvpn, tags: ['openvpn'] }
     - { role: periodic, tags: ['periodic'] }
-    - { role: pf, tags: ['pf'] }
+  # - { role: pf, tags: ['pf'] }
     - { role: pftop, tags: ['pftop'] }
-    - { role: python, tags: ['python'] }
-    - { role: router, tags: ['router'] }
+  # - { role: python, tags: ['python'] }
+  # - { role: router, tags: ['router'] }
     - { role: rtadvd, tags: ['rtadvd'] }
     - { role: smtpd, tags: ['smtpd'] }
     - { role: sndiod, tags: ['sndiod'] }

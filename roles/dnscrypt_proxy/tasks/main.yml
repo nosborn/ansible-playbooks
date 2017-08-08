@@ -1,0 +1,17 @@
+# roles/dnscrypt_proxy/tasks/main
+---
+- name: install package
+  openbsd_pkg: name=dnscrypt-proxy state=present
+
+- file:
+    src=dnscrypt_proxy dest=/etc/rc.d/dnscrypt_proxy2
+    state=link
+
+- service:
+    name=dnscrypt_proxy enabled=yes state=started
+    arguments="-R dnscrypt.eu-nl -a 127.0.0.1:{{ dnscrypt_proxy_port }} -E -m 1 -p /var/run/dnscrypt-proxy.pid"
+
+- service:
+    name=dnscrypt_proxy2 enabled=yes state=started
+    arguments="-R d0wn-de-ns1 -a 127.0.0.1:{{ dnscrypt_proxy2_port }} -E -m 1 -p /var/run/dnscrypt-proxy2.pid"
+...

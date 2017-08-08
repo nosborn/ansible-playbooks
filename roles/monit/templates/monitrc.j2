@@ -53,6 +53,32 @@ check process dhcpd matching "^/usr/sbin/dhcpd "
   if failed gid _dhcp then alert
   depends on GUEST, LAN
 
+check process dnscrypt-proxy with pidfile /var/run/dnscrypt-proxy.pid
+  start program = "/usr/sbin/rcctl start dnscrypt_proxy"
+  stop program = "/usr/sbin/rcctl stop dnscrypt_proxy"
+  if does not exist for 2 cycles then restart
+  if failed uid _dnscrypt-proxy then alert
+  if failed euid _dnscrypt-proxy then alert
+  if failed gid _dnscrypt-proxy then alert
+  if failed
+    host 127.0.0.1 port {{ dnscrypt_proxy_port }} ipv4 type udp proto dns
+    for 5 cycles
+    then alert
+  depends on WAN
+
+check process dnscrypt-proxy2 with pidfile /var/run/dnscrypt-proxy2.pid
+  start program = "/usr/sbin/rcctl start dnscrypt_proxy2"
+  stop program = "/usr/sbin/rcctl stop dnscrypt_proxy2"
+  if does not exist for 2 cycles then restart
+  if failed uid _dnscrypt-proxy then alert
+  if failed euid _dnscrypt-proxy then alert
+  if failed gid _dnscrypt-proxy then alert
+  if failed
+    host 127.0.0.1 port {{ dnscrypt_proxy2_port }} ipv4 type udp proto dns
+    for 5 cycles
+    then alert
+  depends on WAN
+
 check process facette with pidfile /var/facette/facette.pid
   start program = "/usr/sbin/rcctl start facette"
   stop program = "/usr/sbin/rcctl stop facette"

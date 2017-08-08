@@ -3,6 +3,3 @@ nameserver {{ nameserver }}
 {% endfor %}
 domain {{ global_domain }}
 lookup file bind
-{% if wan_ipv6 is defined %}
-family inet6 inet4
-{% endif %}

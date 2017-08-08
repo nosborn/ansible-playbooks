@@ -4,6 +4,7 @@
 /etc/kbdtype
 /etc/mail/secrets
 /etc/openvpn
+/etc/rc.d/dnscrypt_proxy2
 /etc/rc.firsttime
 /etc/rc.sysmerge
 /etc/ssl/ffdhe2048.pem

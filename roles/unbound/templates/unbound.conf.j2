@@ -18,16 +18,13 @@ server:
 	interface: {{ vpn_server_ipv6|ipaddr('address') }}
 {% endif %}
 
-	outgoing-interface: {{ wan_ipv4|ipaddr('address') }}
-	outgoing-interface: {{ wan_ipv6|ipaddr('address') }}
-
 {% if vpn_server_if is defined %}
 	outgoing-port-avoid: 1194
 
+{% endif %}
 	rrset-cache-size: 8m
 	cache-min-ttl: 3600
 
-{% endif %}
 	prefer-ip6: yes
 
 	access-control: 127.0.0.0/8 allow
@@ -62,6 +59,8 @@ server:
 
 	private-domain: local
 
+	do-not-query-localhost: no
+
 	prefetch: yes
 	prefetch-key: yes
 
@@ -77,11 +76,11 @@ server:
 	local-data: "tombstone.local IN A {{ lan_ipv4|ipaddr('1')|ipaddr('address') }}"
 	local-data: "airport-time-capsule.local IN A {{ lan_ipv4|ipaddr('2')|ipaddr('address') }}"
 	local-data: "airport-extreme.local IN A {{ lan_ipv4|ipaddr('3')|ipaddr('address') }}"
-	local-data: "mac-mini.local IN A {{ lan_ipv4|ipaddr('4')|ipaddr('address') }}"
+#	local-data: "mac-mini.local IN A {{ lan_ipv4|ipaddr('4')|ipaddr('address') }}"
 	local-data-ptr: "{{ lan_ipv4|ipaddr('1')|ipaddr('address') }} tombstone.local"
 	local-data-ptr: "{{ lan_ipv4|ipaddr('2')|ipaddr('address') }} airport-time-capsule.local"
 	local-data-ptr: "{{ lan_ipv4|ipaddr('3')|ipaddr('address') }} airport-extreme.local"
-	local-data-ptr: "{{ lan_ipv4|ipaddr('4')|ipaddr('address') }} mac-mini.local"
+#	local-data-ptr: "{{ lan_ipv4|ipaddr('4')|ipaddr('address') }} mac-mini.local"
 	local-data-ptr: "{{ guest_ipv4|ipaddr('1')|ipaddr('address') }} tombstone.local"
 
 	include: /var/unbound/etc/domains
@@ -90,9 +89,9 @@ server:
 remote-control:
 	control-enable: yes
 	control-interface: /var/run/unbound.control
+
 {% if unbound_forward_zones is defined %}
 {%   for forward_zone in unbound_forward_zones %}
-
 forward-zone:
 	name: "{{ forward_zone.name }}"
 {%     for forward_addr in forward_zone.forward_addrs %}
@@ -101,5 +100,10 @@ forward-zone:
 {%     if forward_zone.forward_first is defined %}
 	forward-first: {{ forward_zone.forward_first }}
 {%     endif %}
+
 {%   endfor %}
 {% endif %}
+forward-zone:
+	name: "."
+	forward-addr: 127.0.0.1@{{ dnscrypt_proxy_port }}
+	forward-addr: 127.0.0.1@{{ dnscrypt_proxy2_port }}

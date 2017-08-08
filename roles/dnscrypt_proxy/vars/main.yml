@@ -1,0 +1,5 @@
+# roles/dnscrypt_proxy/vars/main
+---
+dnscrypt_proxy_port: 54
+dnscrypt_proxy2_port: 55
+...
