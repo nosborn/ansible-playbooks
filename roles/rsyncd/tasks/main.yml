@@ -1,0 +1,12 @@
+# roles/rsyncd/tasks/main
+---
+- name: install package
+  openbsd_pkg: name=rsync-- state=present
+
+- template:
+    src=rsyncd.conf.j2 dest=/etc/rsyncd.conf
+    owner=root group=wheel mode=0400
+  notify: restart rsyncd
+
+- service: name=rsyncd enabled=yes state=started
+...

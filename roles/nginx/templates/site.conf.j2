@@ -17,7 +17,7 @@ server {
   add_header X-Frame-Options SAMEORIGIN always;
   add_header X-XSS-Protection '1; mode=block' always;
 
-  location /.well-known/acme-challenge/ {
+  location ^~ /.well-known/acme-challenge/ {
     alias /acme/;
     allow all;
   }
@@ -65,7 +65,7 @@ server {
 {% else %}
   root /var/www/sites/{{ site.name }}/current;
 
-  location /.well-known/acme-challenge/ {
+  location ^~ /.well-known/acme-challenge/ {
     deny all;
   }
 
@@ -85,17 +85,31 @@ server {
     {{ access }};
 {%         endfor %}
 {%       endif %}
+{%       if location.auth_basic is defined %}
+    auth_basic "{{ location.auth_basic }}";
+{%       endif %}
+{%       if location.auth_basic_user_file is defined %}
+    auth_basic_user_file {{ location.auth_basic_user_file }};
+{%       endif %}
+{%       if location.autoindex is defined %}
+    autoindex {{ location.autoindex }};
+{%       endif %}
 {%       if location.fastcgi_pass is defined %}
-  fastcgi_pass {{ location.fastcgi_pass }};
+    fastcgi_pass {{ location.fastcgi_pass }};
 {%         if location.fastcgi_split_path_info is defined %}
-  fastcgi_split_path_info {{ location.fastcgi_split_path_info }};
+    fastcgi_split_path_info {{ location.fastcgi_split_path_info }};
 {%         endif %}
 {%         if location.fastcgi_params is defined %}
 {%           for parameter, value in location.fastcgi_params.iteritems() %}
-  fastcgi_param {{ parameter }} {{ value }};
+    fastcgi_param {{ parameter }} {{ value }};
 {%           endfor %}
 {%         endif %}
-  include fastcgi_params;
+    include fastcgi_params;
+{%       endif %}
+{%       if location.headers is defined %}
+{%         for header in location.headers %}
+    add_header {{ header }};
+{%         endfor %}
 {%       endif %}
 {%       if location.proxy_pass is defined %}
     proxy_pass {{ location.proxy_pass }};

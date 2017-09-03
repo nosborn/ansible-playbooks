@@ -289,14 +289,14 @@ msg "${white}Fetching from: ${green}${URL}"
 
   if [ -e ~/.last_snap ]; then
     last_snap=$(cat ~/.last_snap)
-    msg "last snap: ${white}${last_snap}"
+    msg "Last snap: ${white}${last_snap}"
     if [ $USE_BUILDINFO ]; then
       current_snap=$(awk -F- '{print $2}' "$build_info" | sed 's/^ //')
       if [ "${last_snap}" == "$current_snap" ]; then
         warn "No new snaps available, mirror has: ${current_snap}!"
         exit 1
       fi
-      msg "current snap: ${white}${current_snap}"
+      msg "Current snap: ${white}${current_snap}"
     fi
   fi
 

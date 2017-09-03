@@ -1,0 +1,17 @@
+pid file = /var/run/rsyncd.pid
+address = {{ lan_ipv4|ipaddr('address') }}
+
+use chroot = true
+max connections = 1
+{% if rsyncd_modules is defined %}
+{%   for key, value in rsyncd_modules.iteritems() %}
+
+[{{ key }}]
+path = {{ value.path }}
+read only = {{ value.read_only }}
+write only = {{ value.write_only }}
+exclude = {{ value.exclude }}
+hosts allow = {{ value.hosts_allow|join(', ') }}
+dont compress = {{ value.dont_compress }}
+{%   endfor %}
+{% endif %}

@@ -59,8 +59,6 @@ server:
 
 	private-domain: local
 
-	do-not-query-localhost: no
-
 	prefetch: yes
 	prefetch-key: yes
 
@@ -89,9 +87,9 @@ server:
 remote-control:
 	control-enable: yes
 	control-interface: /var/run/unbound.control
-
 {% if unbound_forward_zones is defined %}
 {%   for forward_zone in unbound_forward_zones %}
+
 forward-zone:
 	name: "{{ forward_zone.name }}"
 {%     for forward_addr in forward_zone.forward_addrs %}
@@ -100,10 +98,5 @@ forward-zone:
 {%     if forward_zone.forward_first is defined %}
 	forward-first: {{ forward_zone.forward_first }}
 {%     endif %}
-
 {%   endfor %}
 {% endif %}
-forward-zone:
-	name: "."
-	forward-addr: 127.0.0.1@{{ dnscrypt_proxy_port }}
-	forward-addr: 127.0.0.1@{{ dnscrypt_proxy2_port }}

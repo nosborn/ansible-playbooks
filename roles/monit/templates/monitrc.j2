@@ -31,14 +31,14 @@ check process avahi-daemon with pidfile /var/run/avahi-daemon/pid
   if failed euid _avahi then alert
   if failed gid nobody then alert
   depends on LAN
-
 {% if c_icap_pid_file is defined %}
+
 #check process c-icap with pidfile {{ c_icap_pid_file }}
 #  start program = "/usr/sbin/rcctl start c_icap"
 #  stop program = "/usr/sbin/rcctl stop c_icap"
 #  if does not exist for 2 cycles then restart
-
 {% endif %}
+
 check process collectd with pidfile /var/collectd/collectd.pid
   start program = "/usr/sbin/rcctl start collectd"
   stop program = "/usr/sbin/rcctl stop collectd"
@@ -53,32 +53,6 @@ check process dhcpd matching "^/usr/sbin/dhcpd "
   if failed gid _dhcp then alert
   depends on GUEST, LAN
 
-check process dnscrypt-proxy with pidfile /var/run/dnscrypt-proxy.pid
-  start program = "/usr/sbin/rcctl start dnscrypt_proxy"
-  stop program = "/usr/sbin/rcctl stop dnscrypt_proxy"
-  if does not exist for 2 cycles then restart
-  if failed uid _dnscrypt-proxy then alert
-  if failed euid _dnscrypt-proxy then alert
-  if failed gid _dnscrypt-proxy then alert
-  if failed
-    host 127.0.0.1 port {{ dnscrypt_proxy_port }} ipv4 type udp proto dns
-    for 5 cycles
-    then alert
-  depends on WAN
-
-check process dnscrypt-proxy2 with pidfile /var/run/dnscrypt-proxy2.pid
-  start program = "/usr/sbin/rcctl start dnscrypt_proxy2"
-  stop program = "/usr/sbin/rcctl stop dnscrypt_proxy2"
-  if does not exist for 2 cycles then restart
-  if failed uid _dnscrypt-proxy then alert
-  if failed euid _dnscrypt-proxy then alert
-  if failed gid _dnscrypt-proxy then alert
-  if failed
-    host 127.0.0.1 port {{ dnscrypt_proxy2_port }} ipv4 type udp proto dns
-    for 5 cycles
-    then alert
-  depends on WAN
-
 check process facette with pidfile /var/facette/facette.pid
   start program = "/usr/sbin/rcctl start facette"
   stop program = "/usr/sbin/rcctl stop facette"
@@ -87,15 +61,15 @@ check process facette with pidfile /var/facette/facette.pid
   if failed euid _facette then alert
   if failed gid _facette then alert
   depends on LAN
-
 {% if iked_enabled %}
+
 check process iked matching "^iked: parent "
   start program = "/usr/sbin/rcctl start iked"
   stop program = "/usr/sbin/rcctl stop iked"
   if does not exist for 2 cycles then restart
   depends on WAN
-
 {% endif %}
+
 check process nginx with pidfile /var/run/nginx.pid
   start program = "/usr/sbin/rcctl start nginx"
   stop program = "/usr/sbin/rcctl stop nginx"
@@ -131,18 +105,6 @@ check process nsd with pidfile /var/nsd/run/nsd.pid
     then alert
   depends on WAN
 
-{% if vpn_client_if is defined %}
-check process openvpn.client with pidfile /var/openvpn/client.pid
-  #start program = "/bin/sh /etc/netstart {{ vpn_client_if }}"
-  depends on WAN
-
-{% endif %}
-{% if vpn_server_if is defined %}
-check process openvpn.server with pidfile /var/openvpn/server.pid
-  #start program = "/bin/sh /etc/netstart {{ vpn_server_if }}"
-  depends on WAN
-
-{% endif %}
 check process ntpd matching "^/usr/sbin/ntpd "
   start program = "/usr/sbin/rcctl start ntpd" with timeout 300 seconds
   stop program = "/usr/sbin/rcctl stop ntpd"
@@ -156,6 +118,28 @@ check process ntpd matching "^/usr/sbin/ntpd "
     for 5 cycles
     then alert
   depends on LAN, WAN
+{% if vpn_client_if is defined %}
+
+check process openvpn.client with pidfile /var/openvpn/client.pid
+  #start program = "/bin/sh /etc/netstart {{ vpn_client_if }}"
+  depends on WAN
+{% endif %}
+{% if vpn_server_if is defined %}
+
+check process openvpn.server with pidfile /var/openvpn/server.pid
+  #start program = "/bin/sh /etc/netstart {{ vpn_server_if }}"
+  depends on WAN
+{% endif %}
+
+check process rsyncd with pidfile /var/run/rsyncd.pid
+  start program = "/usr/sbin/rcctl start rsyncd"
+  stop program = "/usr/sbin/rcctl stop rsyncd"
+  if does not exist for 2 cycles then restart
+  if failed
+    host {{ lan_ipv4|ipaddr('address') }} port 873 type tcp ipv4 proto rsync
+    for 5 cycles
+    then alert
+  depends on LAN
 
 check process rtadvd matching "^/usr/sbin/rtadvd "
   start program = "/usr/sbin/rcctl start rtadvd"
@@ -176,16 +160,16 @@ check process smtpd matching "^/usr/sbin/smtpd$"
   stop program = "/usr/sbin/rcctl stop smtpd"
   if does not exist for 2 cycles then restart
   if failed
-    host 127.0.0.1 port 25 ipv4 proto smtp
+    host 127.0.0.1 port 25 proto smtp
     for 5 cycles
     then alert
   if failed
-    host ::1 port 25 ipv6 proto smtp
+    host ::1 port 25 proto smtp
     for 5 cycles
     then alert
   depends on WAN
-
 {% if squid_enabled %}
+
 check process squid with pidfile /var/run/squid.pid
   start program = "/usr/sbin/rcctl start squid"
   stop program = "/usr/sbin/rcctl stop squid"
@@ -197,8 +181,8 @@ check process squid with pidfile /var/run/squid.pid
 {%   if c_icap_pid_file is defined %}
   depends on c_icap
 {%   endif %}
-
 {% endif %}
+
 check process sshd with pidfile /var/run/sshd.pid
   start program = "/usr/sbin/rcctl start sshd"
   stop program = "/usr/sbin/rcctl stop sshd"
@@ -218,7 +202,7 @@ check process unbound with pidfile /var/run/unbound.pid
   if failed euid _unbound then alert
   if failed gid _unbound then alert
   if failed
-    host 127.0.0.1 port 53 ipv4 type udp proto dns
+    host 127.0.0.1 port 53 type udp proto dns
     for 5 cycles
     then alert
   if failed
@@ -226,7 +210,7 @@ check process unbound with pidfile /var/run/unbound.pid
     for 5 cycles
     then alert
   if failed
-    host ::1 port 53 ipv6 type udp proto dns
+    host ::1 port 53 type udp proto dns
     for 5 cycles
     then alert
   if failed

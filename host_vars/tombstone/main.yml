@@ -22,6 +22,7 @@ pppoe_authname: "{{ vault_pppoe_authname }}"
 pppoe_authproto: "{{ vault_pppoe_authproto }}"
 pppoe_pppoedev: "{{ vault_pppoe_pppoedev }}"
 report_uri: 'https://c038e306d722c5c696ac543e16ed1410.report-uri.io'
+rsyncd_modules: "{{ vault_rsyncd_modules }}"
 sites: "{{ vault_sites }}"
 smtpd_max_message_size: "{{ vault_smtpd_max_message_size }}"
 smtpd_queue_encryption_key: "{{ vault_smtpd_queue_encryption_key }}"

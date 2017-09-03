@@ -4,7 +4,6 @@
 /etc/kbdtype
 /etc/mail/secrets
 /etc/openvpn
-/etc/rc.d/dnscrypt_proxy2
 /etc/rc.firsttime
 /etc/rc.sysmerge
 /etc/ssl/ffdhe2048.pem
@@ -22,6 +21,7 @@
 /var/unbound/db/root.key
 /var/unbound/etc
 /var/www/cache
+/var/www/htpasswd.iplayer
 /var/www/sites
 
 @include "/etc/changelist"
