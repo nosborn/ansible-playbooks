@@ -10,12 +10,6 @@
     validate='/sbin/iked -f %s -n'
   notify: reload iked
 
-- copy:
-    src=iked dest=/etc/rc.d/iked
-    owner=root group=wheel mode=0555
-    validate='/bin/sh -n %s'
-  when: false
-
 #- name: sysctl variables to set at system startup
 #  sysctl:
 #    name={{ item.key }} value={{ item.value }}
@@ -28,5 +22,5 @@
 - name: start IKEv2 daemon
   service: name=iked arguments=-6 enabled={{ iked_enabled }} state={{ iked_state }}
 
-- include: mobileconfig.yml
+- include_tasks: mobileconfig.yml
 ...

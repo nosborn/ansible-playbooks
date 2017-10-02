@@ -1,3 +1,5 @@
+rtlabel {{ lan_rtlabel }}
+
 inet {{ lan_ipv4|ipaddr('address') }} {{ lan_ipv4|ipaddr('netmask') }} NONE
 {% if lan_ipv6 is defined %}
 inet6 {{ lan_ipv6|ipaddr('address') }} {{ lan_ipv6|ipaddr('prefix') }}

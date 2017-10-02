@@ -1,7 +1,10 @@
 # roles/openvpn/handlers/main
 ---
-- name: reload openvpn client
-  shell: kill -HUP $(cat /var/openvpn/client.pid)
+- name: restart openvpn client
+  shell: |
+    kill $(cat /var/openvpn/client.pid) 2>/dev/null || :
+    while kill -0 $(cat /var/openvpn/client.pid) 2>/dev/null; do sleep 1; done
+    sh /etc/netstart {{ vpn_client_if }}
 
 - name: reload openvpn server
   shell: kill -HUP $(cat /var/openvpn/server.pid)

@@ -1,9 +1,0 @@
-# roles/goaccess/tasks/main
----
-- name: install package
-  openbsd_pkg: name=goaccess state=present
-
-- template:
-    src=goaccess.conf.j2 dest=/etc/goaccess.conf
-    owner=root group=wheel mode=0444
-...

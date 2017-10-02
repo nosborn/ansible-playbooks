@@ -24,7 +24,7 @@
   service: name=nginx enabled=yes state=started
 
 - name: configure sites
-  include: site.yml site={{ nginx_item }}
+  include_tasks: site.yml site={{ nginx_item }}
   with_items: "{{ sites }}"
   loop_control:
     loop_var: nginx_item

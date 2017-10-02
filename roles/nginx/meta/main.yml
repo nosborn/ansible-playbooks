@@ -3,5 +3,4 @@
 dependencies:
   - { role: dhparams }
   - { role: letsencrypt }
-  - { role: pf }
 ...

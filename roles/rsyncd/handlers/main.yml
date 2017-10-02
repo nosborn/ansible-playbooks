@@ -1,5 +1,0 @@
-# roles/rsyncd/handlers/main
----
-- name: restart rsyncd
-  service: name=rsyncd state=restarted
-...

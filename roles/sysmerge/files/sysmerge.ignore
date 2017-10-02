@@ -2,9 +2,6 @@
 /etc/avahi/avahi-daemon.conf
 /etc/avahi/services/sftp-ssh.service
 /etc/avahi/services/ssh.service
-/etc/collectd.conf
-/etc/facette/facette.json
-/etc/facette/providers/collectd.json
 /etc/mail/aliases
 /etc/mail/smtpd.conf
 /etc/monitrc

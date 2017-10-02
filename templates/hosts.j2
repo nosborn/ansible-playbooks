@@ -2,4 +2,6 @@
 ::1		localhost
 
 {{ wan_ipv4|ipaddr('address') }}	{{ ansible_fqdn }}	{{ ansible_hostname }}
+{% if wan_ipv6 is defined %}
 {{ wan_ipv6|ipaddr('address') }}	{{ ansible_fqdn }}	{{ ansible_hostname }}
+{% endif %}

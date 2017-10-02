@@ -14,7 +14,6 @@
     src=services/{{ item }}.j2 dest=/etc/avahi/services/{{ item }}
     owner=root group=wheel mode=0444
   with_items:
-    - facette.service
     - monit.service
     - sftp-ssh.service
     - ssh.service

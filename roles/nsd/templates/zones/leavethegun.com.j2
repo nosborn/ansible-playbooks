@@ -2,7 +2,7 @@ $ORIGIN leavethegun.com.
 $TTL 3600
 
 @		IN	SOA	tombstone.{{ global_domain }}. hostmaster.{{ global_domain }}. (
-				2017032700	;serial
+				2017092400	;serial
 				10800		;refresh
 				1800		;retry
 				604800		;expire
@@ -10,8 +10,8 @@ $TTL 3600
 
 			NS	c.ns.buddyns.com.
 			NS	d.ns.buddyns.com.
-			NS	g.ns.buddyns.com.
-			NS	secondary-dns.co.uk.
+			NS	h.ns.buddyns.com.
+			NS	j.ns.buddyns.com.
 
 			MX	10 aspmx.l.google.com.
 			MX	20 alt1.aspmx.l.google.com.
@@ -23,7 +23,7 @@ $TTL 3600
 			CAA	0 issue "letsencrypt.org"
 			CAA	0 issuewild ";"
 
-			A	81.187.87.32
+			A	{{ hostvars['tombstone']['wan_ipv4']|ipaddr('address') }}
 
 			TXT	"google-site-verification=7BKGFQOXN8Qe77d8SB7XU9PN53hOAcmNNrn1f9tSves"
 
@@ -32,4 +32,4 @@ google._domainkey	TXT	"v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC
 londoncannolimap	CNAME	www
 m			CNAME	londoncannolimap
 mail			CNAME	ghs.google.com.
-www			A	81.187.87.32
+www			A	{{ hostvars['tombstone']['wan_ipv4']|ipaddr('address') }}

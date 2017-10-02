@@ -2,18 +2,20 @@
 
 #route -n -T0 add -inet -host "${trusted_ip:?}" "${route_net_gateway:?}"
 
-route -n -T1 add default "${route_vpn_gateway:?}"
+#route -n -T1 add default "${route_vpn_gateway:?}"
+route -n add default "${route_vpn_gateway:?}"
 
-for n in $(env|sed -En '/^route_ipv6_network_([0-9]+)=.+/s//\1/p'); do
+for n in $(env | sed -En '/^route_ipv6_network_([0-9]+)=.+/s//\1/p'); do
   route_ipv6_network=$(env | sed -En "/^route_ipv6_network_${n}=/s///p")
   route_ipv6_gateway=$(env | sed -En "/^route_ipv6_gateway_${n}=/s///p")
-  route -n -T1 add "${route_ipv6_network:?}" "${route_ipv6_gateway:?}"
+  #route -n -T1 add "${route_ipv6_network:?}" "${route_ipv6_gateway:?}"
+  route -n add "${route_ipv6_network:?}" "${route_ipv6_gateway:?}"
 done
 
-readonly dns=$(env|grep -E '^foreign_option_.+=dhcp-option DNS .+'|cut -d' ' -f3)
+readonly dns=$(env | grep -E '^foreign_option_.+=dhcp-option DNS .+' | cut -d' ' -f3)
 
-#if [[ -n "${dns}" ]]; then
-#  unbound-control forward $(echo "${dns}")
-#else
-#  unbound-control forward off
-#fi
+if [[ -n "${dns}" ]]; then
+  unbound-control forward $(echo "${dns:?}")
+else
+  unbound-control forward off
+fi

@@ -14,6 +14,8 @@ ikev2 \
   lifetime 24h \
   eap MSCHAP-V2 \
   config address {{ lan_ipv4|ipaddr('128')|ipaddr('address') }}/26 \
+{% if lan_ipv6 is defined %}
   config address {{ lan_ipv6|ipsubnet(72,69) }} \
+{% endif %}
   config name-server {{ lan_ipv4|ipaddr('address') }} \
   tag "ipsec-$eapid"

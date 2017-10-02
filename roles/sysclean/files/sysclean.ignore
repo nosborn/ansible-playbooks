@@ -1,6 +1,7 @@
 /etc/acme/letsencrypt-privkey.pem
 /etc/bwm-ng.conf
 /etc/daily.local
+/etc/dhcpcd.duid
 /etc/kbdtype
 /etc/mail/secrets
 /etc/openvpn
@@ -21,7 +22,6 @@
 /var/unbound/db/root.key
 /var/unbound/etc
 /var/www/cache
-/var/www/htpasswd.iplayer
 /var/www/sites
 
 @include "/etc/changelist"

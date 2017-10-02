@@ -14,9 +14,9 @@
     - /usr/local/libexec/openvpn
     - /var/openvpn
 
-- include: client.yml
+- include_tasks: client.yml
   when: vpn_client_if is defined
 
-- include: server.yml
+- include_tasks: server.yml
   when: vpn_server_if is defined
 ...

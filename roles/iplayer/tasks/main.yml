@@ -1,0 +1,25 @@
+# roles/iplayer/tasks/main
+---
+- name: install package
+  openbsd_pkg: name=get_iplayer state=present
+
+- file:
+    dest={{ item }} state=directory
+    owner={{ iplayer_pvr_user }} group={{ iplayer_pvr_user }} mode=0755
+  with_items:
+    - "{{ iplayer_dir }}"
+    - "{{ iplayer_dir }}/pvr"
+
+- template:
+    src=show.j2 dest={{ iplayer_dir }}/pvr/{{ item.key }}
+    owner={{ iplayer_pvr_user }} group={{ iplayer_pvr_user }} mode=0644
+  with_dict: "{{ iplayer_pvr_shows }}"
+
+- name: schedule PVR
+  cron:
+    name: iplayer pvr
+    minute: "{{ 59|random(seed=inventory_hostname) }}"
+    hour: "{{ 23|random(seed=inventory_hostname) }}"
+    user: "{{ iplayer_pvr_user }}"
+    job: 'get_iplayer --silent --pvr'
+...

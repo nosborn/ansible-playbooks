@@ -18,24 +18,26 @@ remote-control:
 pattern:
 	name: default
 	zonefile: "master/%s.zone"
-	notify: 81.187.81.32 NOKEY		# secondary-dns.co.uk
-	provide-xfr: 81.187.81.32 NOKEY		# secondary-dns.co.uk
-	provide-xfr: 90.155.23.32 NOKEY		# b.nameless.aa.net.uk
 	outgoing-interface: {{ wan_ipv4|ipaddr('address') }}
 
 pattern:
 	name: buddyns
 #	notify: 108.61.224.67 NOKEY
-	provide-xfr: 88.198.106.11 NOKEY	# b.transfer.buddyns.com
-	provide-xfr: 103.6.87.125 NOKEY		# c.transfer.buddyns.com
+	provide-xfr: 88.198.106.11 NOKEY
+	provide-xfr: 103.6.87.125 NOKEY
 	provide-xfr: 108.61.224.67 NOKEY
-	provide-xfr: 173.244.206.26 NOKEY	# a.transfer.buddyns.com
+	provide-xfr: 173.244.206.26 NOKEY
 	provide-xfr: 185.136.176.247 NOKEY
+	provide-xfr: 2001:19f0:6400:8642::3 NOKEY
+	provide-xfr: 2403:2500:4000::f3e NOKEY
+	provide-xfr: 2607:f0d0:1001:d::100 NOKEY
+	provide-xfr: 2a01:4f8:d12:d01::10:100 NOKEY
+	provide-xfr: 2a06:fdc0:fade:2f7::1 NOKEY
 	include-pattern: default
 
-zone:
-	name: "32.87.187.81.in-addr.arpa"
-	include-pattern: default
+#zone:
+#	name: "32.87.187.81.in-addr.arpa"
+#	include-pattern: default
 
 zone:
 	name: "leavethegun.com"

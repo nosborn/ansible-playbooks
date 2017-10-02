@@ -50,23 +50,21 @@
     - { role: avahi, tags: ['avahi'] }
     - { role: bwm-ng, tags: ['bwm-ng'] }
   # - c-icap
-    - { role: collectd, tags: ['collectd'] }
+    - { role: dhcpcd, tags: ['dhcpd'] }
     - { role: dhcpd, tags: ['dhcpd'] }
   # - { role: dhparams, tags: ['dhparams'] }
     - { role: doas, tags: ['doas'] }
-    - { role: facette, tags: ['facette'] }
     - { role: flashrom, tags: ['flashrom'] }
-    - { role: geoip, tags: ['geoip'] }
-  # - { role: gixy, tags: ['flashrom'] }
-  # - { role: goaccess, tags: ['goaccess'] }
+  # - { role: gixy, tags: ['gixy'] }
   # - { role: httpd, tags: ['httpd'] }
     - { role: iftop, tags: ['iftop'] }
     - { role: iked, tags: ['iked'] }
+  # - { role: iplayer, tags: ['iplayer'] }
   # - { role: letsencrypt, tags: ['letsencrypt'] }
     - { role: locale, tags: ['locale'] }
     - { role: monit, tags: ['monit'] }
   # - newsyslog
-  # - { role: nginx, tags: ['nginx'] }
+    - { role: nginx, tags: ['nginx'] }
     - { role: nsd, tags: ['nsd'] }
     - { role: ntpd, tags: ['ntpd'] }
     - { role: openvpn, tags: ['openvpn'] }
@@ -75,7 +73,6 @@
     - { role: pftop, tags: ['pftop'] }
   # - { role: python, tags: ['python'] }
   # - { role: router, tags: ['router'] }
-    - { role: rsyncd, tags: ['rsyncd' ] }
     - { role: rtadvd, tags: ['rtadvd'] }
     - { role: smtpd, tags: ['smtpd'] }
     - { role: sndiod, tags: ['sndiod'] }
@@ -110,6 +107,9 @@
         net.inet.udp.sendspace: 131072
       # net.inet6.divert.recvspace: 131072
       # net.inet6.ip6.ifq.maxlen: 512
+
+    - name: update root user GECOS
+      user: name=root comment='' createhome=no state=present
 
   handlers:
   - name: netstart

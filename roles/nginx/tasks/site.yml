@@ -1,6 +1,6 @@
 # roles/nginx/tasks/site
 ---
-- include: roles/letsencrypt/tasks/domain.yml domain={{ site.name }}
+- include_tasks: roles/letsencrypt/tasks/domain.yml domain={{ site.name }}
   notify: restart nginx
 
 - file:
@@ -10,6 +10,14 @@
     - /var/www/sites/{{ site.name }}
     - /var/www/sites/{{ site.name }}/shared
   when: site.redirect is not defined
+
+- name: create htpasswd file
+  when: item.auth_basic_user_file is defined
+  copy:
+    content={{ item.htpasswd|default('') }} dest=/var/www{{ item.auth_basic_user_file }}
+    owner=root group=www mode=0440
+  with_items: "{{ site.locations|default([]) }}"
+  notify: restart nginx
 
 - template:
     src=site.conf.j2 dest=/etc/nginx/sites.d/{{ site.name }}.conf

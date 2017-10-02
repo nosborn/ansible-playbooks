@@ -15,7 +15,11 @@ set mail-format {
  Description: $DESCRIPTION
 }
 
+{% if lan_ipv6 is defined %}
 set httpd port 2812 address "{{ lan_ipv6|ipaddr('address') }}"
+{% else %}
+set httpd port 2812 address "{{ lan_ipv4|ipaddr('address') }}"
+{% endif %}
     signature disable
     allow {{ monit_username }}:{{ monit_password }} read-only
 
@@ -39,10 +43,11 @@ check process avahi-daemon with pidfile /var/run/avahi-daemon/pid
 #  if does not exist for 2 cycles then restart
 {% endif %}
 
-check process collectd with pidfile /var/collectd/collectd.pid
-  start program = "/usr/sbin/rcctl start collectd"
-  stop program = "/usr/sbin/rcctl stop collectd"
+check process dhcpcd with pidfile /var/run/dhcpcd.pid
+  start program = "/usr/sbin/rcctl start dhcpcd"
+  stop program = "/usr/sbin/rcctl stop dhcpcd"
   if does not exist for 2 cycles then restart
+  depends on WAN
 
 check process dhcpd matching "^/usr/sbin/dhcpd "
   start program = "/usr/sbin/rcctl start dhcpd"
@@ -52,15 +57,6 @@ check process dhcpd matching "^/usr/sbin/dhcpd "
   if failed euid _dhcp then alert
   if failed gid _dhcp then alert
   depends on GUEST, LAN
-
-check process facette with pidfile /var/facette/facette.pid
-  start program = "/usr/sbin/rcctl start facette"
-  stop program = "/usr/sbin/rcctl stop facette"
-  if does not exist for 2 cycles then restart
-  if failed uid _facette then alert
-  if failed euid _facette then alert
-  if failed gid _facette then alert
-  depends on LAN
 {% if iked_enabled %}
 
 check process iked matching "^iked: parent "
@@ -81,11 +77,13 @@ check process nginx with pidfile /var/run/nginx.pid
     request "/ping.txt" http headers [Host: {{ ansible_fqdn }}]
     content = "pong"
     then alert
+{% if wan_ipv6 is defined %}
   if failed host {{ wan_ipv6|ipaddr('address') }} port 443 ipv6
     proto https
     request "/ping.txt" http headers [Host: {{ ansible_fqdn }}]
     content = "pong"
     then alert
+{% endif %}
   depends on WAN
 
 check process nsd with pidfile /var/nsd/run/nsd.pid
@@ -99,10 +97,12 @@ check process nsd with pidfile /var/nsd/run/nsd.pid
     host {{ wan_ipv4|ipaddr('address') }} port 53 type udp ipv4 proto dns
     for 5 cycles
     then alert
+{% if wan_ipv6 is defined %}
   if failed
     host {{ wan_ipv6|ipaddr('address') }} port 53 type udp ipv6 proto dns
     for 5 cycles
     then alert
+{% endif %}
   depends on WAN
 
 check process ntpd matching "^/usr/sbin/ntpd "
@@ -113,10 +113,12 @@ check process ntpd matching "^/usr/sbin/ntpd "
     host {{ lan_ipv4|ipaddr('address') }} port 123 type udp proto ntp3
     for 5 cycles
     then alert
+{% if lan_ipv6 is defined %}
   if failed
     host {{ lan_ipv6|ipaddr('address') }} port 123 type udp proto ntp3
     for 5 cycles
     then alert
+{% endif %}
   depends on LAN, WAN
 {% if vpn_client_if is defined %}
 
@@ -131,16 +133,6 @@ check process openvpn.server with pidfile /var/openvpn/server.pid
   depends on WAN
 {% endif %}
 
-check process rsyncd with pidfile /var/run/rsyncd.pid
-  start program = "/usr/sbin/rcctl start rsyncd"
-  stop program = "/usr/sbin/rcctl stop rsyncd"
-  if does not exist for 2 cycles then restart
-  if failed
-    host {{ lan_ipv4|ipaddr('address') }} port 873 type tcp ipv4 proto rsync
-    for 5 cycles
-    then alert
-  depends on LAN
-
 check process rtadvd matching "^/usr/sbin/rtadvd "
   start program = "/usr/sbin/rcctl start rtadvd"
   stop program = "/usr/sbin/rcctl stop rtadvd"
@@ -148,7 +140,7 @@ check process rtadvd matching "^/usr/sbin/rtadvd "
   if failed uid _rtadvd then alert
   if failed euid _rtadvd then alert
   if failed gid _rtadvd then alert
-  depends on LAN
+  depends on LAN, dhcpcd
 
 check process slaacd matching "^/sbin/slaacd$"
   start program = "/usr/sbin/rcctl start slaacd"
@@ -213,10 +205,12 @@ check process unbound with pidfile /var/run/unbound.pid
     host ::1 port 53 type udp proto dns
     for 5 cycles
     then alert
+{% if wan_ipv6 is defined %}
   if failed
     host {{ wan_ipv6|ipaddr('address') }} port 53 ipv6 type udp proto dns
     for 5 cycles
     then alert
+{% endif %}
   depends on LAN, WAN
 
 ## Check filesystem permissions, uid, gid, space and inode usage. Other services,
