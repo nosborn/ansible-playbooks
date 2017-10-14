@@ -28,13 +28,13 @@ server:
 	prefer-ip6: yes
 
 	access-control: 127.0.0.0/8 allow
-	access-control: {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }} allow
+	access-control: {{ lan_ipv4|ipaddr('host/prefix')|ipaddr('subnet') }} allow
 {% if vpn_server_ipv4 is defined %}
 	access-control: {{ vpn_server_ipv4|ipaddr('network') }}/{{ vpn_server_ipv4|ipaddr('prefix') }} allow
 {% endif %}
 	access-control: ::1 allow
 {% if lan_ipv6 is defined %}
-	access-control: {{ lan_ipv6|ipaddr('network') }}/{{ lan_ipv6|ipaddr('prefix') }} allow
+	access-control: {{ lan_ipv6|ipaddr('host/prefix')|ipaddr('subnet') }} allow
 {% endif %}
 {% if vpn_server_ipv6 is defined %}
 	access-control: {{ vpn_server_ipv6|ipaddr('network') }}/{{ vpn_server_ipv6|ipaddr('prefix') }} allow

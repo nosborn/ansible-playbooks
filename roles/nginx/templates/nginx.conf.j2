@@ -47,10 +47,11 @@ http {
   }
 
   server {
-    listen {{ wan_ipv4|ipaddr('address') }}:80 default_server;
+    # listen {{ wan_ipv4|ipaddr('address') }}:80 default_server;
 {% if wan_ipv6 is defined %}
-    listen {{ wan_ipv6|ipaddr('address')|ipwrap }}:80 default_server;
+    # listen {{ wan_ipv6|ipaddr('address')|ipwrap }}:80 default_server;
 {% endif %}
+    listen 80 default_server;
     server_name _;
 
     gzip off;

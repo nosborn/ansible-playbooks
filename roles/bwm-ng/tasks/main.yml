@@ -6,4 +6,5 @@
 - template:
     src=bwm-ng.conf.j2 dest=/etc/bwm-ng.conf
     owner=root group=wheel mode=0444
+    backup=yes
 ...

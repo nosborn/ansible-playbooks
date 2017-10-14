@@ -3,7 +3,7 @@
 PATH="/usr/local/sbin:/usr/local/bin:${PATH}"
 {% if pf_bogons_v4_table is defined or pf_bogons_v6_table is defined %}
 
-next_part "Updating bogon lists:"
+next_part 'Updating bogon lists:'
 {%   if pf_bogons_v4_table is defined %}
 TMPFILE=`mktemp` && {
   DBFILE=/var/db/{{ pf_bogons_v4_file }}
@@ -29,6 +29,6 @@ TMPFILE=`mktemp` && {
 {% endif %}
 {% if pf_bruteforce_table is defined %}
 
-next_part "Expiring bruteforce table:"
+next_part 'Expiring bruteforce table:'
 pfctl -q -t {{ pf_bruteforce_table }} -T expire 86400
 {% endif %}

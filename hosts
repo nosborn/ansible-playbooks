@@ -1,8 +1,5 @@
 [letsencrypt]
 tombstone
 
-[macos]
-mac-mini
-
 [openbsd]
 tombstone

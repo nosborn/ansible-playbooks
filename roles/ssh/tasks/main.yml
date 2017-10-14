@@ -5,6 +5,7 @@
     src=sshd_config.j2 dest=/etc/ssh/sshd_config
     owner=root group=wheel mode=0444
     validate='/usr/sbin/sshd -f %s -t'
+    backup=yes
   notify: restart sshd
 
 - name: Enable OpenSSH SSH daemon

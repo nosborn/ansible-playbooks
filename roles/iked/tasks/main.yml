@@ -7,6 +7,7 @@
   template:
     src=iked.conf.j2 dest=/etc/iked.conf
     owner=root group=wheel mode=0400
+    backup=yes
     validate='/sbin/iked -f %s -n'
   notify: reload iked
 

@@ -6,6 +6,7 @@
 - file:
     path={{ item }} state=directory
     owner=root group=wheel mode=0775
+    backup=yes
   with_items:
     - /var/www/sites/{{ site.name }}
     - /var/www/sites/{{ site.name }}/shared
@@ -16,11 +17,13 @@
   copy:
     content={{ item.htpasswd|default('') }} dest=/var/www{{ item.auth_basic_user_file }}
     owner=root group=www mode=0440
+    backup=yes
   with_items: "{{ site.locations|default([]) }}"
   notify: restart nginx
 
 - template:
     src=site.conf.j2 dest=/etc/nginx/sites.d/{{ site.name }}.conf
     owner=root group=wheel mode=0444
+    backup=yes
   notify: restart nginx
 ...

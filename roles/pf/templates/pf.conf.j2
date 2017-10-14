@@ -52,7 +52,6 @@ block drop in log on {{ wan_if }} inet from <{{ pf_bogons_v4_table }}>
 
 {% endif %}
 pass in on {{ wan_if }} inet6 proto udp from port 547 to ({{ wan_if }}) port 546
-pass in on {{ wan_if }} inet6 proto icmp6 to { ({{ wan_if }}) ff02::1/16 }
 
 {% if wan_ipv6 is defined %}
 pass in on {{ wan_if }} inet6 proto tcp to {{ wan_ipv6|ipaddr('address') }} port 22 \
@@ -66,13 +65,8 @@ pass in on {{ wan_if }} inet6 proto icmp6 to {{ wan_ipv6|ipaddr('address') }} ic
 block drop in log on {{ wan_if }} inet6 from <{{ pf_bogons_v6_table }}>
 
 {%   endif %}
-#pass in on {{ wan_if }} inet6 proto ipv6-icmp to { ({{ wan_if }}), ff02::1/16 } \
-#  icmp6-type { echoreq, routersol, routeradv, neighbrsol, neighbradv, redir }
-
-pass in on {{ wan_if }} inet6 proto ipv6-icmp all icmp6-type { routeradv routersol }
-pass in on {{ wan_if }} inet6 proto ipv6-icmp all icmp6-type { neighbradv neighbrsol }
-pass in on {{ wan_if }} inet6 proto ipv6-icmp all icmp6-type echoreq
-pass in on {{ wan_if }} inet6 proto ipv6-icmp all icmp6-type { unreach timex paramprob }
+pass in on {{ wan_if }} inet6 proto ipv6-icmp \
+  icmp6-type { routersol, routeradv, neighbrsol, neighbradv, redir }
 
 {% endif %}
 block drop in log on {{ wan_if }} from <{{ pf_bruteforce_table }}>

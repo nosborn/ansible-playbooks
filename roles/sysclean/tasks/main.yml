@@ -7,4 +7,5 @@
   copy:
     src=sysclean.ignore dest=/etc/sysclean.ignore
     owner=root group=wheel mode=0444
+    backup=yes
 ...

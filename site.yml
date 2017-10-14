@@ -1,10 +1,5 @@
 # site
 ---
-- hosts: mac-mini
-
-  roles:
-  # - { role: ssh, tags: ['ssh'] }
-
 - hosts: tombstone
 
   pre_tasks:
@@ -14,16 +9,19 @@
         content="tombstone.{{ global_domain }}\n"
         dest=/etc/myname
         owner=root group=wheel mode=0444
+        backup=yes
 
     - name: Host name database
       template:
         src=hosts.j2 dest=/etc/hosts
         owner=root group=wheel mode=0444
+        backup=yes
 
     - name: Interface-specific configuration files
       template:
         src=hostname.{{ item }}.j2 dest=/etc/hostname.{{ item }}
         owner=root group=wheel mode=0440
+        backup=yes
       with_items:
         - "{{ guest_if }}"
         - "{{ lan_if }}"
@@ -32,16 +30,26 @@
         - "{{ wlan_if }}"
       notify: netstart
 
+    - name: Interface-specific configuration files
+      template:
+        src=hostname.rdomain.j2 dest=/etc/hostname.lo{{ item }}
+        owner=root group=wheel mode=0440
+        backup=yes
+      with_items:
+        - "{{ guest_rdomain }}"
+      notify: netstart
+
     - name: Resolver configuration file
       template:
         src=templates/resolv.conf.j2 dest=/etc/resolv.conf
         owner=root group=wheel mode=0444
+        backup=yes
 
     - name: System-wide package system configuration
       copy:
-        content="{{ installurl }}\n"
-        dest=/etc/installurl
+        content="{{ installurl }}\n" dest=/etc/installurl
         owner=root group=wheel mode=0444
+        backup=yes
 
     - meta: flush_handlers
 
@@ -50,7 +58,7 @@
     - { role: avahi, tags: ['avahi'] }
     - { role: bwm-ng, tags: ['bwm-ng'] }
   # - c-icap
-    - { role: dhcpcd, tags: ['dhcpd'] }
+  # - { role: dhcpcd, tags: ['dhcpd'] }
     - { role: dhcpd, tags: ['dhcpd'] }
   # - { role: dhparams, tags: ['dhparams'] }
     - { role: doas, tags: ['doas'] }
@@ -59,7 +67,7 @@
   # - { role: httpd, tags: ['httpd'] }
     - { role: iftop, tags: ['iftop'] }
     - { role: iked, tags: ['iked'] }
-  # - { role: iplayer, tags: ['iplayer'] }
+    - { role: iplayer, tags: ['iplayer'] }
   # - { role: letsencrypt, tags: ['letsencrypt'] }
     - { role: locale, tags: ['locale'] }
     - { role: monit, tags: ['monit'] }
@@ -87,12 +95,14 @@
       copy:
         src=boot.conf dest=/etc/boot.conf
         owner=root group=wheel mode=0444
+        backup=yes
 
   # - name: 'terminal initialization information'
   #   replace:
   #     dest=/etc/ttys
   #     regexp='^(console\s+.+)\s+secure$'
   #     replace='\1'
+  #     backup=yes
 
     - name: sysctl variables to set at system startup
       sysctl:

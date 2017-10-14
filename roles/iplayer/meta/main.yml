@@ -1,0 +1,5 @@
+# roles/iplayer/meta/main
+---
+dependencies:
+  - { role: nginx }
+...

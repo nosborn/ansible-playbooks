@@ -4,11 +4,13 @@
   copy:
     content="{{ openvpn_server_config }}" dest=/etc/openvpn/server.conf
     owner=root group=wheel mode=0400
+    backup=yes
   notify: reload openvpn server
 
 - name: interface-specific configuration file
   template:
     src=hostname.server.j2 dest=/etc/hostname.{{ vpn_server_if }}
     owner=root group=wheel mode=0440
+    backup=yes
 # notify: restart openvpn server
 ...

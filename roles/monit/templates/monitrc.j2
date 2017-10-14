@@ -43,12 +43,6 @@ check process avahi-daemon with pidfile /var/run/avahi-daemon/pid
 #  if does not exist for 2 cycles then restart
 {% endif %}
 
-check process dhcpcd with pidfile /var/run/dhcpcd.pid
-  start program = "/usr/sbin/rcctl start dhcpcd"
-  stop program = "/usr/sbin/rcctl stop dhcpcd"
-  if does not exist for 2 cycles then restart
-  depends on WAN
-
 check process dhcpd matching "^/usr/sbin/dhcpd "
   start program = "/usr/sbin/rcctl start dhcpd"
   stop program = "/usr/sbin/rcctl stop dhcpd"
@@ -140,7 +134,7 @@ check process rtadvd matching "^/usr/sbin/rtadvd "
   if failed uid _rtadvd then alert
   if failed euid _rtadvd then alert
   if failed gid _rtadvd then alert
-  depends on LAN, dhcpcd
+  depends on LAN
 
 check process slaacd matching "^/sbin/slaacd$"
   start program = "/usr/sbin/rcctl start slaacd"

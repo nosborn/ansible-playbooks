@@ -10,6 +10,7 @@
   template:
     src="{{ item }}.j2" dest=/etc/c-icap/{{ item }}
     owner=root group=wheel mode=0444
+    backup=yes
   with_items:
     - c-icap.conf
     - srv_url_check.conf

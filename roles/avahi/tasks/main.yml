@@ -7,12 +7,14 @@
   template:
     src=avahi-daemon.conf.j2 dest=/etc/avahi/avahi-daemon.conf
     owner=root group=wheel mode=0444
+    backup=yes
   notify: restart avahi-daemon
 
 - name: avahi-daemon static service files
   template:
     src=services/{{ item }}.j2 dest=/etc/avahi/services/{{ item }}
     owner=root group=wheel mode=0444
+    backup=yes
   with_items:
     - monit.service
     - sftp-ssh.service

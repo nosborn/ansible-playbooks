@@ -3,11 +3,13 @@
 - copy:
     src=named.cache dest=/var/unbound/etc/named.cache
     owner=root group=wheel mode=0444
+    backup=yes
   notify: reload unbound
 
 - template:
     src={{ item }}.j2 dest=/var/unbound/etc/{{ item }}
     owner=root group=wheel mode=0444
+    backup=yes
   with_items:
     - domains
     - hosts
@@ -31,6 +33,7 @@
   template:
     src=unbound.conf.j2 dest=/var/unbound/etc/.unbound.conf
     owner=root group=wheel mode=0440
+    backup=yes
 
 - name: configuration file
   copy:
@@ -38,6 +41,7 @@
     owner=root group=wheel mode=0444
     remote_src=yes
     validate='/usr/sbin/unbound-checkconf %s'
+    backup=yes
   notify: reload unbound
 
 - name: start DNS resolver

@@ -1,7 +1,6 @@
 rtlabel {{ wan_rtlabel }}
 
 inet {{ wan_ipv4|ipaddr('address') }} 255.255.255.255 NONE mtu {{ pppoe_mtu }} \
-{# inet 0.0.0.0 255.255.255.255 NONE mtu {{ pppoe_mtu }} \ #}
   pppoedev {{ pppoe_pppoedev }} authproto {{ pppoe_authproto }} \
   authkey '{{ pppoe_authkey }}' authname '{{ pppoe_authname }}' \
   up
@@ -16,6 +15,7 @@ dest 0.0.0.1
 {%   endif %}
 {% endif %}
 
+inet6 {{ wan_ipv6|ipaddr('address') }} {{ wan_ipv6|ipaddr('prefix') }}
 inet6 autoconf
 
 !/sbin/route -n add -inet6 default -ifp \$if fe80::%\$if

@@ -3,10 +3,11 @@
 - name: install package
   openbsd_pkg: name=dhcpcd state=present
 
-- name: dhcpcd configuration file
+- name: DHCP client configuration file
   template:
     src=dhcpcd.conf.j2 dest=/etc/dhcpcd.conf
     owner=root group=wheel mode=0444
+    backup=yes
   notify: restart dhcpcd
 
 - name: enable DHCP client

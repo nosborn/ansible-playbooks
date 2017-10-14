@@ -4,6 +4,7 @@
     src={{ item }} dest=/etc/ssl/{{ item }}
     owner=root group=wheel mode=0444
     validate='/usr/bin/openssl dhparam -in %s -noout'
+    backup=yes
   with_items:
     - ffdhe2048.pem
     - ffdhe3072.pem

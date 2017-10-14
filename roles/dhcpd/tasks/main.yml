@@ -4,6 +4,7 @@
   template:
     src=dhcpd.conf.j2 dest=/etc/dhcpd.conf
     owner=root group=wheel mode=0444
+    backup=yes
     validate='/usr/sbin/dhcpd -c %s -n'
   notify: restart dhcpd
 

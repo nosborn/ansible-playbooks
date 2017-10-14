@@ -1,6 +1,13 @@
+{% if 'channel' in item.value %}
 channel {{ item.value.channel }}
+{% endif %}
+command TZ=Europe/London touch -d "$(echo <firstbcast>|cut -d+ -f1)" "<filename>"
 fileprefix {{ item.value.fileprefix }}
 output {{ item.value.output }}
+{% if 'type' in item.value %}
 type {{ item.value.type }}
-whitespace {{ item.value.whitespace }}
+{% else %}
+type tv
+{% endif %}
+whitespace 1
 search0 {{ item.value.search0 }}

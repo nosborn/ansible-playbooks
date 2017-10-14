@@ -18,6 +18,7 @@
     src=nginx.conf.j2 dest=/etc/nginx/nginx.conf
     owner=root group=wheel mode=0444
     validate='/usr/local/sbin/nginx -c %s -t'
+    backup=yes
   notify: restart nginx
 
 - name: enable and start service
@@ -33,9 +34,11 @@
     path=/etc/newsyslog.conf
     regexp='^/var/www/logs/access.log\s'
     line='/var/www/logs/access.log\t\t644  4     *    $W0   ZB /var/run/nginx.pid SIGUSR1'
+    backup=yes
 
 - lineinfile:
     path=/etc/newsyslog.conf
     regexp='^/var/www/logs/error.log\s'
     line='/var/www/logs/error.log\t\t644  7     250  *     ZB /var/run/nginx.pid SIGUSR1'
+    backup=yes
 ...

@@ -5,6 +5,7 @@
     src=ntpd.conf.j2 dest=/etc/ntpd.conf
     owner=root group=wheel mode=0444
     validate='/usr/sbin/ntpd -f %s -n'
+    backup=yes
   notify: restart ntpd
 
 - name: start NTP daemon
