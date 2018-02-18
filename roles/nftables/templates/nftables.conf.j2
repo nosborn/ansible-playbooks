@@ -1,0 +1,118 @@
+#!/usr/bin/nft -f
+
+flush ruleset
+
+table ip filter {
+  chain input {
+    type filter hook input priority 0; policy drop;
+
+    # early drop of invalid connections
+    ct state invalid counter drop comment "drop invalid packets"
+
+    # allow established/related connections
+    ct state {established, related} counter accept
+
+    # allow from loopback
+    iifname "lo" counter accept comment "accept loopback"
+    iifname != "lo" ip daddr 127.0.0.1/8 counter drop
+
+    # allow from local network
+    iifname "{{ lan_if }}" accept
+
+    # allow icmp
+    ip protocol icmp accept
+
+    # allow ssh
+    tcp dport ssh accept
+
+    # allow dns
+    tcp dport domain accept
+    udp dport domain accept
+
+    tcp dport http accept
+    tcp dport https accept
+
+    # everything else
+    #reject with icmpx type port-unreachable
+  }
+
+  chain forward {
+    type filter hook forward priority 0; policy accept;
+    oifname "{{ wan_if }}" tcp flags syn tcp option maxseg size set rt mtu;
+    counter comment "count accepted packets"
+  }
+
+  chain output {
+    type filter hook output priority 0; policy accept;
+    counter comment "count accepted packets"
+  }
+}
+
+table ip nat {
+  chain prerouting {
+    type nat hook prerouting priority 0; policy accept;
+    counter comment "count accepted packets"
+  }
+
+  chain input {
+    type nat hook input priority 0; policy accept;
+    counter comment "count accepted packets"
+  }
+
+  chain output {
+    type nat hook output priority 0; policy accept;
+    counter comment "count accepted packets"
+  }
+
+  chain postrouting {
+    type nat hook postrouting priority 100; policy accept;
+    ip saddr {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }} oif "{{ wan_if }}" snat {{ wan_ipv4|ipaddr('address') }};
+    counter comment "count accepted packets"
+  }
+}
+
+table ip6 filter {
+  chain input {
+    type filter hook input priority 0; policy drop;
+
+    # early drop of invalid connections
+    ct state invalid counter drop comment "drop invalid packets"
+
+    # allow established/related connections
+    ct state {established, related} counter accept
+
+    # allow from loopback
+    iifname "lo" counter accept comment "accept loopback"
+    iifname != "lo" ip6 daddr ::1/128 counter drop
+
+    # allow from local network
+    iifname "{{ lan_if }}" accept
+
+    # allow icmp
+    ip6 nexthdr icmpv6 accept
+
+    # allow ssh
+    tcp dport ssh accept
+
+    # allow dns
+    tcp dport domain accept
+    udp dport domain accept
+
+    tcp dport http accept
+    tcp dport https accept
+
+    udp dport dhcpv6-client accept
+
+    counter comment "count dropped packets"
+  }
+
+  chain forward {
+    type filter hook forward priority 0; policy accept;
+    counter comment "count accepted packets"
+  }
+
+  chain output {
+    type filter hook output priority 0; policy accept;
+    counter comment "count accepted packets"
+  }
+}

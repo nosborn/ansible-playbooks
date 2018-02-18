@@ -1,5 +1,8 @@
 # roles/avahi/handlers/main
 ---
+- name: reload dbus
+  service: name=dbus state=reloaded
+
 - name: restart avahi-daemon
-  service: name=avahi_daemon state=restarted
+  service: name=avahi-daemon state=restarted
 ...

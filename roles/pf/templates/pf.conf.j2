@@ -10,7 +10,7 @@ set limit table-entries 500000
 set loginterface {{ wan_if }}
 set reassemble yes no-df
 set skip on { lo {{ pppoe_pppoedev }} }
-set state-policy if-bound
+#set state-policy if-bound
 
 # Tables
 
@@ -27,7 +27,7 @@ table <{{ pf_bogons_v6_table }}> counters persist file "/var/db/{{ pf_bogons_v6_
 block return log  # block stateless traffic
 pass out          # establish keep-state
 
-match proto tcp set prio (3, 7)
+#match proto tcp set prio (3, 7)
 
 # WAN_IF
 # in on WAN_IF

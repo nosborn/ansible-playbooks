@@ -1,24 +1,15 @@
 # roles/ssh/tasks/main
 ---
+- name: install package
+  package: name=openssh state=present
+
 - name: OpenSSH SSH daemon configuration file
   template:
     src=sshd_config.j2 dest=/etc/ssh/sshd_config
-    owner=root group=wheel mode=0444
+    owner=root group=root mode=0400
     validate='/usr/sbin/sshd -f %s -t'
-    backup=yes
   notify: restart sshd
 
 - name: Enable OpenSSH SSH daemon
   service: name=sshd enabled=yes state=started
-
-- fetch: src={{ item }} dest=backup fail_on_missing=yes
-  with_items:
-    - /etc/ssh/ssh_host_dsa_key
-    - /etc/ssh/ssh_host_dsa_key.pub
-    - /etc/ssh/ssh_host_ecdsa_key
-    - /etc/ssh/ssh_host_ecdsa_key.pub
-    - /etc/ssh/ssh_host_ed25519_key
-    - /etc/ssh/ssh_host_ed25519_key.pub
-    - /etc/ssh/ssh_host_rsa_key
-    - /etc/ssh/ssh_host_rsa_key.pub
 ...

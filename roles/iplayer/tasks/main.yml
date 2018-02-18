@@ -1,11 +1,40 @@
 # roles/iplayer/tasks/main
 ---
-- name: install package
-  openbsd_pkg: name=get_iplayer state=present
+- name: install dependencies
+  package: name={{ item }} state=present
+  with_items:
+    - atomicparsley
+    - ffmpeg
+    # - perl-json-pp -- FIXME
+    - perl-libwww
+    - perl-lwp-protocol-https
+    - perl-xml-libxml
+
+- name: download distribution
+  unarchive:
+    src=https://github.com/get-iplayer/get_iplayer/archive/v{{ iplayer_version }}.tar.gz
+    remote_src=yes dest=/tmp
+    creates=/tmp/get_iplayer-{{ iplayer_version }}/get_iplayer
+
+- name: insall script
+  copy:
+    src=/tmp/get_iplayer-{{ iplayer_version }}/get_iplayer
+    remote_src=yes dest=/usr/local/bin/get_iplayer
+    owner=root group=root mode=0555
+
+- file:
+    path=/usr/local/man/man1 state=directory
+    owner=root group=root mode=0555
+
+- name: install man page
+  copy:
+    src=/tmp/get_iplayer-{{ iplayer_version }}/get_iplayer.1
+    remote_src=yes dest=/usr/local/man/man1/get_iplayer.1
+    owner=root group=root mode=0444
 
 - name: create directories
   file:
-    dest={{ item }} state=directory
+    path={{ item }} state=directory
     owner={{ iplayer_pvr_user }} group={{ iplayer_pvr_user }} mode=0750
   with_items:
     - "{{ iplayer_dir }}"
@@ -15,13 +44,11 @@
   template:
     src=options.j2 dest={{ iplayer_dir }}/options
     owner={{ iplayer_pvr_user }} group={{ iplayer_pvr_user }} mode=0440
-    backup=yes
 
 - name: configure PVR
   template:
     src=show.j2 dest={{ iplayer_dir }}/pvr/{{ item.key }}
     owner={{ iplayer_pvr_user }} group={{ iplayer_pvr_user }} mode=0440
-    backup=yes
   with_dict: "{{ iplayer_pvr_shows }}"
 
 - name: schedule PVR
@@ -30,7 +57,7 @@
     minute={{ 59|random(seed=inventory_hostname) }}
     hour=0,4,8,12,16,20
     user={{ iplayer_pvr_user }}
-    job="get_iplayer --silent --pvr | mail -E -r iplayer -s 'iPlayer PVR' {{ iplayer_pvr_mail|join(" ") }}"
+    job="/usr/local/bin/get_iplayer --silent --pvr | mail -E -r iplayer@{{ ansible_fqdn }} -s 'iPlayer PVR' {{ iplayer_pvr_mail|join(" ") }}"
 
 - name: schedule purge files
   cron:
@@ -38,5 +65,5 @@
     minute={{ 59|random(seed=inventory_hostname) }}
     hour=2
     user={{ iplayer_pvr_user }}
-    job="echo yes | get_iplayer --silent --purge-files"
+    job="echo yes | /usr/local/bin/get_iplayer --silent --purge-files"
 ...

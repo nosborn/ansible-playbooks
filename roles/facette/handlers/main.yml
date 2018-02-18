@@ -1,0 +1,5 @@
+# roles/facette/handlers/main
+---
+- name: restart facette
+  service: name=facette state=restarted
+...

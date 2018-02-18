@@ -1,0 +1,5 @@
+# roles/collectd/handlers/main
+---
+- name: restart collectd
+  service: name=collectd state=restarted
+...

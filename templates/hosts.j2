@@ -1,7 +1,10 @@
-127.0.0.1	localhost
-::1		localhost
+# Static table lookup for hostnames.
+# See hosts(5) for details.
 
-{{ wan_ipv4|ipaddr('address') }}	{{ ansible_fqdn }}	{{ ansible_hostname }}
+# 127.0.0.1	localhost
+# ::1		localhost
+
+{{ wan_ipv4|ipaddr('address') }}	{{ ansible_hostname }}.{{ global_domain }}	{{ ansible_hostname }}
 {% if wan_ipv6 is defined %}
-{{ wan_ipv6|ipaddr('address') }}	{{ ansible_fqdn }}	{{ ansible_hostname }}
+{{ wan_ipv6|ipaddr('address') }}	{{ ansible_hostname }}.{{ global_domain }}	{{ ansible_hostname }}
 {% endif %}

@@ -1,5 +1,0 @@
-# role/ntpd/defaults/main
----
-ntpd_servers:
-  - 'pool.ntp.org'
-...

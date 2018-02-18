@@ -1,23 +1,22 @@
-# $OpenBSD: nsd.conf,v 1.11 2015/04/12 11:49:39 sthen Exp $
+# {{ ansible_managed }}
 
 server:
 	ip-address: {{ wan_ipv4|ipaddr('address') }}
-{% if wan_ipv6 is defined %}
-#	ip-address: {{ wan_ipv6|ipaddr('address') }}
-{% endif %}
-	database: "" # disable database
+	ip-address: {{ wan_ipv6|ipaddr('address') }}
+	ip-transparent: yes
 	identity: ""
 	server-count: {{ nsd_server_count }}
+	username: nsd
 	verbosity: {{ nsd_verbosity }}
 	hide-version: yes
 
-remote-control:
-	control-enable: yes
-	control-interface: 127.0.0.1
+#remote-control:
+#	control-enable: yes
+#	control-interface: 127.0.0.1
 
 pattern:
 	name: default
-	zonefile: "master/%s.zone"
+	zonefile: "/etc/nsd/%s.zone"
 	outgoing-interface: {{ wan_ipv4|ipaddr('address') }}
 
 pattern:

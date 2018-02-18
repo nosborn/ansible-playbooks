@@ -1,5 +1,3 @@
-# $OpenBSD: unbound.conf,v 1.7 2016/03/30 01:41:25 sthen Exp $
-
 server:
 	verbosity: {{ unbound_verbosity }}
 
@@ -7,42 +5,31 @@ server:
 
 	interface: 127.0.0.1
 	interface: {{ lan_ipv4|ipaddr('address') }}
-{% if vpn_server_ipv4 is defined %}
-	interface: {{ vpn_server_ipv4|ipaddr('address') }}
-{% endif %}
 	interface: ::1
-{% if lan_ipv6 is defined %}
 	interface: {{ lan_ipv6|ipaddr('address') }}
-{% endif %}
-{% if vpn_server_ipv6 is defined %}
-	interface: {{ vpn_server_ipv6|ipaddr('address') }}
-{% endif %}
 
 {% if vpn_server_if is defined %}
 	outgoing-port-avoid: 1194
 
 {% endif %}
-	rrset-cache-size: 8m
-	cache-min-ttl: 3600
+#	rrset-cache-size: 8m
+#	cache-min-ttl: 3600
 
-	prefer-ip6: yes
+	so-reuseport: yes
+	ip-transparent: yes
+
+	prefer-ip6: no # TODO: yes
 
 	access-control: 127.0.0.0/8 allow
 	access-control: {{ lan_ipv4|ipaddr('host/prefix')|ipaddr('subnet') }} allow
 {% if vpn_server_ipv4 is defined %}
-	access-control: {{ vpn_server_ipv4|ipaddr('network') }}/{{ vpn_server_ipv4|ipaddr('prefix') }} allow
+#	access-control: {{ vpn_server_ipv4|ipaddr('network') }}/{{ vpn_server_ipv4|ipaddr('prefix') }} allow
 {% endif %}
 	access-control: ::1 allow
-{% if lan_ipv6 is defined %}
 	access-control: {{ lan_ipv6|ipaddr('host/prefix')|ipaddr('subnet') }} allow
-{% endif %}
 {% if vpn_server_ipv6 is defined %}
-	access-control: {{ vpn_server_ipv6|ipaddr('network') }}/{{ vpn_server_ipv6|ipaddr('prefix') }} allow
+#	access-control: {{ vpn_server_ipv6|ipaddr('network') }}/{{ vpn_server_ipv6|ipaddr('prefix') }} allow
 {% endif %}
-
-	pidfile: /var/run/unbound.pid
-
-	root-hints: /var/unbound/etc/named.cache
 
 	hide-identity: yes
 	hide-version: yes
@@ -62,7 +49,7 @@ server:
 	prefetch: yes
 	prefetch-key: yes
 
-	auto-trust-anchor-file: /var/unbound/db/root.key
+	trusted-keys-file: /etc/unbound/trusted-key.key
 
 	domain-insecure: local
 
@@ -81,12 +68,12 @@ server:
 #	local-data-ptr: "{{ lan_ipv4|ipaddr('4')|ipaddr('address') }} mac-mini.local"
 	local-data-ptr: "{{ guest_ipv4|ipaddr('1')|ipaddr('address') }} tombstone.local"
 
-	include: /var/unbound/etc/domains
-	include: /var/unbound/etc/hosts
+	include: /etc/unbound/domains
+	include: /etc/unbound/hosts
 
-remote-control:
-	control-enable: yes
-	control-interface: /var/run/unbound.control
+#remote-control:
+#	control-enable: yes
+#	control-interface: /var/run/unbound.control
 {% if unbound_forward_zones is defined %}
 {%   for forward_zone in unbound_forward_zones %}
 
@@ -97,6 +84,9 @@ forward-zone:
 {%     endfor %}
 {%     if forward_zone.forward_first is defined %}
 	forward-first: {{ forward_zone.forward_first }}
+{%     endif %}
+{%     if forward_zone.forward_ssl_upstream is defined %}
+	forward-ssl-upstream: {{ forward_zone.forward_ssl_upstream }}
 {%     endif %}
 {%   endfor %}
 {% endif %}

@@ -1,4 +1,4 @@
-# Configuration file for ISC dhcpd.
+# {{ ansible_managed }}
 
 authoritative;
 
@@ -19,9 +19,7 @@ subnet {{ lan_ipv4|ipaddr('network') }} netmask {{ lan_ipv4|ipaddr('netmask') }}
 }
 
 subnet {{ guest_ipv4|ipaddr('network') }} netmask {{ guest_ipv4|ipaddr('netmask') }} {
-#	option domain-name "{{ global_domain }}";
 	option domain-name-servers {{ guest_nameservers|ipv4|join(', ') }};
-#	option ntp-servers {{ guest_ipv4|ipaddr('address') }};
 	option routers {{ guest_ipv4|ipaddr('address') }};
 
 	range {{ guest_ipv4|ipaddr('100')|ipaddr('address') }} {{ guest_ipv4|ipaddr('199')|ipaddr('address') }};

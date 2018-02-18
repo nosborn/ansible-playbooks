@@ -1,4 +1,5 @@
 # roles/iplayer/defaults/main
 ---
 iplayer_dir: "/home/{{ iplayer_pvr_user }}/.get_iplayer"
+iplayer_version: '3.12'
 ...

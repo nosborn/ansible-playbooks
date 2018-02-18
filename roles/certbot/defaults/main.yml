@@ -1,0 +1,4 @@
+# roles/certbot/defaults/main
+---
+certbot_webroot_path: "/var/lib/letsencrypt"
+...

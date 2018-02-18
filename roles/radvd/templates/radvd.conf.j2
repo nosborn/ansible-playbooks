@@ -1,0 +1,11 @@
+interface {{ lan_if }} {
+  AdvSendAdvert on;
+  MaxRtrAdvInterval 10;
+  MinRtrAdvInterval 3;
+
+  prefix {{ lan_ipv6|ipaddr('network') }}/{{ lan_ipv6|ipaddr('prefix') }} {
+    AdvOnLink on;
+    AdvAutonomous on;
+    AdvRouterAddr on;
+  };
+};

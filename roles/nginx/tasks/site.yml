@@ -1,29 +1,26 @@
 # roles/nginx/tasks/site
 ---
-- include_tasks: roles/letsencrypt/tasks/domain.yml domain={{ site.name }}
+- include_tasks: roles/certbot/tasks/domain.yml domain={{ site.name }}
   notify: restart nginx
 
 - file:
     path={{ item }} state=directory
-    owner=root group=wheel mode=0775
-    backup=yes
+    owner=root group={{ http_deploy_group }} mode=0775
   with_items:
-    - /var/www/sites/{{ site.name }}
-    - /var/www/sites/{{ site.name }}/shared
+    - /srv/http/{{ site.name }}
+    - /srv/http/{{ site.name }}/shared
   when: site.redirect is not defined
 
 - name: create htpasswd file
   when: item.auth_basic_user_file is defined
   copy:
-    content={{ item.htpasswd|default('') }} dest=/var/www{{ item.auth_basic_user_file }}
-    owner=root group=www mode=0440
-    backup=yes
+    content={{ item.htpasswd|default('') }} dest=/etc/nginx/{{ item.auth_basic_user_file }}
+    owner=root group=http mode=0440
   with_items: "{{ site.locations|default([]) }}"
   notify: restart nginx
 
 - template:
-    src=site.conf.j2 dest=/etc/nginx/sites.d/{{ site.name }}.conf
-    owner=root group=wheel mode=0444
-    backup=yes
+    src=site.conf.j2 dest=/etc/nginx/conf.d/{{ site.name }}.conf
+    owner=root group=root mode=0444
   notify: restart nginx
 ...

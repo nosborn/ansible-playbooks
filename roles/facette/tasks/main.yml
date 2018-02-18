@@ -1,0 +1,17 @@
+# roles/facette/tasks/main
+---
+- name: install package
+  openbsd_pkg: name=facette state=present
+
+- name: install configuration files
+  template:
+    src={{ item }}.j2 dest=/etc/facette/{{ item }}
+    owner=root group=wheel mode=0444
+  with_items:
+    - facette.json
+    - providers/collectd.json
+  notify: restart facette
+
+- name: enable and start service
+  service: name=facette enabled=yes state=started
+...

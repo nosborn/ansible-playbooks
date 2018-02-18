@@ -1,4 +1,3 @@
 group_vars/*/vault.yml diff=ansible-vault merge=binary
 host_vars/*/vault.yml diff=ansible-vault merge=binary
-roles/*/vars/secrets.yml diff=ansible-vault merge=binary
 roles/*/vars/vault.yml diff=ansible-vault merge=binary

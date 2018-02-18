@@ -1,47 +1,46 @@
 # roles/unbound/tasks/main
 ---
-- copy:
-    src=named.cache dest=/var/unbound/etc/named.cache
-    owner=root group=wheel mode=0444
-    backup=yes
-  notify: reload unbound
+- name: install package
+  package: name=unbound state=present
+
+#- copy:
+#    src=named.cache dest=/etc/unbound/named.cache
+#    owner=root group=root mode=0444
+#  notify: reload unbound
 
 - template:
-    src={{ item }}.j2 dest=/var/unbound/etc/{{ item }}
-    owner=root group=wheel mode=0444
-    backup=yes
+    src={{ item }}.j2 dest=/etc/unbound/{{ item }}
+    owner=root group=root mode=0444
   with_items:
     - domains
     - hosts
   notify: reload unbound
 
-- name: setup the root trust anchor
-  command: /usr/sbin/unbound-anchor
-  args:
-    creates: /var/unbound/db/root.key
-  register: command_result
-  failed_when: 'command_result.rc > 1'
-  changed_when: 'command_result.rc == 1'
-  notify: reload unbound
+#- name: setup the root trust anchor
+#  command: /usr/sbin/unbound-anchor
+#  args:
+#    creates: /var/unbound/db/root.key
+#  register: command_result
+#  failed_when: 'command_result.rc > 1'
+#  changed_when: 'command_result.rc == 1'
+#  notify: reload unbound
 
-- command: /usr/sbin/unbound-control-setup
-  args:
-    creates: /var/unbound/etc/unbound_control.key
-  notify: reload unbound
+#- command: /usr/sbin/unbound-control-setup
+#  args:
+#    creates: /var/unbound/etc/unbound_control.key
+#  notify: reload unbound
 
 - name: temporary configuration file
   template:
-    src=unbound.conf.j2 dest=/var/unbound/etc/.unbound.conf
-    owner=root group=wheel mode=0440
-    backup=yes
+    src=unbound.conf.j2 dest=/etc/unbound/.unbound.conf
+    owner=root group=root mode=0440
 
 - name: configuration file
   copy:
-    src=/var/unbound/etc/.unbound.conf dest=/var/unbound/etc/unbound.conf
-    owner=root group=wheel mode=0444
+    src=/etc/unbound/.unbound.conf dest=/etc/unbound/unbound.conf
+    owner=root group=root mode=0444
     remote_src=yes
-    validate='/usr/sbin/unbound-checkconf %s'
-    backup=yes
+    validate='unbound-checkconf %s'
   notify: reload unbound
 
 - name: start DNS resolver

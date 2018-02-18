@@ -1,5 +1,0 @@
-# roles/pftop/meta/main
----
-dependencies:
-  - { role: pf }
-...

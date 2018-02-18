@@ -1,11 +1,13 @@
 # roles/nsd/tasks/main
 ---
+- name: install package
+  package: name=nsd state=present
+
 - name: install zone files
   template:
-    src=zones/{{ item }}.j2 dest=/var/nsd/zones/master/{{ item }}.zone
-    owner=root group=wheel mode=0444
-    validate='/usr/sbin/nsd-checkzone {{ item }} %s'
-    backup=yes
+    src=zones/{{ item }}.j2 dest=/etc/nsd/{{ item }}.zone
+    owner=root group=root mode=0444
+    validate='nsd-checkzone {{ item }} %s'
   with_items:
     - leavethegun.com
     - osborn.io
@@ -14,10 +16,9 @@
 
 - name: install NSD configuration file
   template:
-    src=nsd.conf.j2 dest=/var/nsd/etc/nsd.conf
-    owner=root group=_nsd mode=0440
-    validate='/usr/sbin/nsd-checkconf %s'
-    backup=yes
+    src=nsd.conf.j2 dest=/etc/nsd/nsd.conf
+    owner=root group=root mode=0444
+    validate='nsd-checkconf %s'
   notify: reload nsd
 
 - name: Name Server Daemon (NSD)

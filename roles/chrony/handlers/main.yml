@@ -1,0 +1,5 @@
+# roles/cronie/handlers/main
+---
+- name: restart cronie
+  service: name=cronie state=restarted
+...

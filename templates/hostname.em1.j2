@@ -1,7 +1,0 @@
-rtlabel {{ lan_rtlabel }}
-
-inet {{ lan_ipv4|ipaddr('address') }} {{ lan_ipv4|ipaddr('netmask') }} NONE
-inet6 {{ lan_ipv6|ipaddr('address') }} {{ lan_ipv6|ipaddr('prefix') }}
-up
-
-!/sbin/route -n add -inet 169.254/16 -iface {{ lan_ipv4|ipaddr('address') }}

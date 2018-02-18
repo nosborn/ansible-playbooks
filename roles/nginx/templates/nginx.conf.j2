@@ -1,8 +1,9 @@
+user http;
 worker_processes {{ nginx_worker_processes }};
 
-#error_log logs/error.log;
-#error_log logs/error.log notice;
-#error_log logs/error.log info;
+#error_log /var/log/nginx/error.log;
+#error_log /var/log/nginx/error.log notice;
+#error_log /var/log/nginx/error.log info;
 
 events {
   worker_connections 1024;
@@ -17,7 +18,7 @@ http {
   default_type application/octet-stream;
 
   sendfile on;
-  tcp_nopush on;
+  #tcp_nopush on;
 
   gzip on;
   gzip_types application/javascript application/json text/css text/plain text/xml;
@@ -31,7 +32,7 @@ http {
   log_format vcombined '$host: $remote_addr - $remote_user [$time_local] '
                        '"$request" $status $body_bytes_sent "$http_referer" '
                        '"$http_user_agent"';
-  access_log logs/access.log vcombined;
+  access_log /var/log/nginx/access.log vcombined;
 
   server {
     listen 127.0.0.1:80 default_server;
@@ -48,9 +49,7 @@ http {
 
   server {
     # listen {{ wan_ipv4|ipaddr('address') }}:80 default_server;
-{% if wan_ipv6 is defined %}
     # listen {{ wan_ipv6|ipaddr('address')|ipwrap }}:80 default_server;
-{% endif %}
     listen 80 default_server;
     server_name _;
 
@@ -63,8 +62,8 @@ http {
     add_header X-XSS-Protection '1; mode=block' always;
 
     location ^~ /.well-known/acme-challenge/ {
-      alias /acme/;
-      allow all;
+      default_type "text/plain";
+      root {{ certbot_webroot_path }};
     }
 
     location / {
@@ -72,5 +71,5 @@ http {
     }
   }
 
-  include /etc/nginx/sites.d/*.conf;
+  include /etc/nginx/conf.d/*.conf;
 }

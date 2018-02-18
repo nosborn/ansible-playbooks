@@ -1,15 +1,13 @@
 #
-# $OpenBSD: acme-client.conf,v 1.4 2017/03/22 11:14:14 benno Exp $
+# $OpenBSD: acme-client.conf,v 1.6 2017/11/27 01:59:55 florian Exp $
 #
 authority letsencrypt {
-        agreement url "https://letsencrypt.org/documents/LE-SA-v1.1.1-August-1-2016.pdf"
         api url "https://acme-v01.api.letsencrypt.org/directory"
         account key "{{ letsencrypt_account_key_file }}"
 }
 {% if letsencrypt_staging_ccount_key is defined %}
 
 authority letsencrypt-staging {
-        agreement url "https://letsencrypt.org/documents/LE-SA-v1.1.1-August-1-2016.pdf"
         api url "https://acme-staging.api.letsencrypt.org/directory"
         account key "{{ letsencrypt_staging_account_key_file }}"
 }
@@ -17,9 +15,9 @@ authority letsencrypt-staging {
 {% for site in sites | sort(attribute='name') %}
 
 domain {{ site.name }} {
-{% if site.aliases is defined %}
+{%   if site.aliases is defined %}
         alternative names { {{ site.aliases | sort | join(' ' ) }} }
-{% endif %}
+{%   endif %}
         domain key "/etc/ssl/private/{{ site.name }}.key"
         domain certificate "/etc/ssl/{{ site.name }}.crt"
         domain chain certificate "/etc/ssl/{{ site.name }}.chain.pem"

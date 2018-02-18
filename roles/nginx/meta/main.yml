@@ -1,6 +1,6 @@
 # roles/nginx/meta/main
 ---
 dependencies:
+  - { role: certbot }
   - { role: dhparams }
-  - { role: letsencrypt }
 ...

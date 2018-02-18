@@ -1,0 +1,14 @@
+# roles/collectd/tasks/main
+---
+- name: install package
+  package: name=collectd state=present
+
+# - name: install configuration file
+#   template:
+#     src=collectd.conf.j2 dest=/etc/collectd.conf
+#     owner=root group=_collectd mode=0440
+#     validate='collectd -C %s -t'
+#   notify: restart collectd
+
+#- service: name=collectd enabled=yes state=started
+...

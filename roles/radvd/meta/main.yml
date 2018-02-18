@@ -1,0 +1,5 @@
+# roles/radvd/meta/main
+---
+# dependencies:
+#   - { role: router }
+...

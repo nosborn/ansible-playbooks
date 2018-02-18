@@ -1,0 +1,15 @@
+# {{ ansible_managed }}
+
+allowinterfaces {{ wan_if }} {{ lan_if }}
+duid
+persistent
+ipv6only
+#noipv6rs
+option rapid_commit
+noipv4ll
+require dhcp_server_identifier
+script /usr/bin/true
+slaac private
+
+interface {{ wan_if }}
+  ia_pd 2 {{ lan_if }}/82
