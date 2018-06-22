@@ -1,0 +1,5 @@
+# roles/yamllint/tasks/main
+---
+- name: install package
+  openbsd_pkg: name=py-yamllint state=present
+...

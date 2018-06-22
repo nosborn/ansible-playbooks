@@ -1,6 +1,0 @@
-# role/c-icap/vars/main
----
-c_icap_pid_file: /var/run/c-icap/c-icap.pid
-c_icap_port: 1344
-c_icap_url_check_id: 'url_check'
-...

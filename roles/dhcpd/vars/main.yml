@@ -1,0 +1,8 @@
+# roles/dhcpd/vars/main
+---
+dhcpd_guest_abandoned_ip_table: 'guest-abandoned-ip'
+dhcpd_guest_config_file: "/etc/dhcpd{{ guest_rdomain }}.conf"
+dhcpd_guest_leased_ip_table: 'guest-leased-ip'
+dhcpd_guest_lease_file: "/var/db/dhcpd{{ guest_rdomain }}.leases"
+dhcpd_guest_service: "dhcpd{{ guest_rdomain }}"
+...

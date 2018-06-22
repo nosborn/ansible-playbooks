@@ -1,7 +1,0 @@
-# roles/router/tasks/main
----
-- sysctl: name={{ item }} reload=no sysctl_set=yes value=1
-  with_items:
-    - net.inet.ip.forwarding
-    - net.inet6.ip6.forwarding
-...

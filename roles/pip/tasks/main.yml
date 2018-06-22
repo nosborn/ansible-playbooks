@@ -1,7 +1,0 @@
-# roles/pip/tasks/main
----
-- name: install package
-  openbsd_pkg: name=py-pip state=present
-
-- file: src=pip2.7 dest=/usr/local/bin/pip state=link
-...

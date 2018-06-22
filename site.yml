@@ -3,148 +3,103 @@
 - hosts: tombstone
 
   pre_tasks:
-    - name: Default hostname
-      copy:
-        content="tombstone\n"
-        dest=/etc/hostname
-        owner=root group=root mode=0444
 
-    - name: Host name database
+    - name: set localtime link
+      file:
+        src=/usr/share/zoneinfo/{{ timezone }} dest=/etc/localtime
+        state=link force=yes
+
+    - name: default hostname
+      copy:
+        content="tombstone.{{ global_domain }}\n" dest=/etc/myname
+        owner=root group=wheel mode=0444
+
+    - name: host name database
       template:
         src=hosts.j2 dest=/etc/hosts
-        owner=root group=root mode=0444
+        owner=root group=wheel mode=0444
 
-    - name: Resolver configuration file
+    - name: resolver configuration file
       template:
         src=templates/resolv.conf.j2 dest=/etc/resolv.conf
-        owner=root group=root mode=0444
+        owner=root group=wheel mode=0444
 
-    - name: Network configuration files
+    - name: sysctl variables to set at system startup
+      sysctl:
+        name={{ item.key }} value={{ item.value }} reload=yes sysctl_set=yes
+      with_dict:
+        ddb.panic: 0
+        net.inet.ip.forwarding: 1
+        net.inet6.ip6.forwarding: 1
+
+    - name: interface-specific configuration files
       template:
-        src={{ item }}.network.j2 dest=/etc/systemd/network/{{ item }}.network
-        owner=root group=root mode=0444
+        src=hostname.{{ item }}.j2 dest=/etc/hostname.{{ item }}
+        owner=root group=wheel mode=0440
       with_items:
+        - "{{ guest_if }}"
         - "{{ lan_if }}"
-        - "{{ pppoe_pppoedev }}"
-      notify: restart systemd-networkd
+        - "{{ pppoe_if }}"
+        - "{{ wan_if }}"
+        - "{{ wlan_if }}"
+      notify: netstart
 
-    - name: PPP secrets
-      template:
-        src=chap-secrets.j2 dest=/etc/ppp/chap-secrets
-        owner=root group=root mode=0400
-    # notify: restart systemd-networkd
-
-    - template:
-        src=peer.zen.j2 dest=/etc/ppp/peers/zen
-        owner=root group=root mode=0444
-      # notify: restart systemd-networkd
-
-    - name: default PPP provider
-      file: path=/etc/ppp/peers/provider src=zen state=link
-    # notify: restart systemd-networkd
-
-    - name: enable ppp@zen
-      service: name=ppp@zen enabled=yes state=started
-
-    - sysctl:
-        name={{ item }} value=1 sysctl_set=yes state=present
-        sysctl_file=/etc/sysctl.d/30-ipforward.conf
-      with_items:
-        - net.ipv4.ip_forward
-        - net.ipv6.conf.all.forwarding
-        - net.ipv6.conf.default.forwarding
-
-    - name: enable IPv6 privacy extensions
-      sysctl:
-        name={{ item }} value=2 sysctl_set=yes state=present
-        sysctl_file=/etc/sysctl.d/40-ipv6.conf
-      with_items:
-        - net.ipv6.conf.all.use_tempaddr
-        - net.ipv6.conf.default.use_tempaddr
-
-    - name: restrict access to system logs
-      sysctl:
-        name=kernel.dmesg_restrict value=1 sysctl_set=yes state=present
-        sysctl_file=/etc/sysctl.d/50-dmesg-restrict.conf
-
-    - name: restrict access to kernel pointers in the proc filesystem
-      sysctl:
-        name=kernel.kptr_restrict value=1 sysctl_set=yes state=present
-        sysctl_file=/etc/sysctl.d/50-kptr-restrict.conf
+    - name: system-wide package system configuration
+      copy:
+        content="{{ installurl }}\n" dest=/etc/installurl
+        owner=root group=wheel mode=0444
 
     - meta: flush_handlers
 
   roles:
-  #   - { role: apmd, tags: ['apmd'] }
-    - { role: avahi, tags: ['avahi'] }
-  #   - { role: bwm-ng, tags: ['bwm-ng'] }
-  #   # - c-icap
-    - { role: chrony, tags: ['chrony'] }
-  #  - { role: collectd, tags: ['collectd'] }
-    - { role: cronie, tags: ['cronie'] }
-    - { role: dhcpcd, tags: ['dhcpcd'] }
-    - { role: dhcpd, tags: ['dhcpd'] }
-  #   - { role: facette, tags: ['facette'] }
-  #   - { role: flashrom, tags: ['flashrom'] }
-  #   - { role: grafana, tags: ['grafana'] }
-  #   - { role: iftop, tags: ['iftop'] }
-  #   - { role: iked, tags: ['iked'] }
-  #   # - { role: letsencrypt, tags: ['letsencrypt'] }
-  #   - { role: locale, tags: ['locale'] }
-  #   # - newsyslog
-    - { role: nftables, tags: ['nftables'] }
-    - { role: nginx, tags: ['nginx'] }
-    - { role: nsd, tags: ['nsd'] }
-    - { role: opensmtpd, tags: ['opensmtpd'] }
-  #   # - { role: openvpn, tags: ['openvpn'] }
-  #   - { role: periodic, tags: ['periodic'] }
-  #   - { role: prometheus, tags: ['prometheus'] }
-  #   # - { role: python, tags: ['python'] }
-  #   # - { role: router, tags: ['router'] }
-    - { role: radvd, tags: ['radvd'] }
-  #   # - { role: squid, tags: ['squid'] }
-    - { role: ssh, tags: ['ssh'] }
-  #   - { role: sudo, tags: ['sudo'] }
-    - { role: unbound, tags: ['unbound'] }
 
-    # Do after nginx.
-    - { role: iplayer, tags: ['iplayer'] }
+    - {role: apmd, tags: [apmd]}
+    - {role: avahi, tags: [avahi]}
+    - {role: collectd, tags: [collectd]}
+    - {role: dhcpcd, tags: [dhcpcd]}
+    - {role: dhcpd, tags: [dhcpd]}
+    - {role: doas, tags: [doas]}
+    - {role: facette, tags: [facette]}
+    - {role: flashrom, tags: [flashrom]}
+    # - {role: grafana, tags: [grafana]}
+    # - {role: iked, tags: [iked]}
+    # - {role: iplayer, tags: [iplayer]}
+    # - {role: locale, tags: [locale]}
+    # - {role: monit, tags: [monit]}
+    - {role: nginx, tags: [nginx]}
+    - {role: ntpd, tags: [ntpd]}
+    # - {role: periodic, tags: [periodic]}
+    - {role: pf, tags: [pf]}
+    # - {role: pftop, tags: [pftop]}
+    - {role: python, tags: [python]}
+    - {role: rtadvd, tags: [rtadvd]}
+    - {role: slaacd, tags: [slaacd]}
+    - {role: smtpd, tags: [smtpd]}
+    - {role: sndiod, tags: [sndiod]}
+    - {role: ssh, tags: [ssh]}
+    - {role: sysclean, tags: [sysclean]}
+    - {role: sysmerge, tags: [sysmerge]}
+    - {role: tor, tags: [tor]}
+    - {role: unbound, tags: [unbound]}
 
-    # Do last.
-    - { role: monit, tags: ['monit'], squid_enabled: false }
+  tasks:
 
-  # tasks:
-  #   - name: boot configuration
-  #     copy:
-  #       src=boot.conf dest=/etc/boot.conf
-  #       owner=root group=wheel mode=0444
-  #       backup=yes
+    - name: boot configuration
+      copy:
+        src=boot.conf dest=/etc/boot.conf
+        owner=root group=wheel mode=0444
 
-  #   # - name: 'terminal initialization information'
-  #   #   replace:
-  #   #     dest=/etc/ttys
-  #   #     regexp='^(console\s+.+)\s+secure$'
-  #   #     replace='\1'
-  #   #     backup=yes
+    # - name: terminal initialization information
+    #   replace:
+    #     dest=/etc/ttys
+    #     regexp='^(console\s+.+)\s+secure$'
+    #     replace='\1'
 
-  #   - name: sysctl variables to set at system startup
-  #     sysctl:
-  #       name={{ item.key }} value={{ item.value }}
-  #       reload=no sysctl_set=yes
-  #     with_dict:
-  #       ddb.panic: 0
-  #       # net.inet.divert.recvspace: 131072
-  #       # net.inet.ip.ifq.maxlen: 512
-  #       # net.inet.tcp.mssdflt: 1460
-  #       net.inet.udp.recvspace: 131072
-  #       net.inet.udp.sendspace: 131072
-  #       # net.inet6.divert.recvspace: 131072
-  #       # net.inet6.ip6.ifq.maxlen: 512
-
-  #   - name: update root user GECOS
-  #     user: name=root comment='' createhome=no state=present
+    - name: update root user GECOS
+      user: name=root comment='' createhome=no state=present
 
   handlers:
-    - name: restart systemd-networkd
-      service: name=systemd-networkd state=restarted
+
+    - name: netstart
+      command: /bin/sh /etc/netstart
 ...

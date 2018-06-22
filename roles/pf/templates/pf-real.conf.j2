@@ -1,0 +1,227 @@
+#	$OpenBSD: pf.conf,v 1.54 2014/08/23 05:49:42 deraadt Exp $
+#
+# See pf.conf(5) and /etc/examples/pf.conf
+
+# Options
+
+{% if pf_bogons_v6_table is defined %}
+set limit table-entries 500000
+{% endif %}
+set loginterface {{ wan_if }}
+set reassemble yes no-df
+set skip on { lo {{ pppoe_if }} }
+set state-policy if-bound
+
+# Tables
+
+table <{{ pf_bruteforce_table }}> persist
+{% if pf_bogons_v4_table is defined %}
+table <{{ pf_bogons_v4_table }}> counters persist file "/var/db/{{ pf_bogons_v4_file }}"
+{% endif %}
+{% if pf_bogons_v6_table is defined %}
+table <{{ pf_bogons_v6_table }}> counters persist file "/var/db/{{ pf_bogons_v6_file }}"
+{% endif %}
+
+#
+
+block return log  # block stateless traffic
+pass out          # establish keep-state
+
+match proto tcp set prio (3, 7)
+
+# WAN_IF
+# in on WAN_IF
+
+# TODO: pass in on {{ wan_if }} reply-to ({{ wan_if }}) # create state
+block drop in log on {{ wan_if }}
+
+pass in on {{ wan_if }} inet proto tcp to {{ wan_ipv4|ipaddr('address') }} port 22 \
+  modulate state (max-src-conn 15, max-src-conn-rate 5/3, overload <bruteforce> flush global)
+pass in on {{ wan_if }} inet proto tcp to {{ wan_ipv4|ipaddr('address') }} port { 53 80 443 } \
+  modulate state
+pass in on {{ wan_if }} inet proto udp to {{ wan_ipv4|ipaddr('address') }} port 53
+pass in on {{ wan_if }} inet proto icmp to {{ wan_ipv4|ipaddr('address') }} icmp-type echoreq
+
+{% if iked_enabled %}
+pass in on {{ wan_if }} inet proto udp to {{ wan_ipv4|ipaddr('address') }} port { 500 4500 }
+pass in on {{ wan_if }} inet proto esp
+
+{% endif %}
+{% if pf_bogons_v4_table %}
+block drop in log on {{ wan_if }} inet from <{{ pf_bogons_v4_table }}>
+
+{% endif %}
+pass in on {{ wan_if }} inet6 proto udp from port 547 to ({{ wan_if }}) port 546
+
+{% if wan_ipv6 is defined %}
+pass in on {{ wan_if }} inet6 proto tcp to {{ wan_ipv6|ipaddr('address') }} port 22 \
+  modulate state (max-src-conn 15, max-src-conn-rate 5/3, overload <bruteforce> flush global)
+pass in on {{ wan_if }} inet6 proto tcp to {{ wan_ipv6|ipaddr('address') }} port { 53 80 443 } \
+  modulate state
+pass in on {{ wan_if }} inet6 proto udp to {{ wan_ipv6|ipaddr('address') }} port 53
+pass in on {{ wan_if }} inet6 proto icmp6 to {{ wan_ipv6|ipaddr('address') }} icmp6-type echoreq
+
+{%   if pf_bogons_v6_table is defined %}
+block drop in log on {{ wan_if }} inet6 from <{{ pf_bogons_v6_table }}>
+
+{%   endif %}
+pass in on {{ wan_if }} inet6 proto ipv6-icmp \
+  icmp6-type { routersol, routeradv, neighbrsol, neighbradv, redir }
+
+{% endif %}
+block drop in log on {{ wan_if }} from <{{ pf_bruteforce_table }}>
+
+# out on WAN_IF
+
+pass out on {{ wan_if }}
+
+{% if pf_bogons_v4_table is defined %}
+block return out log on {{ wan_if }} inet to <{{ pf_bogons_v4_table }}>
+{% endif %}
+{% if pf_bogons_v6_table is defined %}
+block return out log on {{ wan_if }} inet6 to <{{ pf_bogons_v6_table }}>
+{% endif %}
+
+match out on {{ wan_if }} inet \
+  from {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }} \
+  nat-to {{ wan_ipv4|ipaddr('address') }}
+
+match out on {{ wan_if }} inet \
+  from {{ guest_ipv4|ipaddr('network') }}/{{ guest_ipv4|ipaddr('prefix') }} \
+  nat-to {{ wan_ipv4|ipaddr('address') }}
+
+{% if vpn_server_if is defined %}
+match out on {{ wan_if }} inet \
+  from {{ vpn_server_ipv4|ipaddr('network') }}/{{ vpn_server_ipv4|ipaddr('prefix') }} \
+  nat-to {{ wan_ipv4|ipaddr('address') }}
+
+{% endif %}
+{% if iked_enabled %}
+# IPSEC_IF
+# in on IPSEC_IF
+
+pass in on enc0
+block return in log on enc0 to ({{ lan_if }}:network)
+pass in on enc0 proto { tcp udp } to ({{ lan_if }}) port 53
+pass in on enc0 proto tcp to ({{ lan_if }}) port 3128
+{%   if vpn_server_if is defined %}
+block return in log on enc0 to ({{ vpn_server_if }})
+{%   endif %}
+
+# out on IPSEC_IF
+
+# Segregate guest network.
+block drop out log quick on enc0 received-on {{ guest_if }}
+
+block return out log on enc0
+
+{% endif %}
+{% if vpn_client_if is defined %}
+# VPN_CLIENT_IF
+# in on VPN_CLIENT_IF
+
+block drop in log on {{ vpn_client_if }}
+
+# out on VPN_CLIENT_IF
+
+# Segregate guest network.
+block drop out log quick on {{ vpn_client_if }} received-on {{ guest_if }}
+
+pass out on {{ vpn_client_if }}
+
+{% if pf_bogons_v4_table is defined %}
+block return out log on {{ vpn_client_if }} inet to <{{ pf_bogons_v4_table }}>
+pass out on {{ vpn_client_if }} inet to ({{ vpn_client_if }}:network)
+{% endif %}
+{% if pf_bogons_v6_table is defined %}
+block return out log on {{ vpn_client_if }} inet6 to <{{ pf_bogons_v6_table }}>
+pass out on {{ vpn_client_if }} inet6 to ({{ vpn_client_if }}:network)
+{% endif %}
+#block return out log on {{ vpn_client_if }} inet to {{ wan_ipv4|ipaddr('address') }}
+
+match out on {{ vpn_client_if }} received-on {{ lan_if }} nat-to ({{ vpn_client_if }})
+{% if vpn_server_if is defined %}
+match out on {{ vpn_client_if }} received-on {{ vpn_server_if }} nat-to ({{ vpn_client_if }})
+{% endif %}
+
+{% endif %}
+{% if vpn_server_if is defined %}
+# VPN_SERVER_IF
+# in on VPN_SERVER_IF
+
+pass in on {{ vpn_server_if }}
+
+# out on VPN_SERVER_IF
+
+pass out on {{ vpn_server_if }}
+block drop out log on {{ vpn_server_if }} from ({{ guest_if }}:network)
+
+{% endif %}
+# LAN_IF
+
+pass on {{ lan_if }}
+
+# in on LAN_IF
+
+block return in log on {{ lan_if }} to ({{ guest_if }}:network)
+pass in on {{ lan_if }} inet proto udp to 224.0.0.251 port 5353 allow-opts
+
+## Battle.net Chat/Game Protocol
+## https://us.battle.net/support/en/article/300479
+#match in on {{ lan_if }} inet proto { tcp udp } \
+#  from port 1024:65535 \
+#  to port 1119 \
+#  set prio (4, 7) \
+#  label "bnetgame-$proto"
+
+## Apple FaceTime, Game Center
+## https://support.apple.com/en-us/HT202944
+#match in on {{ lan_if }} inet proto udp \
+#  from port 1024:65535 \
+#  to port 3478:3497 \
+#  set prio 5 \
+#  label "facetime-stun"
+
+### Apple FaceTime, Game Center
+### https://support.apple.com/en-us/HT202944
+##match in on {{ lan_if }} inet proto udp \
+##  from port 1024:65535 \
+##  to port { 16384:16387 16393:16402 } \
+##  set prio 5 \
+##  label "facetime-rtp-$nr"
+
+# out on LAN_IF
+
+block return out log on {{ lan_if }} from ({{ guest_if }}:network)
+
+# GUEST_IF
+
+pass on {{ guest_if }} inet
+block log on {{ guest_if }} inet6
+
+# in on GUEST_IF
+
+match in on {{ guest_if }} set prio 0 label "guest-network"
+
+{% if pf_bogons_v4_table %}
+block drop in log on {{ guest_if }} inet to <{{ pf_bogons_v4_table }}>
+pass in on {{ guest_if }} inet to {{ guest_ipv4|ipaddr('address') }}
+
+{% endif %}
+block drop in log on {{ guest_if }} to ({{ lan_if }}:network)
+{% if vpn_client_if is defined %}
+block drop in log on {{ guest_if }} to ({{ vpn_client_if }}:network)
+{% endif %}
+{% if vpn_server_if is defined %}
+block drop in log on {{ guest_if }} to ({{ vpn_server_if }}:network)
+{% endif %}
+
+# out on GUEST_IF
+
+block return out log on {{ guest_if }} from ({{ lan_if }}:network)
+{% if vpn_client_if is defined %}
+block return out log on {{ guest_if }} from ({{ vpn_client_if }}:network)
+{% endif %}
+{% if vpn_server_if is defined %}
+block return out log on {{ guest_if }} from ({{ vpn_server_if }}:network)
+{% endif %}

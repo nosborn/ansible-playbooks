@@ -1,15 +1,21 @@
-# {{ ansible_managed }}
-
-allowinterfaces {{ wan_if }} {{ lan_if }}
+ipv6only
 duid
 persistent
-ipv6only
-#noipv6rs
 option rapid_commit
-noipv4ll
 require dhcp_server_identifier
+
+# disable running any hooks; not typically required for simple DHCPv6-PD setup
 script /usr/bin/true
-slaac private
+
+# Disable dhcpcd's own router solicitation support; allow slaacd
+# to do this instead by setting "inet6 autoconf" in hostname.pppoe0
+noipv6rs
+
+allowinterfaces {{ wan_if }} {{ lan_if }} # {{ guest_if }}
 
 interface {{ wan_if }}
-  ia_pd 2 {{ lan_if }}/82
+  # request prefix delegation for downstream interfaces
+  ia_pd 2 {{ lan_if }}/82 # {{ guest_if }}/83
+{% if wan_ipv6 is defined %}
+#  static ip6_address={{ wan_ipv6 }}
+{% endif %}

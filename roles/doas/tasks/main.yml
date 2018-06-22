@@ -4,6 +4,5 @@
   template:
     src=doas.conf.j2 dest=/etc/doas.conf
     owner=root group=wheel mode=0400
-    backup=yes
     validate='/usr/bin/doas -C %s'
 ...

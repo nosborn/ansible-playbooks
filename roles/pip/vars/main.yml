@@ -1,4 +1,0 @@
-# roles/pip/var/main
----
-pip_executable: '/usr/local/bin/pip2.7'
-...

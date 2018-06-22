@@ -1,0 +1,31 @@
+# roles/letsencrypt/tasks/main
+---
+- copy:
+    content={{ letsencrypt_account_key }}
+    dest={{ acme_account_key_file }}
+    owner=root group=wheel mode=0400
+
+- copy:
+    content={{ letsencrypt_staging_account_key }}
+    dest={{ acme_staging_account_key_file }}
+    owner=root group=wheel mode=0400
+  when: letsencrypt_staging_account_key is defined
+
+- template:
+    src=acme-client.conf.j2 dest=/etc/acme-client.conf
+    owner=root group=wheel mode=0444
+    validate='/usr/sbin/acme-client -n -f %s {{ ansible_fqdn }}'
+
+- command: /usr/sbin/acme-client -D {{ ansible_fqdn }}
+  args:
+    creates: /etc/ssl/{{ ansible_fqdn }}.crt
+  notify:
+    - restart nginx
+
+- fetch: src={{ item }} dest=backup fail_on_missing=yes
+  with_items:
+    - /etc/ssl/{{ ansible_fqdn }}.crt
+    - /etc/ssl/{{ ansible_fqdn }}.chain.pem
+    - /etc/ssl/{{ ansible_fqdn }}.fullchain.pem
+    - /etc/ssl/private/{{ ansible_fqdn }}.key
+...

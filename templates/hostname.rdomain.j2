@@ -1,0 +1,4 @@
+inet 127.0.0.1/8
+
+!/sbin/route -nq -T{{ item }} add -net 127 127.0.0.1 -reject
+!/sbin/route -n -T{{ item }} add default {{ wan_ipv4|ipaddr('address') }}

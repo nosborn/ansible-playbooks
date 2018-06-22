@@ -4,15 +4,8 @@
 
 - file: src={{ item.key }} dest=/usr/local/bin/{{ item.value }} state=link
   with_dict:
-    pydoc2.7: pydoc2
-    python2.7-config: python2-config
-    python2.7: python2
-  when: false  # not needed on OpenBSD > 6.1 ?
-  # when: ansible_distribution_version > 6.1
-
-- file: src={{ item.key }} dest=/usr/local/bin/{{ item.value }} state=link
-  with_dict:
-    pydoc2: pydoc
-    python2-config: python-config
-    python2: python
+    pydoc2.7: pydoc
+    python2.7-2to3: 2to3
+    python2.7-config: python-config
+    python2.7: python
 ...

@@ -1,0 +1,5 @@
+# roles/unbound/vars/main
+---
+unbound_pid_file: /var/run/unbound.pid
+unbound_service: unbound
+...

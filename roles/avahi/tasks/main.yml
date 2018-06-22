@@ -1,29 +1,15 @@
 # roles/avahi/tasks/main
 ---
-- name: install packages
-  package: name={{ item }} state=present
-  with_items:
-    - avahi
-    - nss-mdns
-  notify:
-    - reload dbus
+- name: install package
+  openbsd_pkg: name=avahi state=present
 
-- name: avahi-daemon configuration file
+- name: install configuration file
   template:
     src=avahi-daemon.conf.j2 dest=/etc/avahi/avahi-daemon.conf
-    owner=root group=root mode=0444
-# notify: restart avahi-daemon -- FIXME
+    owner=root group=wheel mode=0444
+  notify: restart avahi-daemon
 
-- name: avahi-daemon static service files
-  template:
-    src=services/{{ item }}.j2 dest=/etc/avahi/services/{{ item }}
-    owner=root group=root mode=0444
-  with_items:
-    - monit.service
-    - sftp-ssh.service
-    - ssh.service
-# notify: restart avahi-daemon -- FIXME
-
-- name: enable and start service
-  service: name=avahi-daemon enabled=no state=stopped  # FIXME
+- name: start service
+  service:
+    name=avahi_daemon enabled=yes state=started
 ...

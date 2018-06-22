@@ -1,0 +1,17 @@
+# roles/tor/tasks/main
+---
+- name: install package
+  openbsd_pkg: name=tor state=present
+
+- name: configuration file
+  template:
+    src=torrc.j2 dest=/etc/tor/torrc
+    owner=root group=wheel mode=0444
+    validate='/usr/local/bin/tor -f %s --verify-config'
+  notify: reload tor
+
+- file: path=/dev/pf group=_tor mode=0640
+  notify: reload tor
+
+- service: name=tor enabled=yes state=started
+...

@@ -1,8 +1,0 @@
-# roles/squid/handlers/main
----
-- name: reload squid
-  service: name=squid state=reloaded
-
-- name: restart squid
-  service: name=squid state=restarted
-...

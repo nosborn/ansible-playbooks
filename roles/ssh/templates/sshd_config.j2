@@ -1,9 +1,7 @@
-# {{ ansible_managed }}
+#	$OpenBSD: sshd_config,v 1.102 2018/02/16 02:32:40 djm Exp $
 
 # This is the sshd server system-wide configuration file.  See
 # sshd_config(5) for more information.
-
-# This sshd was compiled with PATH=/usr/local/sbin:/usr/local/bin:/usr/bin
 
 # The strategy used for options in the default sshd_config shipped with
 # OpenSSH is to specify options with their default value where
@@ -11,12 +9,21 @@
 # default value.
 
 #Port 22
+{% if sshd_address_family is defined %}
+AddressFamily {{ sshd_address_family }}
+{% else %}
 #AddressFamily any
+{% endif %}
+{% if sshd_listen_addresses is defined %}
+{%   for listen_address in sshd_listen_addresses %}
+ListenAddress {{ listen_address|ipwrap }}
+{%   endfor %}
+{% else %}
 #ListenAddress 0.0.0.0
 #ListenAddress ::
+{% endif %}
 
 #HostKey /etc/ssh/ssh_host_rsa_key
-#HostKey /etc/ssh/ssh_host_dsa_key
 #HostKey /etc/ssh/ssh_host_ecdsa_key
 #HostKey /etc/ssh/ssh_host_ed25519_key
 
@@ -30,9 +37,9 @@
 # Authentication:
 
 #LoginGraceTime 2m
-PermitRootLogin no
+PermitRootLogin {{ sshd_permit_root_login }}
 #StrictModes yes
-#MaxAuthTries 6
+MaxAuthTries 3
 #MaxSessions 10
 {% if sshd_allow_users is defined %}
 AllowUsers {{ sshd_allow_users|sort|unique|join(' ') }}
@@ -42,7 +49,7 @@ AllowUsers {{ sshd_allow_users|sort|unique|join(' ') }}
 
 # The default is to check both .ssh/authorized_keys and .ssh/authorized_keys2
 # but this is overridden so installations will only check .ssh/authorized_keys
-AuthorizedKeysFile	.ssh/authorized_keys
+AuthorizedKeysFile .ssh/authorized_keys
 
 #AuthorizedPrincipalsFile none
 
@@ -64,27 +71,6 @@ PasswordAuthentication no
 # Change to no to disable s/key passwords
 ChallengeResponseAuthentication no
 
-# Kerberos options
-#KerberosAuthentication no
-#KerberosOrLocalPasswd yes
-#KerberosTicketCleanup yes
-#KerberosGetAFSToken no
-
-# GSSAPI options
-#GSSAPIAuthentication no
-#GSSAPICleanupCredentials yes
-
-# Set this to 'yes' to enable PAM authentication, account processing,
-# and session processing. If this is enabled, PAM authentication will
-# be allowed through the ChallengeResponseAuthentication and
-# PasswordAuthentication.  Depending on your PAM configuration,
-# PAM authentication via ChallengeResponseAuthentication may bypass
-# the setting of "PermitRootLogin without-password".
-# If you just want the PAM account and session checks to run without
-# PAM authentication, then enable this but set PasswordAuthentication
-# and ChallengeResponseAuthentication to 'no'.
-UsePAM yes
-
 #AllowAgentForwarding yes
 #AllowTcpForwarding yes
 #GatewayPorts no
@@ -92,16 +78,16 @@ UsePAM yes
 #X11DisplayOffset 10
 #X11UseLocalhost yes
 #PermitTTY yes
-PrintMotd no # pam does that
+#PrintMotd yes
 #PrintLastLog yes
 #TCPKeepAlive yes
 #UseLogin no
 #PermitUserEnvironment no
 #Compression delayed
-#ClientAliveInterval 0
+ClientAliveInterval 15
 #ClientAliveCountMax 3
 #UseDNS no
-#PidFile /run/sshd.pid
+#PidFile /var/run/sshd.pid
 #MaxStartups 10:30:100
 #PermitTunnel no
 #ChrootDirectory none
@@ -111,11 +97,4 @@ PrintMotd no # pam does that
 #Banner none
 
 # override default of no subsystems
-Subsystem	sftp	/usr/lib/ssh/sftp-server
-
-# Example of overriding settings on a per-user basis
-#Match User anoncvs
-#	X11Forwarding no
-#	AllowTcpForwarding no
-#	PermitTTY no
-#	ForceCommand cvs server
+Subsystem sftp /usr/libexec/sftp-server

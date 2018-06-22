@@ -1,40 +1,54 @@
 server:
 	verbosity: {{ unbound_verbosity }}
 
-	num-threads: {{ unbound_num_threads }}
+	num-threads: {{ ansible_processor_cores }}
 
 	interface: 127.0.0.1
 	interface: {{ lan_ipv4|ipaddr('address') }}
-	interface: ::1
-	interface: {{ lan_ipv6|ipaddr('address') }}
-
-{% if vpn_server_if is defined %}
-	outgoing-port-avoid: 1194
-
+{% if vpn_server_ipv4 is defined %}
+	interface: {{ vpn_server_ipv4|ipaddr('address') }}
 {% endif %}
-#	rrset-cache-size: 8m
-#	cache-min-ttl: 3600
+	interface: ::1
+{% if lan_ipv6 is defined %}
+	interface: {{ lan_ipv6|ipaddr('address') }}
+{% endif %}
+{% if vpn_server_ipv6 is defined %}
+	interface: {{ vpn_server_ipv6|ipaddr('address') }}
+{% endif %}
 
-	so-reuseport: yes
-	ip-transparent: yes
+	msg-cache-size: 4m  # default
+	msg-cache-slabs: {{ ansible_processor_cores }}
 
-	prefer-ip6: no # TODO: yes
+	rrset-cache-size: 8m
+	rrset-cache-slabs: {{ ansible_processor_cores }}
+
+	infra-cache-slabs: {{ ansible_processor_cores }}
+
+#	prefer-ip6: yes
 
 	access-control: 127.0.0.0/8 allow
 	access-control: {{ lan_ipv4|ipaddr('host/prefix')|ipaddr('subnet') }} allow
 {% if vpn_server_ipv4 is defined %}
-#	access-control: {{ vpn_server_ipv4|ipaddr('network') }}/{{ vpn_server_ipv4|ipaddr('prefix') }} allow
+	access-control: {{ vpn_server_ipv4|ipaddr('network') }}/{{ vpn_server_ipv4|ipaddr('prefix') }} allow
 {% endif %}
 	access-control: ::1 allow
+{% if lan_ipv6 is defined %}
 	access-control: {{ lan_ipv6|ipaddr('host/prefix')|ipaddr('subnet') }} allow
-{% if vpn_server_ipv6 is defined %}
-#	access-control: {{ vpn_server_ipv6|ipaddr('network') }}/{{ vpn_server_ipv6|ipaddr('prefix') }} allow
 {% endif %}
+{% if vpn_server_ipv6 is defined %}
+	access-control: {{ vpn_server_ipv6|ipaddr('network') }}/{{ vpn_server_ipv6|ipaddr('prefix') }} allow
+{% endif %}
+
+	pidfile: {{ unbound_pid_file }}
+
+#	root-hints: /var/unbound/etc/named.cache
 
 	hide-identity: yes
 	hide-version: yes
 
 	harden-below-nxdomain: yes
+
+	qname-minimisation: yes
 
 	private-address: 10.0.0.0/8
 	private-address: 169.254.0.0/16
@@ -43,50 +57,53 @@ server:
 	private-address: ::ffff:0:0/96
 	private-address: fd00::/8
 	private-address: fe80::/10
+	private-address: {{ tor_virtual_addr_network_ipv4 }}
+	private-address: {{ tor_virtual_addr_network_ipv6 }}
 
-	private-domain: local
+#	private-domain: local
+	private-domain: onion
+
+	do-not-query-localhost: no
 
 	prefetch: yes
 	prefetch-key: yes
 
-	trusted-keys-file: /etc/unbound/trusted-key.key
+	auto-trust-anchor-file: /var/unbound/db/root.key
 
-	domain-insecure: local
+#	domain-insecure: local
+	domain-insecure: onion
 
-	key-cache-size: 32m
-	key-cache-slabs: {{ 2 * unbound_num_threads }}
-	msg-cache-size: 128k
+#	key-cache-size: 32m
+ 	key-cache-slabs: {{ ansible_processor_cores }}
 
-	local-zone: "local" static
-	local-data: "tombstone.local IN A {{ lan_ipv4|ipaddr('1')|ipaddr('address') }}"
-	local-data: "airport-time-capsule.local IN A {{ lan_ipv4|ipaddr('2')|ipaddr('address') }}"
-	local-data: "airport-extreme.local IN A {{ lan_ipv4|ipaddr('3')|ipaddr('address') }}"
+#	local-zone: "local." static
+#	local-data: "tombstone.local IN A {{ lan_ipv4|ipaddr('1')|ipaddr('address') }}"
+#	local-data: "airport-time-capsule.local IN A {{ lan_ipv4|ipaddr('2')|ipaddr('address') }}"
+#	local-data: "airport-extreme.local IN A {{ lan_ipv4|ipaddr('3')|ipaddr('address') }}"
 #	local-data: "mac-mini.local IN A {{ lan_ipv4|ipaddr('4')|ipaddr('address') }}"
-	local-data-ptr: "{{ lan_ipv4|ipaddr('1')|ipaddr('address') }} tombstone.local"
-	local-data-ptr: "{{ lan_ipv4|ipaddr('2')|ipaddr('address') }} airport-time-capsule.local"
-	local-data-ptr: "{{ lan_ipv4|ipaddr('3')|ipaddr('address') }} airport-extreme.local"
+##	local-data: "fever.local IN A {{ lan_ipv4|ipaddr('5')|ipaddr('address') }}"
+#	local-data-ptr: "{{ lan_ipv4|ipaddr('1')|ipaddr('address') }} tombstone.local"
+#	local-data-ptr: "{{ lan_ipv4|ipaddr('2')|ipaddr('address') }} airport-time-capsule.local"
+#	local-data-ptr: "{{ lan_ipv4|ipaddr('3')|ipaddr('address') }} airport-extreme.local"
 #	local-data-ptr: "{{ lan_ipv4|ipaddr('4')|ipaddr('address') }} mac-mini.local"
-	local-data-ptr: "{{ guest_ipv4|ipaddr('1')|ipaddr('address') }} tombstone.local"
+##	local-data-ptr: "{{ lan_ipv4|ipaddr('5')|ipaddr('address') }} fever.local"
+#	local-data-ptr: "{{ guest_ipv4|ipaddr('1')|ipaddr('address') }} tombstone.local"
 
-	include: /etc/unbound/domains
-	include: /etc/unbound/hosts
+	local-zone: "onion." nodefault
 
-#remote-control:
-#	control-enable: yes
-#	control-interface: /var/run/unbound.control
-{% if unbound_forward_zones is defined %}
-{%   for forward_zone in unbound_forward_zones %}
+	include: /var/unbound/etc/block-domains.conf
+	include: /var/unbound/etc/block-hosts.conf
+
+remote-control:
+	control-enable: yes
+	control-interface: /var/run/unbound.control
 
 forward-zone:
-	name: "{{ forward_zone.name }}"
-{%     for forward_addr in forward_zone.forward_addrs %}
-	forward-addr: {{ forward_addr }}
-{%     endfor %}
-{%     if forward_zone.forward_first is defined %}
-	forward-first: {{ forward_zone.forward_first }}
-{%     endif %}
-{%     if forward_zone.forward_ssl_upstream is defined %}
-	forward-ssl-upstream: {{ forward_zone.forward_ssl_upstream }}
-{%     endif %}
-{%   endfor %}
-{% endif %}
+        name: "onion"
+	forward-addr: 127.0.0.1@{{ tor_dns_port }}
+
+forward-zone:
+        name: "."
+{% for nameserver in nameservers %}
+	forward-addr: {{ nameserver }}
+{% endfor %}

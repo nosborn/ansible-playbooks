@@ -1,5 +1,5 @@
 [letsencrypt]
 tombstone
 
-[linux]
+[openbsd]
 tombstone

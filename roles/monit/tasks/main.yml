@@ -4,17 +4,12 @@
   no_log: true
 
 - name: install package
-  package: name=monit state=present
-
-# - file:
-#     path=/etc/monit.d state=directory
-#     owner=root group=root mode=0700
-#   notify: reload monit
+  openbsd_pkg: name=monit state=present
 
 - template:
     src=monitrc.j2 dest=/etc/monitrc
-    owner=root group=root mode=0400
-    # validate='monit -c %s -t'
+    owner=root group=wheel mode=0400
+    validate='/usr/local/bin/monit -c %s -t'
   notify: reload monit
 
 - service: name=monit enabled=yes state=started

@@ -1,13 +1,16 @@
 # roles/dhcpcd/tasks/main
 ---
 - name: install package
-  package: name=dhcpcd state=present
+  openbsd_pkg: name=dhcpcd state=present
 
 - name: install configuration file
   template:
     src=dhcpcd.conf.j2 dest=/etc/dhcpcd.conf
-    owner=root group=root mode=0444
+    owner=root group=wheel mode=0444
   notify: restart dhcpcd
 
-- service: name=dhcpcd enabled=yes state=started
+- name: enable and start service
+  service: name=dhcpcd enabled=yes state=started
+
+# - fetch: src=/var/db/dhcpcd/duid dest=backup fail_on_missing=yes
 ...

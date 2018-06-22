@@ -2,4 +2,4 @@
 *.swp
 /.vault_password
 /backup/
-/roles/squid/files/bumpca.pem
+/install*.fs

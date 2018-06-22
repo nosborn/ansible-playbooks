@@ -1,9 +1,5 @@
 # roles/pf/var/main
 ---
-pf_bogons_v4_file: 'bogon-bn-agg.txt'
-# pf_bogons_v4_file: 'fullbogons-ipv4.txt'
-pf_bogons_v4_table: 'bogons-v4'
-# pf_bogons_v6_file: 'fullbogons-ipv6.txt'
-# pf_bogons_v6_table: 'bogons-v6'
-pf_bruteforce_table: 'bruteforce'
+pf_bruteforce_expiry_time: 86400
+pf_bruteforce_table: bruteforce
 ...

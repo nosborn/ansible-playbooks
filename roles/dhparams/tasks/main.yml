@@ -2,9 +2,8 @@
 ---
 - copy:
     src={{ item }} dest=/etc/ssl/{{ item }}
-    owner=root group=root mode=0444
-    validate='openssl dhparam -in %s -noout'
-    backup=yes
+    owner=root group=wheel mode=0444
+    validate='/usr/bin/openssl dhparam -in %s -noout'
   with_items:
     - ffdhe2048.pem
     - ffdhe3072.pem

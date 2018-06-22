@@ -1,5 +1,0 @@
-# roles/router/meta/main
----
-dependencies:
-  - { role: pf }
-...

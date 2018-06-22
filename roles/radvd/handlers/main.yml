@@ -1,5 +1,0 @@
-# roles/radvd/handlers/main
----
-- name: restart radvd
-  service: name=radvd state=restarted
-...

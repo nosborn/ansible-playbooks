@@ -1,5 +1,0 @@
-# roles/iftop/tasks/main
----
-- name: install package
-  openbsd_pkg: name=iftop state=present
-...

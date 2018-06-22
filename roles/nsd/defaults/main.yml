@@ -1,5 +1,0 @@
-# role/nsd/defaults/main
----
-nsd_server_count: 1
-nsd_verbosity: 2
-...

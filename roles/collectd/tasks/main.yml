@@ -1,14 +1,18 @@
 # roles/collectd/tasks/main
 ---
-- name: install package
-  package: name=collectd state=present
+- name: install packages
+  openbsd_pkg: name={{ item }} state=present
+  with_items:
+    - collectd
+    - collectd-rrdtool
 
-# - name: install configuration file
-#   template:
-#     src=collectd.conf.j2 dest=/etc/collectd.conf
-#     owner=root group=_collectd mode=0440
-#     validate='collectd -C %s -t'
-#   notify: restart collectd
+- name: install configuration file
+  template:
+    src=collectd.conf.j2 dest=/etc/collectd.conf
+    owner=root group=_collectd mode=0440
+    validate='/usr/local/sbin/collectd -C %s -t'
+  notify: restart collectd
 
-#- service: name=collectd enabled=yes state=started
+- name: enable and start service
+  service: name=collectd enabled=yes state=started
 ...

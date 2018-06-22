@@ -1,0 +1,23 @@
+#	$OpenBSD: smtpd.conf,v 1.11 2018/06/04 21:10:58 jmc Exp $
+
+# This is the smtpd server system-wide configuration file.
+# See smtpd.conf(5) for more information.
+
+{% if smtpd_max_message_size is defined %}
+smtp max-message-size {{ smtpd_max_message_size }}
+{% endif %}
+queue compression
+{% if smtpd_queue_encryption_key is defined %}
+queue encryption {{ smtpd_queue_encryption_key }}
+{% endif %}
+
+table aliases file:/etc/mail/aliases
+table secrets file:/etc/mail/secrets
+
+listen on lo0
+
+action "local" mbox alias <aliases>
+action "relay" relay host {{ smtpd_relay_host }} auth <secrets>
+
+match for local action "local"
+match for any action "relay"

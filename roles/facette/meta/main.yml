@@ -1,0 +1,5 @@
+# roles/facette/meta/main
+---
+dependencies:
+  - role: yamllint
+...

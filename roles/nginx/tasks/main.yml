@@ -1,26 +1,31 @@
 # roles/nginx/tasks/main
 ---
 - name: install package
-  package: name=nginx state=present
+  openbsd_pkg: name=nginx state=present
 
-- name: sites configuration directory
-  file:
-    path=/etc/nginx/conf.d state=directory
-    owner=root group=root mode=0755
+- copy:
+    content="{{ httpd_htpasswd_content }}" dest=/var/www/.htpasswd
+    owner=root group=www mode=0440
+  notify: restart nginx
 
-- name: main configuration file
-  template:
+- copy:
+    content='' dest=/etc/nginx/sites.conf force=no
+    owner=root group=wheel mode=0444
+  notify: restart nginx
+
+- template:
     src=nginx.conf.j2 dest=/etc/nginx/nginx.conf
-    owner=root group=root mode=0444
-    validate='nginx -c %s -t'
+    owner=root group=wheel mode=0444
+    validate='/usr/local/sbin/nginx -c %s -t'
   notify: restart nginx
 
 - name: enable and start service
   service: name=nginx enabled=yes state=started
 
-- name: configure sites
-  include_tasks: site.yml site={{ nginx_item }}
-  with_items: "{{ sites }}"
-  loop_control:
-    loop_var: nginx_item
+- include_role: name=acme-client
+
+- template:
+    src=sites.conf.j2 dest=/etc/nginx/sites.conf
+    owner=root group=wheel mode=0444
+  notify: restart nginx
 ...

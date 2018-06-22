@@ -1,6 +1,0 @@
-# rols/certbot/tasks/domain
----
-- command: certbot certonly --non-interactive --domain {{ domain }} --quiet
-  args:
-    creates: /etc/letsencrypt/live/{{ domain }}/cert.pem
-...

@@ -1,0 +1,12 @@
+# roles/ntpd/tasks/main
+---
+- name: install configuration file
+  template:
+    src=ntpd.conf.j2 dest=/etc/ntpd.conf
+    owner=root group=wheel mode=0444
+    validate='/usr/sbin/ntpd -f %s -n'
+  notify: restart ntpd
+
+- name: enable and start service
+  service: name=ntpd arguments=-s enabled=yes state=started
+...

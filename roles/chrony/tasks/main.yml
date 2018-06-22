@@ -1,8 +1,0 @@
-# roles/cronie/tasks/main
----
-- name: install package
-  package: name=cronie state=present
-
-- name: start cronie daemon
-  service: name=cronie enabled=yes state=started
-...

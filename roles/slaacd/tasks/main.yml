@@ -1,0 +1,5 @@
+# roles/slaacd/tasks/main
+---
+- name: enable and start service
+  service: name=slaacd enabled=yes state=started
+...

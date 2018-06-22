@@ -1,5 +1,0 @@
-# roles/pip/meta/main
----
-dependencies:
-  - { role: python }
-...

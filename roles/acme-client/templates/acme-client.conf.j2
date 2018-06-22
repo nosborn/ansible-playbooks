@@ -1,0 +1,19 @@
+authority letsencrypt {
+        api url "https://acme-v01.api.letsencrypt.org/directory"
+        account key "{{ acme_account_key_file }}"
+}
+
+{% if letsencrypt_staging_account_key is defined %}
+authority letsencrypt-staging {
+        api url "https://acme-staging.api.letsencrypt.org/directory"
+        account key "{{ acme_staging_account_key_file }}"
+}
+
+{% endif %}
+domain {{ ansible_fqdn }} {
+        domain key "/etc/ssl/private/{{ ansible_fqdn }}.key"
+        domain certificate "/etc/ssl/{{ ansible_fqdn }}.crt"
+        domain chain certificate "/etc/ssl/{{ ansible_fqdn }}.chain.pem"
+        domain full chain certificate "/etc/ssl/{{ ansible_fqdn }}.fullchain.pem"
+        sign with letsencrypt
+}

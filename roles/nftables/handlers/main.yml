@@ -1,5 +1,0 @@
-# roles/nftables/handlers/main
----
-- name: restart nftables
-  service: name=nftables state=restarted
-...

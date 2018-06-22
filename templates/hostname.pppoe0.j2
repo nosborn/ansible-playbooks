@@ -1,0 +1,20 @@
+rtlabel {{ wan_rtlabel }}
+
+inet 0.0.0.0 255.255.255.255 NONE mtu {{ pppoe_mtu }} \
+  pppoedev {{ pppoe_if }} authproto chap \
+  authkey '{{ pppoe_authkey }}' authname '{{ pppoe_authname }}' \
+  up
+dest 0.0.0.1
+
+inet6 autoconf
+# inet6 fe80::200:0:0:1 64 autoconf
+{% if wan_ipv6 is defined %}
+# inet6 {{ wan_ipv6|ipaddr('address') }} {{ wan_ipv6|ipaddr('prefix') }}
+{% endif %}
+
+!/sbin/route -n add default -ifp \$if 0.0.0.1
+!/sbin/route -n add -inet6 default -ifp \$if fe80::%\$if
+
+!while ! ifconfig \$if|grep -Fq 'status: active'; do sleep 1; done
+inet6 autoconf
+# !/usr/sbin/slaacctl send solicitation \$if

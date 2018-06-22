@@ -1,0 +1,7 @@
+# roles/sysmerge/tasks/main
+---
+- name: copy sysmerge.ignore
+  copy:
+    src=sysmerge.ignore dest=/etc/sysmerge.ignore
+    owner=root group=wheel mode=0444
+...

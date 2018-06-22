@@ -1,12 +1,9 @@
 # roles/ssh/tasks/main
 ---
-- name: install package
-  package: name=openssh state=present
-
 - name: OpenSSH SSH daemon configuration file
   template:
     src=sshd_config.j2 dest=/etc/ssh/sshd_config
-    owner=root group=root mode=0400
+    owner=root group=wheel mode=0444
     validate='/usr/sbin/sshd -f %s -t'
   notify: restart sshd
 
