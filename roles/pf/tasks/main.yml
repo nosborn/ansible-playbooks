@@ -2,9 +2,11 @@
 ---
 - name: fetch IPv4 bogons
   get_url:
-    url=https://www.team-cymru.org/Services/Bogons/{{ pf_bogons_v4_file }}
-    dest=/var/db/{{ pf_bogons_v4_file }}
-    owner=root group=wheel mode=0644
+    url: "https://www.team-cymru.org/Services/Bogons/{{ pf_bogons_v4_file }}"
+    dest: /var/db/{{ pf_bogons_v4_file }}
+    owner: root
+    group: wheel
+    mode: 0644
   notify: reload pf
   when: pf_bogons_v4_file is defined
 
@@ -20,9 +22,12 @@
 
 - name: packet filter configuration file
   template:
-    src=pf.conf.j2 dest=/etc/pf.conf
-    owner=root group=wheel mode=0400
-    validate='/sbin/pfctl -f %s -n'
+    src: pf.conf.j2
+    dest: /etc/pf.conf
+    owner: root
+    group: wheel
+    mode: 0400
+    validate: /sbin/pfctl -f %s -n
   notify: reload pf
 
 - meta: flush_handlers

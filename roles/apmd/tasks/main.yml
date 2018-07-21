@@ -1,5 +1,9 @@
 # roles/apmd/tasks/main
 ---
 - name: enable and start service
-  service: name=apmd arguments=-A enabled=yes state=started
+  service:
+    name: apmd
+    arguments: -A
+    enabled: true
+    state: started
 ...

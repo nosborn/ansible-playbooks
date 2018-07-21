@@ -68,6 +68,12 @@ anchor "WAN" on egress {
   block drop in log quick from <bogons>
   block drop in log quick from <facebook>
 
+  # Noise reduction.
+  block drop in quick proto tcp to {{ wan_ipv4|ipaddr('address') }} port 23
+  block drop in quick proto tcp to {{ wan_ipv4|ipaddr('address') }} port 445
+  block drop in quick proto tcp to {{ wan_ipv4|ipaddr('address') }} port 2323
+  block drop in quick proto udp to {{ wan_ipv4|ipaddr('address') }} port 5060
+
   pass in inet proto tcp to {{ wan_ipv4|ipaddr('address') }} port 22
   pass in inet proto tcp to {{ wan_ipv4|ipaddr('address') }} port {80 443}
 

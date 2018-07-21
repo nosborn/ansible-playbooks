@@ -5,22 +5,31 @@
 
 - name: IKEv2 configuration file
   template:
-    src=iked.conf.j2 dest=/etc/iked.conf
-    owner=root group=wheel mode=0400
-    validate='/sbin/iked -f %s -n'
+    src: iked.conf.j2
+    dest: /etc/iked.conf
+    owner: root
+    group: wheel
+    mode: 0400
+    validate: /sbin/iked -f %s -n
   notify: reload iked
 
-#- name: sysctl variables to set at system startup
-#  sysctl:
-#    name={{ item.key }} value={{ item.value }}
-#    reload=no sysctl_set=yes
-#  with_dict:
-#    net.inet.ah.enable: 0
+# - name: sysctl variables to set at system startup
+#   sysctl:
+#     name: "{{ item.key }}"
+#     value: "{{ item.value }}"
+#     reload: false
+#     sysctl_set: true
+#   with_dict:
+#     net.inet.ah.enable: 0
 
 - meta: flush_handlers
 
 - name: start IKEv2 daemon
-  service: name=iked arguments=-6 enabled={{ iked_enabled }} state={{ iked_state }}
+  service:
+    name: iked
+    arguments: -6
+    enabled: "{{ iked_enabled }}"
+    state: "{{ iked_state }}"
 
 - include_tasks: mobileconfig.yml
 ...

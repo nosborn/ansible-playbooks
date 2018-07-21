@@ -1,4 +1,0 @@
-# group_vars/letsencrypt/vars
----
-letsencrypt_account_key: "{{ vault_letsencrypt_account_key }}"
-letsencrypt_email: "{{ vault_letsencrypt_email }}"

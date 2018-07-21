@@ -1,15 +1,22 @@
 # roles/avahi/tasks/main
 ---
 - name: install package
-  openbsd_pkg: name=avahi state=present
+  openbsd_pkg:
+    name: avahi
+    state: present
 
 - name: install configuration file
   template:
-    src=avahi-daemon.conf.j2 dest=/etc/avahi/avahi-daemon.conf
-    owner=root group=wheel mode=0444
+    src: avahi-daemon.conf.j2
+    dest: /etc/avahi/avahi-daemon.conf
+    owner: root
+    group: wheel
+    mode: 0444
   notify: restart avahi-daemon
 
 - name: start service
   service:
-    name=avahi_daemon enabled=yes state=started
+    name: avahi_daemon
+    enabled: true
+    state: started
 ...

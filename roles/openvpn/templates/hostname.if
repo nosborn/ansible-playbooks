@@ -1,0 +1,1 @@
+!/usr/local/sbin/openvpn --config {{ openvpn_client_config_file }} --dev \$if --daemon

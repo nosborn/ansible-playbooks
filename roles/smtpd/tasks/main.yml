@@ -1,27 +1,40 @@
 # roles/smtpd/tasks/main
 ---
-- include_vars: vault.yml
+- name: include secrets
+  include_vars: vault.yml
   no_log: true
 
 - name: configure aliases
   copy:
-    content="{{ mail_aliases }}" dest=/etc/mail/aliases
-    owner=root group=wheel mode=0444
+    content: "{{ mail_aliases }}"
+    dest: /etc/mail/aliases
+    owner: root
+    group: wheel
+    mode: 0444
   notify: update aliases table
 
 - name: install secrets file
   copy:
-    content="{{ smtpd_secrets_table }}" dest=/etc/mail/secrets
-    owner=root group=_smtpd mode=0440
+    content: "{{ smtpd_secrets_table }}"
+    dest: /etc/mail/secrets
+    owner: root
+    group: _smtpd
+    mode: 0440
   notify: update secrets table
 
 - name: install configuration file
   template:
-    src=smtpd.conf.j2 dest=/etc/mail/smtpd.conf
-    owner=root group=wheel mode=0444
-    validate='/usr/sbin/smtpd -f %s -n'
+    src: smtpd.conf.j2
+    dest: /etc/mail/smtpd.conf
+    owner: root
+    group: wheel
+    mode: 0444
+    validate: /usr/sbin/smtpd -f %s -n
   notify: restart smtpd
 
 - name: enable and start service
-  service: name=smtpd enabled=yes state=started
+  service:
+    name: smtpd
+    enabled: true
+    state: started
 ...

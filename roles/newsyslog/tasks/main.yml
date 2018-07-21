@@ -2,6 +2,9 @@
 ---
 - name: copy newsyslog.conf
   template:
-    src=newsyslog.conf.j2 dest=/etc/newsyslog.conf
-    owner=root group=wheel mode=0444
+    src: newsyslog.conf.j2
+    dest: /etc/newsyslog.conf
+    owner: root
+    group: wheel
+    mode: 0444
 ...

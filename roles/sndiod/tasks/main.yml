@@ -1,5 +1,8 @@
 # roles/sndiod/tasks/main
 ---
 - name: stop and disable service
-  service: name=sndiod enabled=no state=stopped
+  service:
+    name: sndiod
+    enabled: false
+    state: stopped
 ...

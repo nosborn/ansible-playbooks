@@ -175,7 +175,7 @@ LoadPlugin memory
 ##LoadPlugin perl
 LoadPlugin pf
 ##LoadPlugin pinba
-#LoadPlugin ping
+LoadPlugin ping
 #LoadPlugin postgresql
 #LoadPlugin powerdns
 #LoadPlugin processes
@@ -1119,15 +1119,18 @@ LoadPlugin swap
 #	</View>
 #</Plugin>
 
-#<Plugin ping>
-#	Host "host.foo.bar"
-#	Interval 1.0
-#	Timeout 0.9
+<Plugin ping>
+  Host "185.60.112.157"  # Diablo III - Europe
+  Host "185.60.112.158"  # Diablo III - Europe
+  Host "182.162.135.1"   # Diablo III - Korea
+  Host "210.242.235.6"   # Diablo III - Taiwan
+	Interval 6.0
+	Timeout 5.9
 #	TTL 255
-#	SourceAddress "1.2.3.4"
-#	Device "eth0"
+	SourceAddress "{{ wan_ipv4|ipaddr('address') }}"
+#	Device "{{ wan_if }}"
 #	MaxMissed -1
-#</Plugin>
+</Plugin>
 
 #<Plugin postgresql>
 #	<Query magic>

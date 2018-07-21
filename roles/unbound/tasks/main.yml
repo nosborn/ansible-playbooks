@@ -5,12 +5,16 @@
 #     owner=root group=wheel mode=0444
 #   notify: reload unbound
 
-- template:
-    src={{ item }}.j2 dest=/var/unbound/etc/{{ item }}
-    owner=root group=wheel mode=0444
+- name: filter configuration files
+  template:
+    src: "{{ item }}.j2"
+    dest: /var/unbound/etc/{{ item }}
+    owner: root
+    group: wheel
+    mode: 0444
   with_items:
-    - block-domains.conf
-    - block-hosts.conf
+    - filter-domains.conf
+    - filter-hosts.conf
   notify: reload unbound
 
 - name: setup the root trust anchor
@@ -22,32 +26,42 @@
   changed_when: 'command_result.rc == 1'
   notify: reload unbound
 
-- command: /usr/sbin/unbound-control-setup
-  args:
-    creates: /var/unbound/etc/unbound_control.key
-  notify: reload unbound
+# - command: /usr/sbin/unbound-control-setup
+#   args:
+#     creates: /var/unbound/etc/unbound_control.key
+#   notify: reload unbound
 
 - name: temporary configuration file
   template:
-    src=unbound.conf.j2 dest=/var/unbound/etc/.unbound.conf
-    owner=root group=wheel mode=0440
+    src: unbound.conf.j2
+    dest: /var/unbound/etc/.unbound.conf
+    owner: root
+    group: wheel
+    mode: 0440
 
 - name: configuration file
   copy:
-    src=/var/unbound/etc/.unbound.conf dest=/var/unbound/etc/unbound.conf
-    owner=root group=wheel mode=0444
-    remote_src=yes
-    validate='/usr/sbin/unbound-checkconf %s'
+    src: /var/unbound/etc/.unbound.conf
+    dest: /var/unbound/etc/unbound.conf
+    owner: root
+    group: wheel
+    mode: 0444
+    remote_src: yes
+    validate: /usr/sbin/unbound-checkconf %s
   notify: reload unbound
 
 - name: resource limits
   replace:
-    path=/etc/login.conf backup=yes
-    regexp='^(unbound:.+\\n\\s+:openfiles)=\\d+'
-    replace='\\1=512'
+    path: /etc/login.conf
+    backup: true
+    regexp: '^(unbound:.+\\n\\s+:openfiles)=\\d+'
+    replace: '\\1=512'
   notify: reload unbound
   when: false
 
 - name: start DNS resolver
-  service: name={{ unbound_service }} enabled=yes state=started
+  service:
+    name: "{{ unbound_service }}"
+    enabled: true
+    state: started
 ...

@@ -1,7 +1,7 @@
 server:
-	verbosity: {{ unbound_verbosity }}
+	verbosity: {{ unbound_config_verbosity }}
 
-	num-threads: {{ ansible_processor_cores }}
+	num-threads: {{ unbound_config_num_threads }}
 
 	interface: 127.0.0.1
 	interface: {{ lan_ipv4|ipaddr('address') }}
@@ -17,12 +17,12 @@ server:
 {% endif %}
 
 	msg-cache-size: 4m  # default
-	msg-cache-slabs: {{ ansible_processor_cores }}
+	msg-cache-slabs: {{ unbound_config_num_threads }}
 
 	rrset-cache-size: 8m
-	rrset-cache-slabs: {{ ansible_processor_cores }}
+	rrset-cache-slabs: {{ unbound_config_num_threads }}
 
-	infra-cache-slabs: {{ ansible_processor_cores }}
+	infra-cache-slabs: {{ unbound_config_num_threads }}
 
 #	prefer-ip6: yes
 
@@ -60,7 +60,6 @@ server:
 	private-address: {{ tor_virtual_addr_network_ipv4 }}
 	private-address: {{ tor_virtual_addr_network_ipv6 }}
 
-#	private-domain: local
 	private-domain: onion
 
 	do-not-query-localhost: no
@@ -70,33 +69,19 @@ server:
 
 	auto-trust-anchor-file: /var/unbound/db/root.key
 
-#	domain-insecure: local
 	domain-insecure: onion
 
 #	key-cache-size: 32m
- 	key-cache-slabs: {{ ansible_processor_cores }}
-
-#	local-zone: "local." static
-#	local-data: "tombstone.local IN A {{ lan_ipv4|ipaddr('1')|ipaddr('address') }}"
-#	local-data: "airport-time-capsule.local IN A {{ lan_ipv4|ipaddr('2')|ipaddr('address') }}"
-#	local-data: "airport-extreme.local IN A {{ lan_ipv4|ipaddr('3')|ipaddr('address') }}"
-#	local-data: "mac-mini.local IN A {{ lan_ipv4|ipaddr('4')|ipaddr('address') }}"
-##	local-data: "fever.local IN A {{ lan_ipv4|ipaddr('5')|ipaddr('address') }}"
-#	local-data-ptr: "{{ lan_ipv4|ipaddr('1')|ipaddr('address') }} tombstone.local"
-#	local-data-ptr: "{{ lan_ipv4|ipaddr('2')|ipaddr('address') }} airport-time-capsule.local"
-#	local-data-ptr: "{{ lan_ipv4|ipaddr('3')|ipaddr('address') }} airport-extreme.local"
-#	local-data-ptr: "{{ lan_ipv4|ipaddr('4')|ipaddr('address') }} mac-mini.local"
-##	local-data-ptr: "{{ lan_ipv4|ipaddr('5')|ipaddr('address') }} fever.local"
-#	local-data-ptr: "{{ guest_ipv4|ipaddr('1')|ipaddr('address') }} tombstone.local"
+ 	key-cache-slabs: {{ unbound_config_num_threads }}
 
 	local-zone: "onion." nodefault
 
-	include: /var/unbound/etc/block-domains.conf
-	include: /var/unbound/etc/block-hosts.conf
+	include: /var/unbound/etc/filter-domains.conf
+	include: /var/unbound/etc/filter-hosts.conf
 
-remote-control:
-	control-enable: yes
-	control-interface: /var/run/unbound.control
+# remote-control:
+#	control-enable: yes
+#	control-interface: /var/run/unbound.control
 
 forward-zone:
         name: "onion"

@@ -1,31 +1,54 @@
 # roles/nginx/tasks/main
 ---
 - name: install package
-  openbsd_pkg: name=nginx state=present
+  openbsd_pkg:
+    name: nginx
+    state: present
 
-- copy:
-    content="{{ httpd_htpasswd_content }}" dest=/var/www/.htpasswd
-    owner=root group=www mode=0440
+- name: password file
+  copy:
+    content: "{{ httpd_htpasswd_content }}"
+    dest: /var/www/.htpasswd
+    owner: root
+    group: www
+    mode: 0440
   notify: restart nginx
 
-- copy:
-    content='' dest=/etc/nginx/sites.conf force=no
-    owner=root group=wheel mode=0444
+- name: dummy sites configuration file
+  copy:
+    content: ''
+    dest: /etc/nginx/sites.conf
+    force: false
+    owner: root
+    group: wheel
+    mode: 0444
   notify: restart nginx
 
-- template:
-    src=nginx.conf.j2 dest=/etc/nginx/nginx.conf
-    owner=root group=wheel mode=0444
-    validate='/usr/local/sbin/nginx -c %s -t'
+- name: main configuration file
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: wheel
+    mode: 0444
+    validate: /usr/local/sbin/nginx -c %s -t
   notify: restart nginx
 
 - name: enable and start service
-  service: name=nginx enabled=yes state=started
+  service:
+    name: nginx
+    enabled: true
+    state: started
 
-- include_role: name=acme-client
+- include_role:
+    name: acme-client
 
-- template:
-    src=sites.conf.j2 dest=/etc/nginx/sites.conf
-    owner=root group=wheel mode=0444
+- name: sites configuration file
+  template:
+    src: sites.conf.j2
+    dest: /etc/nginx/sites.conf
+    owner: root
+    group: wheel
+    mode: 0444
   notify: restart nginx
 ...

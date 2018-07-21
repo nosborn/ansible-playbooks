@@ -1,10 +1,15 @@
 # roles/sysclean/tasks/main
 ---
 - name: install package
-  openbsd_pkg: name=sysclean state=present
+  openbsd_pkg:
+    name: sysclean
+    state: present
 
 - name: install ignore file
   copy:
-    src=sysclean.ignore dest=/etc/sysclean.ignore
-    owner=root group=wheel mode=0444
+    src: sysclean.ignore
+    dest: /etc/sysclean.ignore
+    owner: root
+    group: wheel
+    mode: 0444
 ...

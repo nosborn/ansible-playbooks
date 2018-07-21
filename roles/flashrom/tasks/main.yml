@@ -1,5 +1,7 @@
 # roles/flashrom/tasks/main
 ---
 - name: install package
-  openbsd_pkg: name=flashrom state=present
+  openbsd_pkg:
+    name: flashrom
+    state: present
 ...

@@ -1,7 +1,9 @@
 # roles/smtpd/handlers/main
 ---
 - name: restart smtpd
-  service: name=smtpd state=restarted
+  service:
+    name: smtpd
+    state: restarted
 
 - name: update aliases table
   command: /usr/sbin/smtpctl update table aliases

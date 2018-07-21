@@ -2,6 +2,9 @@
 ---
 - name: copy sysmerge.ignore
   copy:
-    src=sysmerge.ignore dest=/etc/sysmerge.ignore
-    owner=root group=wheel mode=0444
+    src: sysmerge.ignore
+    dest: /etc/sysmerge.ignore
+    owner: root
+    group: wheel
+    mode: 0444
 ...

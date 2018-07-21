@@ -2,9 +2,12 @@
 ---
 - name: periodic system maintenance scripts
   template:
-    src={{ item }}.j2 dest=/etc/{{ item }}
-    owner=root group=wheel mode=0444
-    validate='/bin/sh -n %s'
+    src: "{{ item }}.j2"
+    dest: /etc/{{ item }}
+    owner: root
+    group: wheel
+    mode: 0444
+    validate: /bin/sh -n %s
   with_items:
     - daily.local
     - weekly.local

@@ -4,13 +4,23 @@
   no_log: true
 
 - name: install package
-  openbsd_pkg: name=monit state=present
+  openbsd_pkg:
+    name: monit
+    state: present
 
-- template:
-    src=monitrc.j2 dest=/etc/monitrc
-    owner=root group=wheel mode=0400
-    validate='/usr/local/bin/monit -c %s -t'
+- name: install configuration file
+  template:
+    src: monitrc.j2
+    dest: /etc/monitrc
+    owner: root
+    group: wheel
+    mode: 0400
+    validate: /usr/local/bin/monit -c %s -t
   notify: reload monit
 
-- service: name=monit enabled=yes state=started
+- name: enable and start service
+  service:
+    name: monit
+    enabled: true
+    state: started
 ...

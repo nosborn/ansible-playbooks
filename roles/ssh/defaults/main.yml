@@ -1,0 +1,4 @@
+# roles/ssh/defaults/main
+---
+sshd_permit_root_login: prohibit-password
+...
