@@ -1,0 +1,12 @@
+# yamllint disable rule:line-length
+---
+image: python:latest
+
+before_script:
+  - pip install -q --disable-pip-version-check ansible-lint
+
+test:
+  stage: test
+  script:
+    - ansible-lint --force-color site.yml
+...
