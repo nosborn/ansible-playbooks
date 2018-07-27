@@ -1,8 +1,0 @@
-# roles/tor/defaults/main
----
-tor_dns_port: 5300
-tor_pid_file: /var/tor/pid
-tor_trans_port: 9052
-tor_virtual_addr_network_ipv4: 10.192.0.0/10
-tor_virtual_addr_network_ipv6: fe80::/10
-...

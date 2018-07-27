@@ -9,23 +9,13 @@
 # default value.
 
 #Port 22
-{% if sshd_address_family is defined %}
-AddressFamily {{ sshd_address_family }}
-{% else %}
 #AddressFamily any
-{% endif %}
-{% if sshd_listen_addresses is defined %}
-{%   for listen_address in sshd_listen_addresses %}
-ListenAddress {{ listen_address|ipwrap }}
-{%   endfor %}
-{% else %}
 #ListenAddress 0.0.0.0
 #ListenAddress ::
-{% endif %}
 
 #HostKey /etc/ssh/ssh_host_rsa_key
 #HostKey /etc/ssh/ssh_host_ecdsa_key
-#HostKey /etc/ssh/ssh_host_ed25519_key
+HostKey /etc/ssh/ssh_host_ed25519_key
 
 # Ciphers and keying
 #RekeyLimit default none
@@ -37,13 +27,10 @@ ListenAddress {{ listen_address|ipwrap }}
 # Authentication:
 
 #LoginGraceTime 2m
-PermitRootLogin {{ sshd_permit_root_login }}
+#PermitRootLogin prohibit-password
 #StrictModes yes
-MaxAuthTries 3
+#MaxAuthTries 6
 #MaxSessions 10
-{% if sshd_allow_users is defined %}
-AllowUsers {{ sshd_allow_users|sort|unique|join(' ') }}
-{% endif %}
 
 #PubkeyAuthentication yes
 
@@ -71,7 +58,7 @@ PasswordAuthentication no
 # Change to no to disable s/key passwords
 ChallengeResponseAuthentication no
 
-#AllowAgentForwarding yes
+AllowAgentForwarding no
 #AllowTcpForwarding yes
 #GatewayPorts no
 #X11Forwarding no
@@ -81,12 +68,11 @@ ChallengeResponseAuthentication no
 #PrintMotd yes
 #PrintLastLog yes
 #TCPKeepAlive yes
-#UseLogin no
 #PermitUserEnvironment no
 #Compression delayed
-ClientAliveInterval 15
+ClientAliveInterval 20
 #ClientAliveCountMax 3
-#UseDNS no
+UseDNS no
 #PidFile /var/run/sshd.pid
 #MaxStartups 10:30:100
 #PermitTunnel no
@@ -98,3 +84,10 @@ ClientAliveInterval 15
 
 # override default of no subsystems
 Subsystem sftp /usr/libexec/sftp-server
+
+# Example of overriding settings on a per-user basis
+#Match User anoncvs
+#	X11Forwarding no
+#	AllowTcpForwarding no
+#	PermitTTY no
+#	ForceCommand cvs server

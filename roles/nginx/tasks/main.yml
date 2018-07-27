@@ -2,8 +2,12 @@
 ---
 - name: install package
   openbsd_pkg:
-    name: nginx
+    name: "{{ item }}"
     state: present
+  with_items:
+    - lua-cjson
+    - nginx
+    - nginx-lua
 
 - name: password file
   copy:

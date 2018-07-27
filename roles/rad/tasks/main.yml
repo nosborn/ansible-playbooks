@@ -1,18 +1,18 @@
-# roles/rtadvd/tasks/main
+# roles/rad/tasks/main
 ---
 - name: install configuration file
   template:
-    src: rtadvd.conf.j2
-    dest: /etc/rtadvd.conf
+    src: rad.conf.j2
+    dest: /etc/rad.conf
     owner: root
     group: wheel
     mode: 0444
-  notify: restart rtadvd
+    validate: /usr/sbin/rad -n -f %s
+  notify: restart rad
 
 - name: enable and start service
   service:
-    name: rtadvd
-    arguments: -s {{ lan_if }}
+    name: rad
     enabled: true
     state: started
 ...

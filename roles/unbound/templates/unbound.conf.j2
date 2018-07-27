@@ -57,24 +57,14 @@ server:
 	private-address: ::ffff:0:0/96
 	private-address: fd00::/8
 	private-address: fe80::/10
-	private-address: {{ tor_virtual_addr_network_ipv4 }}
-	private-address: {{ tor_virtual_addr_network_ipv6 }}
-
-	private-domain: onion
-
-	do-not-query-localhost: no
 
 	prefetch: yes
 	prefetch-key: yes
 
 	auto-trust-anchor-file: /var/unbound/db/root.key
 
-	domain-insecure: onion
-
 #	key-cache-size: 32m
- 	key-cache-slabs: {{ unbound_config_num_threads }}
-
-	local-zone: "onion." nodefault
+	key-cache-slabs: {{ unbound_config_num_threads }}
 
 	include: /var/unbound/etc/filter-domains.conf
 	include: /var/unbound/etc/filter-hosts.conf
@@ -82,10 +72,6 @@ server:
 # remote-control:
 #	control-enable: yes
 #	control-interface: /var/run/unbound.control
-
-forward-zone:
-        name: "onion"
-	forward-addr: 127.0.0.1@{{ tor_dns_port }}
 
 forward-zone:
         name: "."

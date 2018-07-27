@@ -82,7 +82,7 @@
     - {role: facette, tags: [facette]}
     - {role: flashrom, tags: [flashrom]}
     # - {role: iked, tags: [iked]}
-    # - {role: iplayer, tags: [iplayer]}
+    - {role: iplayer, tags: [iplayer]}
     # - {role: locale, tags: [locale]}
     # - {role: monit, tags: [monit]}
     - {role: nginx, tags: [nginx]}
@@ -92,14 +92,13 @@
     - {role: pf, tags: [pf]}
     # - {role: pftop, tags: [pftop]}
     - {role: python, tags: [python]}
-    - {role: rtadvd, tags: [rtadvd]}
+    - {role: rad, tags: [rad]}
     - {role: slaacd, tags: [slaacd]}
     - {role: smtpd, tags: [smtpd]}
     - {role: sndiod, tags: [sndiod]}
     - {role: ssh, tags: [ssh]}
     - {role: sysclean, tags: [sysclean]}
     - {role: sysmerge, tags: [sysmerge]}
-    - {role: tor, tags: [tor]}
     - {role: unbound, tags: [unbound]}
 
   tasks:

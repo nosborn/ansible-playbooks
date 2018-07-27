@@ -1,7 +1,0 @@
-# roles/tor/handlers/main
----
-- name: reload tor
-  service:
-    name: tor
-    state: reloaded
-...

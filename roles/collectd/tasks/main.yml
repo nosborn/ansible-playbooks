@@ -6,6 +6,7 @@
     state: present
   with_items:
     - collectd
+    - collectd-ping
     - collectd-rrdtool
 
 - name: install configuration file

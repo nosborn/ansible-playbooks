@@ -1,0 +1,9 @@
+{% if lan_ipv6 is defined %}
+interface {{ lan_if }} {
+  prefix {{ lan_ipv6|ipaddr('network') }}/{{ lan_ipv6|ipaddr('prefix') }}
+	dns {
+		nameserver {{ lan_ipv6|ipaddr('address') }}
+		search {{ global_domain }}
+	}
+}
+{% endif %}

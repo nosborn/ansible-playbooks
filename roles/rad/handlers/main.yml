@@ -1,0 +1,7 @@
+# roles/rad/handlers/main
+---
+- name: restart rad
+  service:
+    name: rad
+    state: restarted
+...

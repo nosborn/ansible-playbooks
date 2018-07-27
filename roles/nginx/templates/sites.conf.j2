@@ -65,14 +65,29 @@ server {
     log_not_found off;
   }
 
-  # location /facette/ {
-  #   proxy_pass http://127.0.0.1:12003/;
-  #   proxy_redirect default;
-  #   proxy_set_header Host $host;
-  #   proxy_set_header X-Real-IP $remote_addr;
-  # }
+  location /facette/ {
+    allow {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }};
+    allow {{ lan_ipv6|ipaddr('network') }}/{{ lan_ipv6|ipaddr('prefix') }};
+    deny all;
+
+    proxy_pass http://127.0.0.1:12003/;
+    proxy_redirect default;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+  }
+
+  location /iplayer/ {
+    auth_basic "Tombstone";
+    auth_basic_user_file /var/www/.htpasswd;
+
+    root /var/www/sites/{{ ansible_fqdn }}/iplayer;
+    autoindex on;
+  }
 
   location /monit/ {
+    auth_basic "Tombstone";
+    auth_basic_user_file /var/www/.htpasswd;
+
     proxy_pass http://127.0.0.1:2180/;
     proxy_redirect default;
     proxy_set_header Host $host;

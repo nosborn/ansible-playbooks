@@ -19,6 +19,7 @@
 /var/www/cache/fastcgi_temp
 /var/www/cache/uwsgi_temp
 /var/www/cache/scgi_temp
+/var/www/modules
 /var/www/sites
 
 @include "/etc/changelist"

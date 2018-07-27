@@ -104,13 +104,13 @@ check process nginx with pidfile /var/run/nginx.pid
 {% endif %}
   depends on WAN
 
-check process rtadvd matching "^/usr/sbin/rtadvd "
-  start program = "/usr/sbin/rcctl start rtadvd"
-  stop program = "/usr/sbin/rcctl stop rtadvd"
+check process rad matching "^/usr/sbin/rad$"
+  start program = "/usr/sbin/rcctl start rad"
+  stop program = "/usr/sbin/rcctl stop rad"
   if does not exist for 2 cycles then restart
-  if failed uid _rtadvd then alert
-  if failed euid _rtadvd then alert
-  if failed gid _rtadvd then alert
+  if failed uid _rad then alert
+  if failed euid _rad then alert
+  if failed gid _rad then alert
   depends on LAN
 
 check process slaacd matching "^/sbin/slaacd$"
@@ -142,23 +142,6 @@ check process syslogd with pidfile /var/run/syslog.pid
   start program = "/usr/sbin/rcctl start syslogd"
   stop program = "/usr/sbin/rcctl stop syslogd"
   if does not exist for 2 cycles then restart
-
-check process tor with pidfile {{ tor_pid_file }}
-  start program = "/usr/sbin/rcctl start tor"
-  stop program = "/usr/sbin/rcctl stop tor"
-  if does not exist for 2 cycles then restart
-  if failed uid _tor then alert
-  if failed euid _tor then alert
-  if failed gid _tor then alert
-  # if failed
-  #   host 127.0.0.1 {{ tor_dns_port }} type udp proto dns
-  #   for 5 cycles
-  #   then alert
-  # if failed
-  #   host ::1 port {{ tor_dns_port }} type udp proto dns
-  #   for 5 cycles
-  #   then alert
-  depends on WAN
 
 check process unbound with pidfile {{ unbound_pid_file }}
   start program = "/usr/sbin/rcctl start {{ unbound_service }}"
