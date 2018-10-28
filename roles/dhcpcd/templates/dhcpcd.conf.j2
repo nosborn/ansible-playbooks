@@ -9,13 +9,11 @@ script /usr/bin/true
 
 # Disable dhcpcd's own router solicitation support; allow slaacd
 # to do this instead by setting "inet6 autoconf" in hostname.pppoe0
-noipv6rs
+# noipv6rs
+slaac private
 
 allowinterfaces {{ wan_if }} {{ lan_if }} # {{ guest_if }}
 
 interface {{ wan_if }}
   # request prefix delegation for downstream interfaces
   ia_pd 2 {{ lan_if }}/82 # {{ guest_if }}/83
-{% if wan_ipv6 is defined %}
-#  static ip6_address={{ wan_ipv6 }}
-{% endif %}

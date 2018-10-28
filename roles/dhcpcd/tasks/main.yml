@@ -25,4 +25,5 @@
     src: /var/db/dhcpcd/duid
     dest: backup
     fail_on_missing: true
+  when: false
 ...

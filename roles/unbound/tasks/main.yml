@@ -1,9 +1,15 @@
 # roles/unbound/tasks/main
 ---
-# - copy:
-#     src=named.cache dest=/var/unbound/etc/named.cache
-#     owner=root group=wheel mode=0444
-#   notify: reload unbound
+- name: install package
+  package:
+    name: "{{ unbound_package_name }}"
+    state: present
+  when: unbound_package_name is defined
+
+# # - copy:
+# #     src=named.cache dest=/var/unbound/etc/named.cache
+# #     owner=root group=wheel mode=0444
+# #   notify: restart unbound
 
 - name: filter configuration files
   template:
@@ -15,21 +21,22 @@
   with_items:
     - filter-domains.conf
     - filter-hosts.conf
-  notify: reload unbound
+  notify: restart unbound
+  when: false # ansible_hostname == 'tombstone'
 
-- name: setup the root trust anchor
-  command: /usr/sbin/unbound-anchor
-  args:
-    creates: /var/unbound/db/root.key
-  register: command_result
-  failed_when: 'command_result.rc > 1'
-  changed_when: 'command_result.rc == 1'
-  notify: reload unbound
-
-# - command: /usr/sbin/unbound-control-setup
+# - name: setup the root trust anchor
+#   command: /usr/sbin/unbound-anchor
 #   args:
-#     creates: /var/unbound/etc/unbound_control.key
-#   notify: reload unbound
+#     creates: /var/unbound/db/root.key
+#   register: command_result
+#   failed_when: 'command_result.rc > 1'
+#   changed_when: 'command_result.rc == 1'
+#   notify: restart unbound
+
+# # - command: /usr/sbin/unbound-control-setup
+# #   args:
+# #     creates: /var/unbound/etc/unbound_control.key
+# #   notify: restart unbound
 
 - name: temporary configuration file
   template:
@@ -46,22 +53,22 @@
     owner: root
     group: wheel
     mode: 0444
-    remote_src: yes
+    remote_src: true
     validate: /usr/sbin/unbound-checkconf %s
-  notify: reload unbound
+  notify: restart unbound
 
-- name: resource limits
-  replace:
-    path: /etc/login.conf
-    backup: true
-    regexp: '^(unbound:.+\\n\\s+:openfiles)=\\d+'
-    replace: '\\1=512'
-  notify: reload unbound
-  when: false
+# - name: resource limits
+#   replace:
+#     path: /etc/login.conf
+#     backup: true
+#     regexp: '^(unbound:.+\\n\\s+:openfiles)=\\d+'
+#     replace: '\\1=512'
+#   notify: restart unbound
+#   when: false
 
-- name: start DNS resolver
+- name: enable and start service
   service:
-    name: "{{ unbound_service }}"
+    name: "{{ unbound_service_name }}"
     enabled: true
     state: started
 ...

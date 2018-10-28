@@ -1,7 +1,7 @@
 # roles/iked/tasks/main
 ---
-- include_vars: vault.yml
-  no_log: true
+# - include_vars: vault.yml
+#   no_log: true
 
 - name: IKEv2 configuration file
   template:
@@ -31,5 +31,5 @@
     enabled: "{{ iked_enabled }}"
     state: "{{ iked_state }}"
 
-- include_tasks: mobileconfig.yml
+# - include_tasks: mobileconfig.yml
 ...

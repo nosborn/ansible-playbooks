@@ -2,12 +2,11 @@
 ---
 - name: install packages
   openbsd_pkg:
-    name: "{{ item }}"
+    name:
+      - collectd
+      - collectd-ping
+      - collectd-rrdtool
     state: present
-  with_items:
-    - collectd
-    - collectd-ping
-    - collectd-rrdtool
 
 - name: install configuration file
   template:

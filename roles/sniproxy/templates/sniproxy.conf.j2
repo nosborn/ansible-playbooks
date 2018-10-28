@@ -1,0 +1,69 @@
+# sniproxy example configuration file
+# lines that start with # are comments
+# lines with only white space are ignored
+
+user daemon
+
+pidfile /var/run/sniproxy.pid
+
+error_log {
+  # Log to the daemon syslog facility
+  #syslog daemon
+
+  # Alternatively we could log to file
+  filename /var/log/sniproxy/sniproxy.log
+
+  # Control the verbosity of the log
+  priority notice
+}
+
+{% for address in ansible_all_ipv4_addresses|ipaddr('public') %}
+listen {{ address }}:80 {
+  proto http
+  # fallback 127.0.0.1:80
+
+  access_log {
+    filename /var/log/sniproxy/http_access.log
+    priority notice
+  }
+}
+
+listen {{ address }}:443 {
+  proto tls
+  # fallback 127.0.0.1:443
+
+  access_log {
+    filename /var/log/sniproxy/https_access.log
+    priority notice
+  }
+}
+
+{% endfor %}
+{% for address in ansible_all_ipv6_addresses|ipaddr('public') %}
+listen {{ address|ipwrap }}:80 {
+  proto http
+  # fallback [::1]:80
+
+  access_log {
+    filename /var/log/sniproxy/http_access.log
+    priority notice
+  }
+}
+
+listen {{ address|ipwrap }}:443 {
+  proto tls
+  # fallback [::1]:443
+
+  access_log {
+    filename /var/log/sniproxy/https_access.log
+    priority notice
+  }
+}
+
+{% endfor %}
+table {
+  .*\.bbc\.co\.uk$ *
+  .*\.bbci\.co\.uk$ *
+  bbc\.co\.uk$ *
+  bbci\.co\.uk$ *
+}

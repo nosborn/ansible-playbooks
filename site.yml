@@ -1,5 +1,483 @@
 # site
 ---
+- hosts: edgerouter
+
+  pre_tasks:
+
+    # - name: collect all facts from the device
+    #   edgeos_facts:
+    #     gather_subset: all
+    #   connection: network_cli
+
+    - name: add stretch repositories
+      edgeos_config:
+        lines:
+          - set system package repository {{ item }} components main
+          - set system package repository {{ item }} distribution {{ item }}
+          - set system package repository {{ item }} url http://ftp.sg.debian.org/debian
+        save: true
+      with_items:
+        - stretch
+        # - stretch-backports
+      connection: network_cli
+      register: r
+
+    - debug:
+        var: r
+      when: r.changed
+
+  roles:
+
+    # # - {role: apmd, tags: [apmd]}
+    # # - {role: avahi, tags: [avahi]}
+    # # - {role: collectd, tags: [collectd]}
+    # # - {role: dhcpcd, tags: [dhcpcd]}
+    # # - {role: doas, tags: [doas]}
+    # # - {role: facette, tags: [facette]}
+    # # # - {role: iked, tags: [iked]}
+    # # - {role: iplayer, tags: [iplayer]}
+    # # # - {role: locale, tags: [locale]}
+    # # # - {role: monit, tags: [monit]}
+    # # - {role: nginx, tags: [nginx]}
+    # - {role: ntpd, tags: [ntpd]}
+    # # # - {role: periodic, tags: [periodic]}
+    # # - {role: pf, tags: [pf]}
+    # # # - {role: pftop, tags: [pftop]}
+    # - {role: python, tags: [python]}
+    # - {role: slaacd, tags: [slaacd]}
+    # # - {role: smtpd, tags: [smtpd]}
+    # - {role: sndiod, tags: [sndiod]}
+    # - {role: ssh, tags: [ssh]}
+    # # - {role: sysclean, tags: [sysclean]}
+    # # - {role: sysmerge, tags: [sysmerge]}
+    # - {role: unbound, tags: [unbound]}
+
+  tasks:
+
+    - name: configure firewall
+      edgeos_config:
+        lines:
+          - set firewall all-ping enable
+          - set firewall broadcast-ping disable
+          # - set firewall group address-group firehol_level1 description 'FireHOL IP Lists'
+          # - set firewall ipv6-name GUESTv6_IN default-action drop  # TODO
+          # - set firewall ipv6-name GUESTv6_LOCAL default-action drop  # TODO
+          # - set firewall ipv6-name GUESTv6_OUT default-action drop  # TODO
+          - set firewall ipv6-name WANv6_IN default-action drop
+          - set firewall ipv6-name WANv6_IN description 'WAN inbound traffic forwarded to LAN'
+          - set firewall ipv6-name WANv6_IN enable-default-log
+          - set firewall ipv6-name WANv6_IN rule 10 action accept
+          - set firewall ipv6-name WANv6_IN rule 10 description 'Allow established/related sessions'
+          - set firewall ipv6-name WANv6_IN rule 10 state established enable
+          - set firewall ipv6-name WANv6_IN rule 10 state related enable
+          - set firewall ipv6-name WANv6_IN rule 20 action drop
+          - set firewall ipv6-name WANv6_IN rule 20 description 'Drop invalid state'
+          - set firewall ipv6-name WANv6_IN rule 20 state invalid enable
+          - set firewall ipv6-name WANv6_LOCAL default-action drop
+          - set firewall ipv6-name WANv6_LOCAL description 'WAN inbound traffic to the router'
+          - set firewall ipv6-name WANv6_LOCAL enable-default-log
+          - set firewall ipv6-name WANv6_LOCAL rule 10 action accept
+          - set firewall ipv6-name WANv6_LOCAL rule 10 description 'Allow established/related sessions'
+          - set firewall ipv6-name WANv6_LOCAL rule 10 state established enable
+          - set firewall ipv6-name WANv6_LOCAL rule 10 state related enable
+          - set firewall ipv6-name WANv6_LOCAL rule 20 action drop
+          - set firewall ipv6-name WANv6_LOCAL rule 20 description 'Drop invalid state'
+          - set firewall ipv6-name WANv6_LOCAL rule 20 state invalid enable
+          - set firewall ipv6-name WANv6_LOCAL rule 30 action accept
+          - set firewall ipv6-name WANv6_LOCAL rule 30 description 'Allow IPv6 ICMP'
+          - set firewall ipv6-name WANv6_LOCAL rule 30 protocol ipv6-icmp
+          - set firewall ipv6-name WANv6_LOCAL rule 40 action accept
+          - set firewall ipv6-name WANv6_LOCAL rule 40 description 'Allow DHCPv6'
+          - set firewall ipv6-name WANv6_LOCAL rule 40 destination port 546
+          - set firewall ipv6-name WANv6_LOCAL rule 40 protocol udp
+          - set firewall ipv6-name WANv6_LOCAL rule 40 source port 547
+          - set firewall ipv6-receive-redirects disable
+          - set firewall ipv6-src-route disable
+          - set firewall ip-src-route disable
+          - set firewall log-martians enable
+          # - set firewall name GUEST_IN default-action accept  # TODO
+          # - set firewall name GUEST_LOCAL default-action accept  # TODO
+          # - set firewall name GUEST_OUT default-action accept  # TODO
+          - set firewall name WAN_IN default-action drop
+          - set firewall name WAN_IN description 'WAN to internal'
+          - set firewall name WAN_IN rule 10 action accept
+          - set firewall name WAN_IN rule 10 description 'Allow established/related'
+          - set firewall name WAN_IN rule 10 state established enable
+          - set firewall name WAN_IN rule 10 state related enable
+          - set firewall name WAN_IN rule 20 action drop
+          - set firewall name WAN_IN rule 20 description 'Drop invalid state'
+          - set firewall name WAN_IN rule 20 state invalid enable
+          - set firewall name WAN_LOCAL default-action drop
+          - set firewall name WAN_LOCAL description 'WAN to router'
+          - set firewall name WAN_LOCAL rule 10 action accept
+          - set firewall name WAN_LOCAL rule 10 description 'Allow established/related'
+          - set firewall name WAN_LOCAL rule 10 state established enable
+          - set firewall name WAN_LOCAL rule 10 state related enable
+          - set firewall name WAN_LOCAL rule 20 action drop
+          - set firewall name WAN_LOCAL rule 20 description 'Drop invalid state'
+          - set firewall name WAN_LOCAL rule 20 state invalid enable
+          # - set firewall name WAN_OUT default-action accept
+          # # - set firewall name WAN_OUT description 'to WAN'
+          # - set firewall name WAN_OUT rule 10 action reject
+          # - set firewall name WAN_OUT rule 10 description 'FireHOL IP Lists'
+          # - set firewall name WAN_OUT rule 10 destination group address-group firehol_level1
+          # - set firewall name WAN_OUT rule 10 log enable
+          - set firewall receive-redirects disable
+          - set firewall send-redirects enable
+          - set firewall source-validation disable
+          - set firewall syn-cookies enable
+        save: true
+      connection: network_cli
+      register: r
+
+    - debug:
+        var: r
+      when: r.changed
+
+    - name: configure interfaces
+      edgeos_config:
+        lines:
+          - set interfaces ethernet {{ wan_if }} address dhcp
+          - set interfaces ethernet {{ wan_if }} description 'Internet'
+          - set interfaces ethernet {{ wan_if }} dhcpv6-pd pd 0 interface {{ lan_if }} host-address ::1
+          - set interfaces ethernet {{ wan_if }} dhcpv6-pd pd 0 interface {{ lan_if }} no-dns
+          - set interfaces ethernet {{ wan_if }} dhcpv6-pd pd 0 interface {{ lan_if }} service slaac
+          - set interfaces ethernet {{ wan_if }} dhcpv6-pd pd 0 prefix-length /64
+          - set interfaces ethernet {{ wan_if }} dhcpv6-pd rapid-commit enable
+          - set interfaces ethernet {{ wan_if }} duplex auto
+          - set interfaces ethernet {{ wan_if }} firewall in ipv6-name WANv6_IN
+          - set interfaces ethernet {{ wan_if }} firewall in name WAN_IN
+          - set interfaces ethernet {{ wan_if }} firewall local ipv6-name WANv6_LOCAL
+          - set interfaces ethernet {{ wan_if }} firewall local name WAN_LOCAL
+          # - set interfaces ethernet {{ wan_if }} firewall out name WAN_OUT
+          - set interfaces ethernet {{ wan_if }} ipv6 address autoconf
+          - set interfaces ethernet {{ wan_if }} ipv6 dup-addr-detect-transmits 1
+          - set interfaces ethernet {{ wan_if }} speed auto
+          - set interfaces ethernet {{ dmz_if }} address {{ dmz_ipv4 }}
+          - set interfaces ethernet {{ dmz_if }} description 'DMZ'
+          - set interfaces ethernet {{ dmz_if }} duplex auto
+          - set interfaces ethernet {{ dmz_if }} speed auto
+          - set interfaces ethernet {{ lan_if }} address {{ lan_ipv4 }}
+          - set interfaces ethernet {{ lan_if }} description 'LAN'
+          - set interfaces ethernet {{ lan_if }} duplex auto
+          - set interfaces ethernet {{ lan_if }} speed auto
+          # - set interfaces ethernet {{ lan_if }} vif {{ guest_vlan }} address {{ guest_ipv4 }}
+          # - set interfaces ethernet {{ lan_if }} vif {{ guest_vlan }} description 'Guest LAN'
+          # - set interfaces ethernet {{ lan_if }} vif {{ guest_vlan }} disable  # TODO
+          # - set interfaces ethernet {{ lan_if }} vif {{ guest_vlan }} firewall in ipv6-name GUESTv6_IN
+          # - set interfaces ethernet {{ lan_if }} vif {{ guest_vlan }} firewall in name GUEST_IN
+          # - set interfaces ethernet {{ lan_if }} vif {{ guest_vlan }} firewall local ipv6-name GUESTv6_LOCAL
+          # - set interfaces ethernet {{ lan_if }} vif {{ guest_vlan }} firewall local name GUEST_LOCAL
+          # - set interfaces ethernet {{ lan_if }} vif {{ guest_vlan }} firewall out ipv6-name GUESTv6_OUT
+          # - set interfaces ethernet {{ lan_if }} vif {{ guest_vlan }} firewall out name GUEST_OUT
+          # - set interfaces ethernet {{ lan_if }} vif {{ guest_vlan }} mtu 1500
+        save: true
+      connection: network_cli
+
+    - name: enable IPv6 privacy extensions
+      sysctl:
+        name: net.ipv6.conf.{{ wan_if }}.use_tempaddr
+        sysctl_file: /etc/sysctl.d/local.conf
+        sysctl_set: true
+        value: 1
+
+    - name: configure DHCP server
+      edgeos_config:
+        lines:
+          - set service dhcp-server disabled false
+          - set service dhcp-server hostfile-update disable
+          - delete service dhcp-server shared-network-name LAN1
+          - set service dhcp-server shared-network-name DMZ authoritative enable
+          - set service dhcp-server shared-network-name DMZ subnet {{ dmz_ipv4|ipaddr('subnet') }} default-router {{ dmz_ipv4|ipaddr('address') }}
+          - set service dhcp-server shared-network-name DMZ subnet {{ dmz_ipv4|ipaddr('subnet') }} dns-server {{ dmz_ipv4|ipaddr('address') }}
+          - set service dhcp-server shared-network-name DMZ subnet {{ dmz_ipv4|ipaddr('subnet') }} lease 86400
+          - set service dhcp-server shared-network-name DMZ subnet {{ dmz_ipv4|ipaddr('subnet') }} start {{ dhcpd_dmz_start }} stop {{ dhcpd_dmz_stop }}
+          - set service dhcp-server shared-network-name GUEST authoritative enable
+          - set service dhcp-server shared-network-name GUEST subnet {{ guest_ipv4|ipaddr('subnet') }} default-router {{ guest_ipv4|ipaddr('address') }}
+          - set service dhcp-server shared-network-name GUEST subnet {{ guest_ipv4|ipaddr('subnet') }} dns-server 1.1.1.1
+          - set service dhcp-server shared-network-name GUEST subnet {{ guest_ipv4|ipaddr('subnet') }} dns-server 1.0.0.1
+          - set service dhcp-server shared-network-name GUEST subnet {{ guest_ipv4|ipaddr('subnet') }} lease 86400
+          - set service dhcp-server shared-network-name GUEST subnet {{ guest_ipv4|ipaddr('subnet') }} start {{ dhcpd_guest_start }} stop {{ dhcpd_guest_stop }}
+          - delete service dhcp-server shared-network-name LAN2
+          - set service dhcp-server shared-network-name LAN authoritative enable
+          - set service dhcp-server shared-network-name LAN subnet {{ lan_ipv4|ipaddr('subnet') }} default-router {{ lan_ipv4|ipaddr('address') }}
+          - set service dhcp-server shared-network-name LAN subnet {{ lan_ipv4|ipaddr('subnet') }} dns-server {{ lan_ipv4|ipaddr('address') }}
+          - set service dhcp-server shared-network-name LAN subnet {{ lan_ipv4|ipaddr('subnet') }} lease 86400
+          - set service dhcp-server shared-network-name LAN subnet {{ lan_ipv4|ipaddr('subnet') }} start {{ dhcpd_lan_start }} stop {{ dhcpd_lan_stop }}
+          - set service dhcp-server shared-network-name LAN subnet {{ lan_ipv4|ipaddr('subnet') }} static-mapping Apple_TV ip-address {{ lan_ipv4|ipaddr('4')|ipaddr('address') }}
+          - set service dhcp-server shared-network-name LAN subnet {{ lan_ipv4|ipaddr('subnet') }} static-mapping Apple_TV mac-address 40:cb:c0:c9:70:1e
+          - set service dhcp-server shared-network-name LAN subnet {{ lan_ipv4|ipaddr('subnet') }} static-mapping Apple_TV static-mapping-parameters 'option domain-name-servers 85.203.37.1,8,85.203.37.2;'
+          - set service dhcp-server shared-network-name LAN subnet {{ lan_ipv4|ipaddr('subnet') }} static-mapping Sony_TV ip-address {{ lan_ipv4|ipaddr('5')|ipaddr('address') }}
+          - set service dhcp-server shared-network-name LAN subnet {{ lan_ipv4|ipaddr('subnet') }} static-mapping Sony_TV mac-address 04:5d:4b:6f:b7:f6
+          - set service dhcp-server shared-network-name LAN subnet {{ lan_ipv4|ipaddr('subnet') }} static-mapping Sony_TV static-mapping-parameters 'option domain-name-servers 85.203.37.1,85.203.37.2;'
+          - set service dhcp-server use-dnsmasq disable
+        save: true
+      connection: network_cli
+
+    - name: configure DNS
+      edgeos_config:
+        lines:
+          - set service dns dynamic interface {{ wan_if }} service {{ ddns_service }} host-name {{ ddns_hostname }}
+          - set service dns dynamic interface {{ wan_if }} service {{ ddns_service }} login '{{ ddns_login }}'
+          - set service dns dynamic interface {{ wan_if }} service {{ ddns_service }} password '{{ ddns_password }}'
+          - set service dns dynamic interface {{ wan_if }} service {{ ddns_service }} protocol {{ ddns_protocol }}
+          - set service dns dynamic interface {{ wan_if }} service {{ ddns_service }} server {{ ddns_server }}
+          # - set service dns forwarding cache-size 600
+          # - set service dns forwarding listen-on {{ dmz_if }}
+          # - set service dns forwarding listen-on {{ lan_if }}
+          # - set service dns forwarding name-server 1.1.1.1
+          # - set service dns forwarding name-server 1.0.0.1
+          # - set service dns forwarding name-server 2606:4700:4700::1111
+          # - set service dns forwarding name-server 2606:4700:4700::1001
+          # - set service dns forwarding options bind-interfaces
+        save: true
+      connection: network_cli
+
+    - name: configure Web GUI
+      edgeos_config:
+        lines:
+          # - set service gui http-port 80
+          - set service gui https-port 443
+          - set service gui listen-address {{ lan_ipv4|ipaddr('address') }}
+          - set service gui older-ciphers disable
+        save: true
+      connection: network_cli
+
+    - name: configure LLDP
+      edgeos_config:
+        lines:
+          - set service lldp interface all disable
+        save: true
+      connection: network_cli
+
+    - name: configure mDNS
+      edgeos_config:
+        lines:
+          - set service mdns reflector
+        save: true
+      connection: network_cli
+      when: false
+
+    - name: configure NAT
+      edgeos_config:
+        lines:
+          - set service nat rule 1 description 'media streamer DNS (Apple TV)'
+          - set service nat rule 1 destination address !85.203.37.1-85.203.37.2
+          - set service nat rule 1 destination port 53
+          - set service nat rule 1 inbound-interface {{ lan_if }}
+          - set service nat rule 1 inside-address address 85.203.37.1
+          - set service nat rule 1 protocol tcp_udp
+          - set service nat rule 1 source address {{ lan_ipv4|ipaddr('4')|ipaddr('address') }}
+          - set service nat rule 1 type destination
+          - set service nat rule 2 description 'media streamer DNS (Sony TV)'
+          - set service nat rule 2 destination address !85.203.37.1-85.203.37.2
+          - set service nat rule 2 destination port 53
+          - set service nat rule 2 inbound-interface {{ lan_if }}
+          - set service nat rule 2 inside-address address 85.203.37.1
+          - set service nat rule 2 protocol tcp_udp
+          - set service nat rule 2 source address {{ lan_ipv4|ipaddr('5')|ipaddr('address') }}
+          - set service nat rule 2 type destination
+          - set service nat rule 5010 description 'masquerade for WAN'
+          - set service nat rule 5010 outbound-interface {{ wan_if }}
+          - set service nat rule 5010 type masquerade
+        save: true
+      connection: network_cli
+
+    - name: configure SSH
+      edgeos_config:
+        lines:
+          - set service ssh disable-password-authentication
+          - set service ssh listen-address {{ lan_ipv4|ipaddr('address') }}
+          - set service ssh port 22
+          - set service ssh protocol-version v2
+        save: true
+      connection: network_cli
+
+    # - name: configure UBNT discover
+    #   edgeos_config:
+    #     lines:
+    #       - set service ubnt-discover disable
+    #     save: true
+    #   connection: network_cli
+
+    # - name: configure UBNT discover server
+    #   edgeos_config:
+    #     lines:
+    #       - set service ubnt-discover-server disable
+    #     save: true
+    #   connection: network_cli
+
+    - name: configure UNMS
+      edgeos_config:
+        lines:
+          - set service unms lldp disable
+        save: true
+      connection: network_cli
+      when: false
+
+    - name: create system logins
+      edgeos_config:
+        lines:
+          - set system login user nick authentication encrypted-password '$6$nabf67x9s44aDATn$5uzc7WYU/f8hKESk1IoFRf3DOd.6F9fLvqXPl9.fMYTkPYwV7wC9zkNp1m42J4/wGDCPGOKzaDolVCJaRgApP.'
+          - set system login user nick authentication plaintext-password ''
+          - set system login user nick authentication public-keys nick@osborn.io key 'AAAAC3NzaC1lZDI1NTE5AAAAILZ3vnF+nNv+A9Y2ZN1qhk/vYRrdPiX3VDRLUzkHs5us'
+          - set system login user nick authentication public-keys nick@osborn.io type ssh-ed25519
+          - set system login user nick full-name 'Nick Osborn'
+          - set system login user nick level admin
+        save: true
+      connection: network_cli
+
+    - name: delete default system logins
+      edgeos_config:
+        lines:
+          - delete system login user ubnt
+        save: true
+      connection: network_cli
+
+    - name: configure NTP
+      edgeos_config:
+        lines:
+          - set system ntp server 0.ubnt.pool.ntp.org
+          - set system ntp server 1.ubnt.pool.ntp.org
+          - set system ntp server 2.ubnt.pool.ntp.org
+          - set system ntp server 3.ubnt.pool.ntp.org
+        save: true
+      connection: network_cli
+
+    - name: configure hardware offload
+      edgeos_config:
+        lines:
+          # - set system offload ipsec enable
+          - set system offload ipv4 forwarding enable
+          # - set system offload ipv4 vlan enable
+          - set system offload ipv6 forwarding enable
+          # - set system offload ipv6 vlan enable
+        save: true
+      connection: network_cli
+
+    - name: configure host name
+      edgeos_config:
+        lines:
+          - set system host-name edgerouter
+        save: true
+      connection: network_cli
+
+    - name: configure options
+      edgeos_config:
+        lines:
+          - set system options reboot-on-panic true
+        save: true
+      connection: network_cli
+
+    - name: configure local time zone
+      edgeos_config:
+        lines:
+          - set system time-zone {{ timezone }}
+        save: true
+      connection: network_cli
+
+    - name: configure traffic analysis
+      edgeos_config:
+        lines:
+          - set system traffic-analysis dpi disable
+          - set system traffic-analysis export enable
+          - set system traffic-analysis signature-update disable
+        save: true
+      connection: network_cli
+
+    - name: install bind9 package
+      apt:
+        install_recommends: false
+        name: bind9
+        state: present
+      when: false
+
+    - name: install unbound package
+      apt:
+        install_recommends: false
+        name: unbound
+        state: present
+
+    - name: configure unbound
+      copy:
+        content: |
+          server:
+              verbosity: 1
+              statistics-cumulative: yes
+              extended-statistics: yes
+              num-threads: {{ ansible_processor_count }}
+              interface: 127.0.0.1
+              interface: {{ dmz_ipv4|ipaddr('address') }}
+              interface: {{ lan_ipv4|ipaddr('address') }}
+              interface: ::1
+              outgoing-range: {{ (1024 / ansible_processor_count - 50) | round | int }}
+              msg-cache-size: 16m
+              msg-cache-slabs: {{ ansible_processor_count }}
+              so-reuseport: yes
+              access-control: 127.0.0.1/8 allow
+              access-control: {{ dmz_ipv4|ipaddr('network') }}/{{ dmz_ipv4|ipaddr('prefix') }} allow
+              access-control: {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }} allow
+              access-control: ::1/128 allow
+              rrset-cache-size: 32m
+              rrset-cache-slabs: {{ ansible_processor_count }}
+              infra-cache-slabs: {{ ansible_processor_count }}
+              hide-identity: yes
+              hide-version: yes
+              harden-below-nxdomain: yes
+              use-caps-for-id: yes
+              private-address: 10.0.0.0/8
+              private-address: 127.0.0.0/8
+              private-address: 169.254.0.0/16
+              private-address: 172.16.0.0/12
+              private-address: 192.168.0.0/16
+              private-address: fd00::/8
+              private-address: fe80::/10
+              private-address: ::ffff:0:0/96
+              prefetch: yes
+              prefetch-key: yes
+              key-cache-slabs: {{ ansible_processor_count }}
+        dest: /etc/unbound/unbound.conf.d/local.conf
+        owner: root
+        group: root
+        mode: 0444
+      notify: reload unbound
+
+    - copy:
+        src: "{{ item }}"
+        dest: /etc/unbound/{{ item }}
+        owner: root
+        group: root
+        mode: 0444
+      with_items:
+        - unbound.conf.d/redirect-zones.conf
+      notify: reload unbound
+
+    - name: disable dnsmasq daemon
+      replace:
+        path: /etc/default/dnsmasq
+        regexp: '^ENABLED=\d+'
+        replace: 'ENABLED=0'
+
+    - name: stop dnsmasq
+      service:
+        name: dnsmasq
+        state: stopped
+
+    - name: enable and start unbound
+      systemd:
+        name: unbound
+        enabled: true
+        state: started
+        no_block: true
+
+  handlers:
+
+    - name: reload unbound
+      systemd:
+        name: unbound
+        state: reloaded
+        no_block: true
+
 - hosts: tombstone
 
   pre_tasks:
@@ -19,18 +497,18 @@
         group: wheel
         mode: 0444
 
-    - name: host name database
-      template:
-        src: hosts.j2
-        dest: /etc/hosts
-        owner: root
-        group: wheel
-        mode: 0444
+#     - name: host name database
+#       template:
+#         src: hosts.j2
+#         dest: /etc/hosts
+#         owner: root
+#         group: wheel
+#         mode: 0444
 
     - name: resolver configuration file
       template:
-        src: templates/resolv.conf.j2
-        dest: /etc/resolv.conf
+        src: templates/resolv.conf.tail.j2
+        dest: /etc/resolv.conf.tail
         owner: root
         group: wheel
         mode: 0444
@@ -56,7 +534,6 @@
       with_items:
         - "{{ guest_if }}"
         - "{{ lan_if }}"
-        - "{{ pppoe_if }}"
         - "{{ wan_if }}"
         - "{{ wlan_if }}"
       notify: netstart
@@ -73,32 +550,31 @@
 
   roles:
 
-    - {role: apmd, tags: [apmd]}
-    - {role: avahi, tags: [avahi]}
-    - {role: collectd, tags: [collectd]}
+    # - {role: apmd, tags: [apmd]}
+    # - {role: avahi, tags: [avahi]}
+    # - {role: collectd, tags: [collectd]}
     - {role: dhcpcd, tags: [dhcpcd]}
     - {role: dhcpd, tags: [dhcpd]}
     - {role: doas, tags: [doas]}
-    - {role: facette, tags: [facette]}
+    # - {role: facette, tags: [facette]}
     - {role: flashrom, tags: [flashrom]}
     # - {role: iked, tags: [iked]}
-    - {role: iplayer, tags: [iplayer]}
-    # - {role: locale, tags: [locale]}
     # - {role: monit, tags: [monit]}
-    - {role: nginx, tags: [nginx]}
+    # - {role: nginx, tags: [nginx]}
     - {role: ntpd, tags: [ntpd]}
-    - {role: openvpn, tags: [openvpn]}
+    # - {role: openvpn, tags: [openvpn]}
     # - {role: periodic, tags: [periodic]}
     - {role: pf, tags: [pf]}
     # - {role: pftop, tags: [pftop]}
     - {role: python, tags: [python]}
-    - {role: rad, tags: [rad]}
+    # - {role: rad, tags: [rad]}
     - {role: slaacd, tags: [slaacd]}
     - {role: smtpd, tags: [smtpd]}
+    # - {role: snap, tags: [snap]}
     - {role: sndiod, tags: [sndiod]}
     - {role: ssh, tags: [ssh]}
-    - {role: sysclean, tags: [sysclean]}
-    - {role: sysmerge, tags: [sysmerge]}
+    # - {role: sysclean, tags: [sysclean]}
+    # - {role: sysmerge, tags: [sysmerge]}
     - {role: unbound, tags: [unbound]}
 
   tasks:

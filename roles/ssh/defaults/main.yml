@@ -1,4 +1,18 @@
 # roles/ssh/defaults/main
 ---
-sshd_permit_root_login: prohibit-password
+sshd_config_address_family: 'any'
+sshd_config_allow_agent_forwarding: 'yes'
+sshd_config_allow_tcp_forwarding: 'yes'
+sshd_config_challenge_response_authentication: 'yes'
+sshd_config_client_alive_count_max: 3
+sshd_config_client_alive_interval: 20
+sshd_config_host_key:
+  - '/etc/ssh/ssh_host_rsa_key'
+  - '/etc/ssh/ssh_host_ecdsa_key'
+  - '/etc/ssh/ssh_host_ed25519_key'
+sshd_config_listen_address:
+  - '0.0.0.0'
+  - '::'
+sshd_config_password_authentication: 'yes'
+sshd_config_permit_root_login: 'prohibit-password'
 ...

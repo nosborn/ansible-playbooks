@@ -1,3 +1,6 @@
+[edgeos]
+edgerouter
+
 [letsencrypt]
 tombstone
 

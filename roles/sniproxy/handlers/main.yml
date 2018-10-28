@@ -1,0 +1,7 @@
+# roles/sniproxy/handlers/main
+---
+- name: restart sniproxy
+  service:
+    name: sniproxy
+    state: restarted
+...

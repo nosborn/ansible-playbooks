@@ -1,0 +1,11 @@
+# group_vars/edgeos/main
+---
+ansible_become: "{{ vault_ansible_become }}"
+ansible_become_method: sudo
+# ansible_connection: network_cli
+ansible_network_os: edgeos
+# ansible_password: "{{ vault_ansible_password }}"
+ansible_user: "{{ vault_ansible_user }}"
+# root_alias: "{{ vault_root_alias }}"
+# sshd_allow_users: "{{ vault_sshd_allow_users }}"
+...

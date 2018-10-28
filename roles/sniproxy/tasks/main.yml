@@ -1,0 +1,31 @@
+# roles/sniproxy/tasks/main
+---
+- name: install package
+  package:
+    name: sniproxy
+    state: present
+
+- name: install configuration file
+  template:
+    src: sniproxy.conf.j2
+    dest: /etc/sniproxy.conf
+    owner: root
+    group: root
+    mode: 0444
+  notify: restart sniproxy
+
+- name: install defaults file
+  template:
+    src: sniproxy.default.j2
+    dest: /etc/default/sniproxy
+    owner: root
+    group: root
+    mode: 0444
+  notify: restart sniproxy
+
+- name: enable and start service
+  service:
+    name: sniproxy
+    enabled: true
+    state: started
+...

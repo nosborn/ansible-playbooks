@@ -1,21 +1,19 @@
-#	$OpenBSD: sshd_config,v 1.102 2018/02/16 02:32:40 djm Exp $
+# This is the sshd server system-wide configuration file. See sshd_config(5)
+# for more information.
 
-# This is the sshd server system-wide configuration file.  See
-# sshd_config(5) for more information.
-
-# The strategy used for options in the default sshd_config shipped with
-# OpenSSH is to specify options with their default value where
-# possible, but leave them commented.  Uncommented options override the
-# default value.
+# The strategy used for options in the default sshd_config shipped with OpenSSH
+# is to specify options with their default value where possible, but leave them
+# commented. Uncommented options override the default value.
 
 #Port 22
-#AddressFamily any
-#ListenAddress 0.0.0.0
-#ListenAddress ::
+AddressFamily {{ sshd_config_address_family }}
+{% for listen_address in sshd_config_listen_address %}
+ListenAddress {{ listen_address }}
+{% endfor %}
 
-#HostKey /etc/ssh/ssh_host_rsa_key
-#HostKey /etc/ssh/ssh_host_ecdsa_key
-HostKey /etc/ssh/ssh_host_ed25519_key
+{% for host_key in sshd_config_host_key %}
+HostKey {{ host_key }}
+{% endfor %}
 
 # Ciphers and keying
 #RekeyLimit default none
@@ -27,7 +25,7 @@ HostKey /etc/ssh/ssh_host_ed25519_key
 # Authentication:
 
 #LoginGraceTime 2m
-#PermitRootLogin prohibit-password
+PermitRootLogin {{ sshd_config_permit_root_login }}
 #StrictModes yes
 #MaxAuthTries 6
 #MaxSessions 10
@@ -52,14 +50,14 @@ AuthorizedKeysFile .ssh/authorized_keys
 #IgnoreRhosts yes
 
 # To disable tunneled clear text passwords, change to no here!
-PasswordAuthentication no
+PasswordAuthentication {{ sshd_config_password_authentication }}
 #PermitEmptyPasswords no
 
 # Change to no to disable s/key passwords
-ChallengeResponseAuthentication no
+ChallengeResponseAuthentication {{ sshd_config_challenge_response_authentication }}
 
-AllowAgentForwarding no
-#AllowTcpForwarding yes
+AllowAgentForwarding {{ sshd_config_allow_agent_forwarding }}
+AllowTcpForwarding {{ sshd_config_allow_tcp_forwarding }}
 #GatewayPorts no
 #X11Forwarding no
 #X11DisplayOffset 10
@@ -70,9 +68,9 @@ AllowAgentForwarding no
 #TCPKeepAlive yes
 #PermitUserEnvironment no
 #Compression delayed
-ClientAliveInterval 20
-#ClientAliveCountMax 3
-UseDNS no
+ClientAliveInterval {{ sshd_config_client_alive_interval }}
+ClientAliveCountMax {{ sshd_config_client_alive_count_max }}
+#UseDNS no
 #PidFile /var/run/sshd.pid
 #MaxStartups 10:30:100
 #PermitTunnel no

@@ -3,6 +3,6 @@
 - name: enable and start service
   service:
     name: slaacd
-    enabled: true
-    state: started
+    enabled: false # TODO: true
+    state: stopped # TODO: started
 ...

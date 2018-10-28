@@ -3,18 +3,9 @@ server:
 
 	num-threads: {{ unbound_config_num_threads }}
 
-	interface: 127.0.0.1
-	interface: {{ lan_ipv4|ipaddr('address') }}
-{% if vpn_server_ipv4 is defined %}
-	interface: {{ vpn_server_ipv4|ipaddr('address') }}
-{% endif %}
-	interface: ::1
-{% if lan_ipv6 is defined %}
-	interface: {{ lan_ipv6|ipaddr('address') }}
-{% endif %}
-{% if vpn_server_ipv6 is defined %}
-	interface: {{ vpn_server_ipv6|ipaddr('address') }}
-{% endif %}
+{% for interface in unbound_config_interface %}
+	interface: {{ interface }}
+{% endfor %}
 
 	msg-cache-size: 4m  # default
 	msg-cache-slabs: {{ unbound_config_num_threads }}
@@ -26,19 +17,12 @@ server:
 
 #	prefer-ip6: yes
 
-	access-control: 127.0.0.0/8 allow
-	access-control: {{ lan_ipv4|ipaddr('host/prefix')|ipaddr('subnet') }} allow
-{% if vpn_server_ipv4 is defined %}
-	access-control: {{ vpn_server_ipv4|ipaddr('network') }}/{{ vpn_server_ipv4|ipaddr('prefix') }} allow
-{% endif %}
-	access-control: ::1 allow
-{% if lan_ipv6 is defined %}
-	access-control: {{ lan_ipv6|ipaddr('host/prefix')|ipaddr('subnet') }} allow
-{% endif %}
-{% if vpn_server_ipv6 is defined %}
-	access-control: {{ vpn_server_ipv6|ipaddr('network') }}/{{ vpn_server_ipv6|ipaddr('prefix') }} allow
-{% endif %}
+{% if unbound_config_access_control is defined %}
+{%   for access_control in unbound_config_access_control %}
+	access-control: {{ access_control }}
+{%   endfor %}
 
+{% endif %}
 	pidfile: {{ unbound_pid_file }}
 
 #	root-hints: /var/unbound/etc/named.cache
@@ -61,20 +45,28 @@ server:
 	prefetch: yes
 	prefetch-key: yes
 
-	auto-trust-anchor-file: /var/unbound/db/root.key
+#	auto-trust-anchor-file: /var/unbound/db/root.key
 
 #	key-cache-size: 32m
 	key-cache-slabs: {{ unbound_config_num_threads }}
 
-	include: /var/unbound/etc/filter-domains.conf
-	include: /var/unbound/etc/filter-hosts.conf
+{% if ansible_hostname == 'tombstone' %}
+#	include: /var/unbound/etc/filter-domains.conf
+#	include: /var/unbound/etc/filter-hosts.conf
 
+{% endif %}
 # remote-control:
 #	control-enable: yes
 #	control-interface: /var/run/unbound.control
+{% if unbound_config_default_forward_addr is defined %}
 
 forward-zone:
         name: "."
-{% for nameserver in nameservers %}
-	forward-addr: {{ nameserver }}
-{% endfor %}
+{%   for forward_addr in unbound_config_default_forward_addr %}
+	forward-addr: {{ forward_addr }}
+{%   endfor %}
+	forward-first: yes
+{%   if unbound_config_default_forward_tls_upstream is defined %}
+	forward-tls-upstream: {{ unbound_config_default_forward_tls_upstream }}
+{%   endif %}
+{% endif %}

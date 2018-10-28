@@ -3,79 +3,61 @@
 # Options
 
 set loginterface {{ wan_if }}
-set skip on { lo {{ pppoe_if }} }
+set skip on lo
 
 # Queueing
 
-queue outq on {{ wan_if }} flows 1024 bandwidth 18M max 18M default qlimit 1024
+# queue outq on {{ wan_if }} flows 1024 bandwidth 18M max 18M default qlimit 1024
 
 # Tables
 
-table <bogons> const {
-  10.0.0.0/8      # RFC 1918 - Private network
-  100.64.0.0/10   # RFC 6598
-  127.0.0.0/8
-  169.254.0.0/16  # RFC 3927 - Link-local
-  172.16.0.0/12   # RFC 1918 - Private network
-  192.0.0.0/24    # RFC 6890 - IETF Protocol Assignments
-  192.0.2.0/24    # RFC 5737
-  192.168.0.0/16  # RFC 1918 - Private network
-  198.18.0.0/15   # RFC 2544
-  198.51.100.0/24 # RFC 5737
-  203.0.113.0/24  # RFC 5737
-  224.0.0.0/3
-}
-
-# whois -m -- '-i origin AS32934'|awk '$1~/^route6?:/{print $2}'|aggregate6
-table <facebook> const {
-  31.13.24.0/21
-  31.13.64.0/18
-  45.64.40.0/22
-  66.220.144.0/20
-  69.63.176.0/20
-  69.171.224.0/19
-  74.119.76.0/22
-  103.4.96.0/22
-  129.134.0.0/16
-  157.240.0.0/16
-  173.252.64.0/18
-  179.60.192.0/22
-  185.60.216.0/22
-  204.15.20.0/22
-  2401:db00::/32
-  2620:0:1c00::/40
-  2803:6080::/32
-  2a03:2880::/32
-}
+# table <bogons> const {
+#   10.0.0.0/8      # RFC 1918 - Private network
+#   100.64.0.0/10   # RFC 6598
+#   127.0.0.0/8
+#   169.254.0.0/16  # RFC 3927 - Link-local
+#   172.16.0.0/12   # RFC 1918 - Private network
+#   192.0.0.0/24    # RFC 6890 - IETF Protocol Assignments
+#   192.0.2.0/24    # RFC 5737 - TEST-NET-1
+#   192.168.0.0/16  # RFC 1918 - Private network
+#   198.18.0.0/15   # RFC 2544
+#   198.51.100.0/24 # RFC 5737 - TEST-NET-2
+#   203.0.113.0/24  # RFC 5737 - TEST-NET-3
+#   224.0.0.0/3
+# }
 
 # curl -fsS https://isc.sans.edu/api/threatlist/shodan|egrep -o '([0-9]{1,3}\.){3}[0-9]{1,3}'|aggregate6
-table <shodan> {
-  66.240.192.138/32
-  66.240.205.34/32
-  66.240.219.146/32
-  66.240.236.119/32
-  71.6.135.131/32
-  71.6.158.166/32
-  71.6.165.200/32
-  71.6.167.142/32
-  80.82.77.33/32
-  80.82.77.139/32
-  82.221.105.6/31
-  85.25.43.94/32
-  85.25.103.50/32
-  89.248.167.131/32
-  89.248.172.16/32
-  93.120.27.62/32
-  93.174.95.106/32
-  94.102.49.190/32
-  94.102.49.193/32
-  188.138.9.50/32
-  198.20.69.74/32
-  198.20.69.98/32
-  198.20.70.114/32
-  198.20.99.130/32
-  216.117.2.180/32
-}
+# table <shodan> {
+#   66.240.192.138/32
+#   66.240.205.34/32
+#   66.240.219.146/32
+#   66.240.236.119/32
+#   71.6.135.131/32
+#   71.6.158.166/32
+#   71.6.165.200/32
+#   71.6.167.142/32
+#   80.82.77.33/32
+#   80.82.77.139/32
+#   82.221.105.6/31
+#   85.25.43.94/32
+#   85.25.103.50/32
+#   89.248.167.131/32
+#   89.248.172.16/32
+#   93.120.27.62/32
+#   93.174.95.106/32
+#   94.102.49.190/32
+#   94.102.49.193/32
+#   188.138.9.50/32
+#   198.20.69.74/32
+#   198.20.69.98/32
+#   198.20.70.114/32
+#   198.20.99.130/32
+#   216.117.2.180/32
+# }
+
+# table <{{ pf_feodo_tracker_table }}> persist file "{{ pf_feodo_tracker_file }}"
+# table <{{ pf_malware_tracker_table }}> persist file "{{ pf_malware_tracker_file }}"
+# table <{{ pf_zeus_tracker_table }}> persist file "{{ pf_zeus_tracker_file }}"
 
 #
 
@@ -87,75 +69,65 @@ block return out log quick proto {tcp udp} user _pbuild
 
 # WAN INTERFACE
 
-anchor "WAN" on egress {
-  match in tag WAN
+match in on {{ wan_if }} tag WAN
 
-  match in proto tcp set prio (3, 7)
-  match in proto udp from port 1119 set prio 4
+# match in on {{ wan_if }} proto tcp set prio (3, 7)
+# match in on {{ wan_if }} proto udp from port 1119 set prio 4
 
-  block drop in log
-  block drop in log quick from <bogons>
-  block drop in log quick from <facebook>
-  block drop in log quick from <shodan>
+block drop in log on {{ wan_if }}
+# block drop in log quick on {{ wan_if }} from <bogons>
+# block drop in log quick on {{ wan_if }} from <shodan>
 
-  # Noise reduction.
-  block drop in quick proto tcp to {{ wan_ipv4|ipaddr('address') }} port 23
-  block drop in quick proto tcp to {{ wan_ipv4|ipaddr('address') }} port 445
-  block drop in quick proto tcp to {{ wan_ipv4|ipaddr('address') }} port 2323
-  block drop in quick proto udp to {{ wan_ipv4|ipaddr('address') }} port 5060
+{% if wan_ipv4 is defined %}
+## Noise reduction.
+# block drop in quick proto tcp to {{ wan_ipv4|ipaddr('address') }} port 23
+# block drop in quick proto tcp to {{ wan_ipv4|ipaddr('address') }} port 445
+# block drop in quick proto tcp to {{ wan_ipv4|ipaddr('address') }} port 2323
+# block drop in quick proto udp to {{ wan_ipv4|ipaddr('address') }} port 5060
 
-  pass in inet proto tcp to {{ wan_ipv4|ipaddr('address') }} port 22
-  pass in inet proto tcp to {{ wan_ipv4|ipaddr('address') }} port {80 443}
+# pass in inet proto tcp to {{ wan_ipv4|ipaddr('address') }} port 22
+# pass in inet proto tcp to {{ wan_ipv4|ipaddr('address') }} port {80 443}
 
-{% if wan_ipv6 is defined %}
-  pass in inet6 proto tcp to {{ wan_ipv6|ipaddr('address') }} port 22
-  pass in inet6 proto tcp to {{ wan_ipv6|ipaddr('address') }} port {80 443}
 {% endif %}
-  pass in inet6 proto udp from port 547 to (egress) port 546
-  pass in inet6 proto ipv6-icmp # icmp6-type {routersol, routeradv, neighbrsol, neighbradv, redir}
+{% if wan_ipv6 is defined %}
+# pass in inet6 proto tcp to {{ wan_ipv6|ipaddr('address') }} port 22
+# pass in inet6 proto tcp to {{ wan_ipv6|ipaddr('address') }} port {80 443}
+{% endif %}
+pass in on {{ wan_if }} inet6 proto udp from port 547 to port 546
+pass in on {{ wan_if }} inet6 proto ipv6-icmp # icmp6-type {routersol, routeradv, neighbrsol, neighbradv, redir}
 
-  match out inet tagged LAN nat-to (egress:0)
-  match out inet tagged GUEST nat-to (egress:0)
+# match out inet tagged LAN nat-to (egress:0)
+# match out inet tagged GUEST nat-to (egress:0)
+match out on {{ wan_if }} inet nat-to ({{ wan_if }}:0)
 
-  match out proto tcp set prio (3, 7)
-  match out proto udp to port 1119 set prio 4
+# match out proto tcp set prio (3, 7)
+# match out proto udp to port 1119 set prio 4
 
-  block return out log quick to <bogons>
-}
+# block return out log quick to <bogons>
 
 # LAN INTERFACE
 
-anchor "LAN" on {{ lan_if }} {
-  match in tag LAN
+match in on {{ lan_if }} tag LAN
 
-  block return in log quick to {{ guest_if }}:network
-  block return out log quick on {{ lan_if }} tagged GUEST
+block return in log quick on {{ lan_if }} to {{ guest_if }}:network
+block return out log quick on {{ lan_if }} tagged GUEST
 
-  block return in log quick to <facebook>
-
-  # pass in inet proto tcp to port 80 divert-to 127.0.0.1 port 3128
-  # pass in inet6 proto tcp to port 80 divert-to ::1 port 3128
-}
+# pass in inet proto tcp to port 80 divert-to 127.0.0.1 port 3128
+# pass in inet6 proto tcp to port 80 divert-to ::1 port 3128
 
 # WIFI INTERFACE
 
-anchor "WLAN" on {{ wlan_if }} {
-  match in tag WLAN
+match in on {{ wlan_if }} tag WLAN
 
-  block return in log quick to {{ guest_if }}:network
-  block return out log quick on {{ wlan_if }} tagged GUEST
-
-  block return in log quick to <facebook>
-}
+block return in log quick on {{ wlan_if }} to {{ guest_if }}:network
+block return out log quick on {{ wlan_if }} tagged GUEST
 
 # GUEST INTERFACE
 
-anchor "GUEST" on {{ guest_if }} {
-  match in tag GUEST
+match in on {{ guest_if }} tag GUEST
 
-  # block return in log quick to { {{ lan_if }}:network {{ wlan_if }}:network }
-  block return out log quick on {{ wlan_if }} tagged LAN
-  block return out log quick on {{ wlan_if }} tagged WLAN
+# block return in log quick to { {{ lan_if }}:network {{ wlan_if }}:network }
+block return out log quick on {{ guest_if }} tagged LAN
+block return out log quick on {{ guest_if }} tagged WLAN
 
-  block return log # FIXME
-}
+block return log on {{ guest_if }} # TODO

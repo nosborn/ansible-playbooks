@@ -1,21 +1,14 @@
 # See iked.conf(5) for syntax and examples.
 
-{% for key, value in iked_users.iteritems() %}
-user "{{ key }}" "{{ value.auth_password }}"
+ikev2 passive \
+{% for address in ansible_all_ipv4_addresses|ipaddr('public') %}
+  from 0.0.0.0/0 to {{ address }}/32 \
 {% endfor %}
-
-ikev2 \
-  from 0.0.0.0/0 to 0.0.0.0/0 \
-  from ::/0 to ::/0 \
-  local {{ wan_ipv4|ipaddr('address') }} peer any \
+{% for address in ansible_all_ipv6_addresses|ipaddr('public') %}
+  from ::/0 to {{ address }}/128 \
+{% endfor %}
+  local {{ ansible_default_ipv4.address }} peer any \
   ikesa auth hmac-sha2-256 enc aes-256 prf hmac-sha2-256 group modp2048 \
-  childsa enc aes-128-gcm group ecp256 \
-  ikelifetime 24h \
-  lifetime 24h \
-  eap MSCHAP-V2 \
-  config address {{ lan_ipv4|ipaddr('128')|ipaddr('address') }}/26 \
-{% if lan_ipv6 is defined %}
-  config address {{ lan_ipv6|ipsubnet(72,69) }} \
-{% endif %}
-  config name-server {{ lan_ipv4|ipaddr('address') }} \
-  tag "ipsec-$eapid"
+  childsa auth hmac-sha1 enc aes-128 group modp2048 \
+  psk "foobar" \
+  tag "ipsec-$id"

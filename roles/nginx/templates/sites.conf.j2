@@ -9,6 +9,7 @@ server {
   gzip off;
 
   add_header Content-Security-Policy "default-src 'none'" always;
+  add_header Feature-Policy "accelerometer 'none'; camera 'none'; geolocation 'none'; gyroscope 'none'; magnetometer 'none'; microphone 'none'; payment 'none'; usb 'none'" always;
   add_header Referrer-Policy no-referrer always;
   add_header X-Content-Type-Options nosniff always;
   add_header X-Frame-Options DENY always;
@@ -42,8 +43,9 @@ server {
   ssl_stapling_verify on;
   ssl_trusted_certificate /etc/ssl/{{ ansible_fqdn }}.chain.pem;
 
-  add_header Content-Security-Policy "default-src 'self';" always;
+  add_header Content-Security-Policy "default-src 'self'; img-src 'self' data:" always;
   add_header Expect-CT 'report-uri="{{ report_uri }}/r/default/ct/enforce", enforce, max-age=86400' always;
+  add_header Feature-Policy "accelerometer 'none'; camera 'none'; geolocation 'none'; gyroscope 'none'; magnetometer 'none'; microphone 'none'; payment 'none'; usb 'none'" always;
   add_header Referrer-Policy no-referrer always;
   add_header Strict-Transport-Security 'max-age=63072000; includeSubdomains; preload' always;
   add_header X-Content-Type-Options nosniff always;
@@ -80,7 +82,7 @@ server {
     auth_basic "Tombstone";
     auth_basic_user_file /var/www/.htpasswd;
 
-    root /var/www/sites/{{ ansible_fqdn }}/iplayer;
+    root /var/www/sites/{{ ansible_fqdn }};
     autoindex on;
   }
 

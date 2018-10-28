@@ -1,0 +1,27 @@
+# roles/snap/tasks/main
+---
+- name: fetch script
+  get_url:
+    url: 'https://raw.githubusercontent.com/qbit/snap/master/snap'
+    dest: /usr/local/sbin/snap
+    owner: root
+    group: wheel
+    mode: 0555
+
+- name: fetch man page
+  get_url:
+    url: 'https://raw.githubusercontent.com/qbit/snap/master/man/snap.8'
+    dest: /usr/local/man/man8/snap.8
+    owner: root
+    group: wheel
+    mode: 0444
+
+# - name: packet filter configuration file
+#   template:
+#     src: pf.conf.j2
+#     dest: /etc/pf.conf
+#     owner: root
+#     group: wheel
+#     mode: 0400
+#     validate: /sbin/pfctl -f %s -n
+...
