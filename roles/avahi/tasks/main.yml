@@ -14,6 +14,20 @@
     mode: 0444
   notify: restart avahi-daemon
 
+- name: install service files
+  template:
+    src: services/{{ item }}.j2
+    dest: /etc/avahi/services/{{ item }}
+    owner: root
+    group: wheel
+    mode: 0444
+    validate: /usr/local/bin/xmllint --noout --nonet %s
+  with_items:
+    - grafana.service
+    - sftp-ssh.service
+    - ssh.service
+  notify: restart avahi-daemon
+
 - name: start service
   service:
     name: avahi_daemon

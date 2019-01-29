@@ -1,0 +1,23 @@
+# roles/prometheus/tasks/main
+---
+- name: install package
+  openbsd_pkg:
+    name: prometheus
+    state: present
+
+- name: install configuration file
+  template:
+    src: prometheus.yml.j2
+    dest: /etc/prometheus/prometheus.yml
+    owner: root
+    group: wheel
+    mode: 0444
+    validate: /usr/local/bin/promtool check config %s
+  notify: restart prometheus
+
+- name: enable and start service
+  service:
+    name: prometheus
+    enabled: true
+    state: started
+...

@@ -1,8 +1,2 @@
-[edgeos]
-edgerouter
-
-[letsencrypt]
-tombstone
-
 [openbsd]
 tombstone

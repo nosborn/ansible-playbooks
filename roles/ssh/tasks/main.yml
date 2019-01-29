@@ -1,6 +1,6 @@
 # roles/ssh/tasks/main
 ---
-- name: OpenSSH SSH daemon configuration file
+- name: install configuration file
   template:
     src: sshd_config.j2
     dest: /etc/ssh/sshd_config
@@ -10,7 +10,7 @@
     validate: /usr/sbin/sshd -f %s -t
   notify: restart sshd
 
-- name: Enable OpenSSH SSH daemon
+- name: enable and start service
   service:
     name: sshd
     enabled: true

@@ -2,9 +2,12 @@
 ---
 ansible_become: "{{ vault_ansible_become }}"
 ansible_become_method: doas
-ansible_python_interpreter: /usr/local/bin/python3
+ansible_python_interpreter: /usr/local/bin/python2.7
 ansible_user: "{{ vault_ansible_user }}"
 installurl: "{{ vault_installurl }}"
+jsonlint_package_name: py-demjson
 root_alias: "{{ vault_root_alias }}"
 sshd_allow_users: "{{ vault_sshd_allow_users }}"
+xmllint_package_name: libxml
+yamllint_package_name: py-yamllint
 ...

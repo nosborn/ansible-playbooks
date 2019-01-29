@@ -1,6 +1,6 @@
 # roles/doas/tasks/main
 ---
-- name: doas configuration file
+- name: install configuration file
   template:
     src: doas.conf.j2
     dest: /etc/doas.conf

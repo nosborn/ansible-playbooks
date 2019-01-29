@@ -1,9 +1,9 @@
 # roles/pf/tasks/main
 ---
-- name: install packages
-  openbsd_pkg:
-    name: aggregate6
-    state: present
+#- name: install packages
+#  openbsd_pkg:
+#    name: aggregate6
+#    state: present
 
 # - copy:
 #     content: ""
@@ -44,8 +44,6 @@
     owner: root
     group: wheel
     mode: 0400
-    # validate: /sbin/pfctl -f %s -n
+    validate: /sbin/pfctl -f %s -n
   notify: reload pf
-
-- meta: flush_handlers
 ...

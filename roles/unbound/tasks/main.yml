@@ -1,28 +1,20 @@
 # roles/unbound/tasks/main
 ---
-- name: install package
-  package:
-    name: "{{ unbound_package_name }}"
-    state: present
-  when: unbound_package_name is defined
-
 # # - copy:
 # #     src=named.cache dest=/var/unbound/etc/named.cache
 # #     owner=root group=wheel mode=0444
 # #   notify: restart unbound
 
 - name: filter configuration files
-  template:
-    src: "{{ item }}.j2"
+  copy:
+    src: "{{ item }}"
     dest: /var/unbound/etc/{{ item }}
     owner: root
     group: wheel
     mode: 0444
   with_items:
-    - filter-domains.conf
-    - filter-hosts.conf
+    - redirect-zones.conf
   notify: restart unbound
-  when: false # ansible_hostname == 'tombstone'
 
 # - name: setup the root trust anchor
 #   command: /usr/sbin/unbound-anchor

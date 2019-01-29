@@ -5,7 +5,7 @@
     name:
       - collectd
       - collectd-ping
-      - collectd-rrdtool
+      - collectd-prometheus
     state: present
 
 - name: install configuration file

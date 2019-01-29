@@ -1,0 +1,7 @@
+# roles/xmllint/tasks/main
+---
+- name: install package
+  openbsd_pkg:
+    name: "{{ xmllint_package_name }}"
+    state: present
+...

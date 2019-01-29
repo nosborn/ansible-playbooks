@@ -6,4 +6,6 @@ interface {{ lan_if }} {
 		search {{ global_domain }}
 	}
 }
+{% else %}
+interface {{ lan_if }}
 {% endif %}

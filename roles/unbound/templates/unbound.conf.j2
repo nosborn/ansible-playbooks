@@ -1,21 +1,23 @@
 server:
 	verbosity: {{ unbound_config_verbosity }}
 
+	statistics-cumulative: yes
+	extended-statistics: yes
 	num-threads: {{ unbound_config_num_threads }}
 
 {% for interface in unbound_config_interface %}
 	interface: {{ interface }}
 {% endfor %}
 
-	msg-cache-size: 4m  # default
+	msg-cache-size: 16m
 	msg-cache-slabs: {{ unbound_config_num_threads }}
 
-	rrset-cache-size: 8m
+	rrset-cache-size: 32m
 	rrset-cache-slabs: {{ unbound_config_num_threads }}
 
 	infra-cache-slabs: {{ unbound_config_num_threads }}
 
-#	prefer-ip6: yes
+	prefer-ip6: yes
 
 {% if unbound_config_access_control is defined %}
 {%   for access_control in unbound_config_access_control %}
@@ -24,13 +26,16 @@ server:
 
 {% endif %}
 	pidfile: {{ unbound_pid_file }}
-
 #	root-hints: /var/unbound/etc/named.cache
-
 	hide-identity: yes
+
 	hide-version: yes
 
+	hide-trustanchor: yes
+
 	harden-below-nxdomain: yes
+
+	use-caps-for-id: yes
 
 	qname-minimisation: yes
 
@@ -50,23 +55,8 @@ server:
 #	key-cache-size: 32m
 	key-cache-slabs: {{ unbound_config_num_threads }}
 
-{% if ansible_hostname == 'tombstone' %}
-#	include: /var/unbound/etc/filter-domains.conf
-#	include: /var/unbound/etc/filter-hosts.conf
+	include: /var/unbound/etc/redirect-zones.conf
 
-{% endif %}
 # remote-control:
 #	control-enable: yes
 #	control-interface: /var/run/unbound.control
-{% if unbound_config_default_forward_addr is defined %}
-
-forward-zone:
-        name: "."
-{%   for forward_addr in unbound_config_default_forward_addr %}
-	forward-addr: {{ forward_addr }}
-{%   endfor %}
-	forward-first: yes
-{%   if unbound_config_default_forward_tls_upstream is defined %}
-	forward-tls-upstream: {{ unbound_config_default_forward_tls_upstream }}
-{%   endif %}
-{% endif %}

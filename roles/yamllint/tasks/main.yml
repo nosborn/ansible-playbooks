@@ -2,6 +2,6 @@
 ---
 - name: install package
   openbsd_pkg:
-    name: py-yamllint
+    name: "{{ yamllint_package_name }}"
     state: present
 ...

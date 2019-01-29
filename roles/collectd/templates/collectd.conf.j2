@@ -58,21 +58,7 @@
 # accessed.                                                                  #
 ##############################################################################
 
-#LoadPlugin log_logstash
-#LoadPlugin logfile
 LoadPlugin syslog
-
-#<Plugin log_logstash>
-#	LogLevel info
-#	File "/var/log/collectd.json.log"
-#</Plugin>
-
-#<Plugin logfile>
-#	LogLevel info
-#	File STDOUT
-#	Timestamp true
-#	PrintSeverity false
-#</Plugin>
 
 #<Plugin syslog>
 #	LogLevel info
@@ -89,144 +75,62 @@ LoadPlugin syslog
 ##############################################################################
 
 #LoadPlugin aggregation
-##LoadPlugin amqp
 #LoadPlugin apache
 #LoadPlugin apcups
-##LoadPlugin apple_sensors
-##LoadPlugin aquaero
 #LoadPlugin ascent
-##LoadPlugin barometer
-##LoadPlugin battery
 #LoadPlugin bind
-##LoadPlugin ceph
-##LoadPlugin cgroups
-##LoadPlugin chrony
-##LoadPlugin conntrack
-##LoadPlugin contextswitch
 LoadPlugin cpu
-##LoadPlugin cpufreq
-##LoadPlugin cpusleep
 #LoadPlugin csv
 #LoadPlugin curl
 #LoadPlugin curl_json
 #LoadPlugin curl_xml
-##LoadPlugin dbi
 #LoadPlugin df
 LoadPlugin disk
 #LoadPlugin dns
-##LoadPlugin dpdkevents
-##LoadPlugin dpdkstat
-##LoadPlugin drbd
 #LoadPlugin email
-##LoadPlugin entropy
-##LoadPlugin ethstat
 #LoadPlugin exec
-##LoadPlugin fhcount
 #LoadPlugin filecount
-##LoadPlugin fscache
-##LoadPlugin gmond
-##LoadPlugin gps
-##LoadPlugin grpc
-##LoadPlugin hddtemp
-##LoadPlugin hugepages
-##LoadPlugin intel_pmu
-##LoadPlugin intel_rdt
 LoadPlugin interface
-##LoadPlugin ipc
-##LoadPlugin ipmi
-##LoadPlugin iptables
-##LoadPlugin ipvs
-##LoadPlugin irq
-##LoadPlugin java
 LoadPlugin load
-##LoadPlugin lpar
-##LoadPlugin lua
-##LoadPlugin lvm
-##LoadPlugin madwifi
-##LoadPlugin mbmon
-##LoadPlugin mcelog
-##LoadPlugin md
 #LoadPlugin memcachec
 #LoadPlugin memcached
 LoadPlugin memory
-##LoadPlugin mic
-##LoadPlugin modbus
 #LoadPlugin mqtt
-##LoadPlugin multimeter
 #LoadPlugin mysql
-##LoadPlugin netapp
-##LoadPlugin netlink
 #LoadPlugin network
-##LoadPlugin nfs
 #LoadPlugin nginx
-##LoadPlugin notify_desktop
-##LoadPlugin notify_email
-##LoadPlugin notify_nagios
 #LoadPlugin ntpd
-##LoadPlugin numa
 #LoadPlugin nut
 #LoadPlugin olsrd
-##LoadPlugin onewire
-##LoadPlugin openldap
 #LoadPlugin openvpn
-##LoadPlugin oracle
-##LoadPlugin ovs_events
-##LoadPlugin ovs_stats
-##LoadPlugin perl
-LoadPlugin pf
-##LoadPlugin pinba
 LoadPlugin ping
 #LoadPlugin postgresql
 #LoadPlugin powerdns
 #LoadPlugin processes
-##LoadPlugin protocols
 #LoadPlugin python
 #LoadPlugin redis
-##LoadPlugin routeros
 #LoadPlugin rrdcached
-LoadPlugin rrdtool
-##LoadPlugin sensors
-##LoadPlugin serial
-##LoadPlugin sigrok
-##LoadPlugin smart
+#LoadPlugin rrdtool
 #LoadPlugin snmp
 #LoadPlugin snmp_agent
-##LoadPlugin statsd
-LoadPlugin swap
+#LoadPlugin swap
 #LoadPlugin table
 #LoadPlugin tail
 #LoadPlugin tail_csv
-##LoadPlugin tape
 #LoadPlugin tcpconns
 #LoadPlugin teamspeak2
 #LoadPlugin ted
-##LoadPlugin thermal
-##LoadPlugin tokyotyrant
-##LoadPlugin turbostat
 #LoadPlugin unixsock
 #LoadPlugin uptime
 #LoadPlugin users
 #LoadPlugin uuid
-##LoadPlugin varnish
 #LoadPlugin virt
-##LoadPlugin vmem
-##LoadPlugin vserver
-##LoadPlugin wireless
 #LoadPlugin write_graphite
 #LoadPlugin write_http
-##LoadPlugin write_kafka
 #LoadPlugin write_log
-##LoadPlugin write_mongodb
-##LoadPlugin write_prometheus
+LoadPlugin write_prometheus
 #LoadPlugin write_redis
 #LoadPlugin write_riemann
-##LoadPlugin write_sensu
-##LoadPlugin write_tsdb
-##LoadPlugin xencpu
-##LoadPlugin xmms
-##LoadPlugin zfs_arc
-##LoadPlugin zone
-##LoadPlugin zookeeper
 
 ##############################################################################
 # Plugin configuration                                                       #
@@ -255,21 +159,6 @@ LoadPlugin swap
 #  </Aggregation>
 #</Plugin>
 
-#<Plugin amqp>
-#  <Publish "name">
-#    Host "localhost"
-#    Port "5672"
-#    VHost "/"
-#    User "guest"
-#    Password "guest"
-#    Exchange "amq.fanout"
-#    RoutingKey "collectd"
-#    Persistent false
-#    StoreRates false
-#    ConnectionRetryDelay 0
-#  </Publish>
-#</Plugin>
-
 #<Plugin apache>
 #  <Instance "local">
 #    URL "http://localhost/status?auto"
@@ -286,31 +175,11 @@ LoadPlugin swap
 #	PersistentConnection true
 #</Plugin>
 
-#<Plugin aquaero>
-#	Device ""
-#</Plugin>
-
 #<Plugin ascent>
 #	URL "http://localhost/ascent/status/"
 #	User "www-user"
 #	Password "secret"
 #	CACert "/etc/ssl/ca.crt"
-#</Plugin>
-
-#<Plugin "barometer">
-#   Device            "/dev/i2c-0";
-#   Oversampling      512
-#   PressureOffset    0.0
-#   TemperatureOffset 0.0
-#   Normalization     2
-#   Altitude          238.0
-#   TemperatureSensor "myserver/onewire-F10FCA000800/temperature"
-#</Plugin>
-
-#<Plugin "battery">
-#  ValuesPercentage false
-#  ReportDegraded false
-#  QueryStateFS false
 #</Plugin>
 
 #<Plugin "bind">
@@ -333,34 +202,6 @@ LoadPlugin swap
 #  </View>
 #</Plugin>
 
-#<Plugin ceph>
-#  LongRunAvgLatency false
-#  ConvertSpecialMetricTypes true
-#  <Daemon "osd.0">
-#    SocketPath "/var/run/ceph/ceph-osd.0.asok"
-#  </Daemon>
-#  <Daemon "osd.1">
-#    SocketPath "/var/run/ceph/ceph-osd.1.asok"
-#  </Daemon>
-#  <Daemon "mon.a">
-#    SocketPath "/var/run/ceph/ceph-mon.ceph1.asok"
-#  </Daemon>
-#  <Daemon "mds.a">
-#    SocketPath "/var/run/ceph/ceph-mds.ceph1.asok"
-#  </Daemon>
-#</Plugin>
-
-#<Plugin chrony>
-#	Host    "localhost"
-#	Port    "323"
-#	Timeout "2"
-#</Plugin>
-
-#<Plugin cgroups>
-#  CGroup "libvirt"
-#  IgnoreSelected false
-#</Plugin>
-
 #<Plugin cpu>
 #  ReportByCpu true
 #  ReportByState true
@@ -369,9 +210,9 @@ LoadPlugin swap
 #  ReportGuestState false
 #  SubtractGuestState true
 #</Plugin>
-
+#
 #<Plugin csv>
-#	DataDir "/var/collectd/csv"
+#	DataDir "/var/lib/collectd/csv"
 #	StoreRates false
 #</Plugin>
 
@@ -488,29 +329,6 @@ LoadPlugin swap
 #  </URL>
 #</Plugin>
 
-#<Plugin dbi>
-#	<Query "num_of_customers">
-#		Statement "SELECT 'customers' AS c_key, COUNT(*) AS c_value FROM customers_tbl"
-#		<Result>
-#			Type "gauge"
-#			InstancesFrom "c_key"
-#			ValuesFrom "c_value"
-#		</Result>
-#	</Query>
-#	<Database "customers_db">
-#		#Plugin "mycompany"
-#		Driver "mysql"
-#		DriverOption "host" "localhost"
-#		DriverOption "username" "collectd"
-#		DriverOption "password" "AeXohy0O"
-#		DriverOption "dbname" "custdb0"
-#		#SelectDB "custdb0"
-#		Query "num_of_customers"
-#		#Query "..."
-#		#Host "..."
-#	</Database>
-#</Plugin>
-
 #<Plugin df>
 #	Device "/dev/hda1"
 #	Device "192.168.0.2:/mnt/nfs"
@@ -524,49 +342,14 @@ LoadPlugin swap
 #</Plugin>
 
 <Plugin disk>
-	Disk "sd0"
-#	IgnoreSelected false
+  Disk "sd0"
+# IgnoreSelected false
 </Plugin>
 
 #<Plugin dns>
-#	Interface "{{ wan_if }}"
+#	Interface "eth0"
 #	IgnoreSource "192.168.0.1"
 #	SelectNumericQueryTypes true
-#</Plugin>
-
-#<Plugin "dpdkevents">
-#  <EAL>
-#    Coremask "0x1"
-#    MemoryChannels "4"
-#    FilePrefix "rte"
-#  </EAL>
-#  <Event "link_status">
-#    SendEventsOnUpdate true
-#    EnabledPortMask 0xffff
-#    PortName "interface1"
-#    PortName "interface2"
-#    SendNotification false
-#  </Event>
-#  <Event "keep_alive">
-#    SendEventsOnUpdate true
-#    LCoreMask "0xf"
-#    KeepAliveShmName "/dpdk_keepalive_shm_name"
-#    SendNotification false
-#  </Event>
-#</Plugin>
-
-#<Plugin dpdkstat>
-#  <EAL>
-#    Coremask "0x2"
-#    MemoryChannels "4"
-#    FilePrefix "rte"
-#    LogLevel "7"
-#    RteDriverLibPath "/usr/lib/dpdk-pmd"
-#  </EAL>
-#  SharedMemObj "dpdk_collectd_stats_0"
-#  EnabledPortMask 0xffff
-#  PortName "interface1"
-#  PortName "interface2"
 #</Plugin>
 
 #<Plugin email>
@@ -576,21 +359,9 @@ LoadPlugin swap
 #	MaxConns 5
 #</Plugin>
 
-#<Plugin ethstat>
-#	Interface "{{ lan_if }}"
-#	Map "rx_csum_offload_errors" "if_rx_errors" "checksum_offload"
-#	Map "multicast" "if_multicast"
-#	MappedOnly false
-#</Plugin>
-
 #<Plugin exec>
 #	Exec "user:group" "/path/to/exec"
 #	NotificationExec "user:group" "/path/to/exec"
-#</Plugin>
-
-#<Plugin fhcount>
-#	ValuesAbsolute true
-#	ValuesPercentage false
 #</Plugin>
 
 #<Plugin filecount>
@@ -609,169 +380,16 @@ LoadPlugin swap
 #	</Directory>
 #</Plugin>
 
-#<Plugin gmond>
-#  MCReceiveFrom "239.2.11.71" "8649"
-#  <Metric "swap_total">
-#    Type "swap"
-#    TypeInstance "total"
-#    DataSource "value"
-#  </Metric>
-#  <Metric "swap_free">
-#    Type "swap"
-#    TypeInstance "free"
-#    DataSource "value"
-#  </Metric>
-#</Plugin>
-
-#<Plugin gps>
-#  Host "127.0.0.1"
-#  Port "2947"
-#  Timeout 0.015
-#  PauseConnect 5
-#</Plugin>
-
-#<Plugin grpc>
-#	<Server "example.com" "50051">
-#		EnableSSL true
-#		SSLCACertificateFile "/path/to/root.pem"
-#		SSLCertificateFile "/path/to/server.pem"
-#		SSLCertificateKeyFile "/path/to/server.key"
-#	</Server>
-#	<Listen "0.0.0.0" "50051">
-#		EnableSSL true
-#		SSLCACertificateFile "/path/to/root.pem"
-#		SSLCertificateFile "/path/to/client.pem"
-#		SSLCertificateKeyFile "/path/to/client.key"
-#	</Listen>
-#</Plugin>
-
-#<Plugin hddtemp>
-#  Host "127.0.0.1"
-#  Port "7634"
-#</Plugin>
-
-#<Plugin hugepages>
-#    ReportPerNodeHP  true
-#    ReportRootHP     true
-#    ValuesPages      true
-#    ValuesBytes      false
-#    ValuesPercentage false
-#</Plugin>
-
-#<Plugin intel_pmu>
-#    ReportHardwareCacheEvents true
-#    ReportKernelPMUEvents true
-#    ReportSoftwareEvents true
-#    EventList "/var/cache/pmu/GenuineIntel-6-2D-core.json"
-#    HardwareEvents "L2_RQSTS.CODE_RD_HIT,L2_RQSTS.CODE_RD_MISS" "L2_RQSTS.ALL_CODE_RD"
-#</Plugin>
-
-#<Plugin "intel_rdt">
-#  Cores "0-2"
-#</Plugin>
-
 <Plugin interface>
-	Interface "{{ wan_if }}"
-	Interface "{{ lan_if }}"
-	Interface "{{ guest_if }}"
-#	IgnoreSelected false
-#	ReportInactive true
+  Interface "{{ wan_if }}"
+  Interface "{{ lan_if }}"
+  Interface "{{ guest_if }}"
+# IgnoreSelected false
+# ReportInactive true
 </Plugin>
-
-#<Plugin ipmi>
-#	<Instance "local">
-#		Sensor "some_sensor"
-#		Sensor "another_one"
-#		IgnoreSelected false
-#		NotifySensorAdd false
-#		NotifySensorRemove true
-#		NotifySensorNotPresent false
-#		NotifyIPMIConnectionState false
-#		SELEnabled false
-#		SELClearEvent false
-#	</Instance>
-#	<Instance "remote">
-#		Host "server.example.com"
-#		Address  "1.2.3.4"
-#		Username "user"
-#		Password "secret"
-#		#AuthType "md5"
-#		Sensor "some_sensor"
-#		Sensor "another_one"
-#		IgnoreSelected false
-#		NotifySensorAdd false
-#		NotifySensorRemove true
-#		NotifySensorNotPresent false
-#		NotifyIPMIConnectionState false
-#		SELEnabled false
-#		SELClearEvent false
-#	</Instance>
-#</Plugin>
-
-#<Plugin iptables>
-#	Chain table chain
-#	Chain6 table chain
-#</Plugin>
-
-#<Plugin irq>
-#	Irq 7
-#	Irq 8
-#	Irq 9
-#	IgnoreSelected true
-#</Plugin>
-
-#<Plugin java>
-#	JVMArg "-verbose:jni"
-#	JVMArg "-Djava.class.path=/usr/local/share/collectd/java/collectd-api.jar"
-#
-#	LoadPlugin "org.collectd.java.Foobar"
-#	<Plugin "org.collectd.java.Foobar">
-#	  # To be parsed by the plugin
-#	</Plugin>
-#</Plugin>
 
 #<Plugin load>
 #	ReportRelative true
-#</Plugin>
-
-#<Plugin lpar>
-#	CpuPoolStats   false
-#	ReportBySerial false
-#</Plugin>
-
-#<Plugin lua>
-#	BasePath "/usr/local/share/collectd/lua"
-#	Script "script1.lua"
-#	Script "script2.lua"
-#</Plugin>
-
-#<Plugin madwifi>
-#	Interface "wlan0"
-#	IgnoreSelected false
-#	Source "SysFS"
-#	WatchSet "None"
-#	WatchAdd "node_octets"
-#	WatchAdd "node_rssi"
-#	WatchAdd "is_rx_acl"
-#	WatchAdd "is_scan_active"
-#</Plugin>
-
-#<Plugin mbmon>
-#	Host "127.0.0.1"
-#	Port "411"
-#</Plugin>
-
-#<Plugin mcelog>
-#  <Memory>
-#    McelogClientSocket "/var/run/mcelog-client"
-#    PersistentNotification false
-#  </Memory>
-#  McelogLogfile "/var/log/mcelog"
-#</Plugin>
-
-#<Plugin md>
-#	Device "/dev/md0"
-#	IgnoreSelected false
 #</Plugin>
 
 #<Plugin memcachec>
@@ -799,27 +417,6 @@ LoadPlugin swap
 #<Plugin memory>
 #	ValuesAbsolute true
 #	ValuesPercentage false
-#</Plugin>
-
-#<Plugin modbus>
-#	<Data "data_name">
-#		RegisterBase 1234
-#		RegisterCmd ReadHolding
-#		RegisterType float
-#		Type gauge
-#		Instance "..."
-#	</Data>
-#
-#	<Host "name">
-#		Address "addr"
-#		Port "1234"
-#		Interval 60
-#
-#		<Slave 1>
-#			Instance "foobar" # optional
-#			Collect "data_name"
-#		</Slave>
-#	</Host>
 #</Plugin>
 
 #<Plugin mqtt>
@@ -887,67 +484,6 @@ LoadPlugin swap
 #	</Database>
 #</Plugin>
 
-#<Plugin netapp>
-#	<Host "netapp1.example.com">
-#		Protocol      "https"
-#		Address       "10.0.0.1"
-#		Port          443
-#		User          "username"
-#		Password      "aef4Aebe"
-#		Interval      30
-#
-#		<WAFL>
-#			Interval 30
-#			GetNameCache   true
-#			GetDirCache    true
-#			GetBufferCache true
-#			GetInodeCache  true
-#		</WAFL>
-#
-#		<Disks>
-#			Interval 30
-#			GetBusy true
-#		</Disks>
-#
-#		<VolumePerf>
-#			Interval 30
-#			GetIO      "volume0"
-#			IgnoreSelectedIO      false
-#			GetOps     "volume0"
-#			IgnoreSelectedOps     false
-#			GetLatency "volume0"
-#			IgnoreSelectedLatency false
-#		</VolumePerf>
-#
-#		<VolumeUsage>
-#			Interval 30
-#			GetCapacity "vol0"
-#			GetCapacity "vol1"
-#			IgnoreSelectedCapacity false
-#			GetSnapshot "vol1"
-#			GetSnapshot "vol3"
-#			IgnoreSelectedSnapshot false
-#		</VolumeUsage>
-#
-#		<System>
-#			Interval 30
-#			GetCPULoad     true
-#			GetInterfaces  true
-#			GetDiskOps     true
-#			GetDiskIO      true
-#		</System>
-#	</Host>
-#</Plugin>
-
-#<Plugin netlink>
-#	Interface "All"
-#	VerboseInterface "All"
-#	QDisc "eth0" "pfifo_fast-1:0"
-#	Class "ppp0" "htb-1:10"
-#	Filter "ppp0" "u32-1:0"
-#	IgnoreSelected false
-#</Plugin>
-
 #<Plugin network>
 #	# client setup:
 #	Server "ff18::efc0:4a42" "25826"
@@ -979,39 +515,11 @@ LoadPlugin swap
 #	CacheFlush 1800
 #</Plugin>
 
-#<Plugin nfs>
-#	ReportV2 false
-#	#ReportV3 false
-#	#ReportV4 false
-#</Plugin>
-
 #<Plugin nginx>
 #	URL "http://localhost/status?auto"
 #	User "www-user"
 #	Password "secret"
 #	CACert "/etc/ssl/ca.crt"
-#</Plugin>
-
-#<Plugin notify_desktop>
-#	OkayTimeout 1000
-#	WarningTimeout 5000
-#	FailureTimeout 0
-#</Plugin>
-
-#<Plugin notify_email>
-#       SMTPServer "localhost"
-#	SMTPPort 25
-#	SMTPUser "my-username"
-#	SMTPPassword "my-password"
-#	From "collectd@main0server.com"
-#	# <WARNING/FAILURE/OK> on <hostname>. beware! do not use not more than two %s in this string!!!
-#	Subject "Aaaaaa!! %s on %s!!!!!"
-#	Recipient "email1@domain1.net"
-#	Recipient "email2@domain2.com"
-#</Plugin>
-
-#<Plugin notify_nagios>
-#	CommandFile "/usr/local/nagios/var/rw/nagios.cmd"
 #</Plugin>
 
 #<Plugin ntpd>
@@ -1037,23 +545,6 @@ LoadPlugin swap
 #	CollectTopology "Summary"
 #</Plugin>
 
-#<Plugin onewire>
-#	Device "-s localhost:4304"
-#	Sensor "F10FCA000800"
-#	IgnoreSelected false
-#</Plugin>
-
-#<Plugin openldap>
-#  <Instance "localhost">
-#    URL "ldap://localhost:389"
-#    StartTLS false
-#    VerifyHost true
-#    CACert "/path/to/ca.crt"
-#    Timeout -1
-#    Version 3
-#  </Instance>
-#</Plugin>
-
 #<Plugin openvpn>
 #	StatusFile "/etc/openvpn/openvpn-status.log"
 #	ImprovedNamingSchema false
@@ -1062,74 +553,15 @@ LoadPlugin swap
 #	CollectUserCount false
 #</Plugin>
 
-#<Plugin oracle>
-#  <Query "out_of_stock">
-#    Statement "SELECT category, COUNT(*) AS value FROM products WHERE in_stock = 0 GROUP BY category"
-#    <Result>
-#      Type "gauge"
-#      InstancesFrom "category"
-#      ValuesFrom "value"
-#    </Result>
-#  </Query>
-#  <Database "product_information">
-#    #Plugin "warehouse"
-#    ConnectID "db01"
-#    Username "oracle"
-#    Password "secret"
-#    Query "out_of_stock"
-#  </Database>
-#</Plugin>
-
-#<Plugin ovs_events>
-#  Port "6640"
-#  Address "127.0.0.1"
-#  Socket "/var/run/openvswitch/db.sock"
-#  Interfaces "br0" "veth0"
-#  SendNotification true
-#  DispatchValues false
-#</Plugin>
-
-#<Plugin ovs_stats>
-#  Port "6640"
-#  Address "127.0.0.1"
-#  Socket "/var/run/openvswitch/db.sock"
-#  Bridges "br0" "br_ext"
-#</Plugin>
-
-#<Plugin perl>
-#	IncludeDir "/my/include/path"
-#	BaseName "Collectd::Plugins"
-#	EnableDebugger ""
-#	LoadPlugin Monitorus
-#	LoadPlugin OpenVZ
-#
-#	<Plugin foo>
-#		Foo "Bar"
-#		Qux "Baz"
-#	</Plugin>
-#</Plugin>
-
-#<Plugin pinba>
-#	Address "::0"
-#	Port "30002"
-#	<View "name">
-#		Host "host name"
-#		Server "server name"
-#		Script "script name"
-#	</View>
-#</Plugin>
-
+# https://us.battle.net/support/en/article/7871
 <Plugin ping>
-  Host "185.60.112.157"  # Diablo III - Europe
-  Host "185.60.112.158"  # Diablo III - Europe
-  Host "182.162.135.1"   # Diablo III - Korea
-  Host "210.242.235.6"   # Diablo III - Taiwan
-	Interval 6.0
-	Timeout 5.9
-#	TTL 255
-	SourceAddress "{{ wan_ipv4|ipaddr('address') }}"
-#	Device "{{ wan_if }}"
-#	MaxMissed -1
+  Host "24.105.30.129"  # North America
+  Host "103.4.115.248"  # Australia
+  Interval 6.0
+  Timeout 5.0
+# TTL 255
+# SourceAddress "1.2.3.4"
+# MaxMissed -1
 </Plugin>
 
 #<Plugin postgresql>
@@ -1215,11 +647,6 @@ LoadPlugin swap
 #	</Process>
 #</Plugin>
 
-#<Plugin protocols>
-#	Value "/^Tcp:/"
-#	IgnoreSelected false
-#</Plugin>
-
 #<Plugin python>
 #	ModulePath "/path/to/your/python/modules"
 #	LogTraces true
@@ -1239,61 +666,20 @@ LoadPlugin swap
 #   </Node>
 #</Plugin>
 
-#<Plugin routeros>
-#	<Router>
-#		Host "router.example.com"
-#		Port "8728"
-#		User "admin"
-#		Password "dozaiTh4"
-#		CollectInterface true
-#		CollectRegistrationTable true
-#		CollectCPULoad true
-#		CollectMemory true
-#		CollectDF true
-#		CollectDisk true
-#	</Router>
-#</Plugin>
-
 #<Plugin rrdcached>
 #	DaemonAddress "unix:/tmp/rrdcached.sock"
-#	DataDir "/var/db/rrdcollectd"
+#	DataDir "/var/lib/collectd/rrd"
 #	CreateFiles true
 #	CreateFilesAsync false
 #	CollectStatistics true
 #</Plugin>
 
-<Plugin rrdtool>
-	DataDir "/var/collectd/rrd"
+#<Plugin rrdtool>
+#	DataDir "/var/lib/collectd/rrd"
 #	CreateFilesAsync false
-#	CacheFlush 900
 #	CacheTimeout 120
+#	CacheFlush   900
 #	WritesPerSecond 50
-</Plugin>
-
-#<Plugin sensors>
-#	SensorConfigFile "/etc/sensors.conf"
-#	Sensor "it8712-isa-0290/temperature-temp1"
-#	Sensor "it8712-isa-0290/fanspeed-fan3"
-#	Sensor "it8712-isa-0290/voltage-in8"
-#	IgnoreSelected false
-#</Plugin>
-
-#<Plugin sigrok>
-#  LogLevel 3
-#  <Device "AC Voltage">
-#    Driver "fluke-dmm"
-#    MinimumInterval 10
-#    Conn "/dev/ttyUSB2"
-#  </Device>
-#  <Device "Sound Level">
-#    Driver "cem-dt-885x"
-#    Conn "/dev/ttyUSB1"
-#  </Device>
-#</Plugin>
-
-#<Plugin smart>
-#  Disk "/^[hs]d[a-f][0-9]?$/"
-#  IgnoreSelected false
 #</Plugin>
 
 #<Plugin snmp>
@@ -1364,23 +750,6 @@ LoadPlugin swap
 #      OIDs "IF-MIB::ifInOctets" "IF-MIB::ifOutOctets"
 #    </Data>
 #  </Table>
-#</Plugin>
-
-#<Plugin statsd>
-#  Host "::"
-#  Port "8125"
-#  DeleteCounters false
-#  DeleteTimers   false
-#  DeleteGauges   false
-#  DeleteSets     false
-#  CounterSum     false
-#  TimerPercentile 90.0
-#  TimerPercentile 95.0
-#  TimerPercentile 99.0
-#  TimerLower     false
-#  TimerUpper     false
-#  TimerSum       false
-#  TimerCount     false
 #</Plugin>
 
 #<Plugin swap>
@@ -1498,36 +867,6 @@ LoadPlugin swap
 #	Retries 0
 #</Plugin>
 
-#<Plugin thermal>
-#	ForceUseProcfs false
-#	Device "THRM"
-#	IgnoreSelected false
-#</Plugin>
-
-#<Plugin tokyotyrant>
-#	Host "localhost"
-#	Port "1978"
-#</Plugin>
-
-#<Plugin turbostat>
-##	None of the following option should be set manually
-##	This plugin automatically detect most optimal options
-##	Only set values here if:
-##	- The module asks you to
-##	- You want to disable the collection of some data
-##	- Your (Intel) CPU is not supported (yet) by the module
-##	- The module generates a lot of errors 'MSR offset 0x... read failed'
-##	In the last two cases, please open a bug request
-#
-#	TCCActivationTemp "100"
-#	CoreCstates "392"
-# 	PackageCstates "396"
-#	SystemManagementInterrupt true
-#	DigitalTemperatureSensor true
-#	PackageThermalManagement true
-#	RunningAveragePowerLimit "7"
-#</Plugin>
-
 #<Plugin unixsock>
 #	SocketFile "/usr/local/var/run/collectd-unixsock"
 #	SocketGroup "collectd"
@@ -1537,60 +876,6 @@ LoadPlugin swap
 
 #<Plugin uuid>
 #	UUIDFile "/etc/uuid"
-#</Plugin>
-
-#<Plugin mic>
-#   ShowCPU true
-#   ShowCPUCores true
-#   ShowMemory true
-#   ShowTemperatures true
-##  Temperature Sensors can be ignored/shown by repeated #Temperature lines, and
-##  then inverted with a IgnoreSelectedTemperature.
-##  Known Temperature sensors: die, devmem, fin, fout, vccp, vddg, vddq
-#   Temperature vddg
-#   IgnoreSelectedTemperature true
-#   ShowPower true
-##  Power Sensors can be ignored/shown by repeated #Power lines, and
-##  then inverted with a IgnoreSelectedTemperature.
-##  Known Temperature sensors: total0, total1, inst, imax, pci3, c2x3, c2x4, vccp, vddg, vddq
-#   Power total1
-#   IgnoreSelectedPower true
-#</Plugin>
-
-#<Plugin varnish>
-#   This tag support an argument if you want to
-#   monitor the local instance just use </Instance>
-#   If you prefer defining another instance you can do
-#   so by using <Instance "myinstance">
-#   <Instance>
-#      CollectBackend true
-#      CollectBan false           # Varnish 3 and above
-#      CollectCache true
-#      CollectConnections true
-#      CollectDirectorDNS false   # Varnish 3 only
-#      CollectESI false
-#      CollectFetch false
-#      CollectHCB false
-#      CollectObjects false
-#      CollectPurge false         # Varnish 2 only
-#      CollectSession false
-#      CollectSHM true
-#      CollectSMA false           # Varnish 2 & 4 only
-#      CollectSMS false
-#      CollectSM false            # Varnish 2 only
-#      CollectStruct false
-#      CollectTotals false
-#      CollectUptime false        # Varnish 3 and above
-#      CollectVCL false
-#      CollectVSM false           # Varnish 4 only
-#      CollectWorkers false
-#      CollectLock false          # Varnish 4 only
-#      CollectMempool false       # Varnish 4 only
-#      CollectManagement false    # Varnish 4 only
-#      CollectSMF false           # Varnish 4 only
-#      CollectVBE false           # Varnish 4 only
-#      CollectMSE false           # Varnish-Plus 4 only
-#   </Instance>
 #</Plugin>
 
 #<Plugin virt>
@@ -1607,10 +892,6 @@ LoadPlugin swap
 #	PluginInstanceFormat name
 #	Instances 1
 #	ExtraStats "cpu_util disk disk_err domain_state fs_info job_stats_background pcpu perf vcpupin"
-#</Plugin>
-
-#<Plugin vmem>
-#	Verbose false
 #</Plugin>
 
 #<Plugin write_graphite>
@@ -1658,28 +939,10 @@ LoadPlugin swap
 #	</Node>
 #</Plugin>
 
-#<Plugin write_kafka>
-#  Property "metadata.broker.list" "localhost:9092"
-#  <Topic "collectd">
-#    Format JSON
-#  </Topic>
-#</Plugin>
-
-#<Plugin write_mongodb>
-#	<Node "example">
-#		Host "localhost"
-#		Port "27017"
-#		Timeout 1000
-#		StoreRates false
-#		Database "auth_db"
-#		User "auth_user"
-#		Password "auth_passwd"
-#	</Node>
-#</Plugin>
-
-#<Plugin write_prometheus>
-#	Port "9103"
-#</Plugin>
+<Plugin write_prometheus>
+  Host "127.0.0.1"  # collectd >= 5.8.1
+  Port "9103"
+</Plugin>
 
 #<Plugin write_redis>
 #	<Node "example">
@@ -1706,39 +969,6 @@ LoadPlugin swap
 #	</Node>
 #	Tag "foobar"
 #	Attribute "foo" "bar"
-#</Plugin>
-
-#<Plugin write_sensu>
-#	<Node "example">
-#		Host "localhost"
-#		Port 3030
-#		StoreRates true
-#		AlwaysAppendDS false
-#		Notifications true
-#		Metrics true
-#		EventServicePrefix ""
-#		MetricHandler "influx"
-#		MetricHandler "default"
-#		NotificationHandler "flapjack"
-#		NotificationHandler "howling_monkey"
-#	</Node>
-#	Tag "foobar"
-#	Attribute "foo" "bar"
-#</Plugin>
-
-#<Plugin write_tsdb>
-#	<Node>
-#		Host "localhost"
-#		Port "4242"
-#		HostTags "status=production"
-#		StoreRates false
-#		AlwaysAppendDS false
-#	</Node>
-#</Plugin>
-
-#<Plugin zookeeper>
-#    Host "localhost"
-#    Port "2181"
 #</Plugin>
 
 ##############################################################################
@@ -1780,7 +1010,8 @@ LoadPlugin swap
 # the collectd-threshold(5) manual page.                                     #
 ##############################################################################
 
-#LoadPlugin "threshold"
+#LoadPlugin threshold
+#
 #<Plugin threshold>
 #  <Type "foo">
 #    WarningMin    0.00

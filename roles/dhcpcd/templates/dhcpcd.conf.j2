@@ -7,13 +7,11 @@ require dhcp_server_identifier
 # disable running any hooks; not typically required for simple DHCPv6-PD setup
 script /usr/bin/true
 
-# Disable dhcpcd's own router solicitation support; allow slaacd
-# to do this instead by setting "inet6 autoconf" in hostname.pppoe0
-# noipv6rs
-slaac private
+noipv4ll
+noipv6rs
 
-allowinterfaces {{ wan_if }} {{ lan_if }} # {{ guest_if }}
+allowinterfaces {{ wan_if }} {{ lan_if }}
 
 interface {{ wan_if }}
-  # request prefix delegation for downstream interfaces
-  ia_pd 2 {{ lan_if }}/82 # {{ guest_if }}/83
+  ia_na 1
+  ia_pd 2 {{ lan_if }}/0

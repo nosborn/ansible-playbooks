@@ -1,0 +1,7 @@
+# roles/jsonlint/tasks/main
+---
+- name: install package
+  openbsd_pkg:
+    name: "{{ jsonlint_package_name }}"
+    state: present
+...
