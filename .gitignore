@@ -1,6 +1,5 @@
 *.pyc
 *.swp
+/.envrc
 /.vault_password
 /backup/
-/install*.fs
-/snap.sh
