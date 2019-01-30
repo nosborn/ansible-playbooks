@@ -1,7 +1,9 @@
 # roles/flashrom/tasks/main
 ---
 - name: install package
-  openbsd_pkg:
+  package:
     name: flashrom
     state: present
+  register: flashrom_result
+  until: flashrom_result is succeeded
 ...

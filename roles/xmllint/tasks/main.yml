@@ -1,7 +1,9 @@
 # roles/xmllint/tasks/main
 ---
 - name: install package
-  openbsd_pkg:
+  package:
     name: "{{ xmllint_package_name }}"
     state: present
+  register: xmllint_result
+  until: xmllint_result is succeeded
 ...

@@ -1,9 +1,11 @@
 # roles/avahi/tasks/main
 ---
 - name: install package
-  openbsd_pkg:
+  package:
     name: avahi
     state: present
+  register: avahi_result
+  until: avahi_result is succeeded
 
 - name: install configuration file
   template:

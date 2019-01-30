@@ -1,9 +1,11 @@
 # roles/dhcpcd/tasks/main
 ---
 - name: install package
-  openbsd_pkg:
+  package:
     name: dhcpcd
     state: present
+  register: dhcpcd_result
+  until: dhcpcd_result is succeeded
 
 - name: install configuration file
   template:

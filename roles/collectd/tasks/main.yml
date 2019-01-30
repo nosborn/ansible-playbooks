@@ -1,12 +1,14 @@
 # roles/collectd/tasks/main
 ---
 - name: install packages
-  openbsd_pkg:
+  package:
     name:
       - collectd
       - collectd-ping
       - collectd-prometheus
     state: present
+  register: collectd_result
+  until: collectd_result is succeeded
 
 - name: install configuration file
   template:

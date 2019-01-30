@@ -1,9 +1,11 @@
 # roles/grafana/tasks/main
 ---
 - name: install package
-  openbsd_pkg:
+  package:
     name: grafana
     state: present
+  register: grafana_result
+  until: grafana_result is succeeded
 
 - name: create dashboards directory
   file:

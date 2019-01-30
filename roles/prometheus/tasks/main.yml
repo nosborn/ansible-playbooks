@@ -1,9 +1,11 @@
 # roles/prometheus/tasks/main
 ---
 - name: install package
-  openbsd_pkg:
+  package:
     name: prometheus
     state: present
+  register: prometheus_result
+  until: prometheus_result is succeeded
 
 - name: install configuration file
   template:

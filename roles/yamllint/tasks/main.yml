@@ -1,7 +1,9 @@
 # roles/yamllint/tasks/main
 ---
 - name: install package
-  openbsd_pkg:
+  package:
     name: "{{ yamllint_package_name }}"
     state: present
+  register: yamllint_result
+  until: yamllint_result is succeeded
 ...
