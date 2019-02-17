@@ -1,6 +1,6 @@
 # roles/sysmerge/tasks/main
 ---
-- name: copy sysmerge.ignore
+- name: install exclusion file
   copy:
     src: sysmerge.ignore
     dest: /etc/sysmerge.ignore

@@ -1,0 +1,4 @@
+# roles/yamllint/defaults.main
+---
+yamllint_validation_command: yamllint -s %s
+...

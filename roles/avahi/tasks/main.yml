@@ -1,11 +1,14 @@
 # roles/avahi/tasks/main
 ---
+- name: OS-specific variables
+  include_vars: "{{ ansible_distribution }}.yml"
+
 - name: install package
   package:
     name: avahi
     state: present
-  register: avahi_result
-  until: avahi_result is succeeded
+  register: avahi_package_result
+  until: avahi_package_result is succeeded
 
 - name: install configuration file
   template:
@@ -23,16 +26,16 @@
     owner: root
     group: wheel
     mode: 0444
-    validate: /usr/local/bin/xmllint --noout --nonet %s
+    validate: "{{ xmllint_validation_command }}"
   with_items:
-    - grafana.service
     - sftp-ssh.service
     - ssh.service
   notify: restart avahi-daemon
+  when: false
 
 - name: start service
   service:
-    name: avahi_daemon
+    name: "{{ avahi_service_name }}"
     enabled: true
     state: started
 ...

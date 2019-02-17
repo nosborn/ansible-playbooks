@@ -1,6 +1,0 @@
-# roles/grafana/meta/main
----
-dependencies:
-  - role: jsonlint
-  - role: yamllint
-...

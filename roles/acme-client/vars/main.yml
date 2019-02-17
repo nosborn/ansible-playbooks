@@ -1,5 +1,0 @@
-# roles/acme-tiny/vars/main
----
-acme_account_key_file: '/etc/acme/letsencrypt-privkey.pem'
-acme_staging_account_key_file: '/etc/acme/letsencrypt-staging-privkey.pem'
-...

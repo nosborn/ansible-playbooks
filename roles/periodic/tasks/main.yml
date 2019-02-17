@@ -9,6 +9,6 @@
     mode: 0444
     validate: /bin/sh -n %s
   with_items:
-    # - daily.local
-    - weekly.local
+    - daily.local
+    # - weekly.local
 ...

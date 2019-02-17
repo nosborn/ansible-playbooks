@@ -4,6 +4,6 @@
   package:
     name: flashrom
     state: present
-  register: flashrom_result
-  until: flashrom_result is succeeded
+  register: flashrom_package_result
+  until: flashrom_package_result is succeeded
 ...

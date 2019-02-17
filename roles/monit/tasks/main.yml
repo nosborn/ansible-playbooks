@@ -1,12 +1,15 @@
 # roles/monit/tasks/main
 ---
-- include_vars: vault.yml
+- name: load secrets
+  include_vars: vault.yml
   no_log: true
 
 - name: install package
-  openbsd_pkg:
+  package:
     name: monit
     state: present
+  register: monit_package_result
+  until: monit_package_result is succeeded
 
 - name: install configuration file
   template:

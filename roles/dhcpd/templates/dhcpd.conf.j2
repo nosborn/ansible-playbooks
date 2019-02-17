@@ -1,7 +1,5 @@
-# Configuration file for ISC dhcpd.
-
 authoritative;
-default-lease-time 86400;
+default-lease-time 28800;
 
 subnet {{ lan_ipv4|ipaddr('network') }} netmask {{ lan_ipv4|ipaddr('netmask') }} {
 	option domain-name "{{ global_domain }}";
@@ -10,12 +8,14 @@ subnet {{ lan_ipv4|ipaddr('network') }} netmask {{ lan_ipv4|ipaddr('netmask') }}
 	option routers {{ lan_ipv4|ipaddr('address') }};
 
 	range {{ lan_ipv4|ipaddr('100')|ipaddr('address') }} {{ lan_ipv4|ipaddr('199')|ipaddr('address') }};
-{% for dhcpd_host in dhcpd_hosts|default([]) %}
+{%   for dhcpd_host in dhcpd_hosts|default([]) %}
 
 	host {{ dhcpd_host.hostname }} {
 		fixed-address {{ dhcpd_host.fixed_address }};
 		hardware ethernet {{ dhcpd_host.hardware_ethernet }};
-		option domain-name-servers 85.203.37.1, 85.203.37.2;
+{%     if 'option_domain_name_servers' in dhcpd_host %}
+		option domain-name-servers {{ dhcpd_host.option_domain_name_servers|join(', ') }};
+{%     endif %}
 	}
-{% endfor %}
+{%   endfor %}
 }

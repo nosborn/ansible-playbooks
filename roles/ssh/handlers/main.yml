@@ -1,7 +1,0 @@
-# roles/ssh/handlers/main
----
-- name: restart sshd
-  service:
-    name: sshd
-    state: restarted
-...

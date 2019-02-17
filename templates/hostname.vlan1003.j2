@@ -1,5 +1,0 @@
-vnetid {{ guest_vlan }} parent {{ lan_if }}
-lladdr random
-
-inet {{ guest_ipv4|ipaddr('address') }} {{ guest_ipv4|ipaddr('netmask') }} NONE
--inet6

@@ -1,7 +1,0 @@
-# roles/nginx/handlers/main
----
-- name: restart nginx
-  service:
-    name: nginx
-    state: reloaded
-...

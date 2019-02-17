@@ -1,0 +1,8 @@
+vnetid {{ guest_vnetid }} parent {{ lan_if }}
+# lladdr random
+
+rdomain {{ guest_rdomain }}
+
+description "Guest Network"
+inet {{ guest_ipv4|ipaddr('address') }} {{ guest_ipv4|ipaddr('netmask') }} NONE
+-inet6

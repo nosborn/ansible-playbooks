@@ -1,5 +1,0 @@
-# role/nginx/defaults/main
----
-nginx_ssl: true
-nginx_worker_processes: 1
-...

@@ -1,6 +1,6 @@
 # roles/smtpd/tasks/main
 ---
-- name: include secrets
+- name: load secrets
   include_vars: vault.yml
   no_log: true
 

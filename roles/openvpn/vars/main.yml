@@ -1,6 +1,0 @@
-# roles/openvpn/vars/main
----
-openvpn_client_auth_user_pass_file: "{{ openvpn_config_dir }}/client-auth-user-pass.txt"
-openvpn_client_config_file: "{{ openvpn_config_dir }}/client.conf"
-openvpn_config_dir: /etc/openvpn
-...

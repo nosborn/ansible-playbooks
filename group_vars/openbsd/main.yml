@@ -1,13 +1,17 @@
-# group_vars/openbsd/main
+# group_vars/OpenBSD/main
+# yamllint disable rule:line-length
 ---
 ansible_become: "{{ vault_ansible_become }}"
 ansible_become_method: doas
-ansible_python_interpreter: /usr/local/bin/python2.7
+ansible_python_interpreter: /usr/local/bin/python3
 ansible_user: "{{ vault_ansible_user }}"
 installurl: "{{ vault_installurl }}"
-jsonlint_package_name: py-demjson
 root_alias: "{{ vault_root_alias }}"
-sshd_allow_users: "{{ vault_sshd_allow_users }}"
-xmllint_package_name: libxml
-yamllint_package_name: py-yamllint
+sshd_config_allow_agent_forwarding: "{{ vault_sshd_config_allow_agent_forwarding }}"
+sshd_config_allow_tcp_forwarding: "{{ vault_sshd_config_allow_tcp_forwarding }}"
+sshd_config_allow_users: "{{ vault_sshd_config_allow_users }}"
+sshd_config_challenge_response_authentication: "{{ vault_sshd_config_challenge_response_authentication }}"
+sshd_config_client_alive_interval: "{{ vault_sshd_config_client_alive_interval }}"
+sshd_config_host_keys: "{{ vault_sshd_config_host_keys }}"
+sshd_config_password_authentication: "{{ vault_sshd_config_password_authentication }}"
 ...

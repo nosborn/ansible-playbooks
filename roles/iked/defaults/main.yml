@@ -1,5 +1,0 @@
-# roles/iked/defaults/main
----
-iked_enabled: yes
-iked_state: 'started'
-...

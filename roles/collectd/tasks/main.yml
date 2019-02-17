@@ -5,10 +5,10 @@
     name:
       - collectd
       - collectd-ping
-      - collectd-prometheus
+      - collectd-rrdtool
     state: present
-  register: collectd_result
-  until: collectd_result is succeeded
+  register: collectd_package_result
+  until: collectd_package_result is succeeded
 
 - name: install configuration file
   template:
@@ -17,7 +17,6 @@
     owner: root
     group: _collectd
     mode: 0440
-    validate: /usr/local/sbin/collectd -C %s -t
   notify: restart collectd
 
 - name: enable and start service

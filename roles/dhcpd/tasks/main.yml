@@ -1,6 +1,6 @@
 # roles/dhcpd/tasks/main
 ---
-- name: DHCP server configuration file
+- name: install configuration file
   template:
     src: dhcpd.conf.j2
     dest: /etc/dhcpd.conf

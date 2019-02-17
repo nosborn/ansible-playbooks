@@ -1,0 +1,4 @@
+# roles/xmllint/vars/OpenBSD
+---
+xmllint_package_name: libxml
+...

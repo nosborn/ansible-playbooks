@@ -4,8 +4,8 @@
   package:
     name: dhcpcd
     state: present
-  register: dhcpcd_result
-  until: dhcpcd_result is succeeded
+  register: dhcpcd_package_result
+  until: dhcpcd_package_result is succeeded
 
 - name: install configuration file
   template:

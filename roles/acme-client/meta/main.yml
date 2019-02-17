@@ -1,5 +1,0 @@
-# roles/acme-client/meta/main
----
-dependencies:
-  - role: pf
-...

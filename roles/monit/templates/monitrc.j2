@@ -3,7 +3,7 @@ set idfile /var/db/monit.id
 set logfile syslog
 set statefile /var/db/monit.state
 
-set alert nick@{{ global_domain }} not on { instance, action }
+set alert {{ monit_alert_email }} not on { instance, action }
 set mailserver localhost
 set mail-format {
   subject: monit alert -- $EVENT $SERVICE
@@ -19,255 +19,166 @@ set httpd port 2812 address "{{ lan_ipv4|ipaddr('address') }}"
     signature disable
     allow {{ monit_username }}:{{ monit_password }} read-only
 
-###############################################################################
-## Services
-###############################################################################
+check process apmd matching "^/usr/sbin/apmd -A$"
+  start program = "/usr/sbin/rcctl start apmd"
+  stop program = "/usr/sbin/rcctl stop apmd"
+  if does not exist for 5 cycles then restart
+  if failed uid root then alert
+  if failed euid root then alert
+  if changed ppid then alert
 
 check process avahi-daemon with pidfile /var/run/avahi-daemon/pid
   start program = "/usr/sbin/rcctl start avahi_daemon"
   stop program = "/usr/sbin/rcctl stop avahi_daemon"
-  if does not exist for 2 cycles then restart
+  if does not exist for 5 cycles then restart
   if failed uid _avahi then alert
   if failed euid _avahi then alert
-  # if failed gid _avahi then alert
-  depends on LAN
+  # if failed gid nobody then alert
+  if changed ppid then alert
 
 check process collectd with pidfile /var/collectd/collectd.pid
   start program = "/usr/sbin/rcctl start collectd"
   stop program = "/usr/sbin/rcctl stop collectd"
-  if does not exist for 2 cycles then restart
+  if does not exist for 5 cycles then restart
+  if failed uid root then alert
+  if failed euid root then alert
+  if changed ppid then alert
+
+check process ddclient with pidfile /var/run/ddclient/ddclient.pid
+  start program = "/usr/sbin/rcctl start ddclient"
+  stop program = "/usr/sbin/rcctl stop ddclient"
+  if does not exist for 5 cycles then restart
+  if failed uid _ddclient then alert
+  if failed euid _ddclient then alert
+  if failed gid _ddclient then alert
+  if changed ppid then alert
 
 check process dhcpcd with pidfile /var/run/dhcpcd.pid
   start program = "/usr/sbin/rcctl start dhcpcd"
   stop program = "/usr/sbin/rcctl stop dhcpcd"
-  if does not exist for 2 cycles then restart
-  depends on WAN
+  if does not exist for 5 cycles then restart
+  if failed uid root then alert
+  if failed euid root then alert
+  if changed ppid then alert
 
 check process dhcpd matching "^/usr/sbin/dhcpd "
   start program = "/usr/sbin/rcctl start dhcpd"
   stop program = "/usr/sbin/rcctl stop dhcpd"
-  if does not exist for 2 cycles then restart
+  if does not exist for 5 cycles then restart
   if failed uid _dhcp then alert
   if failed euid _dhcp then alert
   if failed gid _dhcp then alert
-  depends on LAN
+  if changed ppid then alert
 
 check process facette matching "^/usr/local/bin/facette$"
-  start program = "/usr/sbin/rcctl start facette"
-  stop program = "/usr/sbin/rcctl stop facette"
-  if does not exist for 2 cycles then restart
+  start program = "/usr/sbin/rcctl start dhcpd"
+  stop program = "/usr/sbin/rcctl stop dhcpd"
+  if does not exist for 5 cycles then restart
+  if failed
+    host {{ lan_ipv4|ipaddr('address') }} port 12003 protocol http request "/api/v1/"
+    for 5 cycles
+    then alert
   if failed uid _facette then alert
   if failed euid _facette then alert
   if failed gid _facette then alert
-{% if iked_enabled|default(false) %}
-
-#check process iked matching "^iked: parent "
-#  start program = "/usr/sbin/rcctl start iked"
-#  stop program = "/usr/sbin/rcctl stop iked"
-#  if does not exist for 2 cycles then restart
-#  depends on WAN
-{% endif %}
+  if changed ppid then alert
 
 check process ntpd matching "^/usr/sbin/ntpd "
   start program = "/usr/sbin/rcctl start ntpd" with timeout 300 seconds
   stop program = "/usr/sbin/rcctl stop ntpd"
-  if does not exist for 2 cycles then restart
+  if does not exist for 5 cycles then restart
   if failed
-    host {{ lan_ipv4|ipaddr('address') }} port 123 type udp proto ntp3
+    host {{ lan_ipv4|ipaddr('address') }} port 123 type udp protocol ntp3
     for 5 cycles
     then alert
 {% if lan_ipv6 is defined %}
   if failed
-    host {{ lan_ipv6|ipaddr('address') }} port 123 type udp proto ntp3
+    host {{ lan_ipv6|ipaddr('address') }} port 123 type udp protocol ntp3
     for 5 cycles
     then alert
 {% endif %}
-  depends on LAN, WAN
-
-check process nginx with pidfile /var/run/nginx.pid
-  start program = "/usr/sbin/rcctl start nginx"
-  stop program = "/usr/sbin/rcctl stop nginx"
-  if does not exist for 2 cycles then restart
-# if failed host tombstone.osborn.io port 80 ipv4 proto https request "/ping.txt" status = 307 then alert
-# if failed host tombstone.osborn.io port 80 ipv6 proto https request "/ping.txt" status = 307 then alert
-  if failed host {{ wan_ipv4|ipaddr('address') }} port 443 ipv4
-    proto https
-    request "/ping.txt" http headers [Host: {{ ansible_fqdn }}]
-    content = "pong"
-    then alert
-{% if wan_ipv6 is defined %}
-  if failed host {{ wan_ipv6|ipaddr('address') }} port 443 ipv6
-    proto https
-    request "/ping.txt" http headers [Host: {{ ansible_fqdn }}]
-    content = "pong"
-    then alert
-{% endif %}
-  depends on WAN
+  if failed uid root then alert
+  if failed euid root then alert
+  if changed ppid then alert
 
 check process rad matching "^/usr/sbin/rad$"
   start program = "/usr/sbin/rcctl start rad"
   stop program = "/usr/sbin/rcctl stop rad"
-  if does not exist for 2 cycles then restart
-  if failed uid _rad then alert
-  if failed euid _rad then alert
-  if failed gid _rad then alert
-  depends on LAN
+  if does not exist for 5 cycles then restart
+  if failed uid root then alert
+  if failed euid root then alert
+  if changed ppid then alert
+  if children < 2 then alert
 
 check process slaacd matching "^/sbin/slaacd$"
   start program = "/usr/sbin/rcctl start slaacd"
   stop program = "/usr/sbin/rcctl stop slaacd"
-  if does not exist for 2 cycles then restart
+  if does not exist for 5 cycles then restart
+  if failed uid root then alert
+  if failed euid root then alert
+  if changed ppid then alert
+  if children < 2 then alert
 
 check process smtpd matching "^/usr/sbin/smtpd$"
   start program = "/usr/sbin/rcctl start smtpd"
   stop program = "/usr/sbin/rcctl stop smtpd"
-  if does not exist for 2 cycles then restart
+  if does not exist for 5 cycles then restart
   if failed
-    host 127.0.0.1 port 25 proto smtp
+    host 127.0.0.1 port 25 protocol smtp
     for 5 cycles
     then alert
   if failed
-    host ::1 port 25 proto smtp
+    host ::1 port 25 protocol smtp
     for 5 cycles
     then alert
-  depends on WAN
+  if failed uid root then alert
+  if failed euid root then alert
+  if changed ppid then alert
+  if children < 6 then alert
 
 check process sshd with pidfile /var/run/sshd.pid
   start program = "/usr/sbin/rcctl start sshd"
   stop program = "/usr/sbin/rcctl stop sshd"
-  if does not exist for 2 cycles then restart
-  depends on LAN, WAN
+  if does not exist for 5 cycles then restart
+  if failed uid root then alert
+  if failed euid root then alert
+  if changed ppid then alert
 
 check process syslogd with pidfile /var/run/syslog.pid
   start program = "/usr/sbin/rcctl start syslogd"
   stop program = "/usr/sbin/rcctl stop syslogd"
-  if does not exist for 2 cycles then restart
+  if does not exist for 5 cycles then restart
+  if failed uid root then alert
+  if failed euid root then alert
+  if changed ppid then alert
+  if children < 1 then alert
 
 check process unbound with pidfile {{ unbound_pid_file }}
-  start program = "/usr/sbin/rcctl start {{ unbound_service }}"
-  stop program = "/usr/sbin/rcctl stop {{ unbound_service }}"
-  if does not exist for 2 cycles then restart
-  if failed uid _unbound then alert
-  if failed euid _unbound then alert
-  if failed gid _unbound then alert
+  start program = "/usr/sbin/rcctl start {{ unbound_service_name }}"
+  stop program = "/usr/sbin/rcctl stop {{ unbound_service_name }}"
+  if does not exist for 5 cycles then restart
   if failed
-    host 127.0.0.1 port 53 type udp proto dns
+    host 127.0.0.1 port 53 type udp protocol dns
     for 5 cycles
     then alert
   if failed
-    host {{ lan_ipv4|ipaddr('address') }} port 53 ipv4 type udp proto dns
+    host {{ lan_ipv4|ipaddr('address') }} port 53 type udp protocol dns
     for 5 cycles
     then alert
   if failed
-    host ::1 port 53 type udp proto dns
+    host ::1 port 53 type udp protocol dns
     for 5 cycles
     then alert
 {% if lan_ipv6 is defined %}
   if failed
-    host {{ lan_ipv6|ipaddr('address') }} port 53 ipv6 type udp proto dns
+    host {{ lan_ipv6|ipaddr('address') }} port 53 type udp protocol dns
     for 5 cycles
     then alert
 {% endif %}
-  depends on LAN, WAN
-
-## Check filesystem permissions, uid, gid, space and inode usage. Other services,
-## such as databases, may depend on this resource and an automatically graceful
-## stop may be cascaded to them before the filesystem will become full and data
-## lost.
-#
-#  check filesystem datafs with path /dev/sdb1
-#    start program  = "/bin/mount /data"
-#    stop program  = "/bin/umount /data"
-#    if failed permission 660 then unmonitor
-#    if failed uid root then unmonitor
-#    if failed gid disk then unmonitor
-#    if space usage > 80% for 5 times within 15 cycles then alert
-#    if space usage > 99% then stop
-#    if inode usage > 30000 then alert
-#    if inode usage > 99% then stop
-#    group server
-
-check filesystem root with path /dev/sd0a
-  if changed fsflags then alert
-  if space usage > 70% for 5 times within 15 cycles then alert
-  if inode usage > 70% for 5 times within 15 cycles then alert
-
-check filesystem home with path /dev/sd0i
-  if changed fsflags then alert
-  if space usage > 70% for 5 times within 15 cycles then alert
-  if inode usage > 70% for 5 times within 15 cycles then alert
-
-check filesystem tmp with path /dev/sd0d
-  if changed fsflags then alert
-  if space usage > 70% for 5 times within 15 cycles then alert
-  if inode usage > 70% for 5 times within 15 cycles then alert
-
-check filesystem usr with path /dev/sd0f
-  if changed fsflags for 5 cycles then alert
-  if space usage > 70% for 5 times within 15 cycles then alert
-  if inode usage > 70% for 5 times within 15 cycles then alert
-
-check filesystem usr.X11R6 with path /dev/sd0g
-  if changed fsflags for 5 cycles then alert
-  if space usage > 70% for 5 times within 15 cycles then alert
-  if inode usage > 70% for 5 times within 15 cycles then alert
-
-check filesystem usr.local with path /dev/sd0h
-  if changed fsflags then alert
-  if space usage > 70% for 5 times within 15 cycles then alert
-  if inode usage > 70% for 5 times within 15 cycles then alert
-
-check filesystem var with path /dev/sd0e
-  if changed fsflags then alert
-  if space usage > 70% for 5 times within 15 cycles then alert
-  if inode usage > 70% for 5 times within 15 cycles then alert
-
-## Check a file's timestamp. In this example, we test if a file is older
-## than 15 minutes and assume something is wrong if its not updated. Also,
-## if the file size exceed a given limit, execute a script
-#
-#  check file database with path /data/mydatabase.db
-#    if failed permission 700 then alert
-#    if failed uid data then alert
-#    if failed gid data then alert
-#    if timestamp > 15 minutes then alert
-#    if size > 100 MB then exec "/my/cleanup/script" as uid dba and gid dba
-#
-#
-## Check directory permission, uid and gid.  An event is triggered if the
-## directory does not belong to the user with uid 0 and gid 0.  In addition,
-## the permissions have to match the octal description of 755 (see chmod(1)).
-#
-#  check directory bin with path /bin
-#    if failed permission 755 then unmonitor
-#    if failed uid 0 then unmonitor
-#    if failed gid 0 then unmonitor
-
-check network GUEST with interface {{ guest_if }}
-  #start program = "/bin/sh /etc/netstart {{ guest_if }}"
-  #if failed link then alert
-  #if changed link capacity then alert
-  depends on LAN
-
-check network LAN with interface {{ lan_if }}
-  #start program = "/bin/sh /etc/netstart {{ lan_if }}"
-  #if failed link then alert
-  #if changed link capacity then alert
-
-check network WAN with interface {{ wan_if }}
-  #start program = "/bin/sh /etc/netstart {{ wan_if }}"
-  if failed link for 5 cycles then alert
-  if changed link for 5 cycles then alert
-  depends on WAN.DSL
-
-check network WAN.DSL with interface {{ pppoe_if }}
-  #start program = "/bin/sh /etc/netstart {{ pppoe_if }}"
-  if failed link for 5 cycles then alert
-  if changed link for 5 cycles then alert
-
-##check network WLAN with interface {{ wlan_if }}
-##  #start program = "/bin/sh /etc/netstart {{ wlan_if }}"
-##  #if failed link then alert
-##  #if changed link capacity then alert
+  if failed uid _unbound then alert
+  if failed euid _unbound then alert
+  if failed gid _unbound then alert
+  if changed ppid then alert
+  if children != {{ unbound_config_num_threads - 1 }} then alert
 
 # include /etc/monit.d/*

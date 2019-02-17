@@ -1,0 +1,5 @@
+# roles/unbound/vars/OpenBSD
+---
+unbound_confdir: /var/unbound/etc
+unbound_mode: 0444
+...

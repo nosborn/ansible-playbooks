@@ -13,7 +13,7 @@
 
     - name: default hostname
       copy:
-        content: "tombstone.{{ global_domain }}\n"
+        content: "{{ ansible_hostname }}.{{ global_domain }}\n"
         dest: /etc/myname
         owner: root
         group: wheel
@@ -27,6 +27,14 @@
         group: wheel
         mode: 0444
 
+    - name: sysctl variables to set at system startup
+      sysctl:
+        name: "{{ item.key }}"
+        value: "{{ item.value }}"
+        reload: true
+        sysctl_set: true
+      with_dict: "{{ sysctl }}"
+
     - name: resolver configuration file
       template:
         src: templates/resolv.conf.tail.j2
@@ -34,17 +42,7 @@
         owner: root
         group: wheel
         mode: 0444
-
-    - name: sysctl variables to set at system startup
-      sysctl:
-        name: "{{ item.key }}"
-        value: "{{ item.value }}"
-        reload: true
-        sysctl_set: true
-      with_dict:
-        ddb.panic: 0
-        net.inet.ip.forwarding: 1
-        net.inet6.ip6.forwarding: 1
+      notify: restart networking
 
     - name: interface-specific configuration files
       template:
@@ -53,12 +51,8 @@
         owner: root
         group: wheel
         mode: 0440
-      with_items:
-        - "{{ guest_if }}"
-        - "{{ lan_if }}"
-        - "{{ wan_if }}"
-        - "{{ wlan_if }}"
-      notify: netstart
+      with_items: "{{ interfaces|sort }}"
+      notify: restart networking
 
     - name: system-wide package system configuration
       copy:
@@ -67,39 +61,36 @@
         owner: root
         group: wheel
         mode: 0444
+      when: false
 
     - meta: flush_handlers
 
   roles:
 
-    - {role: apmd, tags: [apmd]}
-    - {role: avahi, tags: [avahi]}
-    - {role: collectd, tags: [collectd]}
-    - {role: dhcpcd, tags: [dhcpcd]}
-    - {role: dhcpd, tags: [dhcpd]}
-    - {role: doas, tags: [doas]}
-    # - {role: facette, tags: [facette]}
-    - {role: flashrom, tags: [flashrom]}
-    - {role: grafana, tags: [grafana]}
-    # - {role: iked, tags: [iked]}
-    # - {role: monit, tags: [monit]}
-    # - {role: nginx, tags: [nginx]}
-    - {role: ntpd, tags: [ntpd]}
-    # - {role: openvpn, tags: [openvpn]}
-    # - {role: periodic, tags: [periodic]}
-    - {role: pf, tags: [pf]}
-    # - {role: pftop, tags: [pftop]}
-    - {role: prometheus, tags: [prometheus]}
-    - {role: python, tags: [python]}
-    - {role: rad, tags: [rad]}
-    - {role: slaacd, tags: [slaacd]}
-    - {role: smtpd, tags: [smtpd]}
-    # - {role: snap, tags: [snap]}
-    - {role: sndiod, tags: [sndiod]}
-    - {role: ssh, tags: [ssh]}
-    # - {role: sysclean, tags: [sysclean]}
-    # - {role: sysmerge, tags: [sysmerge]}
-    - {role: unbound, tags: [unbound]}
+    - role: apmd
+    - role: avahi
+    - role: collectd
+    - role: ddclient
+    - role: dhcpcd
+    - role: dhcpd
+    - role: doas
+    - role: facette
+    - role: flashrom
+    - role: monit
+    - role: ntpd
+    - role: periodic
+      when: false
+    - role: pf
+    - role: rad
+    - role: slaacd
+    - role: smtpd
+    # - role: snap
+    #   when: ansible_os_release == 'current'
+    - role: sndiod
+    - role: sshd
+    - role: sysclean
+    - role: sysmerge
+    - role: unbound
 
   tasks:
 
@@ -117,15 +108,8 @@
     #     regexp: '^(console\s+.+)\s+secure$'
     #     replace: '\1'
 
-    - name: update root user GECOS
-      user:
-        name: root
-        comment: ''
-        createhome: false
-        state: present
-
   handlers:
 
-    - name: netstart
-      command: /bin/sh /etc/netstart
+    - name: restart networking
+      command: sh /etc/netstart
 ...

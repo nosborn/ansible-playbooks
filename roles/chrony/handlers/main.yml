@@ -1,7 +1,0 @@
-# roles/chrony/handlers/main
----
-- name: restart chrony
-  service:
-    name: chrony
-    state: restarted
-...

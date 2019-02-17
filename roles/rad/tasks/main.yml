@@ -7,7 +7,7 @@
     owner: root
     group: wheel
     mode: 0444
-    validate: /usr/sbin/rad -n -f %s
+    validate: /usr/sbin/rad -f %s -n
   notify: restart rad
 
 - name: enable and start service

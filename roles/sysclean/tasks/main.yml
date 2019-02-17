@@ -1,9 +1,11 @@
 # roles/sysclean/tasks/main
 ---
 - name: install package
-  openbsd_pkg:
+  package:
     name: sysclean
     state: present
+  register: sysclean_package_result
+  until: sysclean_package_result is succeeded
 
 - name: install ignore file
   copy:

@@ -1,7 +1,0 @@
-# roles/iked/handlers/main
----
-- name: reload iked
-  service:
-    name: iked
-    state: reloaded
-...

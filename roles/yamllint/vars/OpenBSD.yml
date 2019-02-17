@@ -1,0 +1,5 @@
+# roles/yamllint/vars/OpenBSD
+---
+yamllint_package_name: py3-yamllint
+yamllint_validation_command: yamllint-3 -s %s
+...

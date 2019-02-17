@@ -1,0 +1,27 @@
+# roles/ddclient/tasks/main
+---
+- name: OS-specific variables
+  include_vars: "{{ ansible_distribution }}.yml"
+
+- name: install package
+  package:
+    name: ddclient
+    state: present
+  register: ddclient_package_result
+  until: ddclient_package_result is succeeded
+
+- name: install configuration file
+  template:
+    src: ddclient.conf.j2
+    dest: /etc/ddclient/ddclient.conf
+    owner: root
+    group: "{{ ddclient_group }}"
+    mode: "{{ ddclient_mode }}"
+  notify: restart ddclient
+
+- name: enable and start service
+  service:
+    name: ddclient
+    enabled: true
+    state: started
+...

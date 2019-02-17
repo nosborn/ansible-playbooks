@@ -1,9 +1,11 @@
-# roles/facette/tasks/main
+# roles/facewtte/tasks/main
 ---
 - name: install package
-  openbsd_pkg:
+  package:
     name: facette
     state: present
+  register: facette_package_result
+  until: facette_package_result is succeeded
 
 - name: install configuration file
   template:
@@ -12,7 +14,7 @@
     owner: root
     group: wheel
     mode: 0444
-    validate: /usr/local/bin/yamllint -s %s
+    validate: "{{ yamllint_validation_command }}"
   notify: restart facette
 
 - name: enable and start service
