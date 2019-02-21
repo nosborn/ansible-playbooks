@@ -12,13 +12,5 @@
 /obsd.sp
 # /var/unbound/db/root.key
 /var/unbound/etc
-# /var/www/.htpasswd
-# /var/www/cache/client_body_temp
-# /var/www/cache/proxy_temp
-# /var/www/cache/fastcgi_temp
-# /var/www/cache/uwsgi_temp
-# /var/www/cache/scgi_temp
-# /var/www/modules
-# /var/www/sites
 
 @include "/etc/changelist"

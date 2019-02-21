@@ -2,35 +2,23 @@ server:
 	verbosity: {{ unbound_config_verbosity }}
 
 	statistics-cumulative: yes
-#	extended-statistics: yes
-	num-threads: {{ unbound_config_num_threads }}
+	extended-statistics: yes
+#	num-threads: 1
 
 {% for interface in unbound_config_interface %}
 	interface: {{ interface }}
 {% endfor %}
 
-{% if unbound_config_num_threads == 1 %}
 	outgoing-range: 950
-{% elif unbound_config_num_threads == 2 %}
-	outgoing-range: 450
-{% elif unbound_config_num_threads == 4 %}
-	outgoing-range: 200
-{% endif %}
 
 	msg-cache-size: 32m
-	msg-cache-slabs: {{ unbound_config_num_threads }}
-{% if unbound_config_num_threads == 1 %}
+#	msg-cache-slabs: {{ unbound_config_num_threads }}
 	num-queries-per-thread: 475
-{% elif unbound_config_num_threads == 2 %}
-	num-queries-per-thread: 225
-{% elif unbound_config_num_threads == 4 %}
-	num-queries-per-thread: 100
-{% endif %}
 
 	rrset-cache-size: 64m
-	rrset-cache-slabs: {{ unbound_config_num_threads }}
+#	rrset-cache-slabs: {{ unbound_config_num_threads }}
 
-	infra-cache-slabs: {{ unbound_config_num_threads }}
+#	infra-cache-slabs: {{ unbound_config_num_threads }}
 
 	prefer-ip6: yes
 
@@ -65,14 +53,15 @@ server:
 	private-domain: local
 
 	prefetch: yes
-	prefetch-key: yes
+#	prefetch-key: yes
 
 #	auto-trust-anchor-file: /var/unbound/db/root.key
 
-	key-cache-slabs: {{ unbound_config_num_threads }}
+#	val-permissive-mode: yes
+
+#	key-cache-slabs: {{ unbound_config_num_threads }}
 
 	include: {{ unbound_confdir }}/redirect-zones.conf
 
 remote-control:
 	control-enable: yes
-	control-interface: /var/run/unbound.sock

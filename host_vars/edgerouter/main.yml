@@ -1,0 +1,30 @@
+# host_vars/edgerouter/main
+---
+ansible_host: "{{ lan_ipv4|ipaddr('address') }}"
+dhcpd_hosts: "{{ vault_dhcpd_hosts }}"
+dns_forwarding_cache_size: 1500  # default 150
+dynamic_dns_host_name: "{{ vault_dynamic_dns_host_name }}"
+dynamic_dns_login: "{{ vault_dynamic_dns_login }}"
+dynamic_dns_password: "{{ vault_dynamic_dns_password }}"
+dynamic_dns_protocol: "{{ vault_dynamic_dns_protocol }}"
+dynamic_dns_server: "{{ vault_dynamic_dns_server }}"
+dynamic_dns_service: "{{ vault_dynamic_dns_service }}"
+dynamic_dns_web: "{{ vault_dynamic_dns_web }}"
+dynamic_dns_web_skip: "{{ vault_dynamic_dns_web_skip }}"
+guest_if: "{{ vault_guest_if }}"
+guest_ipv4: "{{ vault_guest_ipv4 }}"
+guest_vlan: "{{ vault_guest_vlan }}"
+lan_if: "{{ vault_lan_if }}"
+lan_ipv4: "{{ vault_lan_ipv4 }}"
+lan1_if: "{{ lan_if }}"  # DEPRECATED
+lan1_ipv4: "{{ lan_ipv4 }}"  # DEPRECATED
+lan2_if: "{{ vault_lan2_if }}"
+lan2_ipv4: "{{ vault_lan2_ipv4 }}"
+# ntpd_config_listen_on: "{{ vault_ntpd_config_listen_on }}"
+# ntpd_config_servers: "{{ vault_ntpd_config_servers }}"
+# smtpd_max_message_size: "{{ vault_smtpd_max_message_size }}"
+# smtpd_relay_host: "{{ vault_smtpd_relay_host }}"
+# smtpd_secrets_table: "{{ vault_smtpd_secrets_table }}"
+## users: "{{ vault_users }}"
+wan_if: "{{ vault_wan_if }}"
+...

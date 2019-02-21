@@ -10,8 +10,8 @@
 # Global settings for the daemon.                                            #
 ##############################################################################
 
-#Hostname    "localhost
-#FQDNLookup   true
+Hostname     "{{ ansible_hostname }}"
+FQDNLookup   false
 #BaseDir     "/var/collectd"
 #PIDFile     "/var/collectd/collectd.pid"
 #PluginDir   "${exec_prefix}/lib/collectd"
@@ -73,7 +73,7 @@ LoadPlugin syslog
 # to missing dependencies or because they have been deactivated explicitly.  #
 ##############################################################################
 
-LoadPlugin aggregation
+#LoadPlugin aggregation
 #LoadPlugin apache
 #LoadPlugin apcups
 #LoadPlugin ascent
@@ -84,7 +84,7 @@ LoadPlugin cpu
 #LoadPlugin curl_json
 #LoadPlugin curl_xml
 <LoadPlugin df>
-  Interval 10
+  Interval 60
 </LoadPlugin>
 LoadPlugin disk
 #LoadPlugin dns
@@ -98,21 +98,29 @@ LoadPlugin load
 LoadPlugin memory
 #LoadPlugin mqtt
 #LoadPlugin mysql
-#LoadPlugin network
+LoadPlugin network
 #LoadPlugin nginx
 #LoadPlugin ntpd
 #LoadPlugin nut
 #LoadPlugin olsrd
 #LoadPlugin openvpn
-LoadPlugin pf
+#LoadPlugin pf
+{% if ansible_hostname == 'tombstone' %}
 LoadPlugin ping
+{% else %}
+#LoadPlugin ping
+{% endif %}
 #LoadPlugin postgresql
 #LoadPlugin powerdns
 LoadPlugin processes
+{% if ansible_hostname == 'tombstone' %}
+LoadPlugin python
+{% else %}
 #LoadPlugin python
+{% endif %}
 #LoadPlugin redis
 #LoadPlugin rrdcached
-LoadPlugin rrdtool
+#LoadPlugin rrdtool
 #LoadPlugin snmp
 #LoadPlugin snmp_agent
 LoadPlugin swap
@@ -141,18 +149,18 @@ LoadPlugin swap
 # ription of those options is available in the collectd.conf(5) manual page. #
 ##############################################################################
 
-<Plugin aggregation>
-  <Aggregation>
-    Plugin "cpu"
-    Type "percent"
-
-    GroupBy "Host"
-    GroupBy "TypeInstance"
-
-    CalculateSum true
-    CalculateAverage true
-  </Aggregation>
-</Plugin>
+#<Plugin aggregation>
+#  <Aggregation>
+#    Plugin "cpu"
+#    Type "percent"
+#
+#    GroupBy "Host"
+#    GroupBy "TypeInstance"
+#
+#    CalculateSum true
+#    CalculateAverage true
+#  </Aggregation>
+#</Plugin>
 
 #<Plugin apache>
 #  <Instance "local">
@@ -374,7 +382,11 @@ LoadPlugin swap
 #</Plugin>
 
 <Plugin interface>
+{% if wan_if is defined %}
   Interface "{{ wan_if }}"
+{% else %}
+  Interface "{{ lan_if }}"
+{% endif %}
 # IgnoreSelected false
 # ReportInactive true
 </Plugin>
@@ -396,9 +408,8 @@ LoadPlugin swap
 #	ValuesPercentage false
 #</Plugin>
 
-#<Plugin network>
-#	# client setup:
-#	Server "ff18::efc0:4a42" "25826"
+<Plugin network>
+ Server "{{ collectd_config_network_server }}" "25826"
 #	<Server "239.192.74.66" "25826">
 #		SecurityLevel Encrypt
 #		Username "user"
@@ -417,15 +428,10 @@ LoadPlugin swap
 #	</Listen>
 #	MaxPacketSize 1452
 #
-#	# proxy setup (client and server as above):
-#	Forward true
-#
-#	# statistics about the network plugin itself
-#	ReportStats false
-#
-#	# "garbage collection"
-#	CacheFlush 1800
-#</Plugin>
+# Forward true
+#  ReportStats false
+# CacheFlush 1800
+</Plugin>
 
 #<Plugin nginx>
 #	URL "http://localhost/status?auto"
@@ -457,6 +463,7 @@ LoadPlugin swap
 #	CollectUserCount false
 #</Plugin>
 
+{% if ansible_hostname == 'tombstone' %}
 <Plugin ping>
   Host "24.105.30.129" # Diablo III - North America
   Host "103.4.115.248" # Diablo III - Australia
@@ -468,6 +475,7 @@ LoadPlugin swap
 # MaxMissed -1
 </Plugin>
 
+{% endif %}
 #<Plugin powerdns>
 #  <Server "server_name">
 #    Collect "latency"
@@ -498,17 +506,19 @@ LoadPlugin swap
 #	</Process>
 #</Plugin>
 
-#<Plugin python>
-#	ModulePath "/path/to/your/python/modules"
+{% if ansible_hostname == 'tombstone' %}
+<Plugin python>
+  ModulePath "/usr/local/share/collectd"
 #	LogTraces true
 #	Interactive true
-#	Import "spam"
-#
+  Import "unbound-stats"
+
 #	<Module spam>
 #		spam "wonderful" "lovely"
 #	</Module>
-#</Plugin>
+</Plugin>
 
+{% endif %}
 #<Plugin rrdcached>
 #	DaemonAddress "unix:/tmp/rrdcached.sock"
 #	DataDir "/var/lib/collectd/rrd"
@@ -517,13 +527,13 @@ LoadPlugin swap
 #	CollectStatistics true
 #</Plugin>
 
-<Plugin rrdtool>
-	DataDir "/var/collectd/rrd"
+#<Plugin rrdtool>
+#	DataDir "/var/collectd/rrd"
 #	CreateFilesAsync false
 #	CacheFlush 900
 #	CacheTimeout 120
 #	WritesPerSecond 50
-</Plugin>
+#</Plugin>
 
 #<Plugin snmp>
 #   <Data "powerplus_voltge_input">
@@ -764,6 +774,12 @@ LoadPlugin swap
 #		LowSpeedLimit 0
 #		Timeout 0
 #	</Node>
+#</Plugin>
+
+#<Plugin write_prometheus>
+#  Host "localhost"
+## Port "9103"
+## StalenessDelta 300
 #</Plugin>
 
 ##############################################################################

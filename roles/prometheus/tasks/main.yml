@@ -1,0 +1,29 @@
+# roles/prometheus/tasks/main
+---
+- name: install package
+  package:
+    name: prometheus
+    state: present
+  register: prometheus_package_result
+  until: prometheus_package_result is succeeded
+
+- name: install configuration file
+  template:
+    src: prometheus.yml.j2
+    dest: /etc/prometheus/prometheus.yml
+    owner: root
+    group: wheel
+    mode: 0444
+    validate: promtool check config %s
+  notify: restart prometheus
+
+- name: enable and start service
+  service:
+    name: prometheus
+    arguments: >
+      --config.file=/etc/prometheus/prometheus.yml
+      --web.listen-address=localhost:9090
+      --storage.tsdb.path=/var/prometheus
+    enabled: true
+    state: started
+...

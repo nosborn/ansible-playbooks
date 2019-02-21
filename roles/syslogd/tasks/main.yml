@@ -1,0 +1,8 @@
+# roles/syslogd/tasks/main
+---
+- name: enable and start service
+  service:
+    name: syslogd
+    enabled: true
+    state: started
+...

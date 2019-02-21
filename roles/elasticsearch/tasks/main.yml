@@ -1,0 +1,25 @@
+# roles/elasticsearch/tasks/main
+---
+- name: install package
+  package:
+    name: elasticsearch
+    state: present
+  register: elasticsearch_package_result
+  until: elasticsearch_package_result is succeeded
+
+- name: install configuration file
+  template:
+    src: elasticsearch.yml.j2
+    dest: /etc/elasticsearch/elasticsearch.yml
+    owner: root
+    group: _elasticsearch
+    mode: 0440
+    validate: "{{ yamllint_validation_command }}"
+  notify: restart elasticsearch
+
+- name: enable and start service
+  service:
+    name: elasticsearch
+    enabled: true
+    state: started
+...

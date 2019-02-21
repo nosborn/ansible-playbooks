@@ -1,2 +1,9 @@
+[EdgeOS]
+edgerouter
+
 [OpenBSD]
+tombstone
+
+[home]
+edgerouter
 tombstone

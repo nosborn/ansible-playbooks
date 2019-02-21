@@ -1,0 +1,12 @@
+# roles/java/tasks/main
+---
+- name: OS-specific variables
+  include_vars: "{{ ansible_distribution }}.yml"
+
+- name: install package
+  package:
+    name: "{{ java_package_name }}"
+    state: present
+  register: java_package_result
+  until: java_package_result is succeeded
+...

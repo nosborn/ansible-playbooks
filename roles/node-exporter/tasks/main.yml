@@ -1,0 +1,20 @@
+# roles/node-exporter/tasks/main
+---
+- name: install package
+  package:
+    name: node_exporter
+    state: present
+  register: node_exporter_package_result
+  until: node_exporter_package_result is succeeded
+
+- name: enable and start service
+  service:
+    name: node_exporter
+    arguments: >
+      --collector.netdev.ignored-devices="'^(enc|lo|pflog)\\d+$'"
+      --collector.ntp
+      --collector.ntp.server-is-local
+      --web.listen-address=localhost:9100
+    enabled: true
+    state: started
+...

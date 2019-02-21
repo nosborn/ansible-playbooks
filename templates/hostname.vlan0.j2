@@ -3,6 +3,6 @@ vnetid {{ guest_vnetid }} parent {{ lan_if }}
 
 rdomain {{ guest_rdomain }}
 
-description "Guest Network"
+description "Guest Wi-Fi"
 inet {{ guest_ipv4|ipaddr('address') }} {{ guest_ipv4|ipaddr('netmask') }} NONE
 -inet6

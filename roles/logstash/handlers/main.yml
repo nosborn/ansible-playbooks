@@ -1,0 +1,7 @@
+# roles/logstash/handlers/main
+---
+- name: restart logstash
+  service:
+    name: logstash
+    state: restarted
+...

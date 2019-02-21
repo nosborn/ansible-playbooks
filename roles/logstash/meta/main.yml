@@ -1,0 +1,6 @@
+# roles/logstash/meta/main
+---
+dependencies:
+  - role: java
+  - role: yamllint
+...
