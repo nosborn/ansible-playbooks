@@ -1,9 +1,30 @@
 [EdgeOS]
-edgerouter
+usg
 
 [OpenBSD]
+# homebridge
 tombstone
 
 [home]
-edgerouter
+hass
+# homebridge
+tombstone
+usg
+
+[homeassistant_guest]
+hass
+
+[homeassistant_host]
+tombstone
+
+[imapfilter]
+tombstone
+
+[influxdb]
+tombstone
+
+[unbound]
+tombstone
+
+[unifi]
 tombstone

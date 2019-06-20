@@ -1,4 +1,0 @@
-# roles/yamllint/vars/OpenBSD
----
-yamllint_package_name: py-yamllint
-...

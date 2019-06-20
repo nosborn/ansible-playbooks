@@ -1,4 +1,4 @@
-# roles/yamllint/defaults.main
+# roles/yamllint/defaults/main
 ---
-yamllint_validation_command: yamllint -s %s
-...
+yamllint_package_name: py3-yamllint
+yamllint_validation_command: yamllint-3 --strict %s

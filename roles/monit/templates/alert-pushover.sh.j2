@@ -1,0 +1,8 @@
+#!/bin/ksh
+
+curl -fsS \
+  --form "token={{ monit_pushover_api_token }}" \
+  --form "user={{ pushover_user_key }}" \
+  --form-string "message=[${MONIT_HOST}] ${MONIT_SERVICE} - ${MONIT_DESCRIPTION}" \
+  --retry 5 \
+  https://api.pushover.net/1/messages.json

@@ -1,7 +1,6 @@
 # roles/sshd/handlers/main
 ---
-- name: restart sshd
+- name: reload sshd
   service:
     name: sshd
-    state: restarted
-...
+    state: reloaded

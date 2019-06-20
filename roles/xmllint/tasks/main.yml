@@ -1,12 +1,8 @@
 # roles/xmllint/tasks/main
 ---
-- name: OS-specific variables
-  include_vars: "{{ ansible_distribution }}.yml"
-
 - name: install package
   package:
     name: "{{ xmllint_package_name }}"
     state: present
   register: xmllint_package_result
   until: xmllint_package_result is succeeded
-...

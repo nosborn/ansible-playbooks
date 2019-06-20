@@ -2,4 +2,3 @@
 ---
 monit_password: "{{ vault_monit_password }}"
 monit_username: "{{ vault_monit_username }}"
-...

@@ -8,4 +8,3 @@
     group: wheel
     mode: 0400
     validate: /usr/bin/doas -C %s
-...

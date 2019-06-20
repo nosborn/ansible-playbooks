@@ -1,14 +1,12 @@
 # roles/periodic/tasks/main
 ---
 - name: periodic system maintenance scripts
-  template:
-    src: "{{ item }}.j2"
+  copy:
+    src: "{{ item }}"
     dest: /etc/{{ item }}
     owner: root
     group: wheel
     mode: 0444
-    validate: /bin/sh -n %s
+    validate: /bin/ksh -n %s
   with_items:
     - daily.local
-    # - weekly.local
-...

@@ -6,4 +6,3 @@
     state: present
   register: flashrom_package_result
   until: flashrom_package_result is succeeded
-...

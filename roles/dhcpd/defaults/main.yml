@@ -1,4 +1,0 @@
-# roles/dhcpd/vars/defaults
----
-dhcpd_default_lease_time: 86400  # 24 hours
-...

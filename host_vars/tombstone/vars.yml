@@ -1,0 +1,25 @@
+# yamllint disable rule:line-length
+---
+ansible_host: tombstone.local.
+avahi_config_server_allow_interfaces:
+  - "{{ trunk_if }}"
+interfaces:
+  - "{{ lan_if }}"
+  - "{{ trunk_if }}"
+  - "{{ vm_switch_uplink_if }}"
+  - "{{ wlan_if }}"
+lan_if: re0
+lan_ipv4_address: "{{ vault_lan_ipv4_address }}"
+lan_ipv6_address: "{{ vault_lan_ipv6_address }}"
+mygate: "{{ vault_mygate }}"
+nameservers: "{{ vault_nameservers }}"
+ntpd_config_constraints: "{{ vault_ntpd_config_constraints }}"
+ntpd_config_server: "{{ vault_ntpd_config_server }}"
+smtpd_max_message_size: "{{ vault_smtpd_max_message_size }}"
+smtpd_secrets_table: "{{ vault_smtpd_secrets_table }}"
+sysctl: "{{ vault_sysctl }}"
+trunk_if: trunk0
+vm_switch_uplink_if: bridge0
+wlan_if: iwm0
+wlan_nwid: "{{ vault_wlan_nwid }}"
+wlan_wpakey: "{{ vault_wlan_wpakey }}"

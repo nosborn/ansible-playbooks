@@ -1,0 +1,18 @@
+# roles/vmd/tasks/main
+---
+- name: install configuration file
+  template:
+    src: vm.conf.j2
+    dest: /etc/vm.conf
+    owner: root
+    group: wheel
+    mode: 0400
+    validate: /usr/sbin/vmd -f %s -n
+  notify:
+    - reload vmd
+
+- name: enable and start service
+  service:
+    name: vmd
+    state: started
+    enabled: true

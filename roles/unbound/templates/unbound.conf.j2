@@ -2,25 +2,20 @@ server:
 	verbosity: {{ unbound_config_verbosity }}
 
 	statistics-cumulative: yes
-	extended-statistics: yes
-#	num-threads: 1
+#	extended-statistics: yes
 
 {% for interface in unbound_config_interface %}
 	interface: {{ interface }}
 {% endfor %}
 
-	outgoing-range: 950
+	stream-wait-size: 32m
 
 	msg-cache-size: 32m
-#	msg-cache-slabs: {{ unbound_config_num_threads }}
-	num-queries-per-thread: 475
-
 	rrset-cache-size: 64m
-#	rrset-cache-slabs: {{ unbound_config_num_threads }}
-
-#	infra-cache-slabs: {{ unbound_config_num_threads }}
 
 	prefer-ip6: yes
+
+	tls-cert-bundle: /etc/ssl/cert.pem
 
 {% if unbound_config_access_control is defined %}
 {%   for access_control in unbound_config_access_control %}
@@ -28,21 +23,25 @@ server:
 {%   endfor %}
 
 {% endif %}
-	pidfile: {{ unbound_pid_file }}
-#	root-hints: /var/unbound/etc/named.cache
+#	logfile: {{ unbound_logdir }}/unbound.log
+#	use-syslog: no
+#	log-queries: yes
+#	log-replies: yes
+#	log-tag-queryreply: yes
+#	log-local-actions: yes
+	log-servfail: yes
+	pidfile: {{ unbound_config_pidfile }}
+#	root-hints: {{ unbound_confdir }}/named.cache
 	hide-identity: yes
 
 	hide-version: yes
 
 	hide-trustanchor: yes
 
-	harden-below-nxdomain: yes
-
-	use-caps-for-id: yes
-
-	qname-minimisation: yes
+#	use-caps-for-id: yes
 
 	private-address: 10.0.0.0/8
+	private-address: 100.64.0.0/10
 	private-address: 169.254.0.0/16
 	private-address: 172.16.0.0/12
 	private-address: 192.168.0.0/16
@@ -50,18 +49,56 @@ server:
 	private-address: fd00::/8
 	private-address: fe80::/10
 
+	private-domain: internal
+	private-domain: intranet
+	private-domain: lan
 	private-domain: local
+	private-domain: localdomain
+	private-domain: private
+	private-domain: workgroup
 
 	prefetch: yes
-#	prefetch-key: yes
+	prefetch-key: yes
+	deny-any: yes
 
-#	auto-trust-anchor-file: /var/unbound/db/root.key
-
+	auto-trust-anchor-file: /var/unbound/db/root.key
 #	val-permissive-mode: yes
 
-#	key-cache-slabs: {{ unbound_config_num_threads }}
+	local-zone: "local." static
 
-	include: {{ unbound_confdir }}/redirect-zones.conf
+	include: {{ unbound_confdir }}/blacklist.conf
+	include: {{ unbound_confdir }}/blacklist-doh.conf
+
+{% if mediastreamer_exclusions is defined %}
+{%   for mediastreamer_exclusion in mediastreamer_exclusions %}
+forward-zone:
+	name: "{{ mediastreamer_exclusion }}."
+	forward-addr: 1.1.1.1@853#cloudflare-dns.com
+	forward-addr: 1.0.0.1@853#cloudflare-dns.com
+	forward-addr: 2606:4700:4700::1111@853#cloudflare-dns.com
+	forward-addr: 2606:4700:4700::1001@853#cloudflare-dns.com
+	forward-tls-upstream: yes
+
+{%   endfor %}
+{% endif %}
+{% if mediastreamer_domains is defined %}
+{%   for mediastreamer_domain in mediastreamer_domains %}
+forward-zone:
+	name: "{{ mediastreamer_domain }}."
+	forward-addr: 85.203.37.1
+	forward-addr: 85.203.37.2
+
+{%   endfor %}
+{% endif %}
+forward-zone:
+	name: "."
+	forward-addr: 1.1.1.1@853#cloudflare-dns.com
+	forward-addr: 1.0.0.1@853#cloudflare-dns.com
+	forward-addr: 2606:4700:4700::1111@853#cloudflare-dns.com
+	forward-addr: 2606:4700:4700::1001@853#cloudflare-dns.com
+	forward-tls-upstream: yes
 
 remote-control:
 	control-enable: yes
+	control-interface: /var/run/unbound.sock
+	control-use-cert: no

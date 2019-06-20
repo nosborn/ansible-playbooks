@@ -1,5 +1,0 @@
-# roles/ddclient/vars/defaults
----
-ddclient_config_protocol: dyndns2
-ddclient_config_server: members.dyndns.org
-...

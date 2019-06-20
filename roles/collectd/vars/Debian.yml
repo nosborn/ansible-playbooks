@@ -1,8 +1,0 @@
-# roles/collectd/vars/OpenBSD
----
-collectd_confdir: /etc/collectd
-collectd_conffile_group: root
-collectd_conffile_mode: 0444
-collectd_package_names:
-  - collectd-core
-...

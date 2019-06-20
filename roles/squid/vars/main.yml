@@ -1,0 +1,3 @@
+# roles/squid/vars/main
+---
+squid_url_rewrite_program: /usr/local/libexec/squid/url_rewrite

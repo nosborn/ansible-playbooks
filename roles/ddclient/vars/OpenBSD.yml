@@ -1,6 +1,0 @@
-# roles/ddclient/vars/OpenBSD
----
-ddclient_config_pid: /var/run/ddclient/ddclient.pid
-ddclient_group: _ddclient
-ddclient_mode: 0440
-...

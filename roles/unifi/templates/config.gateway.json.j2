@@ -1,0 +1,91 @@
+{
+  "service": {
+    "dhcp-server": {
+      "shared-network-name": {
+        "net_LAN_eth1_{{ lan_ipv4_subnet|replace('/','-') }}": {
+          "subnet": {
+            "{{ lan_ipv4_subnet }}": {
+              "wpad-url": "http://{{ hostvars['tombstone']['lan_ipv4_address'] }}/wpad.dat"
+            }
+          }
+        }
+      }
+    },
+    "dns": {
+      "dynamic": {
+        "interface": {
+          "{{ hostvars['usg']['wan_if'] }}": {
+            "service": {
+              "custom-dnsomatic": {
+                "host-name": "all.dnsomatic.com",
+                "login": "{{ hostvars['usg']['dynamic_dns_dnsomatic_login'] }}",
+                "password": "{{ hostvars['usg']['dynamic_dns_dnsomatic_password'] }}",
+                "protocol": "dyndns2",
+                "server": "updates.dnsomatic.com"
+              },
+              "custom-dynu": {
+                "host-name": "{{ hostvars['usg']['dynamic_dns_dynu_host_name'] }}",
+                "login": "{{ hostvars['usg']['dynamic_dns_dynu_login'] }}",
+                "password": "{{ hostvars['usg']['dynamic_dns_dynu_password'] }}",
+                "protocol": "dyndns2",
+                "server": "api.dynu.com"
+              }
+            }
+          }
+        }
+      },
+      "forwarding": {
+        "name-server": "{{ hostvars['tombstone']['lan_ipv4_address'] }}",
+        "options": [
+          "domain-needed",
+          "host-record=wpad,{{ hostvars['tombstone']['lan_ipv4_address'] }}",
+          "host-record=wpad.lan,{{ hostvars['tombstone']['lan_ipv4_address'] }}",
+          "host-record=wpad.localdomain,{{ hostvars['tombstone']['lan_ipv4_address'] }}",
+          "proxy-dnssec",
+          "srv-host=wpad.tcp,{{ hostvars['tombstone']['lan_ipv4_address'] }},80",
+          "srv-host=wpad.tcp.lan,{{ hostvars['tombstone']['lan_ipv4_address'] }},80",
+          "srv-host=wpad.tcp.localdomain,{{ hostvars['tombstone']['lan_ipv4_address'] }},80",
+          "txt-record=wpad,service: wpad:!http://{{ hostvars['tombstone']['lan_ipv4_address'] }}:80/wpad.dat",
+          "txt-record=wpad.lan,service: wpad:!http://{{ hostvars['tombstone']['lan_ipv4_address'] }}:80/wpad.dat",
+          "txt-record=wpad.localdomain,service: wpad:!http://{{ hostvars['tombstone']['lan_ipv4_address'] }}:80/wpad.dat"
+        ]
+      }
+    },
+    "nat": {
+      "rule": {
+        "1": {
+          "description": "Captive DNS",
+          "destination": {
+            "address": "!{{ hostvars['usg']['lan_ipv4_address'] }}",
+            "port": "53"
+          },
+          "inbound-interface": "{{ hostvars['usg']['lan_if'] }}",
+          "inside-address": {
+            "address": "{{ hostvars['tombstone']['lan_ipv4_address'] }}",
+            "port": "53"
+          },
+          "log": "enable",
+          "protocol": "tcp_udp",
+          "source": {
+            "address": "!{{ hostvars['tombstone']['lan_ipv4_address'] }}"
+          },
+          "type": "destination"
+        },
+        "5001": {
+          "description": "Captive DNS reply",
+          "destination": {
+            "address": "{{ hostvars['tombstone']['lan_ipv4_address'] }}",
+            "port": "53"
+          },
+          "log": "disable",
+          "outbound-interface": "{{ hostvars['usg']['lan_if'] }}",
+          "protocol": "tcp_udp",
+          "type": "masquerade"
+        }
+      }
+    }
+  },
+  "system": {
+    "host-name": "usg"
+  }
+}

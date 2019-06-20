@@ -4,5 +4,5 @@ vnetid {{ guest_vnetid }} parent {{ lan_if }}
 rdomain {{ guest_rdomain }}
 
 description "Guest Wi-Fi"
-inet {{ guest_ipv4|ipaddr('address') }} {{ guest_ipv4|ipaddr('netmask') }} NONE
+inet {{ guest_ipv4_address }} {{ guest_ipv4_subnet|ipaddr('netmask') }} NONE
 -inet6

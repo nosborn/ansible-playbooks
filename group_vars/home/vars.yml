@@ -1,0 +1,14 @@
+# yamllint disable rule:line-length
+---
+global_domain: "{{ vault_global_domain }}"
+guest_ipv4_subnet: 192.168.3.0/24
+guest_vnetid: 1003
+lan_ipv4_subnet: 192.168.1.0/24
+lan2_ipv4_subnet: 192.168.2.0/24
+mediastreamer_domains: "{{ vault_mediastreamer_domains|sort }}"
+mediastreamer_exclusions: "{{ vault_mediastreamer_exclusions|sort }}"
+monit_alert_email: "{{ vault_monit_alert_email }}"
+monit_pushover_api_token: "{{ vault_monit_pushover_api_token }}"
+pushover_user_key: "{{ vault_pushover_user_key }}"
+timezone: Asia/Singapore
+vpn_server_ipv4_subnet: 192.168.4.0/24

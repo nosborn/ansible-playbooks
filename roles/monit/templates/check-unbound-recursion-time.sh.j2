@@ -1,0 +1,9 @@
+#!/bin/ksh
+
+#avg=$(unbound-control stats_noreset | awk -F= '$1=="total.recursion.time.avg" {print $2}')
+#printf 'total.recursion.time.avg = %s\n' "${avg}"
+#exit "$(bc -l -e "${avg} >= 1.0" -e quit)"
+
+median=$(unbound-control stats_noreset | awk -F= '$1=="total.recursion.time.median" {print $2}')
+printf 'total.recursion.time.median = %s\n' "${median}"
+exit "$(bc -l -e "${median} >= 1.0" -e quit)"

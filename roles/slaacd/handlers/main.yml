@@ -1,0 +1,6 @@
+# roles/slaacd/handlers/main
+---
+- name: restart slaacd
+  service:
+    name: slaacd
+    state: restarted

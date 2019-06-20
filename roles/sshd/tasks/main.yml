@@ -1,16 +1,5 @@
 # roles/sshd/tasks/main
 ---
-- name: OS-specific variables
-  include_vars: "{{ ansible_distribution }}.yml"
-
-- name: install package
-  package:
-    name: "{{ sshd_package_name }}"
-    state: present
-  register: ssh_package_result
-  until: ssh_package_result is succeeded
-  when: ssh_package_name is defined
-
 - name: install configuration file
   template:
     src: sshd_config.j2
@@ -19,11 +8,10 @@
     group: wheel
     mode: 0444
     validate: /usr/sbin/sshd -f %s -t
-  notify: restart sshd
+  notify: reload sshd
 
 - name: enable and start service
   service:
     name: sshd
     enabled: true
     state: started
-...

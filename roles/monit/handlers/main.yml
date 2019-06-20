@@ -4,4 +4,3 @@
   service:
     name: monit
     state: reloaded
-...

@@ -2,6 +2,5 @@
 ---
 - name: restart avahi-daemon
   service:
-    name: "{{ avahi_service_name }}"
+    name: avahi_daemon
     state: restarted
-...

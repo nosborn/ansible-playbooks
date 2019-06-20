@@ -3,6 +3,6 @@
 - name: enable and start service
   service:
     name: syslogd
+    arguments: "{{ syslogd_arguments }}"
     enabled: true
     state: started
-...

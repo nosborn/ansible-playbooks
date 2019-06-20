@@ -1,6 +1,9 @@
-set daemon 60 with start delay 120
+set daemon 60 with start delay 60
 set idfile /var/db/monit.id
 set logfile syslog
+set ssl options {
+  verify: enable
+}
 set statefile /var/db/monit.state
 
 set alert {{ monit_alert_email }} not on { instance, action }
@@ -15,11 +18,11 @@ set mail-format {
  Description: $DESCRIPTION
 }
 
-set httpd port 2812 address "{{ lan_ipv4|ipaddr('address') }}"
+set httpd port 2812 address "{{ lan_ipv4_address }}"
     signature disable
     allow {{ monit_username }}:{{ monit_password }} read-only
 
-check process apmd matching "^/usr/sbin/apmd -A$"
+check process apmd matching "^/usr/sbin/apmd( .+)?$"
   start program = "/usr/sbin/rcctl start apmd"
   stop program = "/usr/sbin/rcctl stop apmd"
   if does not exist for 5 cycles then restart
@@ -33,84 +36,45 @@ check process avahi-daemon with pidfile /var/run/avahi-daemon/pid
   if does not exist for 5 cycles then restart
   if failed uid _avahi then alert
   if failed euid _avahi then alert
-  # if failed gid nobody then alert
   if changed ppid then alert
 
-check process collectd with pidfile /var/collectd/collectd.pid
-  start program = "/usr/sbin/rcctl start collectd"
-  stop program = "/usr/sbin/rcctl stop collectd"
+{% if ansible_hostname == 'tombstone' %}
+check process httpd matching "^/usr/sbin/httpd( .+)?$"
+  start program = "/usr/sbin/rcctl start httpd"
+  stop program = "/usr/sbin/rcctl stop httpd"
   if does not exist for 5 cycles then restart
   if failed uid root then alert
   if failed euid root then alert
   if changed ppid then alert
 
-check process ddclient with pidfile /var/run/ddclient/ddclient.pid
-  start program = "/usr/sbin/rcctl start ddclient"
-  stop program = "/usr/sbin/rcctl stop ddclient"
+{% endif %}
+{% if inventory_hostname in groups.imapfilter %}
+check process imapfilter matching "^/usr/local/bin/imapfilter( .+)?$"
+  start program = "/usr/sbin/rcctl start imapfilter"
+  stop program = "/usr/sbin/rcctl stop imapfilter"
   if does not exist for 5 cycles then restart
-  if failed uid _ddclient then alert
-  if failed euid _ddclient then alert
-  if failed gid _ddclient then alert
+  if failed uid {{ imapfilter_rc_user }} then alert
+  if failed euid {{ imapfilter_rc_user }} then alert
   if changed ppid then alert
 
-check process dhcpcd with pidfile /var/run/dhcpcd.pid
-  start program = "/usr/sbin/rcctl start dhcpcd"
-  stop program = "/usr/sbin/rcctl stop dhcpcd"
-  if does not exist for 5 cycles then restart
-  if failed uid root then alert
-  if failed euid root then alert
-  if changed ppid then alert
+{% endif %}
+{% if inventory_hostname in groups.unifi %}
+check process mongod matching "^bin/mongod .+$"
+  if does not exist for 5 cycles then alert
+  if failed uid _unifi then alert
+  if failed euid _unifi then alert
+  depends on unifi
 
-check process dhcpd matching "^/usr/sbin/dhcpd "
-  start program = "/usr/sbin/rcctl start dhcpd"
-  stop program = "/usr/sbin/rcctl stop dhcpd"
-  if does not exist for 5 cycles then restart
-  if failed uid _dhcp then alert
-  if failed euid _dhcp then alert
-  if failed gid _dhcp then alert
-  if changed ppid then alert
-
-check process facette matching "^/usr/local/bin/facette$"
-  start program = "/usr/sbin/rcctl start dhcpd"
-  stop program = "/usr/sbin/rcctl stop dhcpd"
-  if does not exist for 5 cycles then restart
-  if failed
-    host {{ lan_ipv4|ipaddr('address') }} port 12003 protocol http request "/api/v1/"
-    for 5 cycles
-    then alert
-  if failed uid _facette then alert
-  if failed euid _facette then alert
-  if failed gid _facette then alert
-  if changed ppid then alert
-
-check process ntpd matching "^/usr/sbin/ntpd "
+{% endif %}
+check process ntpd matching "^/usr/sbin/ntpd( .+)?$"
   start program = "/usr/sbin/rcctl start ntpd" with timeout 300 seconds
   stop program = "/usr/sbin/rcctl stop ntpd"
   if does not exist for 5 cycles then restart
-  if failed
-    host {{ lan_ipv4|ipaddr('address') }} port 123 type udp protocol ntp3
-    for 5 cycles
-    then alert
-{% if lan_ipv6 is defined %}
-  if failed
-    host {{ lan_ipv6|ipaddr('address') }} port 123 type udp protocol ntp3
-    for 5 cycles
-    then alert
-{% endif %}
   if failed uid root then alert
   if failed euid root then alert
   if changed ppid then alert
 
-check process rad matching "^/usr/sbin/rad$"
-  start program = "/usr/sbin/rcctl start rad"
-  stop program = "/usr/sbin/rcctl stop rad"
-  if does not exist for 5 cycles then restart
-  if failed uid root then alert
-  if failed euid root then alert
-  if changed ppid then alert
-  if children < 2 then alert
-
-check process slaacd matching "^/sbin/slaacd$"
+check process slaacd matching "^/sbin/slaacd( .+)?$"
   start program = "/usr/sbin/rcctl start slaacd"
   stop program = "/usr/sbin/rcctl stop slaacd"
   if does not exist for 5 cycles then restart
@@ -124,18 +88,23 @@ check process smtpd matching "^/usr/sbin/smtpd$"
   stop program = "/usr/sbin/rcctl stop smtpd"
   if does not exist for 5 cycles then restart
   if failed
-    host 127.0.0.1 port 25 protocol smtp
-    for 5 cycles
-    then alert
-  if failed
-    host ::1 port 25 protocol smtp
+    host localhost port 25 protocol smtp
     for 5 cycles
     then alert
   if failed uid root then alert
   if failed euid root then alert
   if changed ppid then alert
-  if children < 6 then alert
 
+{% if ansible_hostname == 'tombstone' %}
+#check process squid with pidfile /var/run/squid.pid
+#  start program = "/usr/sbin/rcctl start squid"
+#  stop program = "/usr/sbin/rcctl stop squid"
+#  if does not exist for 5 cycles then restart
+#  if failed uid _squid then alert
+#  if failed euid root then alert
+#  if changed ppid then alert
+
+{% endif %}
 check process sshd with pidfile /var/run/sshd.pid
   start program = "/usr/sbin/rcctl start sshd"
   stop program = "/usr/sbin/rcctl stop sshd"
@@ -153,32 +122,78 @@ check process syslogd with pidfile /var/run/syslog.pid
   if changed ppid then alert
   if children < 1 then alert
 
-check process unbound with pidfile {{ unbound_pid_file }}
+{% if inventory_hostname in groups.influxdb %}
+#check process telegraf matching "^/usr/local/bin/telegraf$"
+#  start program = "/usr/sbin/rcctl start telegraf"
+#  stop program = "/usr/sbin/rcctl stop telegraf"
+#  if does not exist for 5 cycles then restart
+#  if failed uid _telegraf then alert
+#  if failed euid _telegraf then alert
+#  if changed ppid then alert
+
+{% endif %}
+{% if inventory_hostname in groups.unbound %}
+check process unbound with pidfile {{ unbound_config_pidfile }}
   start program = "/usr/sbin/rcctl start {{ unbound_service_name }}"
   stop program = "/usr/sbin/rcctl stop {{ unbound_service_name }}"
   if does not exist for 5 cycles then restart
-  if failed
-    host 127.0.0.1 port 53 type udp protocol dns
-    for 5 cycles
-    then alert
-  if failed
-    host {{ lan_ipv4|ipaddr('address') }} port 53 type udp protocol dns
-    for 5 cycles
-    then alert
-  if failed
-    host ::1 port 53 type udp protocol dns
-    for 5 cycles
-    then alert
-{% if lan_ipv6 is defined %}
-  if failed
-    host {{ lan_ipv6|ipaddr('address') }} port 53 type udp protocol dns
-    for 5 cycles
-    then alert
-{% endif %}
   if failed uid _unbound then alert
   if failed euid _unbound then alert
-  if failed gid _unbound then alert
   if changed ppid then alert
-  if children != {{ unbound_config_num_threads - 1 }} then alert
 
+{% endif %}
+{% if inventory_hostname in groups.unifi %}
+check process unifi matching "^/usr/local/jdk-.+/bin/java .*\<com/ubnt/ace/Launcher start$"
+  start program = "/usr/sbin/rcctl start unifi"
+  stop program = "/usr/sbin/rcctl stop unifi"
+  if failed host {{ lan_ipv4_address }} port 8080 protocol http request "/status" then alert
+  if does not exist for 5 cycles then restart
+  if failed uid _unifi then alert
+  if failed euid _unifi then alert
+  if changed ppid then alert
+
+{% endif %}
+{% if inventory_hostname in groups.homeassistant_host %}
+check process vmd matching "^/usr/sbin/vmd$"
+  start program = "/usr/sbin/rcctl start vmd"
+  stop program = "/usr/sbin/rcctl stop vmd"
+  if does not exist for 5 cycles then restart
+  if failed uid root then alert
+  if failed euid root then alert
+  if changed ppid then alert
+
+{% endif %}
+{% if ansible_hostname == 'tombstone' %}
+#check host cloudflare-dns with address one.one.one.one
+#  if failed ping4 then alert
+#  if failed ping6 then alert
+
+#check host diablo-iii-australia with address 103.4.115.248
+#  if failed ping timeout 1 second then alert
+
+#check host diablo-iii-north-america with address 24.105.30.129
+#  if failed ping timeout 1 second then alert
+
+#check host mediastreamer-dns-1 with address 85.203.37.1
+#  if failed ping then alert
+
+#check host mediastreamer-dns-2 with address 85.203.37.2
+#  if failed ping then alert
+
+#check host osborn-io with address osborn.io
+#  if failed port 443 ipv4 protocol https request "/ping.txt" content = "pong" then alert
+#  if failed port 443 ipv6 protocol https request "/ping.txt" content = "pong" then alert
+
+{% endif %}
+check system $HOST
+  if loadavg(1min) > {{ ansible_processor_count }} for 5 cycles then alert
+  if memory usage > 75% for 5 cycles then alert
+  if swap usage > 75% for 5 cycles then alert
+
+{% if inventory_hostname in groups.unbound %}
+check program unbound-recursion-time path /usr/local/libexec/monit-check-unbound-recursion-time
+  if status != 0 then alert
+  depends on unbound
+
+{% endif %}
 # include /etc/monit.d/*

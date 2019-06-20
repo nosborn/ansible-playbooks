@@ -1,0 +1,41 @@
+# yamllint disable rule:line-length
+---
+- name: create group
+  group:
+    name: "{{ pihole_group }}"
+    state: present
+
+- name: create user
+  user:
+    name: "{{ pihole_user }}"
+    comment: Pi-hole User
+    create_home: false
+    group: "{{ pihole_group }}"
+    home: "{{ pihole_homedir }}"
+    shell: /sbin/nologin
+    state: present
+
+- name: create home directory
+  file:
+    path: "{{ pihole_homedir }}"
+    owner: "{{ pihole_user }}"
+    group: "{{ pihole_group }}"
+    mode: 0755
+    state: directory
+
+- command: vmctl create -s 8G {{ pihole_homedir }}/root.img
+  args:
+    creates: "{{ pihole_homedir }}/root.img"
+
+- file:
+    path: "{{ pihole_homedir }}/root.img"
+    owner: "{{ pihole_user }}"
+    group: "{{ pihole_group }}"
+    mode: 0640
+
+- get_url:
+    url: "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-9.9.0-amd64-netinst.iso"
+    dest: "{{ pihole_homedir }}/debian-9.9.0-amd64-netinst.iso"
+    owner: "{{ pihole_user }}"
+    group: "{{ pihole_group }}"
+    mode: 0440

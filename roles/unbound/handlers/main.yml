@@ -2,11 +2,10 @@
 ---
 - name: reload unbound
   service:
-    name: unbound
+    name: "{{ unbound_service_name }}"
     state: reloaded
 
 - name: restart unbound
   service:
-    name: unbound
+    name: "{{ unbound_service_name }}"
     state: restarted
-...

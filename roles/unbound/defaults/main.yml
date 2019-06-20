@@ -2,4 +2,3 @@
 ---
 unbound_config_num_threads: 1
 unbound_config_verbosity: 1
-...

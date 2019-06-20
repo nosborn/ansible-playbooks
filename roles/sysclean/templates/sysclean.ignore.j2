@@ -1,0 +1,17 @@
+/etc/mail/secrets
+{% if inventory_hostname in groups.imapfilter %}
+/etc/rc.d/imapfilter
+{% endif %}
+#/etc/rc.firsttime
+#/etc/rc.sysmerge
+{% if inventory_hostname in groups.unbound %}
+/var/unbound/etc/blacklist-doh.conf
+/var/unbound/etc/blacklist.conf
+/var/unbound/etc/blacklist.conf.prev
+/var/unbound/logs
+{% endif %}
+{% if ansible_hostname == 'tombstone' %}
+/var/vm
+{% endif %}
+
+@include "/etc/changelist"

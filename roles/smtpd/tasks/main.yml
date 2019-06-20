@@ -37,4 +37,3 @@
     name: smtpd
     enabled: true
     state: started
-...

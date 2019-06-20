@@ -1,8 +1,5 @@
 # roles/avahi/tasks/main
 ---
-- name: OS-specific variables
-  include_vars: "{{ ansible_distribution }}.yml"
-
 - name: install package
   package:
     name: avahi
@@ -35,7 +32,6 @@
 
 - name: start service
   service:
-    name: "{{ avahi_service_name }}"
+    name: avahi_daemon
     enabled: true
     state: started
-...

@@ -1,0 +1,17 @@
+# yamllint disable rule:line-length
+---
+# ansible_host: "{{ lan_ipv4_address }}"
+homebridge_bridge_pin: "{{ vault_homebridge_bridge_pin }}"
+homebridge_bridge_username: "{{ vault_homebridge_bridge_username }}"
+interfaces:
+  - "{{ lan_if }}"
+lan_if: vio0
+# lan_ipv4_address: "{{ vault_lan_ipv4_address }}"
+lan_ipv6_address: "{{ vault_lan_ipv6_address }}"
+# mygate: "{{ vault_mygate }}"
+# nameservers: "{{ vault_nameservers }}"
+ntpd_config_server: "{{ vault_ntpd_config_server }}"
+smtpd_max_message_size: "{{ vault_smtpd_max_message_size }}"
+# smtpd_secrets_table: "{{ vault_smtpd_secrets_table }}"
+sysctl: "{{ vault_sysctl }}"
+# users: "{{ vault_users }}"

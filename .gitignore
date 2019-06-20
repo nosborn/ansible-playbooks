@@ -1,3 +1,4 @@
+*.mobileconfig
 *.pyc
 *.swp
 /.envrc

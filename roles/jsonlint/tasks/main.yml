@@ -1,0 +1,8 @@
+# roles/jsonlint/tasks/main
+---
+- name: install package
+  package:
+    name: "{{ jsonlint_package_name }}"
+    state: present
+  register: jsonlint_package_result
+  until: jsonlint_package_result is succeeded

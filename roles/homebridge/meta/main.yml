@@ -1,0 +1,5 @@
+# roles/homebridge/meta/main
+---
+dependencies:
+  - role: jsonlint
+  - role: node

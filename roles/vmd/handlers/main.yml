@@ -1,0 +1,6 @@
+# roles/vmd/handlers/main
+---
+- name: reload vmd
+  service:
+    name: vmd
+    state: reloaded

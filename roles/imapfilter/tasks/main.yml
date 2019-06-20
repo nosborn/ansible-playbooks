@@ -1,0 +1,41 @@
+# roles/imapfilter/tasks/main
+---
+- name: install package
+  package:
+    name: imapfilter
+    state: present
+  register: imapfilter_package_result
+  until: imapfilter_package_result is succeeded
+
+- file:
+    path: /home/{{ imapfilter_rc_user }}/.imapfilter
+    owner: "{{ imapfilter_rc_user }}"
+    group: "{{ imapfilter_rc_user }}"
+    mode: 0700
+    state: directory
+
+- name: install configuration file
+  template:
+    src: config.lua.j2
+    dest: /home/{{ imapfilter_rc_user }}/.imapfilter/config.lua
+    owner: "{{ imapfilter_rc_user }}"
+    group: "{{ imapfilter_rc_user }}"
+    mode: 0400
+    validate: /usr/local/bin/luac51 -p -- %s
+  notify: restart imapfilter
+
+- name: install control script
+  template:
+    src: imapfilter.rc.j2
+    dest: /etc/rc.d/imapfilter
+    owner: root
+    group: bin
+    mode: 0555
+    validate: /bin/ksh -n %s
+  notify: restart imapfilter
+
+- name: start service
+  service:
+    name: imapfilter
+    enabled: true
+    state: started

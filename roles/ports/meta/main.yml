@@ -1,0 +1,4 @@
+# roles/ports/meta/main
+---
+dependencies:
+  - role: doas

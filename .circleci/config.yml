@@ -34,4 +34,3 @@ jobs:
           command: |
             . venv/bin/activate
             ansible-lint --force-color site.yml
-...

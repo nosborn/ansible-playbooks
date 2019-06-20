@@ -1,0 +1,30 @@
+# VM CONFIGURATION
+
+{% if inventory_hostname in groups.homeassistant_host %}
+vm "hass" {
+	disk "/home/_hass/alpine-virt.img"
+
+	interface {
+		switch "uplink"
+	}
+}
+
+{% endif %}
+{% if inventory_hostname in groups.homebridge_host %}
+vm "homebridge" {
+	disable
+	disk "/home/_homebridge/alpine-virt.img"
+
+	interface {
+		switch "uplink"
+	}
+}
+
+{% endif %}
+# SWITCH CONFIGURATION
+
+switch "uplink" {
+	interface {{ vm_switch_uplink_if }}
+}
+
+# vim: noet sw=8 ts=8

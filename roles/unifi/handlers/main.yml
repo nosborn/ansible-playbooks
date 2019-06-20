@@ -1,0 +1,9 @@
+# roles/unifi/handlers/main
+---
+- name: restart unifi
+  service:
+    name: unifi
+    state: restarted
+
+- name: tag dependency packages
+  command: pkg_add -aa javaPathHelper jdk%1.8 mongodb

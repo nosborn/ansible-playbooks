@@ -1,0 +1,6 @@
+# roles/httpd/handlers/main
+---
+- name: reload httpd
+  service:
+    name: httpd
+    state: reloaded

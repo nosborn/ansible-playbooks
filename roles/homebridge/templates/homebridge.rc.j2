@@ -1,0 +1,12 @@
+#!/bin/ksh
+
+daemon="/var/homebridge/node_modules/.bin/homebridge"
+daemon_flags="--no-qrcode --remove-orphans"
+daemon_user="_homebridge"
+
+. /etc/rc.d/rc.subr
+
+rc_bg=YES
+rc_reload=NO
+
+rc_cmd $1

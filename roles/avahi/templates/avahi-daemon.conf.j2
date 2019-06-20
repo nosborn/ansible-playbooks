@@ -24,8 +24,16 @@
 #browse-domains=0pointer.de, zeroconf.org
 #use-ipv4=yes
 #use-ipv6=yes
-allow-interfaces={{ lan_if }}
+{% if avahi_config_server_allow_interfaces is defined %}
+allow-interfaces={{ avahi_config_server_allow_interfaces|join(',') }}
+{% else %}
+#allow-interfaces=eth0
+{% endif %}
+{% if avahi_config_server_deny_interfaces is defined %}
+deny-interfaces={{ avahi_config_server_deny_interfaces|join(',') }}
+{% else %}
 #deny-interfaces=eth1
+{% endif %}
 #check-response-ttl=no
 #use-iff-running=no
 enable-dbus=no
@@ -39,7 +47,7 @@ ratelimit-interval-usec=1000000
 ratelimit-burst=1000
 
 [wide-area]
-enable-wide-area=yes
+enable-wide-area=no
 
 [publish]
 #disable-publishing=no
@@ -49,13 +57,21 @@ enable-wide-area=yes
 publish-hinfo=no
 publish-workstation=no
 #publish-domain=yes
+{% if avahi_config_publish_dns_servers is defined %}
+publish-dns-servers={{ avahi_config_publish_dns_servers|join(',') }}
+{% else %}
 #publish-dns-servers=192.168.50.1, 192.168.50.2
-#publish-resolv-conf-dns-servers=yes
+{% endif %}
+publish-resolv-conf-dns-servers=no
 #publish-aaaa-on-ipv4=yes
 #publish-a-on-ipv6=no
 
 [reflector]
+{% if avahi_config_reflector_enable_reflector is defined %}
+enable-reflector={{ avahi_config_reflector_enable_reflector }}
+{% else %}
 #enable-reflector=no
+{% endif %}
 #reflect-ipv=no
 
 [rlimits]

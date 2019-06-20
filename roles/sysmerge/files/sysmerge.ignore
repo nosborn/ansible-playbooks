@@ -1,7 +1,0 @@
-/etc/mail/aliases
-/etc/mail/smtpd.conf
-/etc/ntpd.conf
-/etc/pf.conf
-/etc/ssh/sshd_config
-/etc/ttys
-/var/unbound/etc/unbound.conf

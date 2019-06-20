@@ -1,0 +1,18 @@
+{
+  "bridge": {
+    "name": "Homebridge",
+    "username": "{{ homebridge_bridge_username }}",
+    "port": {{ homebridge_bridge_port }},
+    "pin": "{{ homebridge_bridge_pin }}"
+  },
+
+  "platforms": [
+    {
+      "platform": "Info",
+      "port": 9876,
+      "name": "Homebridge Info Server",
+      "updateFrequency": 10000,
+      "updateCheckFrequency": 86400
+    }
+  ]
+}

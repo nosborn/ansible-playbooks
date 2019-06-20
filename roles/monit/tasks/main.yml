@@ -4,12 +4,26 @@
   include_vars: vault.yml
   no_log: true
 
-- name: install package
+- name: install packages
   package:
-    name: monit
+    name:
+      - curl
+      - monit
     state: present
   register: monit_package_result
   until: monit_package_result is succeeded
+
+- name: install scripts
+  template:
+    src: "{{ item }}.sh.j2"
+    dest: /usr/local/libexec/monit-{{ item }}
+    owner: root
+    group: wheel
+    mode: 0500
+    validate: /bin/ksh -n %s
+  with_items:
+    - alert-pushover
+    - check-unbound-recursion-time
 
 - name: install configuration file
   template:
@@ -26,4 +40,3 @@
     name: monit
     enabled: true
     state: started
-...

@@ -1,81 +1,16 @@
+#	$OpenBSD: pf.conf,v 1.55 2017/12/03 20:40:04 sthen Exp $
+#
 # See pf.conf(5) and /etc/examples/pf.conf
 
-# Options
+set skip on lo
 
-set block-policy drop
-set loginterface {{ wan_if }}
-set skip on lo0
+block return	# block stateless traffic
+pass		# establish keep-state
 
-# Queueing
+## By default, do not permit remote connections to X11
+#block return in on ! lo0 proto tcp to port 6000:6010
 
-# queue outq on {{ wan_if }} flows 1024 bandwidth 18M max 18M default qlimit 1024
+# Port build user does not need network
+block return out log proto {tcp udp} user _pbuild
 
-# Tables
-
-# table <bogons> const {
-#   10.0.0.0/8      # RFC 1918 - Private network
-#   100.64.0.0/10   # RFC 6598
-#   127.0.0.0/8
-#   169.254.0.0/16  # RFC 3927 - Link-local
-#   172.16.0.0/12   # RFC 1918 - Private network
-#   192.0.0.0/24    # RFC 6890 - IETF Protocol Assignments
-#   192.0.2.0/24    # RFC 5737 - TEST-NET-1
-#   192.168.0.0/16  # RFC 1918 - Private network
-#   198.18.0.0/15   # RFC 2544
-#   198.51.100.0/24 # RFC 5737 - TEST-NET-2
-#   203.0.113.0/24  # RFC 5737 - TEST-NET-3
-#   224.0.0.0/3
-# }
-
-# table <{{ pf_feodo_tracker_table }}> persist file "{{ pf_feodo_tracker_file }}"
-# table <{{ pf_malware_tracker_table }}> persist file "{{ pf_malware_tracker_file }}"
-# table <{{ pf_zeus_tracker_table }}> persist file "{{ pf_zeus_tracker_file }}"
-
-#
-
-match in on {{ wan_if }} all scrub (no-df random-id)
-match out on {{ wan_if }} inet from {{ lan_ipv4|ipaddr('network') }}/{{ lan_ipv4|ipaddr('prefix') }} nat-to ({{ wan_if }})
-
-antispoof quick for { {{ wan_if }} {{ lan_if }} }
-
-# block in quick on {{ wan_if }} from <martians> to any
-# block return out quick on {{ wan_if }} from any to <martians>
-block log all
-
-pass out quick
-
-pass in on { {{ lan_if }} }
-pass in on {{ wan_if }} inet6 proto udp from port 547 to port 546
-pass in on {{ wan_if }} inet6 proto ipv6-icmp # icmp6-type {routersol, routeradv, neighbrsol, neighbradv, redir}
-
-#block return log	# block stateless traffic
-#pass		# establish keep-state
-
-## Port build user does not need network
-##block return out log quick proto {tcp udp} user _pbuild
-
-#anchor WAN on {{ wan_if }} {
-#  block drop in log
-#  pass in inet6 proto udp from port 547 to port 546
-#  pass in inet6 proto ipv6-icmp # icmp6-type {routersol, routeradv, neighbrsol, neighbradv, redir}
-#
-#  match out inet from {{ lan_ipv4 }} nat-to ({{ wan_if }}:0)
-{% if guest_ipv4 is defined %}
-#  # match out inet from {{ guest_ipv4 }} nat-to ({{ wan_if }}:0)
-{% endif %}
-#  # pass out
-#}
-
-## anchor LAN on {{ lan_if }} {
-##   pass
-## }
-
-{% if guest_if is defined %}
-## anchor GUEST on {{ guest_if }} {
-##   block return log
-## }
-
-{% endif %}
-## anchor WLAN on {{ wlan_if }} {
-##   block return log
-## }
+# vim: noet sw=8 ts=8

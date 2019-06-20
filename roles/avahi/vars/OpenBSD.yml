@@ -1,4 +1,0 @@
-# roles/avahi/vars/OpenBSD
----
-avahi_service_name: avahi_daemon
-...

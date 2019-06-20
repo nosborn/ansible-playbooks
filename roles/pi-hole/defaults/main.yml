@@ -1,0 +1,4 @@
+---
+pihole_group: "{{ pihole_user }}"
+pihole_homedir: /home/{{ pihole_user }}
+pihole_user: pi-hole

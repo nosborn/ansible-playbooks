@@ -1,0 +1,6 @@
+# yamllint disable rule:line-length
+---
+imapfilter_imap_password: "{{ vault_imapfilter_imap_password }}"
+imapfilter_imap_server: "{{ vault_imapfilter_imap_server }}"
+imapfilter_imap_username: "{{ vault_imapfilter_imap_username }}"
+imapfilter_rc_user: "{{ vault_imapfilter_rc_user }}"

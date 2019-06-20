@@ -1,10 +1,9 @@
 # roles/sysmerge/tasks/main
 ---
 - name: install exclusion file
-  copy:
-    src: sysmerge.ignore
+  template:
+    src: sysmerge.ignore.j2
     dest: /etc/sysmerge.ignore
     owner: root
     group: wheel
     mode: 0444
-...

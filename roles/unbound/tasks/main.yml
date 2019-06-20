@@ -1,69 +1,62 @@
 # roles/unbound/tasks/main
 ---
-- name: OS-specific variables
-  include_vars: "{{ ansible_distribution }}.yml"
-
-- name: install package
+- name: install packages
   package:
-    name: "{{ unbound_package_name }}"
+    name:
+      - p5-Digest-SHA1
+      - p5-IO-Socket-SSL
     state: present
-  register: unbound_package_result
-  until: unbound_package_result is succeeded
-  when: unbound_package_name is defined
-
-- name: setup remote server control
-  command: /usr/sbin/unbound-control-setup
-  args:
-    creates: /var/unbound/etc/unbound_control.key
-  notify: restart unbound
-
-# - name: setup the root trust anchor
-#   command: /usr/sbin/unbound-anchor
-#   args:
-#     creates: /var/unbound/db/root.key
-#   register: command_result
-#   failed_when: command_result.rc > 1
-#   changed_when: command_result.rc == 1
-#   notify: restart unbound
-#   when: false
 
 # # - copy:
 # #     src=named.cache dest=/var/unbound/etc/named.cache
 # #     owner=root group=wheel mode=0444
 # #   notify: restart unbound
 
-- name: filter configuration files
-  copy:
-    src: "{{ item }}"
-    dest: /var/unbound/etc/{{ item }}
+- name: install blacklist script
+  template:
+    src: update-dns-blacklist.pl.j2
+    dest: /usr/local/libexec/update-dns-blacklist
     owner: root
     group: wheel
-    mode: "{{ unbound_mode }}"
+    mode: 0550
+    validate: /usr/bin/perl -cw %s
+
+- name: create main blacklist
+  command: /usr/local/libexec/update-dns-blacklist
+  args:
+    creates: "{{ unbound_confdir }}/blacklist.conf"
+  notify: reload unbound
+
+- name: install additional blacklists
+  copy:
+    src: "{{ item }}"
+    dest: "{{ unbound_confdir }}/{{ item }}"
+    owner: root
+    group: wheel
+    mode: 0444
   with_items:
-    - redirect-zones.conf
+    - blacklist-doh.conf
   notify: reload unbound
 
 - name: install configuration file
   template:
     src: unbound.conf.j2
-    dest: /var/unbound/etc/unbound.conf
+    dest: "{{ unbound_confdir }}/unbound.conf"
     owner: root
     group: wheel
-    mode: "{{ unbound_mode }}"
+    mode: 0444
   notify: restart unbound
 
-# - name: resource limits
-#   replace:
-#     path: /etc/login.conf
-#     backup: true
-#     regexp: '^(unbound:.+\\n\\s+:openfiles)=\\d+'
-#     replace: '\\1=512'
-#   notify: restart unbound
-#   when: false
+- name: create log directory
+  file:
+    path: "{{ unbound_logdir }}"
+    owner: root
+    group: _unbound
+    mode: 0775
+    state: directory
 
 - name: enable and start service
   service:
-    name: unbound
+    name: "{{ unbound_service_name }}"
     enabled: true
     state: started
-...

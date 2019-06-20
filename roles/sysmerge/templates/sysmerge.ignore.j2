@@ -1,0 +1,11 @@
+/etc/mail/aliases
+/etc/mail/smtpd.conf
+/etc/ntpd.conf
+{% if ansible_hostname == 'tombstone' %}
+#/etc/pf.conf
+{% endif %}
+/etc/ssh/sshd_config
+/etc/ttys
+{% if inventory_hostname in groups.unbound %}
+/var/unbound/etc/unbound.conf
+{% endif %}

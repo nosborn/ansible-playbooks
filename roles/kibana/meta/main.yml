@@ -1,5 +1,0 @@
-# roles/kibana/meta/main
----
-dependencies:
-  - role: yamllint
-...

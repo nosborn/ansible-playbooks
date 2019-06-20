@@ -1,7 +1,0 @@
-#!/bin/ksh
-
-PATH="/usr/local/sbin:/usr/local/bin:${PATH}"
-
-next_part "Renewing certificate:"
-acme-client {{ ansible_fqdn }} && rcctl restart nginx
-unset _restart

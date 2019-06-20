@@ -1,7 +1,0 @@
-# roles/grafana/handlers/main
----
-- name: restart grafana
-  service:
-    name: grafana
-    state: restarted
-...

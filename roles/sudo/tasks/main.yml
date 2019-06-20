@@ -1,0 +1,17 @@
+# roles/sudo/tasks/main
+---
+- name: install package
+  package:
+    name: sudo--
+    state: present
+  register: sudo_package_result
+  until: sudo_package_result is succeeded
+
+- name: install configuration file
+  template:
+    src: sudoers.j2
+    dest: /etc/sudoers
+    owner: root
+    group: wheel
+    mode: 0440
+    validate: /usr/local/sbin/visudo -f %s -c

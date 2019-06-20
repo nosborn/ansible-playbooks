@@ -1,0 +1,20 @@
+# yamllint disable rule:line-length
+---
+ansible_host: "{{ lan_ipv4_address }}"
+interfaces:
+  - "{{ lan_if }}"
+  - "{{ vm_switch_uplink_if }}"
+  - "{{ wlan_if }}"
+lan_if: em0
+lan_ipv4_address: "{{ vault_lan_ipv4_address }}"
+lan_ipv6_address: "{{ vault_lan_ipv6_address }}"
+mygate: "{{ vault_mygate }}"
+nameservers: "{{ vault_nameservers }}"
+ntpd_config_contraints: "{{ vault_ntpd_config_constraints }}"
+ntpd_config_server: "{{ vault_ntpd_config_server }}"
+smtpd_max_message_size: "{{ vault_smtpd_max_message_size }}"
+smtpd_secrets_table: "{{ vault_smtpd_secrets_table }}"
+sysctl: "{{ vault_sysctl }}"
+# users: "{{ vault_users }}"
+vm_switch_uplink_if: bridge0
+wlan_if: athn0

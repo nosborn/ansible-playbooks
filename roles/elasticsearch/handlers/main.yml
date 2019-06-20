@@ -1,7 +1,0 @@
-# roles/elasticsearch/handlers/main
----
-- name: restart elasticsearch
-  service:
-    name: elasticsearch
-    state: restarted
-...

@@ -1,0 +1,79 @@
+# roles/unifi/tasks/main
+---
+- name: install dependencies
+  openbsd_pkg:
+    name:
+      - javaPathHelper
+      - jdk%1.8
+      - mongodb
+    state: present
+  register: unifi_package_result
+  until: unifi_package_result is succeeded
+  notify: tag dependency packages
+
+- name: install package
+  become: nick
+  environment:
+    TRUSTED_PKG_PATH: /home/nick/ports/packages/%a/all
+  openbsd_pkg:
+    name: unifi-{{ unifi_package_version }}
+    build: true
+    ports_dir: /home/nick/ports
+    state: present
+  register: unifi_package_result
+  until: unifi_package_result is succeeded
+  when: false
+
+- file:
+    path: "{{ item }}"
+    owner: _unifi
+    group: wheel
+    mode: 0700
+    state: directory
+  with_items:
+    - /usr/local/share/unifi/data/sites
+    - /usr/local/share/unifi/data/sites/default
+
+- template:
+    src: config.gateway.json.j2
+    dest: /usr/local/share/unifi/data/sites/default/config.gateway.json
+    owner: _unifi
+    group: wheel
+    mode: 0600
+    validate: "{{ jsonlint_validation_command }}"
+
+- template:
+    src: config.properties.j2
+    dest: /usr/local/share/unifi/data/sites/default/config.properties
+    owner: _unifi
+    group: wheel
+    mode: 0600
+  notify: restart unifi
+
+- name: configure system properties
+  lineinfile:
+    path: /usr/local/share/unifi/data/system.properties
+    regex: "^{{ item.key }}="
+    line: "{{ item.key }}={{ item.value }}"
+    create: true
+    owner: _unifi
+    group: wheel
+    mode: 0600
+  with_dict:
+    # log.guest: "{{ unifi_properties_log_guest }}"
+    log.inform: "{{ unifi_properties_log_inform }}"
+    # log.inform.ap: "{{ unifi_properties_log_inform_ap }}"
+    # log.inform.sta: "{{ unifi_properties_log_inform_sta }}"
+    reporter-uuid: "{{ unifi_properties_reporter_uuid }}"
+    system_ip: "{{ lan_ipv4_address }}"
+    unifi.G1GC.enabled: "true"
+    unifi.xms: "{{ unifi_properties_unifi_xms }}"
+    unifi.xmx: "{{ unifi_properties_unifi_xmx }}"
+    uuid: "{{ unifi_properties_uuid }}"
+  notify: restart unifi
+
+- name: start service
+  service:
+    name: unifi
+    enabled: true
+    state: started

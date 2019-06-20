@@ -1,0 +1,6 @@
+# roles/imapfilter/handlers/main
+---
+- name: restart imapfilter
+  service:
+    name: imapfilter
+    state: restarted

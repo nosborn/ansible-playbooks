@@ -1,0 +1,27 @@
+# roles/httpd/tasks/main
+---
+- name: install configuration file
+  template:
+    src: httpd.conf.j2
+    dest: /etc/httpd.conf
+    owner: root
+    group: wheel
+    mode: 0444
+    validate: /usr/sbin/httpd -f %s -n
+  notify: reload httpd
+
+- name: enable and start service
+  service:
+    name: httpd
+    enabled: true
+    state: started
+
+- name: deploy content
+  template:
+    src: "{{ item }}.j2"
+    dest: /var/www/htdocs/{{ item }}
+    owner: root
+    group: wheel
+    mode: 0444
+  with_items:
+    - wpad.dat

@@ -1,2 +1,2 @@
-inet {{ lan_ipv4|ipaddr('address') }} {{ lan_ipv4|ipaddr('netmask') }} NONE
+inet {{ lan_ipv4_address }} {{ lan_ipv4_subnet|ipaddr('netmask') }} NONE
 inet6 autoconf

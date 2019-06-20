@@ -1,4 +1,0 @@
-# roles/java/vars/OpenBSD
----
-java_package_name: jre
-...

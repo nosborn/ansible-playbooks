@@ -1,0 +1,70 @@
+# roles/homebridge/tasks/main
+---
+- name: create group
+  group:
+    name: _homebridge
+    gid: 999
+    system: true
+
+- name: create user
+  user:
+    name: _homebridge
+    comment: Homebridge Account
+    create_home: false
+    group: _homebridge
+    home: /home/_homebridge
+    login_class: daemon
+    shell: /sbin/nologin
+    system: true
+    uid: 999
+
+- name: create directories
+  file:
+    path: "{{ item }}"
+    owner: _homebridge
+    group: _homebridge
+    mode: 0750
+    state: directory
+  with_items:
+    - /home/_homebridge
+    - /home/_homebridge/.homebridge
+
+- name: install packages
+  become: _homebridge
+  npm:
+    name: "{{ item }}"
+    path: /home/_homebridge
+    state: present
+  with_items:
+    - homebridge
+    # - homebridge-cbus
+    # - homebridge-info
+  register: homebridge_package_result
+  until: homebridge_package_result is succeeded
+
+- name: install configuration file
+  template:
+    src: config.json.j2
+    dest: /home/_homebridge/.homebridge/config.json
+    owner: _homebridge
+    group: _homebridge
+    mode: 0440
+    validate: "{{ jsonlint_validation_command }}"
+  notify: restart homebridge
+
+- name: install control script
+  template:
+    src: homebridge.rc.j2
+    dest: /etc/rc.d/homebridge
+    owner: root
+    group: bin
+    mode: 0555
+    validate: /bin/ksh -n %s
+  notify: restart homebridge
+
+- name: start service
+  service:
+    name: homebridge
+    enabled: true
+    state: started
+  when: false

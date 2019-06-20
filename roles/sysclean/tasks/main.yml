@@ -8,10 +8,9 @@
   until: sysclean_package_result is succeeded
 
 - name: install ignore file
-  copy:
-    src: sysclean.ignore
+  template:
+    src: sysclean.ignore.j2
     dest: /etc/sysclean.ignore
     owner: root
     group: wheel
     mode: 0444
-...
