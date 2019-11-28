@@ -1,0 +1,12 @@
+FROM amd64/alpine:3.10.3
+
+RUN apk add --no-cache \
+		tzdata=2019c-r0 \
+	&& cp /usr/share/zoneinfo/{{ timezone }} /etc/localtime \
+	&& echo '{{ timezone }}' >/etc/timezone \
+	&& apk del --no-cache --purge tzdata \
+	&& apk add --no-cache --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing \
+		imapfilter=2.6.15-r0 \
+	&& mkdir -m 0755 /root/.imapfilter
+
+CMD ["/usr/bin/imapfilter", "-t", "/etc/ssl/cert.pem"]

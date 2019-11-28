@@ -1,0 +1,4 @@
+# roles/datadog-agent/meta/main
+---
+dependencies:
+  - role: docker

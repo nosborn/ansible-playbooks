@@ -1,18 +1,45 @@
 {
   "bridge": {
     "name": "Homebridge",
-    "username": "{{ homebridge_bridge_username }}",
-    "port": {{ homebridge_bridge_port }},
-    "pin": "{{ homebridge_bridge_pin }}"
+    "username": "{{ homebridge_config_bridge_username }}",
+    "pin": "{{ homebridge_config_bridge_pin }}"
   },
-
-  "platforms": [
+  "accessories": [
     {
-      "platform": "Info",
-      "port": 9876,
-      "name": "Homebridge Info Server",
-      "updateFrequency": 10000,
-      "updateCheckFrequency": 86400
+      "accessory": "UniFi Occupancy Sensor",
+      "name": "Occupancy Sensor",
+      "unifi": {
+        "controller": "{{ homebridge_config_accessories_unifi_controller }}",
+        "username": "{{ homebridge_config_accessories_unifi_username }}",
+        "password": "{{ homebridge_config_accessories_unifi_password }}",
+        "site": "default",
+        "secure": false
+      },
+      "watch": [
+        "{{ homebridge_config_accessories_watch|join('","') }}"
+      ],
+      "watchGuests": true,
+      "mode": "any"
+    }
+  ],
+  "platforms":[
+    {
+      "platform": "BraviaPlatform",
+      "tvs": [
+        {
+          "name": "TV",
+          "ip": "android-5e5534bf13baf5fa.localdomain",
+          "sources": [
+            "extInput:hdmi",
+            "extInput:component",
+            "extInput:cec",
+            "extInput:widi"
+          ],
+          "applications": false,
+          "soundoutput": "speaker",
+          "cookiepath": "/homebridge/sonycookie"
+        }
+      ]
     }
   ]
 }

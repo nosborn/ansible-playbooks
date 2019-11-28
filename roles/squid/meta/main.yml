@@ -1,5 +1,0 @@
-# roles/squid/meta/main
----
-dependencies:
-  - role: httpd
-  - role: xmllint

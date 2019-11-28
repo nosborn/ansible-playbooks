@@ -1,0 +1,4 @@
+# roles/pi-hole/meta/main
+---
+dependencies:
+  - role: python-module

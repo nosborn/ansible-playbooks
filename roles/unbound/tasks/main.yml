@@ -1,62 +1,54 @@
 # roles/unbound/tasks/main
 ---
-- name: install packages
-  package:
-    name:
-      - p5-Digest-SHA1
-      - p5-IO-Socket-SSL
-    state: present
-
-# # - copy:
-# #     src=named.cache dest=/var/unbound/etc/named.cache
-# #     owner=root group=wheel mode=0444
-# #   notify: restart unbound
-
-- name: install blacklist script
-  template:
-    src: update-dns-blacklist.pl.j2
-    dest: /usr/local/libexec/update-dns-blacklist
-    owner: root
-    group: wheel
-    mode: 0550
-    validate: /usr/bin/perl -cw %s
-
-- name: create main blacklist
-  command: /usr/local/libexec/update-dns-blacklist
-  args:
-    creates: "{{ unbound_confdir }}/blacklist.conf"
-  notify: reload unbound
-
-- name: install additional blacklists
-  copy:
-    src: "{{ item }}"
-    dest: "{{ unbound_confdir }}/{{ item }}"
-    owner: root
-    group: wheel
-    mode: 0444
-  with_items:
-    - blacklist-doh.conf
-  notify: reload unbound
-
-- name: install configuration file
-  template:
-    src: unbound.conf.j2
-    dest: "{{ unbound_confdir }}/unbound.conf"
-    owner: root
-    group: wheel
-    mode: 0444
-  notify: restart unbound
-
-- name: create log directory
+- name: create build directory
   file:
-    path: "{{ unbound_logdir }}"
+    path: "{{ unbound_image_build_path }}"
     owner: root
-    group: _unbound
-    mode: 0775
+    group: root
+    mode: 0700
     state: directory
 
-- name: enable and start service
-  service:
-    name: "{{ unbound_service_name }}"
-    enabled: true
-    state: started
+- name: upload Dockerfile
+  template:
+    src: Dockerfile.j2
+    dest: "{{ unbound_image_build_path }}/Dockerfile"
+    owner: root
+    group: root
+    mode: 0400
+
+- name: build image
+  docker_image:
+    name: "{{ unbound_image_name }}"
+    build:
+      dockerfile: Dockerfile
+      path: "{{ unbound_image_build_path }}"
+      pull: true
+    source: build
+
+- name: create persistent storage
+  file:
+    path: /volume1/docker/unbound
+    owner: root
+    group: root
+    mode: 0755
+    state: directory
+
+- template:
+    src: unbound.conf.j2
+    dest: /volume1/docker/unbound/unbound.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart unbound
+
+- name: create container
+  docker_container:
+    name: "{{ unbound_container_name }}"
+    dns_servers:
+      - "{{ hostvars['usg']['lan_ipv4_address'] }}"
+    image: "{{ unbound_image_name }}"
+    init: true
+    network_mode: bridge
+    restart_policy: always
+    volumes:
+      - /volume1/docker/unbound/unbound.conf:/etc/unbound/unbound.conf:ro

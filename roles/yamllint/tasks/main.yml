@@ -1,8 +1,0 @@
-# roles/yamllint/tasks/main
----
-- name: install package
-  package:
-    name: "{{ yamllint_package_name }}"
-    state: present
-  register: yamllint_package_result
-  until: yamllint_package_result is succeeded

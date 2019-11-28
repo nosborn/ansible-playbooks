@@ -1,4 +1,0 @@
-# roles/avahi/meta/main
----
-dependencies:
-  - role: xmllint

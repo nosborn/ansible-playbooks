@@ -1,6 +1,0 @@
-trunkproto failover
-trunkport {{ lan_if }}
-trunkport {{ wlan_if }}
-
-inet {{ lan_ipv4_address }} {{ lan_ipv4_subnet|ipaddr('netmask') }} NONE
-inet6 autoconf

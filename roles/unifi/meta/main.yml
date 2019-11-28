@@ -1,5 +1,0 @@
-# roles/unifi/meta/main
----
-dependencies:
-  - role: jsonlint
-  - role: ports

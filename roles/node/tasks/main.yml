@@ -1,8 +1,0 @@
-# roles/node/tasks/main
----
-- name: install package
-  package:
-    name: node
-    state: present
-  register: node_package_result
-  until: node_package_result is succeeded

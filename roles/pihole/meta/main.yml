@@ -1,0 +1,4 @@
+# roles/pihole/meta/main
+---
+dependencies:
+  - role: docker

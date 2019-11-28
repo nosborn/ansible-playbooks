@@ -1,9 +1,0 @@
-# role/unifi/defaults/main
----
-unifi_package_version: 5.10.24p0
-# unifi_properties_log_guest: debug
-unifi_properties_log_inform: info
-# unifi_properties_log_inform_ap: debug
-# unifi_properties_log_inform_sta: debug
-unifi_properties_unifi_xms: 1024
-unifi_properties_unifi_xmx: 1024

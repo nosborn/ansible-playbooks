@@ -1,4 +1,0 @@
-# roles/telegraf/meta/main
----
-dependencies:
-  - role: sudo

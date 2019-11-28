@@ -1,5 +1,0 @@
-# roles/homebridge/defaults/main
----
-homebridge_bridge_pin: 031-45-154
-homebridge_bridge_port: 51826
-homebridge_bridge_username: CC:22:3D:E3:CE:30

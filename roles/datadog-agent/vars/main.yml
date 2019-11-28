@@ -1,0 +1,4 @@
+# roles/datadog-agent/vars/main
+---
+datadog_agent_container_name: datadog-agent
+datadog_agent_image_name: "datadog/agent:6.14.1"

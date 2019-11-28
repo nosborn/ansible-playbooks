@@ -1,4 +1,0 @@
-# roles/jsonlint/defaults/main
----
-jsonlint_package_name: py3-demjson
-jsonlint_validation_command: jsonlint-3 --strict -- %s

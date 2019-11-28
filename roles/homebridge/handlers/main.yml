@@ -1,7 +1,7 @@
 # roles/homebridge/handlers/main
 ---
 - name: restart homebridge
-  service:
-    name: homebridge
-    state: restarted
-  when: false
+  docker_container:
+    name: "{{ homebridge_container_name }}"
+    restart: true
+    state: started

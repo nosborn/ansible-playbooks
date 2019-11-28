@@ -1,6 +1,0 @@
-# yamllint disable rule:line-length
----
-telegraf_outputs_influxdb_v2_bucket: "{{ vault_telegraf_outputs_influxdb_v2_bucket }}"
-telegraf_outputs_influxdb_v2_organization: "{{ vault_telegraf_outputs_influxdb_v2_organization }}"
-telegraf_outputs_influxdb_v2_token: "{{ vault_telegraf_outputs_influxdb_v2_token }}"
-telegraf_outputs_influxdb_v2_url: "{{ vault_telegraf_outputs_influxdb_v2_url }}"

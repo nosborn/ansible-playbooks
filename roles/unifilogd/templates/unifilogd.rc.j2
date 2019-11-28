@@ -1,0 +1,10 @@
+#!/bin/ksh
+
+daemon="/usr/local/sbin/unifilogd"
+
+. /etc/rc.d/rc.subr
+
+pexp="python3 ${daemon}${daemon_flags:+ ${daemon_flags}}"
+rc_reload=NO
+
+rc_cmd $1

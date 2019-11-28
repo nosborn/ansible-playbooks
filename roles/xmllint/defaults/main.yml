@@ -1,4 +1,0 @@
-# roles/xmllint/defaults/main
----
-xmllint_package_name: libxml
-xmllint_validation_command: /usr/local/bin/xmllint --noout --nonet %s

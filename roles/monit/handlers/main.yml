@@ -1,6 +1,0 @@
-# roles/monit/handlers/main
----
-- name: reload monit
-  service:
-    name: monit
-    state: reloaded

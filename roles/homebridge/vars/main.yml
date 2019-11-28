@@ -1,0 +1,4 @@
+# roles/homebridge/vars/main
+---
+homebridge_container_name: homebridge
+homebridge_image_name: homebridge:20191121

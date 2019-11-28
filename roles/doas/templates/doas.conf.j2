@@ -1,6 +1,0 @@
-## Allow wheel by default.
-#permit keepenv :wheel
-
-permit nopass setenv { ENV PORTSDIR PS1 SSH_AUTH_SOCK } :wheel as root
-
-permit nopass keepenv root as root

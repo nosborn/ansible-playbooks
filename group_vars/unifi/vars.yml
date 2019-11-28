@@ -1,5 +1,0 @@
-# yamllint disable rule:line-length
----
-unifi_properties_log_inform: warn
-unifi_properties_reporter_uuid: "{{ vault_unifi_properties_reporter_uuid }}"
-unifi_properties_uuid: "{{ vault_unifi_properties_uuid }}"

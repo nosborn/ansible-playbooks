@@ -1,8 +1,0 @@
-# yamllint disable rule:line-length
----
-unbound_confdir: /var/unbound/etc
-unbound_config_access_control: "{{ vault_unbound_config_access_control }}"
-unbound_config_interface: "{{ vault_unbound_config_interface }}"
-unbound_config_pidfile: /var/run/unbound.pid
-unbound_logdir: /var/unbound/logs
-unbound_service_name: unbound

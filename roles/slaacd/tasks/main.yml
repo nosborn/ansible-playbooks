@@ -1,9 +1,0 @@
-# roles/slaacd/tasks/main
----
-- name: enable and start service
-  service:
-    name: slaacd
-    arguments: "{{ slaacd_arguments }}"
-    enabled: true
-    state: started
-  notify: restart slaacd # in case arguments changed

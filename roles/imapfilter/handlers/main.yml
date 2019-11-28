@@ -1,6 +1,7 @@
 # roles/imapfilter/handlers/main
 ---
 - name: restart imapfilter
-  service:
-    name: imapfilter
-    state: restarted
+  docker_container:
+    name: "{{ imapfilter_container_name }}"
+    restart: true
+    state: started

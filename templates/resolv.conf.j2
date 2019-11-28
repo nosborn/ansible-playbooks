@@ -1,8 +1,0 @@
-{% if nameservers is defined %}
-{%   for address in nameservers %}
-nameserver {{ address }}
-{%   endfor %}
-{% endif %}
-domain {{ global_domain }}
-lookup file bind
-family inet6 inet4

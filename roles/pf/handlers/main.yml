@@ -1,4 +1,0 @@
-# roles/pf/handlers/main
----
-- name: reload pf
-  command: /sbin/pfctl -f /etc/pf.conf

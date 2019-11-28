@@ -1,7 +1,0 @@
-127.0.0.1	localhost
-::1		localhost
-{% if lan_ipv4_address is defined %}
-{{ lan_ipv4_address }}	{{ ansible_hostname }}.{{ global_domain }}	{{ ansible_hostname }}
-{% else %}
-{{ ansible_default_ipv4.address }}	{{ ansible_hostname }}.{{ global_domain }}	{{ ansible_hostname }}
-{% endif %}

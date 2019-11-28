@@ -1,0 +1,4 @@
+# roles/imapfilter/meta/main
+---
+dependencies:
+  - role: docker

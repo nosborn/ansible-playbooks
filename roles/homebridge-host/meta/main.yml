@@ -1,4 +1,0 @@
-# roles/homebridge-host/meta/main
----
-dependencies:
-  - role: vmd

@@ -1,0 +1,4 @@
+---
+ansible_host: diskstation.local.
+ansible_user: "{{ vault_ansible_user }}"
+lan_if: "{{ vault_lan_if }}"

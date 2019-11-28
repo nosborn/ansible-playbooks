@@ -1,79 +1,94 @@
 # roles/unifi/tasks/main
 ---
-- name: install dependencies
-  openbsd_pkg:
-    name:
-      - javaPathHelper
-      - jdk%1.8
-      - mongodb
-    state: present
-  register: unifi_package_result
-  until: unifi_package_result is succeeded
-  notify: tag dependency packages
-
-- name: install package
-  become: nick
-  environment:
-    TRUSTED_PKG_PATH: /home/nick/ports/packages/%a/all
-  openbsd_pkg:
-    name: unifi-{{ unifi_package_version }}
-    build: true
-    ports_dir: /home/nick/ports
-    state: present
-  register: unifi_package_result
-  until: unifi_package_result is succeeded
-  when: false
-
 - file:
     path: "{{ item }}"
-    owner: _unifi
-    group: wheel
-    mode: 0700
+    owner: unifi
+    group: unifi
+    mode: 0750
     state: directory
   with_items:
-    - /usr/local/share/unifi/data/sites
-    - /usr/local/share/unifi/data/sites/default
+    - "{{ unifi_base }}/data/sites"
+    - "{{ unifi_base }}/data/sites/default"
 
 - template:
     src: config.gateway.json.j2
-    dest: /usr/local/share/unifi/data/sites/default/config.gateway.json
-    owner: _unifi
-    group: wheel
-    mode: 0600
-    validate: "{{ jsonlint_validation_command }}"
+    dest: "{{ unifi_base }}/data/sites/default/config.gateway.json"
+    owner: unifi
+    group: unifi
+    mode: 0640
 
-- template:
-    src: config.properties.j2
-    dest: /usr/local/share/unifi/data/sites/default/config.properties
-    owner: _unifi
-    group: wheel
-    mode: 0600
-  notify: restart unifi
+# - template:
+#     src: config.properties.j2
+#     dest: /usr/local/share/unifi/data/sites/default/config.properties
+#     owner: _unifi
+#     group: "{{ root_group }}"
+#     mode: 0600
+#   notify: restart unifi
+#   when: false
 
-- name: configure system properties
-  lineinfile:
-    path: /usr/local/share/unifi/data/system.properties
-    regex: "^{{ item.key }}="
-    line: "{{ item.key }}={{ item.value }}"
-    create: true
-    owner: _unifi
-    group: wheel
-    mode: 0600
-  with_dict:
-    # log.guest: "{{ unifi_properties_log_guest }}"
-    log.inform: "{{ unifi_properties_log_inform }}"
-    # log.inform.ap: "{{ unifi_properties_log_inform_ap }}"
-    # log.inform.sta: "{{ unifi_properties_log_inform_sta }}"
-    reporter-uuid: "{{ unifi_properties_reporter_uuid }}"
-    system_ip: "{{ lan_ipv4_address }}"
-    unifi.G1GC.enabled: "true"
-    unifi.xms: "{{ unifi_properties_unifi_xms }}"
-    unifi.xmx: "{{ unifi_properties_unifi_xmx }}"
-    uuid: "{{ unifi_properties_uuid }}"
-  notify: restart unifi
+# - name: configure system properties
+#   lineinfile:
+#     path: /usr/local/share/unifi/data/system.properties
+#     regex: "^{{ item.key }}="
+#     line: "{{ item.key }}={{ item.value }}"
+#     create: true
+#     owner: _unifi
+#     group: "{{ root_group }}"
+#     mode: 0600
+#   with_dict:
+#     # log.guest: "{{ unifi_properties_log_guest }}"
+#     log.inform: "{{ unifi_properties_log_inform }}"
+#     # log.inform.ap: "{{ unifi_properties_log_inform_ap }}"
+#     # log.inform.sta: "{{ unifi_properties_log_inform_sta }}"
+#     reporter-uuid: "{{ unifi_properties_reporter_uuid }}"
+#     system_ip: "{{ lan_ipv4_address }}"
+#     unifi.G1GC.enabled: true
+#     # unifi.https.ciphers: TLS_RSA_WITH_AES_256_CBC_SHA,TLS_RSA_WITH_AES_128_CBC_SHA
+#     unifi.https.hsts: true
+#     unifi.https.hsts.max_age: 31536000
+#     unifi.https.hsts.preload: true
+#     unifi.https.hsts.subdomain: true
+#     unifi.https.sslEnabledProtocols: TLSv1.2
+#     unifi.xms: "{{ unifi_properties_unifi_xms }}"
+#     unifi.xmx: "{{ unifi_properties_unifi_xmx }}"
+#     uuid: "{{ unifi_properties_uuid }}"
+#   notify: restart unifi
+#   when: false
 
-- name: start service
-  service:
-    name: unifi
-    enabled: true
-    state: started
+# - command: >
+#     openssl pkcs12
+#     -export
+#     -inkey /etc/ssl/private/unifi.{{ global_domain }}.key
+#     -certfile /etc/ssl/unifi.{{ global_domain }}.chain.pem
+#     -name unifi
+#     -in /etc/ssl/unifi.{{ global_domain }}.pem
+#     -out /etc/ssl/unifi.{{ global_domain }}.pfx
+#     -password pass:aircontrolenterprise
+#   args:
+#     creates: /etc/ssl/unifi.{{ global_domain }}.pfx
+#   when: false
+
+# # keytool -trustcacerts -importkeystore \
+# #   -deststorepass aircontrolenterprise \
+# #   -destkeypass aircontrolenterprise \
+# #   -destkeystore /usr/lib/unifi/data/keystore \
+# #   -srckeystore "${TEMPFILE}" -srcstoretype PKCS12 \
+# #   -srcstorepass aircontrolenterprise \
+# #   -alias unifi
+# - java_cert:
+#     cert_alias: unifi
+#     executable: /usr/local/jdk-1.8.0/bin/keytool
+#     keystore_pass: aircontrolenterprise
+#     keystore_path: /usr/local/share/unifi/data/keystore
+#     keystore_type: JKS
+#     pkcs12_password: aircontrolenterprise
+#     pkcs12_path: /etc/ssl/private/unifi.{{ global_domain }}.pfx
+#   notify: restart unifi
+#   when: false
+
+# - name: start service
+#   service:
+#     name: unifi
+#     enabled: true
+#     state: started
+#   when: false

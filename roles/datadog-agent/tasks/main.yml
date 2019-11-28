@@ -1,0 +1,18 @@
+# roles/datadog-agent/tasks/main
+---
+- name: create container
+  docker_container:
+    name: "{{ datadog_agent_container_name }}"
+    dns_servers:
+      - "{{ hostvars['usg']['lan_ipv4_address'] }}"
+    env:
+      DD_API_KEY: "{{ datadog_api_key }}"
+      DD_SITE: "{{ datadog_site }}"
+      TZ: "{{ timezone }}"
+    image: "{{ datadog_agent_image_name }}"
+    network_mode: bridge
+    restart_policy: unless-stopped
+    volumes:
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup/:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro

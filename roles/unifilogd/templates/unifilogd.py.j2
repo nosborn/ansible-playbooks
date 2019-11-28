@@ -1,0 +1,178 @@
+#!/usr/bin/env python3
+
+import argparse
+import json
+import logging
+import requests
+import sys
+import websocket
+
+from daemonize import Daemonize
+
+
+def main():
+    json_request = {
+        "username": "{{ unifilogd_username }}",
+        "password": "{{ unifilogd_password }}",
+        "strict": True,
+    }
+
+    session = requests.Session()
+    session.verify = True
+
+    while True:
+        try:
+            # We Authenticate with one session to get a session ID and other
+            # validation cookies.
+            r = session.post(
+                "https://unifi.osborn.io:8443/api/login", json=json_request, verify=True
+            )
+            assert r.status_code == 200
+
+            params = {"_depth": 4, "test": 0}
+            r = session.get(
+                "https://unifi.osborn.io:8443/api/s/default/stat/device",
+                json=params,
+                verify=True,
+            )
+            assert r.status_code == 200
+
+            device = r.json()
+            device_data = device["data"]
+            # print(json.dumps(device_data))
+
+            # log.debug("received initial data: %s" % json.dumps(data, indent=2))
+            # self.update_unifi_data(data)
+
+            # login successful, get cookies
+            cookies = requests.utils.dict_from_cookiejar(session.cookies)
+            csrf_token = cookies["csrf_token"]
+            unifises = cookies["unifises"]
+            ws_cookies = "unifises=%s; csrf_token=%s" % (unifises, csrf_token)
+
+            ws = websocket.WebSocket()
+            ws.connect(
+                "wss://unifi.osborn.io:8443/wss/s/default/events", cookie=ws_cookies
+            )
+
+            with open("/var/log/unifi/event.log", "a+") as log:
+                while True:
+                    msg = ws.recv()
+                    if len(msg) == 0:
+                        # log.info("WS closed")
+                        break
+                    # log.debug("received: %s" % json.dumps(json.loads(msg), indent=2))
+                    # self.update_unifi_data(json.loads(msg))
+                    payload = json.loads(msg)
+                    if payload["meta"]["message"] == "device:sync":
+                        print(payload["meta"]["message"] + " " + payload["meta"]["mac"])
+                        # "meta": {
+                        #   "rc": "ok",
+                        #   "message": "device:sync",
+                        #   "mac": "b4:fb:e4:8b:e4:29"
+                        # },
+                    elif payload["meta"]["message"] == "device:update":
+                        # Device updated in UI.
+                        # {
+                        #   "meta": {
+                        #     "rc": "ok",
+                        #     "message": "device:update",
+                        #     "mac": "fc:ec:da:bf:55:ea"
+                        #   },
+                        #  "data": [
+                        #    {
+                        #      "cfgversion": "4e127d65850657d2"
+                        #    }
+                        #   ]
+                        # }
+                        print(payload["meta"]["message"] + " " + json.dumps(payload))
+                    elif payload["meta"]["message"] == "events":
+                        print(payload["meta"]["message"])
+                        for data in payload["data"]:
+                            for key in ["ap", "ap_from", "ap_to"]:
+                                if key in data:
+                                    for device in device_data:
+                                        if device["mac"] == data[key]:
+                                            data[key + "_name"] = device["name"]
+                                            break
+                            log.write(json.dumps(data) + "\n")
+                            log.flush()
+                    elif payload["meta"]["message"] == "speed-test:update":
+                        print(payload["meta"]["message"] + " " + json.dumps(payload))
+                    elif payload["meta"]["message"] == "user:sync":
+                        # Client updated in UI.
+                        # {
+                        #   "meta": {
+                        #     "rc": "ok",
+                        #     "message": "user:sync"
+                        #   },
+                        #   "data": [
+                        #     {
+                        #       "_id": "5ca89de020b79a3291729bdc",
+                        #       "mac": "e8:b2:ac:93:50:4c",
+                        #       "site_id": "5ca892dd20b79a3291729bba",
+                        #       "oui": "Apple",
+                        #       "is_guest": false,
+                        #       "first_seen": 1554554336,
+                        #       "last_seen": 1564109818,
+                        #       "is_wired": false,
+                        #       "hostname": "Nicks-iPad",
+                        #       "name": "Nick's iPad mini",
+                        #       "usergroup_id": "",
+                        #       "noted": true
+                        #     }
+                        #   ]
+                        # }
+                        print(payload["meta"]["message"] + " " + json.dumps(payload))
+                    else:
+                        print(payload["meta"]["message"])
+        except (ConnectionError, ConnectionRefusedError) as e:
+            # TODO: log message
+            print("ERROR!")
+            time.sleep(1)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-d",
+        help="Do not daemonize. If this option is specified, relayd will run in the foreground and log to stderr.",
+        action="store_true",
+    )
+    parser.add_argument("-v", help="Produce more verbose output.", action="store_true")
+    args = parser.parse_args()
+
+    keep_fds = []
+    verbose = args.v
+    foreground = args.d
+
+    logger = logging.getLogger("unifilogd")
+    logger.setLevel(logging.DEBUG)
+    # logger.propagate = False
+
+    if foreground:
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.DEBUG)
+        logger.addHandler(ch)
+        keep_fds = [ch.stream.fileno()]
+    else:
+        fh = logging.FileHandler("/var/log/unifilogd.log", "a")
+        fh.setLevel(logging.DEBUG)
+        formatter = logging.Formatter("%(asctime)s %(name)s: %(message)s")
+        fh.setFormatter(formatter)
+        logger.addHandler(fh)
+        keep_fds = [fh.stream.fileno()]
+
+    daemon = Daemonize(
+        app="unifilogd",
+        pid="/var/run/unifilogd.pid",
+        action=main,
+        keep_fds=keep_fds,
+        user="_unifi",
+        verbose=args.v,
+        logger=logger,
+        foreground=args.d,
+    )
+    daemon.start()
+
+# vim: ft=python

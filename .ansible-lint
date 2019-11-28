@@ -1,7 +1,7 @@
 # .ansible-lint
+# vim: ft=yaml
 ---
 skip_list:
-  - '204'
-  - '701'
+  - "204"
+  - "701"
 use_default_rules: true
-...

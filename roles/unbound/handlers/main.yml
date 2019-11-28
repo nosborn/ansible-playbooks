@@ -1,11 +1,7 @@
 # roles/unbound/handlers/main
 ---
-- name: reload unbound
-  service:
-    name: "{{ unbound_service_name }}"
-    state: reloaded
-
 - name: restart unbound
-  service:
-    name: "{{ unbound_service_name }}"
-    state: restarted
+  docker_container:
+    name: "{{ unbound_container_name }}"
+    restart: true
+    state: started

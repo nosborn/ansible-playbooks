@@ -1,3 +1,0 @@
-# roles/syslogd/defaults/main
----
-syslogd_arguments: ""

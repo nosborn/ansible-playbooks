@@ -1,41 +1,54 @@
 # roles/imapfilter/tasks/main
 ---
-- name: install package
-  package:
-    name: imapfilter
-    state: present
-  register: imapfilter_package_result
-  until: imapfilter_package_result is succeeded
-
-- file:
-    path: /home/{{ imapfilter_rc_user }}/.imapfilter
-    owner: "{{ imapfilter_rc_user }}"
-    group: "{{ imapfilter_rc_user }}"
+- name: create build directory
+  file:
+    path: "{{ imapfilter_image_build_path }}"
+    owner: root
+    group: root
     mode: 0700
     state: directory
 
-- name: install configuration file
+- name: upload Dockerfile
   template:
-    src: config.lua.j2
-    dest: /home/{{ imapfilter_rc_user }}/.imapfilter/config.lua
-    owner: "{{ imapfilter_rc_user }}"
-    group: "{{ imapfilter_rc_user }}"
-    mode: 0400
-    validate: /usr/local/bin/luac51 -p -- %s
-  notify: restart imapfilter
-
-- name: install control script
-  template:
-    src: imapfilter.rc.j2
-    dest: /etc/rc.d/imapfilter
+    src: Dockerfile.j2
+    dest: "{{ imapfilter_image_build_path }}/Dockerfile"
     owner: root
-    group: bin
-    mode: 0555
-    validate: /bin/ksh -n %s
+    group: root
+    mode: 0400
+
+- name: build image
+  docker_image:
+    name: "{{ imapfilter_image_name }}"
+    build:
+      dockerfile: Dockerfile
+      path: "{{ imapfilter_image_build_path }}"
+      pull: true
+    source: build
+
+- name: create persistent storage
+  file:
+    path: /volume1/docker/imapfilter
+    owner: root
+    group: root
+    mode: 0755
+    state: directory
+
+- template:
+    src: config.lua.j2
+    dest: /volume1/docker/imapfilter/config.lua
+    owner: root
+    group: root
+    mode: 0644
   notify: restart imapfilter
 
-- name: start service
-  service:
-    name: imapfilter
-    enabled: true
-    state: started
+- name: create container
+  docker_container:
+    name: "{{ imapfilter_container_name }}"
+    dns_servers:
+      - "{{ hostvars['usg']['lan_ipv4_address'] }}"
+    image: "{{ imapfilter_image_name }}"
+    # init: true
+    network_mode: bridge
+    restart_policy: always
+    volumes:
+      - /volume1/docker/imapfilter/config.lua:/root/.imapfilter/config.lua:ro

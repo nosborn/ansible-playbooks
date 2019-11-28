@@ -1,6 +1,0 @@
-# roles/telegraf/handlers/main
----
-- name: restart telegraf
-  service:
-    name: telegraf
-    state: restarted

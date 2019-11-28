@@ -1,124 +1,18 @@
-options.keepalive = 29
+options.keepalive = 5 -- minutes
+options.persist = true
+options.wakeonany = true
 
-while true do
-  account = IMAP {
-    server = '{{ imapfilter_imap_server }}',
-    username = '{{ imapfilter_imap_username }}',
-    password = '{{ imapfilter_imap_password }}',
-    ssl = '{{ imapfilter_imap_ssl }}'
-  }
+account = IMAP {
+  server = '{{ imapfilter_imap_server }}',
+  username = '{{ imapfilter_imap_username }}',
+  password = '{{ imapfilter_imap_password }}',
+  ssl = '{{ imapfilter_imap_ssl }}'
+}
 
-  repeat
-    -- if header :contains ["List-Id","List-Post"] "<00acec3b55f8c8f9cb419f843.318853.list-id.mcsv.net>" {
-    --   fileinto "\\Trash";
-    -- }
-    -- elsif header :contains ["List-Id","List-Post"] "@proacktive.adzunamail.com" {
-    --   fileinto "\\Trash";
-    -- }
-    -- elsif header :contains ["List-Id","List-Post"] "<4909f5a3d66fad748ca3033f8.237993.list-id.mcsv.net>" {
-    --   fileinto "\\Trash";
-    -- }
-    -- elsif header :contains ["List-Id","List-Post"] "<e062e544fadf105950e89db2c.423313.list-id.mcsv.net>" {
-    --   fileinto "\\Trash";
-    -- }
-    -- elsif header :contains ["List-Id","List-Post"] "<notification.b5ab7d5686c233ad3db8ea2ee47b4b1cf1709f07@talentfinds.jobsbyemail.io>" {
-    --   fileinto "\\Trash";
-    -- }
-    -- elsif header :contains ["List-Id","List-Post"] "<zip-1-0>" {
-    --   fileinto "\\Trash";
-    -- }
+repeat
+  recent = account.INBOX:is_recent()
+{% for rule in imapfilter_rules %}
 
-    recent = account.INBOX:is_recent()
-
-    results = recent:contain_from('<businessaccounts@postpack.co.uk>') +
-              recent:contain_from('<hello@exploretock.com>') +
-              recent:contain_from('<noreply@roadangelgroup.com>') +
-              recent:contain_from('<snowandrock@update.snowandrock.com>') +
-              recent:contain_from('@email.ti-mediauk.co.uk>') +
-              recent:contain_from('@emails.ehmbars.co.uk>') +
-              recent:contain_from('.ti-media.com>')
-    results:add_flags({'Junk'})
-    results:move_messages(account.Junk)
-
-    -- Recruiter spam.
-    results = recent:contain_field('Return-Path', '@email.bullhornmail.com>')
-    results:move_messages(account.Archive)
-
-    results = recent:contain_from('<Stephanie.Clayton@circlerecruitment.com>') +
-              recent:contain_from('<alerts@workcircle.com>') +
-              recent:contain_from('<computerfutures@dotmailer-email.com>') +
-              recent:contain_from('<fleetstreet@the-eye-place.co.uk>') +
-              recent:contain_from('<harry.hicks@exploreltd.com>') +
-              recent:contain_from('<info@itcontractor.com>') +
-              recent:contain_from('<jobs@spell.jobautomateemail.com>') +
-              recent:contain_from('<latest@vertex-email.com>') +
-              recent:contain_from('<no-reply@london4jobs.co.uk>') +
-              recent:contain_from('<no-reply@talentfinds.jobsbyemail.io>') +
-              recent:contain_from('<paul@contractspy.co.uk>') +
-              recent:contain_from('<robbie.simpson@plexusrs.com>') +
-              recent:contain_from('<sam@oakmontconsulting.co.uk>') +
-              recent:contain_from('<team@mailer.huxley.jobs>') +
-              recent:contain_from('<team@mailer.realstaffing.jobs>') +
-              recent:contain_from('<worldpay@jobstheword.com>') +
-              recent:contain_from('@avantirec.com>') +
-              recent:contain_from('@computerfutures.com>') +
-              recent:contain_from('@computerfutures.de>') +
-              recent:contain_from('@contractrecruit.co.uk>') +
-              recent:contain_from('@cpsgroupuk.com>') +
-              recent:contain_from('@dabstersystems.com>') +
-              recent:contain_from('@deekay.co.uk>') +
-              recent:contain_from('@forsythbarnes.com>') +
-              recent:contain_from('@haybrook.co.uk>') +
-              recent:contain_from('@huxley.com>') +
-              recent:contain_from('@it-talent.uk>') +
-              recent:contain_from('@jeffersonfrank.com>') +
-              recent:contain_from('@lawrenceharvey.com>') +
-              recent:contain_from('@lynxrecruitment.co.uk>') +
-              recent:contain_from('@malikshaw.com>') +
-              recent:contain_from('@networkerstechnology.com>') +
-              recent:contain_from('@premierituk.com>') +
-              recent:contain_from('@realstaffing.com>') +
-              recent:contain_from('@rengineeringjobs.com>') +
-              recent:contain_from('@sthree.com>') +
-              recent:contain_from('@streamresourcing.com>') +
-              recent:contain_from('@thestamfordgroup.com>') +
-              recent:contain_from('@thirdrepublic.com>') +
-              recent:contain_from('@twentyrecruitment.com>') +
-              recent:contain_from('@twh-consulting.io>') +
-              recent:contain_from('@unitingambition.com>') +
-              recent:contain_from('@venturi-group.com>') +
-              recent:contain_from('@whitehallresources.co.uk>') +
-              recent:contain_from('@whitehallresources.com>') +
-              recent:contain_from('@x4group.co.uk>') +
-              recent:contain_from('@x4technology.co.uk>')
-    results:move_messages(account.Archive)
-
-    results = recent:contain_from('<root@tombstone.osborn.io>') *
-              recent:contain_subject('tombstone.osborn.io daily output')
-    results:move_messages(account.Archive)
-
-    results = recent:contain_from('<info@twitter>') *
-              recent:contain_to('<nick@osborn.io>')
-    results:move_messages(account.Archive)
-
-    -- ZOMG hacked! (◔_◔)
-    results = account.Junk:contain_from('nick@osborn.io') *
-              account.Junk:contain_subject('nick@osborn.io has been hacked, change your password ASAP') *
-              account.Junk:contain_to('nick@osborn.io')
-    results:delete_messages()
-
-    -- ZOMG hacked! (◔_◔)
-    results = account.Junk:contain_subject('nick : Amber6') *
-              account.Junk:contain_to('nick@osborn.io')
-    results:delete_messages()
-
-    -- results = account.INBOX:match_subject('^redzebraconsult\\.com$')
-    -- results:move_messages(account.Trash)
-
-    -- elsif header :regex "From" "(^|,)[[:space:]]*\"?Sales\\ Team\\ Recruitment\"?[[:space:]]*<" {
-    --   fileinto "\\Trash";
-    -- }
-  until not account.INBOX:enter_idle()
-
-  os.execute("sleep 60")
-end
+  {{ rule | indent(width=2) }}
+{% endfor %}
+until not account.INBOX:enter_idle()

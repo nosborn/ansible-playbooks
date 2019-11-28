@@ -1,6 +1,0 @@
-# roles/apmd/handlers/main
----
-- name: restart apmd
-  service:
-    name: apmd
-    state: restarted

@@ -1,19 +1,81 @@
 # yamllint disable rule:line-length
 ---
-- hosts: EdgeOS
+- hosts: all
+  gather_facts: false
+
+  pre_tasks:
+
+    - name: create custom fact directory
+      file:
+        path: /etc/ansible/facts.d
+        state: directory
+        owner: root
+        mode: 0755
+      when: false
+
+    - name: install custom fact file
+      template:
+        src: facts.d/custom.fact.j2
+        dest: /etc/ansible/facts.d/custom.fact
+        owner: root
+        mode: 0555
+        validate: /bin/sh -n %s
+      when: false
+
+- hosts: diskstation
+
+  pre_tasks:
+
+    - name: set timezone
+      lineinfile:
+        path: /etc/synoinfo.conf
+        regexp: "^timezone="
+        line: timezone=Singapore
+        owner: root
+        group: root
+        mode: 0644
+      when: false
+
+    - name: set localtime
+      copy:
+        content: "<+08>-8\n"
+        dest: /etc/TZ
+        owner: root
+        group: root
+        mode: 0644
+      when: false
+
+  roles:
+
+    - role: cloud-sync
+    - role: datadog-agent
+    - role: homebridge
+    - role: imapfilter
+    - role: pihole
+    - role: unbound
+    - role: video-station
+
+- hosts: unifi
+
+  roles:
+
+    - role: unifi
+
+- hosts: usg
 
   pre_tasks:
 
     - name: Package update repository parameters
       edgeos_config:
         lines:
-          - set system package repository {{ ansible_distribution_release }} components 'main'
+          - set system package repository {{ ansible_distribution_release }} components main
           - set system package repository {{ ansible_distribution_release }} distribution {{ ansible_distribution_release }}
-          - set system package repository {{ ansible_distribution_release }} url 'http://ftp.sg.debian.org/debian'
+          - set system package repository {{ ansible_distribution_release }} url http://archive.debian.org/debian
         save: true
       connection: network_cli
-      notify: apt-get update
-      when: false
+      register: r
+      notify: update apt cache
+      when: inventory_hostname == 'usg'
 
   tasks:
 
@@ -22,190 +84,62 @@
         regexp: allow-interfaces=
         line: allow-interfaces={{ lan_if }}
       notify: restart avahi-daemon
+      when: inventory_hostname == 'usg'
 
     - lineinfile:
         path: /etc/avahi/avahi-daemon.conf
         regexp: deny-interfaces=
         line: deny-interfaces={{ wan_if }}
       notify: restart avahi-daemon
+      when: inventory_hostname == 'usg'
+
+    - name: install ddclient dependencies
+      apt:
+        name: libdata-validate-ip-perl
+        install_recommends: false
+        state: present
+      when: inventory_hostname == 'usg'
+
+    - name: upgrade ddclient
+      get_url:
+        url: https://raw.githubusercontent.com/ddclient/ddclient/v3.9.0/ddclient
+        dest: /usr/sbin/ddclient
+        backup: true
+        owner: root
+        group: root
+        mode: 0555
+        checksum: sha1:fc443f87fbe35f923a069d120cd3170398f151f7
+      when: inventory_hostname == 'usg'
+
+    - name: Domain Name Server (DNS) parameters
+      edgeos_config:
+        lines:
+          - set service dns dynamic interface {{ hostvars['usg']['wan_if'] }} service cloudflare host-name {{ dynamic_dns_cloudflare_host_name }}
+          - set service dns dynamic interface {{ hostvars['usg']['wan_if'] }} service cloudflare login {{ dynamic_dns_cloudflare_login }}
+          - set service dns dynamic interface {{ hostvars['usg']['wan_if'] }} service cloudflare options {{ dynamic_dns_cloudflare_options }}
+          - set service dns dynamic interface {{ hostvars['usg']['wan_if'] }} service cloudflare password '{{ dynamic_dns_cloudflare_password }}'
+          - set service dns dynamic interface {{ hostvars['usg']['wan_if'] }} service cloudflare server {{ dynamic_dns_cloudflare_server }}
+          # - set service dns dynamic interface {{ hostvars['usg']['wan_if'] }} service custom-dnsomatic host-name {{ dynamic_dns_dnsomatic_host_name }}
+          # - set service dns dynamic interface {{ hostvars['usg']['wan_if'] }} service custom-dnsomatic login {{ dynamic_dns_dnsomatic_login }}
+          # - set service dns dynamic interface {{ hostvars['usg']['wan_if'] }} service custom-dnsomatic password '{{ dynamic_dns_dnsomatic_password }}'
+          # - set service dns dynamic interface {{ hostvars['usg']['wan_if'] }} service custom-dnsomatic protocol {{ dynamic_dns_dnsomatic_protocol }}
+          # - set service dns dynamic interface {{ hostvars['usg']['wan_if'] }} service custom-dnsomatic server {{ dynamic_dns_dnsomatic_server }}
+          # - set service dns forwarding cache-size 10000
+          # - set service dns forwarding except-interface {{ wan_if }}
+          # - set service dns forwarding options domain-needed
+          # - set service dns forwarding options no-resolv  # FIXME: is this needed?
+          # - set service dns forwarding options proxy-dnssec
+        save: true
+      connection: network_cli
+      when: inventory_hostname == 'usg'
 
   handlers:
-
-    - name: apt-get update
-      apt:
-        update_cache: true
 
     - name: restart avahi-daemon
       service:
         name: avahi-daemon
         state: restarted
 
-- hosts: OpenBSD
-
-  pre_tasks:
-
-    - name: set localtime link
-      file:
-        src: /usr/share/zoneinfo/{{ timezone }}
-        dest: /etc/localtime
-        state: link
-        force: true
-
-    - name: default gateway
-      copy:
-        content: "{{ mygate }}\n"
-        dest: /etc/mygate
-        owner: root
-        group: wheel
-        mode: 0444
-      when: mygate is defined
-
-    - name: default hostname
-      copy:
-        content: "{{ ansible_hostname }}.{{ global_domain }}\n"
-        dest: /etc/myname
-        owner: root
-        group: wheel
-        mode: 0444
-
-    - name: host name database
-      template:
-        src: hosts.j2
-        dest: /etc/hosts
-        owner: root
-        group: wheel
-        mode: 0444
-
-    - name: sysctl variables to set at system startup
-      sysctl:
-        name: "{{ item.key }}"
-        value: "{{ item.value }}"
-        reload: true
-        sysctl_set: true
-      with_dict: "{{ sysctl }}"
-
-    - name: resolver configuration file
-      template:
-        src: templates/resolv.conf.j2
-        dest: /etc/resolv.conf
-        owner: root
-        group: wheel
-        mode: 0444
-      notify: restart networking
-      when: nameservers is defined
-
-    - name: resolver configuration file
-      template:
-        src: templates/resolv.conf.j2
-        dest: /etc/resolv.conf.tail
-        owner: root
-        group: wheel
-        mode: 0444
-      notify: restart networking
-      when: nameservers is not defined
-
-    - name: interface-specific configuration files
-      template:
-        src: hostname.{{ item }}.j2
-        dest: /etc/hostname.{{ item }}
-        owner: root
-        group: wheel
-        mode: 0440
-      with_items: "{{ interfaces|sort }}"
-      notify: restart networking
-
-    - name: system-wide package system configuration
-      copy:
-        content: "{{ installurl }}\n"
-        dest: /etc/installurl
-        owner: root
-        group: wheel
-        mode: 0444
-
-    - meta: flush_handlers
-
-  roles:
-
-    - role: apmd
-      when: ansible_hostname == 'tombstone'
-    - role: avahi
-      when: ansible_hostname == 'tombstone'
-    - role: doas
-    - role: flashrom
-      when: ansible_system_vendor == 'PC Engines'
-    # - role: homebridge
-    #   when: ansible_hostname == 'homebridge'
-    - role: httpd
-      when: ansible_hostname == 'tombstone'
-    - role: monit
-      when: ansible_hostname == 'tombstone'
-    - role: ntpd
-    - role: periodic
-      when: ansible_hostname == 'tombstone'
-    # - role: pf
-    #   when: ansible_hostname == 'tombstone'
-    - role: slaacd
-    - role: smtpd
-      when: ansible_hostname == 'tombstone'
-    - role: sndiod
-    # - role: squid
-    #   when: ansible_hostname == 'tombstone'
-    - role: sshd
-    - role: sysclean
-    - role: syslogd
-    - role: sysmerge
-
-  tasks:
-
-    - name: boot configuration
-      copy:
-        src: boot.conf
-        dest: /etc/boot.conf
-        owner: root
-        group: wheel
-        mode: 0444
-      when: ansible_system_vendor == 'PC Engines'
-
-    - name: terminal initialization information
-      replace:
-        dest: /etc/ttys
-        regexp: '^(console\s+.+)\s+secure$'
-        replace: '\1'
-
-    # - template:
-    #     src: update-route53.sh.j2
-    #     dest: /root/update-route53.sh
-    #     owner: root
-    #     group: wheel
-    #     mode: 0500
-    #     validate: /bin/ksh -n %s
-    #   when: ansible_hostname == 'tombstone'
-
-  handlers:
-
-    - name: restart networking
-      command: sh /etc/netstart
-
-- hosts: homeassistant_guest
-  roles:
-    - role: homeassistant-guest
-
-- hosts: homeassistant_host
-  roles:
-    - role: homeassistant-host
-
-- hosts: imapfilter
-  roles:
-    - role: imapfilter
-
-- hosts: influxdb
-  roles:
-    - role: telegraf
-
-- hosts: unbound
-  roles:
-    - role: unbound
-
-- hosts: unifi
-  roles:
-    - role: unifi
+    - name: update apt cache
+      apt:
+        update_cache: true

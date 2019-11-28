@@ -1,70 +1,63 @@
 # roles/homebridge/tasks/main
 ---
-- name: create group
-  group:
-    name: _homebridge
-    gid: 999
-    system: true
+- name: create build directory
+  file:
+    path: /tmp/homebridge-image
+    owner: root
+    group: root
+    mode: 0700
+    state: directory
 
-- name: create user
-  user:
-    name: _homebridge
-    comment: Homebridge Account
-    create_home: false
-    group: _homebridge
-    home: /home/_homebridge
-    login_class: daemon
-    shell: /sbin/nologin
-    system: true
-    uid: 999
+- name: upload Dockerfile
+  template:
+    src: Dockerfile.j2
+    dest: /tmp/homebridge-image/Dockerfile
+    owner: root
+    group: root
+    mode: 0400
 
-- name: create directories
+- name: build image
+  docker_image:
+    name: "{{ homebridge_image_name }}"
+    build:
+      dockerfile: Dockerfile
+      path: /tmp/homebridge-image
+      pull: true
+    source: build
+
+- name: create persistent storage
   file:
     path: "{{ item }}"
-    owner: _homebridge
-    group: _homebridge
-    mode: 0750
+    owner: root
+    group: root
+    mode: 0755
     state: directory
   with_items:
-    - /home/_homebridge
-    - /home/_homebridge/.homebridge
+    - /volume1/docker/homebridge
+    - /volume1/docker/homebridge/homebridge
 
-- name: install packages
-  become: _homebridge
-  npm:
-    name: "{{ item }}"
-    path: /home/_homebridge
-    state: present
-  with_items:
-    - homebridge
-    # - homebridge-cbus
-    # - homebridge-info
-  register: homebridge_package_result
-  until: homebridge_package_result is succeeded
-
-- name: install configuration file
-  template:
-    src: config.json.j2
-    dest: /home/_homebridge/.homebridge/config.json
-    owner: _homebridge
-    group: _homebridge
-    mode: 0440
-    validate: "{{ jsonlint_validation_command }}"
-  notify: restart homebridge
-
-- name: install control script
-  template:
-    src: homebridge.rc.j2
-    dest: /etc/rc.d/homebridge
+- template:
+    src: "{{ item }}.j2"
+    dest: /volume1/docker/homebridge/homebridge/{{ item }}
     owner: root
-    group: bin
-    mode: 0555
-    validate: /bin/ksh -n %s
+    group: root
+    mode: 0644
+  with_items:
+    - config.json
   notify: restart homebridge
 
-- name: start service
-  service:
-    name: homebridge
-    enabled: true
-    state: started
-  when: false
+- name: create container
+  docker_container:
+    name: "{{ homebridge_container_name }}"
+    comparisons:
+      mac_address: ignore
+    dns_servers:
+      - "{{ hostvars['usg']['lan_ipv4_address'] }}"
+    image: "{{ homebridge_image_name }}"
+    mac_address: "fe:e1:ba:d0:ee:70"
+    networks:
+      - name: macvlan
+    networks_cli_compatible: true
+    restart_policy: always
+    volumes:
+      - /volume1/docker/homebridge/homebridge/:/homebridge/
