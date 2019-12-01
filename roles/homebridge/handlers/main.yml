@@ -3,5 +3,7 @@
 - name: restart homebridge
   docker_container:
     name: "{{ homebridge_container_name }}"
+    comparisons:
+      "*": ignore
     restart: true
     state: started

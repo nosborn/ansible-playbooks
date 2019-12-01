@@ -1,43 +1,5 @@
 {
   "service": {
-    "dns": {
-      "dynamic": {
-        "interface": {
-          "{{ hostvars['usg']['wan_if'] }}": {
-            "service": {
-              "cloudflare": {
-                "host-name": [
-                  "mediastreamer.osborn.io",
-                  "unifi.osborn.io"
-                ],
-                "login": "{{ hostvars['usg']['dynamic_dns_cloudflare_login'] }}",
-                "options": "{{ hostvars['usg']['dynamic_dns_cloudflare_options'] }}",
-                "password": "{{ hostvars['usg']['dynamic_dns_cloudflare_password'] }}",
-                "server": "{{ hostvars['usg']['dynamic_dns_cloudflare_server'] }}"
-              },
-              "custom-dnsomatic": {
-                "host-name": "{{ hostvars['usg']['dynamic_dns_dnsomatic_host_name'] }}",
-                "login": "{{ hostvars['usg']['dynamic_dns_dnsomatic_login'] }}",
-                "password": "{{ hostvars['usg']['dynamic_dns_dnsomatic_password'] }}",
-                "protocol": "{{ hostvars['usg']['dynamic_dns_dnsomatic_protocol'] }}",
-                "server": "{{ hostvars['usg']['dynamic_dns_dnsomatic_server'] }}"
-              }
-            }
-          }
-        }
-      },
-      "forwarding": {
-        "cache-size": "10000",
-        "except-interface": [
-          "{{ hostvars['usg']['wan_if'] }}"
-        ],
-        "options": [
-          "domain-needed",
-          "proxy-dnssec",
-          "server={{ hostvars['diskstation']['lan_ipv4_address'] }}"
-        ]
-      }
-    },
     "nat": {
       "rule": {
         "1": {
@@ -57,11 +19,19 @@
             "address": "!{{ hostvars['diskstation']['lan_ipv4_address'] }}"
           },
           "type": "destination"
+        },
+        "5001": {
+          "description": "Masquerade for Captive DNS",
+          "destination": {
+            "address": "{{ hostvars['diskstation']['lan_ipv4_address'] }}",
+            "port": "53"
+          },
+          "log": "disable",
+          "outbound-interface": "{{ hostvars['usg']['lan_if'] }}",
+          "protocol": "tcp_udp",
+          "type": "masquerade"
         }
       }
     }
-  },
-  "system": {
-    "host-name": "usg"
   }
 }

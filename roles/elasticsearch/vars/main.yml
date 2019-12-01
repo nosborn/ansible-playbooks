@@ -1,0 +1,4 @@
+# roles/elasticsearch/vars/main
+---
+elasticsearch_container_name: elasticsearch
+elasticsearch_image_name: docker.elastic.co/elasticsearch/elasticsearch-oss:{{ elastic_version }}

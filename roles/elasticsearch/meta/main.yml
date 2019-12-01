@@ -1,0 +1,4 @@
+# roles/elasticsearch/meta/main
+---
+dependencies:
+  - role: docker

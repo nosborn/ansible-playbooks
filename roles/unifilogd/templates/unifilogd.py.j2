@@ -14,7 +14,7 @@ def main():
     json_request = {
         "username": "{{ unifilogd_username }}",
         "password": "{{ unifilogd_password }}",
-        "strict": True,
+        "strict": False,
     }
 
     session = requests.Session()
@@ -25,15 +25,15 @@ def main():
             # We Authenticate with one session to get a session ID and other
             # validation cookies.
             r = session.post(
-                "https://unifi.osborn.io:8443/api/login", json=json_request, verify=True
+                "https://192.168.1.2:8443/api/login", json=json_request, verify=False,
             )
             assert r.status_code == 200
 
             params = {"_depth": 4, "test": 0}
             r = session.get(
-                "https://unifi.osborn.io:8443/api/s/default/stat/device",
+                "https://192.168.1.2:8443/api/s/default/stat/device",
                 json=params,
-                verify=True,
+                verify=False,
             )
             assert r.status_code == 200
 
@@ -51,9 +51,7 @@ def main():
             ws_cookies = "unifises=%s; csrf_token=%s" % (unifises, csrf_token)
 
             ws = websocket.WebSocket()
-            ws.connect(
-                "wss://unifi.osborn.io:8443/wss/s/default/events", cookie=ws_cookies
-            )
+            ws.connect("wss://192.168.1.2:8443/wss/s/default/events", cookie=ws_cookies)
 
             with open("/var/log/unifi/event.log", "a+") as log:
                 while True:
@@ -136,7 +134,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-d",
-        help="Do not daemonize. If this option is specified, relayd will run in the foreground and log to stderr.",
+        help="Do not daemonize. If this option is specified, unifilogd will run in the foreground and log to stderr.",
         action="store_true",
     )
     parser.add_argument("-v", help="Produce more verbose output.", action="store_true")

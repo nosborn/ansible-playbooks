@@ -1,5 +1,5 @@
 # roles/imapfilter/vars/main
 ---
 imapfilter_container_name: imapfilter
-imapfilter_image_build_path: "/tmp/{{ imapfilter_container_name }}-build"
-imapfilter_image_name: imapfilter:20191121
+imapfilter_image_build_path: /tmp/{{ imapfilter_container_name }}-build
+imapfilter_image_name: imapfilter:20191129

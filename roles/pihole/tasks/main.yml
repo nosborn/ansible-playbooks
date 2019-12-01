@@ -7,7 +7,7 @@
     group: root
     mode: 0755
     state: directory
-  with_items:
+  loop:
     - /volume1/docker/{{ pihole_container_name }}/etc-dnsmasq.d
     - /volume1/docker/{{ pihole_container_name }}/etc-pihole
 
@@ -17,11 +17,12 @@
     owner: root
     group: root
     mode: 0644
-  with_items:
+  loop:
     - etc-dnsmasq.d/99-mediastreamer.conf
     - etc-pihole/adlists.list
     - etc-pihole/blacklist.txt
     - etc-pihole/whitelist.txt
+  notify: restart pihole
 
 - name: create container
   docker_container:

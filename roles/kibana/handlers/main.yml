@@ -1,8 +1,8 @@
-# roles/unbound/handlers/main
+# roles/kibana/handlers/main
 ---
-- name: restart unbound
+- name: restart kibana
   docker_container:
-    name: "{{ unbound_container_name }}"
+    name: "{{ kibana_container_name }}"
     comparisons:
       "*": ignore
     restart: true

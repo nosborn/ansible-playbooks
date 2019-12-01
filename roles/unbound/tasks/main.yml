@@ -1,4 +1,5 @@
 # roles/unbound/tasks/main
+# yamllint disable rule:line-length
 ---
 - name: create build directory
   file:
@@ -27,7 +28,7 @@
 
 - name: create persistent storage
   file:
-    path: /volume1/docker/unbound
+    path: /volume1/docker/{{ unbound_container_name }}
     owner: root
     group: root
     mode: 0755
@@ -35,7 +36,7 @@
 
 - template:
     src: unbound.conf.j2
-    dest: /volume1/docker/unbound/unbound.conf
+    dest: /volume1/docker/{{ unbound_container_name }}/unbound.conf
     owner: root
     group: root
     mode: 0644
@@ -51,4 +52,4 @@
     network_mode: bridge
     restart_policy: always
     volumes:
-      - /volume1/docker/unbound/unbound.conf:/etc/unbound/unbound.conf:ro
+      - /volume1/docker/{{ unbound_container_name }}/unbound.conf:/etc/unbound/unbound.conf:ro

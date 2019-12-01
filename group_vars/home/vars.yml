@@ -1,9 +1,12 @@
 ---
 datadog_api_key: "{{ vault_datadog_api_key }}"
 datadog_site: "{{ vault_datadog_site }}"
+elasticsearch_ipv4_address: "{{ vault_elasticsearch_ipv4_address }}"
+filebeat_ipv4_address: "{{ vault_filebeat_ipv4_address }}"
 global_domain: "{{ vault_global_domain }}"
 guest_ipv4_subnet: "{{ vault_guest_ipv4_subnet }}"
 iot_ipv4_subnet: "{{ vault_iot_ipv4_subnet }}"
+kibana_ipv4_address: "{{ vault_kibana_ipv4_address }}"
 lan_ipv4_subnet: "{{ vault_lan_ipv4_subnet }}"
 # lan2_ipv4_subnet: "{{ vault_lan2_ipv4_subnet }}"
 mediastreamer_domains: "{{ vault_mediastreamer_domains|sort }}"

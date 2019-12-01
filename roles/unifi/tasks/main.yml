@@ -1,18 +1,15 @@
 # roles/unifi/tasks/main
 ---
 - file:
-    path: "{{ item }}"
+    path: /srv/unifi/data/sites/default
     owner: unifi
     group: unifi
     mode: 0750
     state: directory
-  with_items:
-    - "{{ unifi_base }}/data/sites"
-    - "{{ unifi_base }}/data/sites/default"
 
 - template:
     src: config.gateway.json.j2
-    dest: "{{ unifi_base }}/data/sites/default/config.gateway.json"
+    dest: /srv/unifi/data/sites/default/config.gateway.json
     owner: unifi
     group: unifi
     mode: 0640

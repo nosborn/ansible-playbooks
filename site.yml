@@ -49,8 +49,11 @@
 
     - role: cloud-sync
     - role: datadog-agent
+    - role: elasticsearch
+    - role: filebeat
     - role: homebridge
     - role: imapfilter
+    - role: kibana
     - role: pihole
     - role: unbound
     - role: video-station
@@ -75,7 +78,6 @@
       connection: network_cli
       register: r
       notify: update apt cache
-      when: inventory_hostname == 'usg'
 
   tasks:
 
@@ -84,21 +86,18 @@
         regexp: allow-interfaces=
         line: allow-interfaces={{ lan_if }}
       notify: restart avahi-daemon
-      when: inventory_hostname == 'usg'
 
     - lineinfile:
         path: /etc/avahi/avahi-daemon.conf
         regexp: deny-interfaces=
         line: deny-interfaces={{ wan_if }}
       notify: restart avahi-daemon
-      when: inventory_hostname == 'usg'
 
     - name: install ddclient dependencies
       apt:
         name: libdata-validate-ip-perl
         install_recommends: false
         state: present
-      when: inventory_hostname == 'usg'
 
     - name: upgrade ddclient
       get_url:
@@ -109,7 +108,6 @@
         group: root
         mode: 0555
         checksum: sha1:fc443f87fbe35f923a069d120cd3170398f151f7
-      when: inventory_hostname == 'usg'
 
     - name: Domain Name Server (DNS) parameters
       edgeos_config:
@@ -131,7 +129,6 @@
           # - set service dns forwarding options proxy-dnssec
         save: true
       connection: network_cli
-      when: inventory_hostname == 'usg'
 
   handlers:
 

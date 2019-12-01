@@ -1,0 +1,6 @@
+# roles/yamllint/tasks/main
+---
+- name: install package
+  package:
+    name: "{{ yamllint_package_name }}"
+    state: present

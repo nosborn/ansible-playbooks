@@ -1,6 +1,7 @@
 # yamllint disable rule:line-length
 ---
 ansible_host: "{{ lan_ipv4_address }}"
+ansible_python_interpreter: "{{ vault_ansible_python_interpreter }}"
 ansible_user: "{{ vault_ansible_user }}"
 dynamic_dns_cloudflare_host_name: "{{ vault_dynamic_dns_cloudflare_host_name }}"
 dynamic_dns_cloudflare_login: "{{ vault_dynamic_dns_cloudflare_login }}"

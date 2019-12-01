@@ -1,0 +1,4 @@
+# roles/filebeat/vars/main
+---
+filebeat_container_name: filebeat
+filebeat_image_name: docker.elastic.co/beats/filebeat-oss:{{ elastic_version }}

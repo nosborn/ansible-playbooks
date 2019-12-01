@@ -1,0 +1,24 @@
+---
+filebeat.config:
+  modules:
+    path: ${path.config}/modules.d/*.yml
+    reload.enabled: false
+
+inputs:
+  - type: syslog
+    protocol.udp:
+      host: "{{ filebeat_ipv4_address }}:9000"
+
+logging.metrics.enabled: false
+
+processors:
+  - add_docker_metadata: ~
+  - add_locale:
+      format: offset
+
+output.elasticsearch:
+  hosts:
+    - "{{ elasticsearch_ipv4_address }}:9200"
+
+setup.kibana:
+  host: "{{ kibana_ipv4_address }}:5601"

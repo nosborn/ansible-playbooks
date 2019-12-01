@@ -1,8 +1,8 @@
-# roles/unbound/handlers/main
+# roles/pihole/handlers/main
 ---
-- name: restart unbound
+- name: restart pihole
   docker_container:
-    name: "{{ unbound_container_name }}"
+    name: "{{ pihole_container_name }}"
     comparisons:
       "*": ignore
     restart: true
