@@ -1,9 +1,0 @@
-# roles/kibana/handlers/main
----
-- name: restart kibana
-  docker_container:
-    name: "{{ kibana_container_name }}"
-    comparisons:
-      "*": ignore
-    restart: true
-    state: started

@@ -1,4 +1,0 @@
-# roles/kibana/vars/main
----
-kibana_container_name: kibana
-kibana_image_name: docker.elastic.co/kibana/kibana-oss:{{ elastic_version }}

@@ -1,9 +1,0 @@
-# roles/elasticsearch/handlers/main
----
-- name: restart elasticsearch
-  docker_container:
-    name: "{{ elasticsearch_container_name }}"
-    comparisons:
-      "*": ignore
-    restart: true
-    state: started

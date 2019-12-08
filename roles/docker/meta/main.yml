@@ -1,4 +1,4 @@
-# roles/pi-hole/meta/main
+# roles/docker/meta/main
 ---
 dependencies:
   - role: python-module

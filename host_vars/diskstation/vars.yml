@@ -1,7 +1,7 @@
 ---
-ansible_host: diskstation.local.
+ansible_host: "{{ vault_ansible_host }}"
 ansible_python_interpreter: "{{ vault_ansible_python_interpreter }}"
 ansible_user: "{{ vault_ansible_user }}"
-elastic_version: "{{ vault_elastic_version }}"
 lan_if: "{{ vault_lan_if }}"
-lan_ipv4_address: "{{ vault_lan_ipv4_address }}"
+synology_timezone: "{{ vault_synology_timezone }}"
+synology_tz: "{{ vault_synology_tz }}"

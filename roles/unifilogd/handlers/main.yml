@@ -1,6 +1,0 @@
-# roles/unifilogd/handlers/main
----
-- name: restart unifilogd
-  service:
-    name: unifilogd
-    state: restarted

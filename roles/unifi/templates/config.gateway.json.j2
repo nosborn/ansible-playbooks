@@ -5,25 +5,24 @@
         "1": {
           "description": "Captive DNS",
           "destination": {
-            "address": "!{{ hostvars['usg']['lan_ipv4_address'] }}",
             "port": "53"
           },
           "inbound-interface": "{{ hostvars['usg']['lan_if'] }}",
           "inside-address": {
-            "address": "{{ hostvars['diskstation']['lan_ipv4_address'] }}",
+            "address": "{{ pihole_ipv4_address }}",
             "port": "53"
           },
           "log": "enable",
           "protocol": "tcp_udp",
           "source": {
-            "address": "!{{ hostvars['diskstation']['lan_ipv4_address'] }}"
+            "address": "!{{ unifi_captive_dns_exclude }}"
           },
           "type": "destination"
         },
         "5001": {
           "description": "Masquerade for Captive DNS",
           "destination": {
-            "address": "{{ hostvars['diskstation']['lan_ipv4_address'] }}",
+            "address": "{{ pihole_ipv4_address }}",
             "port": "53"
           },
           "log": "disable",

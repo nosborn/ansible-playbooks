@@ -32,7 +32,7 @@
     group: root
     mode: 0755
     state: directory
-  with_items:
+  loop:
     - /volume1/docker/homebridge
     - /volume1/docker/homebridge/homebridge
 
@@ -42,22 +42,23 @@
     owner: root
     group: root
     mode: 0644
-  with_items:
+  loop:
     - config.json
   notify: restart homebridge
 
 - name: create container
   docker_container:
     name: "{{ homebridge_container_name }}"
-    comparisons:
-      mac_address: ignore
+    # comparisons:
+    #   mac_address: ignore
     dns_servers:
       - "{{ hostvars['usg']['lan_ipv4_address'] }}"
     image: "{{ homebridge_image_name }}"
-    mac_address: "fe:e1:ba:d0:ee:70"
+    # mac_address: "fe:e1:ba:d0:ee:70"
     networks:
       - name: macvlan
+        ipv4_address: "{{ homebridge_ipv4_address }}"
     networks_cli_compatible: true
-    restart_policy: always
+    restart_policy: unless-stopped
     volumes:
       - /volume1/docker/homebridge/homebridge/:/homebridge/

@@ -1,6 +1,0 @@
-# roles/filebeat/meta/main
----
-dependencies:
-  - role: docker
-  - role: elasticsearch
-  - role: kibana

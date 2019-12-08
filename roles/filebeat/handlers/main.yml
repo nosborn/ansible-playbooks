@@ -1,9 +1,0 @@
-# roles/filebeat/handlers/main
----
-- name: restart filebeat
-  docker_container:
-    name: "{{ filebeat_container_name }}"
-    comparisons:
-      "*": ignore
-    restart: true
-    state: started

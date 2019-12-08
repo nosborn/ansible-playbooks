@@ -9,7 +9,7 @@
     mode: 0700
     state: directory
 
-- name: upload Dockerfile
+- name: upload build files
   template:
     src: Dockerfile.j2
     dest: "{{ unbound_image_build_path }}/Dockerfile"
@@ -26,7 +26,7 @@
       pull: true
     source: build
 
-- name: create persistent storage
+- name: create configuration directory
   file:
     path: /volume1/docker/{{ unbound_container_name }}
     owner: root
@@ -34,7 +34,8 @@
     mode: 0755
     state: directory
 
-- template:
+- name: upload confguration file
+  template:
     src: unbound.conf.j2
     dest: /volume1/docker/{{ unbound_container_name }}/unbound.conf
     owner: root
@@ -47,9 +48,15 @@
     name: "{{ unbound_container_name }}"
     dns_servers:
       - "{{ hostvars['usg']['lan_ipv4_address'] }}"
+    expose:
+      - "53:53/tcp"
+      - "53:53/udp"
     image: "{{ unbound_image_name }}"
     init: true
-    network_mode: bridge
-    restart_policy: always
+    networks:
+      - name: macvlan
+        ipv4_address: "{{ unbound_ipv4_address }}"
+    networks_cli_compatible: true
+    restart_policy: unless-stopped
     volumes:
       - /volume1/docker/{{ unbound_container_name }}/unbound.conf:/etc/unbound/unbound.conf:ro

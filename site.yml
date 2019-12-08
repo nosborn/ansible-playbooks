@@ -30,7 +30,7 @@
       lineinfile:
         path: /etc/synoinfo.conf
         regexp: "^timezone="
-        line: timezone=Singapore
+        line: timezone={{ synology_timezone }}
         owner: root
         group: root
         mode: 0644
@@ -38,7 +38,7 @@
 
     - name: set localtime
       copy:
-        content: "<+08>-8\n"
+        content: "{{ synology_tz }}\n"
         dest: /etc/TZ
         owner: root
         group: root
@@ -48,12 +48,8 @@
   roles:
 
     - role: cloud-sync
-    - role: datadog-agent
-    - role: elasticsearch
-    - role: filebeat
     - role: homebridge
     - role: imapfilter
-    - role: kibana
     - role: pihole
     - role: unbound
     - role: video-station

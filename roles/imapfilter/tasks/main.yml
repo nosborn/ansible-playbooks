@@ -33,7 +33,8 @@
     mode: 0755
     state: directory
 
-- template:
+- name: upload configuration file
+  template:
     src: config.lua.j2
     dest: /volume1/docker/imapfilter/config.lua
     owner: root
@@ -49,6 +50,6 @@
     image: "{{ imapfilter_image_name }}"
     # init: true
     network_mode: bridge
-    restart_policy: always
+    restart_policy: unless-stopped
     volumes:
       - /volume1/docker/imapfilter/config.lua:/root/.imapfilter/config.lua:ro

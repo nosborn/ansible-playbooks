@@ -18,7 +18,7 @@
     group: root
     mode: 0644
   loop:
-    - etc-dnsmasq.d/99-mediastreamer.conf
+    - etc-dnsmasq.d/mediastreamer.conf
     - etc-pihole/adlists.list
     - etc-pihole/blacklist.txt
     - etc-pihole/whitelist.txt
@@ -27,25 +27,22 @@
 - name: create container
   docker_container:
     name: "{{ pihole_container_name }}"
-    comparisons:
-      mac_address: ignore
     dns_servers:
       - 127.0.0.1
-      - 1.1.1.1
+      - "{{ hostvars['usg']['lan_ipv4_address'] }}"
     etc_hosts:
-      mediastreamer-1: 85.203.37.1
-      mediastreamer-2: 85.203.37.2
+      mediastreamer: "{{ mediastreamer_dns }}"
+      unbound: "{{ unbound_ipv4_address }}"
     env:
       CONDITIONAL_FORWARDING: "True"
       CONDITIONAL_FORWARDING_DOMAIN: localdomain
       CONDITIONAL_FORWARDING_IP: "{{ hostvars['usg']['lan_ipv4_address'] }}"
       CONDITIONAL_FORWARDING_REVERSE: 1.168.192.in-addr.arpa
-      DNS1: 1.1.1.1
-      DNS2: 1.0.0.1
+      DNS1: "{{ unbound_ipv4_address }}"
+      DNS2: "no"
       TZ: "{{ timezone }}"
       WEBPASSWORD: "{{ pihole_admin_password }}"
     image: "{{ pihole_image_name }}"
-    mac_address: "02:42:c0:a8:01:c1"
     networks:
       - name: macvlan
         ipv4_address: "{{ pihole_ipv4_address }}"
