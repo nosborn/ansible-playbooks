@@ -52,9 +52,8 @@
     # comparisons:
     #   mac_address: ignore
     dns_servers:
-      - "{{ hostvars['usg']['lan_ipv4_address'] }}"
+      - "{{ pihole_ipv4_address }}"
     image: "{{ homebridge_image_name }}"
-    # mac_address: "fe:e1:ba:d0:ee:70"
     networks:
       - name: macvlan
         ipv4_address: "{{ homebridge_ipv4_address }}"

@@ -6,3 +6,4 @@ homebridge_config_accessories_unifi_username: "{{ vault_homebridge_config_access
 homebridge_config_accessories_watch: "{{ vault_homebridge_config_accessories_watch }}"
 homebridge_config_bridge_pin: "{{ vault_homebridge_config_bridge_pin }}"
 homebridge_config_bridge_username: "{{ vault_homebridge_config_bridge_username }}"
+homebridge_config_platforms_bravia_ip: "{{ vault_homebridge_config_platforms_bravia_ip }}"

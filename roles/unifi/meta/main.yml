@@ -1,0 +1,4 @@
+# roles/unifi/meta/main
+---
+dependencies:
+  - role: letsencrypt

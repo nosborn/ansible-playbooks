@@ -1,9 +1,9 @@
-FROM amd64/alpine:3.10.3
+FROM alpine:3.11.2
 
 RUN apk add --no-cache \
-		drill=1.7.0-r2 \
+		drill=1.7.1-r1 \
 		tzdata=2019c-r0 \
-		unbound=1.9.1-r7 \
+		unbound=1.9.6-r0 \
 	&& cp /usr/share/zoneinfo/{{ timezone }} /etc/localtime \
 	&& echo '{{ timezone }}' >/etc/timezone \
 	&& apk del --no-cache --purge tzdata

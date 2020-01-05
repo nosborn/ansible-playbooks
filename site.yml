@@ -4,7 +4,6 @@
   gather_facts: false
 
   pre_tasks:
-
     - name: create custom fact directory
       file:
         path: /etc/ansible/facts.d
@@ -25,7 +24,6 @@
 - hosts: diskstation
 
   pre_tasks:
-
     - name: set timezone
       lineinfile:
         path: /etc/synoinfo.conf
@@ -46,7 +44,6 @@
       when: false
 
   roles:
-
     - role: cloud-sync
     - role: homebridge
     - role: imapfilter
@@ -57,13 +54,11 @@
 - hosts: unifi
 
   roles:
-
     - role: unifi
 
 - hosts: usg
 
   pre_tasks:
-
     - name: Package update repository parameters
       edgeos_config:
         lines:
@@ -76,7 +71,6 @@
       notify: update apt cache
 
   tasks:
-
     - lineinfile:
         path: /etc/avahi/avahi-daemon.conf
         regexp: allow-interfaces=
@@ -127,7 +121,6 @@
       connection: network_cli
 
   handlers:
-
     - name: restart avahi-daemon
       service:
         name: avahi-daemon

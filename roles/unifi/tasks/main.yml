@@ -1,4 +1,5 @@
 # roles/unifi/tasks/main
+# yamllint disable rule:line-length
 ---
 - file:
     path: /srv/unifi/data/sites/default
@@ -52,40 +53,138 @@
 #   notify: restart unifi
 #   when: false
 
-# - command: >
-#     openssl pkcs12
-#     -export
-#     -inkey /etc/ssl/private/unifi.{{ global_domain }}.key
-#     -certfile /etc/ssl/unifi.{{ global_domain }}.chain.pem
-#     -name unifi
-#     -in /etc/ssl/unifi.{{ global_domain }}.pem
-#     -out /etc/ssl/unifi.{{ global_domain }}.pfx
-#     -password pass:aircontrolenterprise
-#   args:
-#     creates: /etc/ssl/unifi.{{ global_domain }}.pfx
-#   when: false
+- apt:
+    name:
+      - python-cryptography
+      - python-openssl
+    install_recommends: false
+    state: present
+  when: ansible_python.version.major == 2
 
-# # keytool -trustcacerts -importkeystore \
-# #   -deststorepass aircontrolenterprise \
-# #   -destkeypass aircontrolenterprise \
-# #   -destkeystore /usr/lib/unifi/data/keystore \
-# #   -srckeystore "${TEMPFILE}" -srcstoretype PKCS12 \
-# #   -srcstorepass aircontrolenterprise \
-# #   -alias unifi
-# - java_cert:
-#     cert_alias: unifi
-#     executable: /usr/local/jdk-1.8.0/bin/keytool
-#     keystore_pass: aircontrolenterprise
-#     keystore_path: /usr/local/share/unifi/data/keystore
-#     keystore_type: JKS
-#     pkcs12_password: aircontrolenterprise
-#     pkcs12_path: /etc/ssl/private/unifi.{{ global_domain }}.pfx
-#   notify: restart unifi
-#   when: false
+- apt:
+    name:
+      - python3-cryptography
+      - python3-openssl
+    install_recommends: false
+    state: present
+  when: ansible_python.version.major == 3
 
-# - name: start service
-#   service:
-#     name: unifi
-#     enabled: true
-#     state: started
-#   when: false
+- openssl_privatekey:
+    path: /etc/ssl/private/cloudkey.key
+    owner: root
+    group: ssl-cert
+    mode: 0640
+  notify: restart nginx
+
+- openssl_csr:
+    privatekey_path: /etc/ssl/private/cloudkey.key
+    common_name: "unifi.{{ global_domain }}"
+    path: /etc/ssl/private/cloudkey.csr
+    owner: root
+    group: ssl-cert
+    mode: 0640
+
+- acme_certificate:
+    account_key_content: "{{ letsencrypt_account_key }}"
+    # account_uri: letsencrypt_account.account_uri
+    acme_directory: "{{ letsencrypt_acme_directory }}"
+    acme_version: "{{ letsencrypt_acme_version }}"
+    challenge: dns-01
+    csr: /etc/ssl/private/cloudkey.csr
+    fullchain_dest: /etc/ssl/private/cloudkey.crt
+    modify_account: false
+  register: letsencrypt_challenge
+
+- debug:
+    var: letsencrypt_challenge
+    verbosity: 1
+
+- cloudflare_dns:
+    account_api_token: "{{ cloudflare_account_api_token }}"
+    account_email: "{{ cloudflare_account_email }}"
+    record: "{{ letsencrypt_challenge.challenge_data['unifi.'+global_domain]['dns-01']['resource'] }}.unifi"
+    solo: true
+    type: TXT
+    value: "{{ letsencrypt_challenge.challenge_data['unifi.'+global_domain]['dns-01']['resource_value'] }}"
+    zone: "{{ global_domain }}"
+  when: letsencrypt_challenge.changed
+  delegate_to: localhost
+
+- acme_certificate:
+    account_key_content: "{{ letsencrypt_account_key }}"
+    acme_directory: "{{ letsencrypt_acme_directory }}"
+    acme_version: "{{ letsencrypt_acme_version }}"
+    account_uri: "{{ letsencrypt_challenge.account_uri }}"
+    challenge: dns-01
+    csr: /etc/ssl/private/cloudkey.csr
+    data: "{{ letsencrypt_challenge }}"
+    fullchain_dest: /etc/ssl/private/cloudkey.crt
+    modify_account: false
+  notify: restart nginx
+  when: letsencrypt_challenge.changed
+
+- file:
+    path: /etc/ssl/private/cloudkey.crt
+    owner: root
+    group: ssl-cert
+    mode: 0644
+    state: file
+  notify: restart nginx
+
+- openssl_pkcs12:
+    path: /etc/ssl/private/cloudkey.p12
+    friendly_name: unifi
+    passphrase: "{{ unifi_jks_password }}"
+    certificate_path: /etc/ssl/private/cloudkey.crt
+    privatekey_path: /etc/ssl/private/cloudkey.key
+    owner: root
+    group: root
+    mode: 0600
+    backup: true
+
+- java_cert:
+    cert_alias: unifi
+    keystore_pass: "{{ unifi_jks_password }}"
+    keystore_path: /etc/ssl/private/unifi.keystore.jks
+    keystore_type: JKS
+    pkcs12_alias: unifi
+    pkcs12_path: /etc/ssl/private/cloudkey.p12
+  notify: restart unifi
+  when: false
+
+- java_keystore:
+    name: unifi
+    certificate: /etc/ssl/private/cloudkey.crt
+    private_key: /etc/ssl/private/cloudkey.key
+    password: "{{ unifi_jks_password }}"
+    dest: /etc/ssl/private/unifi.keystore.jks
+    owner: root
+    group: ssl-cert
+    mode: 0640
+  notify: restart unifi
+  when: false
+
+- stat:
+    path: /etc/ssl/private/unifi.keystore.jks
+    checksum_algorithm: md5
+    get_attributes: false
+    get_mime: false
+  register: unifi_keystore
+
+- copy:
+    content: "{{ unifi_keystore.stat.checksum }} */etc/ssl/private/unifi.keystore.jks\n"
+    dest: /etc/ssl/private/unifi.keystore.jks.md5
+    owner: root
+    group: root
+    mode: 0644
+
+- fetch:
+    dest: backup
+    src: "{{ item }}"
+  loop:
+    - /etc/ssl/private/cloudkey.crt
+    - /etc/ssl/private/cloudkey.csr
+    - /etc/ssl/private/cloudkey.key
+    - /etc/ssl/private/cloudkey.p12
+    - /etc/ssl/private/unifi.keystore.jks
+    - /etc/ssl/private/unifi.keystore.jks.md5

@@ -12,8 +12,7 @@
         "controller": "{{ homebridge_config_accessories_unifi_controller }}",
         "username": "{{ homebridge_config_accessories_unifi_username }}",
         "password": "{{ homebridge_config_accessories_unifi_password }}",
-        "site": "default",
-        "secure": false
+        "site": "default"
       },
       "watch": [
         "{{ homebridge_config_accessories_watch|join('","') }}"
@@ -28,7 +27,7 @@
       "tvs": [
         {
           "name": "TV",
-          "ip": "android-5e5534bf13baf5fa.localdomain",
+          "ip": "{{ homebridge_config_platforms_bravia_ip }}",
           "sources": [
             "extInput:hdmi",
             "extInput:component",

@@ -2,4 +2,4 @@
 ---
 unbound_container_name: unbound
 unbound_image_build_path: /tmp/{{ unbound_container_name }}-build
-unbound_image_name: unbound:20191207-7
+unbound_image_name: unbound:20200105-1

@@ -1,0 +1,11 @@
+# roles/letsencrypt/tasks/main
+---
+- name: register account
+  acme_account:
+    account_key_content: "{{ letsencrypt_account_key }}"
+    acme_directory: "{{ letsencrypt_acme_directory }}"
+    acme_version: "{{ letsencrypt_acme_version }}"
+    contact: "{{ letsencrypt_contact }}"
+    terms_agreed: true
+    state: present
+  register: letsencrypt_account

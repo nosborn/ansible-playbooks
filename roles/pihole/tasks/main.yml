@@ -18,6 +18,7 @@
     group: root
     mode: 0644
   loop:
+    - etc-dnsmasq.d/localdomain.conf
     - etc-dnsmasq.d/mediastreamer.conf
     - etc-pihole/adlists.list
     - etc-pihole/blacklist.txt
@@ -33,13 +34,15 @@
     etc_hosts:
       mediastreamer: "{{ mediastreamer_dns }}"
       unbound: "{{ unbound_ipv4_address }}"
+      usg: "{{ hostvars['usg']['lan_ipv4_address'] }}"
     env:
-      CONDITIONAL_FORWARDING: "True"
+      CONDITIONAL_FORWARDING: "true"
       CONDITIONAL_FORWARDING_DOMAIN: localdomain
       CONDITIONAL_FORWARDING_IP: "{{ hostvars['usg']['lan_ipv4_address'] }}"
       CONDITIONAL_FORWARDING_REVERSE: 1.168.192.in-addr.arpa
       DNS1: "{{ unbound_ipv4_address }}"
       DNS2: "no"
+      DNS_BOGUS_PRIV: "false"
       TZ: "{{ timezone }}"
       WEBPASSWORD: "{{ pihole_admin_password }}"
     image: "{{ pihole_image_name }}"
@@ -49,5 +52,6 @@
     networks_cli_compatible: true
     restart_policy: unless-stopped
     volumes:
-      - /volume1/docker/{{ pihole_container_name }}/etc-dnsmasq.d/:/etc/dnsmasq.d/
+      - /volume1/docker/{{ pihole_container_name }}/etc-dnsmasq.d/localdomain.conf:/etc/dnsmasq.d/localdomain.conf:ro
+      - /volume1/docker/{{ pihole_container_name }}/etc-dnsmasq.d/mediastreamer.conf:/etc/dnsmasq.d/mediastreamer.conf:ro
       - /volume1/docker/{{ pihole_container_name }}/etc-pihole/:/etc/pihole/

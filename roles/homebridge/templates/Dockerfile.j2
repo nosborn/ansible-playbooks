@@ -1,8 +1,8 @@
-FROM amd64/alpine:3.10.3
+FROM alpine:3.11.2
 
 RUN apk add --no-cache \
-		nodejs=10.16.3-r0 \
-		npm=10.16.3-r0 \
+		nodejs=12.14.0-r0 \
+		npm=12.14.0-r0 \
 		tzdata=2019c-r0 \
 	&& cp /usr/share/zoneinfo/{{ timezone }} /etc/localtime \
 	&& npm set global-style=true \

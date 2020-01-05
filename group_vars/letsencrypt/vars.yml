@@ -1,0 +1,7 @@
+---
+cloudflare_account_api_token: "{{ vault_cloudflare_account_api_token }}"
+cloudflare_account_email: "{{ vault_cloudflare_account_email }}"
+letsencrypt_account_key: "{{ vault_letsencrypt_account_key }}"
+letsencrypt_acme_directory: "{{ vault_letsencrypt_acme_directory }}"
+letsencrypt_acme_version: "{{ vault_letsencrypt_acme_version }}"
+letsencrypt_contact: "{{ vault_letsencrypt_contact }}"

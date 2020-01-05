@@ -420,7 +420,7 @@ server:
 
 	# Allow the domain (and its subdomains) to contain private addresses.
 	# local-data statements are allowed to contain private addresses too.
-	# private-domain: "example.com"
+	private-domain: "localdomain"
 
 	# If nonzero, unwanted replies are not only reported in statistics,
 	# but also a running total is kept per thread. If it reaches the
@@ -693,6 +693,8 @@ server:
 	# you need to do the reverse notation yourself.
 	# local-data-ptr: "192.0.2.3 www.example.com"
 
+	local-data: "unifi.{{ global_domain }}. A {{ hostvars['unifi']['lan_ipv4_address'] }}"
+
 	# tag a localzone with a list of tag names (in "" with spaces between)
 	# local-zone-tag: "example.com" "tag2 tag3"
 
@@ -870,12 +872,17 @@ remote-control:
 #	stub-host: ns.example.com.
 
 forward-zone:
+	name: "localdomain"
+	forward-addr: "{{ hostvars['usg']['lan_ipv4_address'] }}"
+	forward-no-cache: yes
+
+forward-zone:
 	name: "."
- 	forward-addr: 1.1.1.1@853#cloudflare-dns.com
- 	forward-addr: 1.0.0.1@853#cloudflare-dns.com
- 	# forward-addr: 2606:4700:4700::1111@853#cloudflare-dns.com
- 	# forward-addr: 2606:4700:4700::1001@853#cloudflare-dns.com
- 	forward-tls-upstream: yes
+	forward-addr: 1.1.1.1@853#cloudflare-dns.com
+	forward-addr: 1.0.0.1@853#cloudflare-dns.com
+	# forward-addr: 2606:4700:4700::1111@853#cloudflare-dns.com
+	# forward-addr: 2606:4700:4700::1001@853#cloudflare-dns.com
+	forward-tls-upstream: yes
 
 # Authority zones
 # The data for these zones is kept locally, from a file or downloaded.
