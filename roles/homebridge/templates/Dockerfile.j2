@@ -10,9 +10,11 @@ RUN apk add --no-cache \
 	&& npm install -g --unsafe-perm \
 		homebridge@0.4.50 \
 		homebridge-bravia \
+		homebridge-config-ui-x \
+		homebridge-platform-gira-homeserver@0.0.8 \
 		homebridge-unifi-occupancy-sensor \
 	&& mkdir /homebridge
 
 VOLUME /homebridge
 
-CMD ["/usr/bin/homebridge", "--no-qrcode", "--remove-orphans", "--user-storage-path", "/homebridge"]
+CMD ["/usr/bin/homebridge", "-D", "-I", "-R", "-U", "/homebridge"]

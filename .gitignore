@@ -1,6 +1,6 @@
 *.mobileconfig
 *.pyc
 *.swp
-/.envrc
-/.vault_password
-/backup/
+.envrc
+.vault_password
+backup/

@@ -74,7 +74,7 @@
     - lineinfile:
         path: /etc/avahi/avahi-daemon.conf
         regexp: allow-interfaces=
-        line: allow-interfaces={{ lan_if }}
+        line: allow-interfaces={{ lan_if }},{{ iot_if }}
       notify: restart avahi-daemon
 
     - lineinfile:

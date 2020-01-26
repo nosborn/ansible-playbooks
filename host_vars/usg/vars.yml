@@ -15,6 +15,7 @@ dynamic_dns_dnsomatic_protocol: dyndns2
 dynamic_dns_dnsomatic_server: updates.dnsomatic.com
 guest_if: "{{ vault_guest_if }}"
 guest_ipv4_address: "{{ vault_guest_ipv4_address }}"
+iot_if: "{{ vault_iot_if }}"
 lan_if: "{{ vault_lan_if }}"
 lan_ipv4_address: "{{ vault_lan_ipv4_address }}"
 lan_ipv6_address: "{{ vault_lan_ipv6_address }}"
