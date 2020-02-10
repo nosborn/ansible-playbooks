@@ -67,7 +67,6 @@
           - set system package repository {{ ansible_distribution_release }} url http://archive.debian.org/debian
         save: true
       connection: network_cli
-      register: r
       notify: update apt cache
 
   tasks:

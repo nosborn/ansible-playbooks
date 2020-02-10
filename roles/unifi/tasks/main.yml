@@ -13,7 +13,7 @@
     dest: /srv/unifi/data/sites/default/config.gateway.json
     owner: unifi
     group: unifi
-    mode: 0640
+    mode: 0440
 
 # - template:
 #     src: config.properties.j2
@@ -73,7 +73,7 @@
     path: /etc/ssl/private/cloudkey.key
     owner: root
     group: ssl-cert
-    mode: 0640
+    mode: 0440
   notify: restart nginx
 
 - openssl_csr:
@@ -82,17 +82,17 @@
     path: /etc/ssl/private/cloudkey.csr
     owner: root
     group: ssl-cert
-    mode: 0640
+    mode: 0440
 
 - acme_certificate:
     account_key_content: "{{ letsencrypt_account_key }}"
-    # account_uri: letsencrypt_account.account_uri
     acme_directory: "{{ letsencrypt_acme_directory }}"
     acme_version: "{{ letsencrypt_acme_version }}"
     challenge: dns-01
     csr: /etc/ssl/private/cloudkey.csr
     fullchain_dest: /etc/ssl/private/cloudkey.crt
     modify_account: false
+    remaining_days: "{{ unifi_acme_certificate_remaining_days }}"
   register: letsencrypt_challenge
 
 - debug:
@@ -120,6 +120,7 @@
     data: "{{ letsencrypt_challenge }}"
     fullchain_dest: /etc/ssl/private/cloudkey.crt
     modify_account: false
+    remaining_days: "{{ unifi_acme_certificate_remaining_days }}"
   notify: restart nginx
   when: letsencrypt_challenge.changed
 
@@ -127,7 +128,7 @@
     path: /etc/ssl/private/cloudkey.crt
     owner: root
     group: ssl-cert
-    mode: 0644
+    mode: 0444
     state: file
   notify: restart nginx
 
@@ -139,7 +140,7 @@
     privatekey_path: /etc/ssl/private/cloudkey.key
     owner: root
     group: root
-    mode: 0600
+    mode: 0400
     backup: true
 
 - java_cert:
@@ -150,19 +151,25 @@
     pkcs12_alias: unifi
     pkcs12_path: /etc/ssl/private/cloudkey.p12
   notify: restart unifi
-  when: false
+
+- slurp:
+    src: /etc/ssl/private/cloudkey.crt
+  register: unifi_certificate
+
+- slurp:
+    src: /etc/ssl/private/cloudkey.key
+  register: unifi_private_key
 
 - java_keystore:
     name: unifi
-    certificate: /etc/ssl/private/cloudkey.crt
-    private_key: /etc/ssl/private/cloudkey.key
+    certificate: "{{ unifi_certificate['content'] | b64decode }}"
+    private_key: "{{ unifi_private_key['content'] | b64decode }}"
     password: "{{ unifi_jks_password }}"
     dest: /etc/ssl/private/unifi.keystore.jks
     owner: root
     group: ssl-cert
-    mode: 0640
+    mode: 0440
   notify: restart unifi
-  when: false
 
 - stat:
     path: /etc/ssl/private/unifi.keystore.jks
@@ -176,7 +183,7 @@
     dest: /etc/ssl/private/unifi.keystore.jks.md5
     owner: root
     group: root
-    mode: 0644
+    mode: 0444
 
 - fetch:
     dest: backup
