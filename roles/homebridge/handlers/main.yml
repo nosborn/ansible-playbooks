@@ -1,4 +1,3 @@
-# roles/homebridge/handlers/main
 ---
 - name: restart homebridge
   docker_container:

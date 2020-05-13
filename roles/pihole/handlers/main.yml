@@ -1,9 +1,0 @@
-# roles/pihole/handlers/main
----
-- name: restart pihole
-  docker_container:
-    name: "{{ pihole_container_name }}"
-    comparisons:
-      "*": ignore
-    restart: true
-    state: started

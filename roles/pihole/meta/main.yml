@@ -1,5 +1,0 @@
-# roles/pihole/meta/main
----
-dependencies:
-  - role: docker
-  - role: unbound

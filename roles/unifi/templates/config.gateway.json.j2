@@ -9,7 +9,7 @@
           },
           "inbound-interface": "{{ hostvars['usg']['lan_if'] }}",
           "inside-address": {
-            "address": "{{ pihole_ipv4_address }}",
+            "address": "{{ unbound_ipv4_address }}",
             "port": "53"
           },
           "log": "enable",
@@ -22,7 +22,7 @@
         "5001": {
           "description": "Masquerade for Captive DNS",
           "destination": {
-            "address": "{{ pihole_ipv4_address }}",
+            "address": "{{ unbound_ipv4_address }}",
             "port": "53"
           },
           "log": "disable",

@@ -1,8 +1,8 @@
-FROM alpine:3.11.2
+FROM alpine:3.11.6
 
 RUN apk add --no-cache \
 		drill=1.7.1-r1 \
-		tzdata=2019c-r0 \
+		tzdata=2020a-r0 \
 		unbound=1.9.6-r0 \
 	&& cp /usr/share/zoneinfo/{{ timezone }} /etc/localtime \
 	&& echo '{{ timezone }}' >/etc/timezone \

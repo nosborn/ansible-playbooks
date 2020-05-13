@@ -1,4 +1,0 @@
-# roles/pihole/vars/main
----
-pihole_container_name: pihole
-pihole_image_name: pihole/pihole:4.3.2-1

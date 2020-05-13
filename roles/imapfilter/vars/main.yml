@@ -1,5 +1,4 @@
-# roles/imapfilter/vars/main
 ---
 imapfilter_container_name: imapfilter
 imapfilter_image_build_path: /tmp/{{ imapfilter_container_name }}-build
-imapfilter_image_name: imapfilter:20200105-1
+imapfilter_image_name: imapfilter:20200511-1

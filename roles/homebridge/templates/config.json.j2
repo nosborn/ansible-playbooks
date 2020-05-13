@@ -20,40 +20,5 @@
       "watchGuests": true,
       "mode": "any"
     }
-  ],
-  "platforms":[
-    {
-      "platform": "BraviaPlatform",
-      "tvs": [
-        {
-          "name": "TV",
-          "ip": "{{ homebridge_config_platforms_bravia_ip }}",
-          "sources": [
-            "extInput:hdmi",
-            {# "extInput:component", #}
-            "extInput:cec",
-            "extInput:widi"
-          ],
-          "applications": false,
-          "soundoutput": "speaker",
-          "cookiepath": "/homebridge/sonycookie"
-        }
-      ]
-    },
-    {
-      "platform": "GiraHomeServerPlatform",
-      "name": "Gira HomeServer",
-      "quadClient": {
-        "host": "{{ homebridge_config_platforms_gira_host }}",
-        "port": "{{ homebridge_config_platforms_gira_port }}",
-        "username": "{{ homebridge_config_platforms_gira_username }}",
-        "password": "{{ homebridge_config_platforms_gira_password }}"
-      }
-    },
-    {
-      "platform": "config",
-      "name": "Config",
-      "port": 8080
-    }
   ]
 }

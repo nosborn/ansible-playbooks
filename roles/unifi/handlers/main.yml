@@ -1,4 +1,3 @@
-# roles/unifi/handlers/main
 ---
 - name: restart nginx
   service:

@@ -15,6 +15,3 @@ diskstation
 [letsencrypt]
 diskstation
 unifi
-
-[pihole]
-diskstation

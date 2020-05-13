@@ -1,4 +1,3 @@
-# roles/homebridge/tasks/main
 ---
 - name: create build directory
   file:
@@ -52,7 +51,7 @@
     # comparisons:
     #   mac_address: ignore
     dns_servers:
-      - "{{ pihole_ipv4_address }}"
+      - "{{ unbound_ipv4_address }}"
     image: "{{ homebridge_image_name }}"
     networks:
       - name: macvlan

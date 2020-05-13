@@ -27,7 +27,7 @@
     - name: set timezone
       lineinfile:
         path: /etc/synoinfo.conf
-        regexp: "^timezone="
+        regexp: ^timezone=
         line: timezone={{ synology_timezone }}
         owner: root
         group: root
@@ -44,10 +44,9 @@
       when: false
 
   roles:
-    - role: cloud-sync
+    # - role: cloud-sync
     - role: homebridge
     - role: imapfilter
-    - role: pihole
     - role: unbound
     - role: video-station
 
@@ -70,13 +69,15 @@
       notify: update apt cache
 
   tasks:
-    - lineinfile:
+    - name: set allowed interfaces for avahi
+      lineinfile:
         path: /etc/avahi/avahi-daemon.conf
         regexp: allow-interfaces=
         line: allow-interfaces={{ lan_if }},{{ iot_if }}
       notify: restart avahi-daemon
 
-    - lineinfile:
+    - name: set denied interfaces for avahi
+      lineinfile:
         path: /etc/avahi/avahi-daemon.conf
         regexp: deny-interfaces=
         line: deny-interfaces={{ wan_if }}
@@ -90,13 +91,13 @@
 
     - name: upgrade ddclient
       get_url:
-        url: https://raw.githubusercontent.com/ddclient/ddclient/v3.9.0/ddclient
+        url: https://raw.githubusercontent.com/ddclient/ddclient/v3.9.1/ddclient
         dest: /usr/sbin/ddclient
         backup: true
         owner: root
         group: root
         mode: 0555
-        checksum: sha1:fc443f87fbe35f923a069d120cd3170398f151f7
+        checksum: sha1:ee4727b722a209d67552d113cdc003e5fb89d9af
 
     - name: Domain Name Server (DNS) parameters
       edgeos_config:
@@ -111,6 +112,7 @@
           # - set service dns dynamic interface {{ hostvars['usg']['wan_if'] }} service custom-dnsomatic password '{{ dynamic_dns_dnsomatic_password }}'
           # - set service dns dynamic interface {{ hostvars['usg']['wan_if'] }} service custom-dnsomatic protocol {{ dynamic_dns_dnsomatic_protocol }}
           # - set service dns dynamic interface {{ hostvars['usg']['wan_if'] }} service custom-dnsomatic server {{ dynamic_dns_dnsomatic_server }}
+          - set service dns dynamic interface {{ hostvars['usg']['wan_if'] }} web dyndns
           # - set service dns forwarding cache-size 10000
           # - set service dns forwarding except-interface {{ wan_if }}
           # - set service dns forwarding options domain-needed
@@ -118,6 +120,11 @@
           # - set service dns forwarding options proxy-dnssec
         save: true
       connection: network_cli
+
+    - name: install wireguard
+      apt:
+        deb: https://github.com/WireGuard/wireguard-vyatta-ubnt/releases/download/1.0.20200506-1/ugw3-v1-v1.0.20200506-v1.0.20200319.deb
+        state: present
 
   handlers:
     - name: restart avahi-daemon

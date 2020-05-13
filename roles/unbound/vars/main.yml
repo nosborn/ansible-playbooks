@@ -1,5 +1,4 @@
-# roles/unbound/vars/main
 ---
 unbound_container_name: unbound
 unbound_image_build_path: /tmp/{{ unbound_container_name }}-build
-unbound_image_name: unbound:20200119-1
+unbound_image_name: unbound:20200512-1

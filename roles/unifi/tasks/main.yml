@@ -1,4 +1,3 @@
-# roles/unifi/tasks/main
 # yamllint disable rule:line-length
 ---
 - file:
@@ -14,6 +13,7 @@
     owner: unifi
     group: unifi
     mode: 0440
+  when: false  # FIXME
 
 # - template:
 #     src: config.properties.j2
@@ -78,7 +78,7 @@
 
 - openssl_csr:
     privatekey_path: /etc/ssl/private/cloudkey.key
-    common_name: "unifi.{{ global_domain }}"
+    common_name: unifi.{{ global_domain }}
     path: /etc/ssl/private/cloudkey.csr
     owner: root
     group: ssl-cert
@@ -102,10 +102,10 @@
 - cloudflare_dns:
     account_api_token: "{{ cloudflare_account_api_token }}"
     account_email: "{{ cloudflare_account_email }}"
-    record: "{{ letsencrypt_challenge.challenge_data['unifi.'+global_domain]['dns-01']['resource'] }}.unifi"
+    record: "{{ letsencrypt_challenge.challenge_data['unifi.'~global_domain]['dns-01']['resource'] }}.unifi"
     solo: true
     type: TXT
-    value: "{{ letsencrypt_challenge.challenge_data['unifi.'+global_domain]['dns-01']['resource_value'] }}"
+    value: "{{ letsencrypt_challenge.challenge_data['unifi.'~global_domain]['dns-01']['resource_value'] }}"
     zone: "{{ global_domain }}"
   when: letsencrypt_challenge.changed
   delegate_to: localhost

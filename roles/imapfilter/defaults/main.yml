@@ -1,3 +1,2 @@
-# roles/imapfilter/defaults/main
 ---
 imapfilter_imap_ssl: auto

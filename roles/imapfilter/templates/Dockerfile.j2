@@ -1,7 +1,7 @@
-FROM alpine:3.11.2
+FROM alpine:3.11.6
 
 RUN apk add --no-cache \
-		tzdata=2019c-r0 \
+		tzdata=2020a-r0 \
 	&& cp /usr/share/zoneinfo/{{ timezone }} /etc/localtime \
 	&& echo '{{ timezone }}' >/etc/timezone \
 	&& apk del --no-cache --purge tzdata \

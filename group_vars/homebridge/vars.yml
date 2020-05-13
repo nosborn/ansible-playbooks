@@ -6,8 +6,3 @@ homebridge_config_accessories_unifi_username: "{{ vault_homebridge_config_access
 homebridge_config_accessories_watch: "{{ vault_homebridge_config_accessories_watch }}"
 homebridge_config_bridge_pin: "{{ vault_homebridge_config_bridge_pin }}"
 homebridge_config_bridge_username: "{{ vault_homebridge_config_bridge_username }}"
-homebridge_config_platforms_bravia_ip: "{{ vault_homebridge_config_platforms_bravia_ip }}"
-homebridge_config_platforms_gira_host: "{{ vault_homebridge_config_platforms_gira_host }}"
-homebridge_config_platforms_gira_password: "{{ vault_homebridge_config_platforms_gira_password }}"
-homebridge_config_platforms_gira_port: "{{ vault_homebridge_config_platforms_gira_port }}"
-homebridge_config_platforms_gira_username: "{{ vault_homebridge_config_platforms_gira_username }}"

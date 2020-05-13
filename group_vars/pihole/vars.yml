@@ -1,5 +1,0 @@
----
-pihole_adlist_urls: "{{ vault_pihole_adlist_urls }}"
-pihole_admin_password: "{{ vault_pihole_admin_password }}"
-pihole_blacklist_domains: "{{ vault_pihole_blacklist_domains }}"
-pihole_whitelist_domains: "{{ vault_pihole_whitelist_domains }}"
