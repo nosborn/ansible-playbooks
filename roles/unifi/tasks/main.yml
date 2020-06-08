@@ -13,7 +13,6 @@
     owner: unifi
     group: unifi
     mode: 0440
-  when: false  # FIXME
 
 # - template:
 #     src: config.properties.j2

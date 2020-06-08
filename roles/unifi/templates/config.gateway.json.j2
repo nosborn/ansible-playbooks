@@ -1,35 +1,30 @@
 {
-  "service": {
-    "nat": {
-      "rule": {
-        "1": {
-          "description": "Captive DNS",
-          "destination": {
-            "port": "53"
-          },
-          "inbound-interface": "{{ hostvars['usg']['lan_if'] }}",
-          "inside-address": {
-            "address": "{{ unbound_ipv4_address }}",
-            "port": "53"
-          },
-          "log": "enable",
-          "protocol": "tcp_udp",
-          "source": {
-            "address": "!{{ unifi_captive_dns_exclude }}"
-          },
-          "type": "destination"
+  "protocols": {
+    "igmp-proxy": {
+      "interface": {
+        "{{ hostvars['usg']['lan_if'] }}": {
+          "role": "upstream",
+          "threshold": "1",
+          "alt-subnet": "0.0.0.0/0"
         },
-        "5001": {
-          "description": "Masquerade for Captive DNS",
-          "destination": {
-            "address": "{{ unbound_ipv4_address }}",
-            "port": "53"
-          },
-          "log": "disable",
-          "outbound-interface": "{{ hostvars['usg']['lan_if'] }}",
-          "protocol": "tcp_udp",
-          "type": "masquerade"
+        "{{ hostvars['usg']['iot_if'] }}": {
+          "role": "downstream",
+          "threshold": "1",
+          "alt-subnet": "0.0.0.0/0"
         }
+      }
+    }
+  },
+  "service": {
+    "gui": {
+      "older-ciphers": "disable"
+    },
+    "mdns": {
+      "repeater": {
+        "interface": [
+          "{{ hostvars['usg']['lan_if'] }}",
+          "{{ hostvars['usg']['iot_if'] }}"
+        ]
       }
     }
   }

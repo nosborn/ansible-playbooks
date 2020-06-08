@@ -1,3 +1,4 @@
 ---
 homebridge_container_name: homebridge
-homebridge_image_name: homebridge:20200512-1
+homebridge_image_build_path: /tmp/{{ homebridge_container_name }}-build
+homebridge_image_name: "{{ homebridge_container_name }}:20200606-2"

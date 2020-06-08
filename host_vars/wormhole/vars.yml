@@ -1,0 +1,7 @@
+# yamllint disable rule:line-length
+---
+ansible_host: "{{ lan_ipv4_address }}"
+lan_if: "{{ vault_lan_if }}"
+lan_ipv4_address: "{{ vault_lan_ipv4_address }}"
+wlan_if: "{{ vault_wlan_if }}"
+wlan_ipv4_address: "{{ vault_wlan_ipv4_address }}"

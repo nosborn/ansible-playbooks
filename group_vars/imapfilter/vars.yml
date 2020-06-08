@@ -1,5 +1,0 @@
----
-imapfilter_imap_password: "{{ vault_imapfilter_imap_password }}"
-imapfilter_imap_server: "{{ vault_imapfilter_imap_server }}"
-imapfilter_imap_username: "{{ vault_imapfilter_imap_username }}"
-imapfilter_rules: "{{ vault_imapfilter_rules }}"

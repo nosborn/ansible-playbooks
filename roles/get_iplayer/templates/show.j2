@@ -1,0 +1,10 @@
+{% if 'channel' in item.value %}
+channel {{ item.value.channel }}
+{% endif %}
+search0 {{ item.value.search0 }}
+{% if 'type' in item.value %}
+type {{ item.value.type }}
+{% else %}
+type tv
+{% endif %}
+whitespace 1

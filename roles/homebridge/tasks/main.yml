@@ -1,7 +1,8 @@
+# yamllint disable rule:line-length
 ---
 - name: create build directory
   file:
-    path: /tmp/homebridge-image
+    path: "{{ homebridge_image_build_path }}"
     owner: root
     group: root
     mode: 0700
@@ -10,7 +11,7 @@
 - name: upload Dockerfile
   template:
     src: Dockerfile.j2
-    dest: /tmp/homebridge-image/Dockerfile
+    dest: "{{ homebridge_image_build_path }}/Dockerfile"
     owner: root
     group: root
     mode: 0400
@@ -20,24 +21,21 @@
     name: "{{ homebridge_image_name }}"
     build:
       dockerfile: Dockerfile
-      path: /tmp/homebridge-image
+      path: "{{ homebridge_image_build_path }}"
       pull: true
     source: build
 
 - name: create persistent storage
   file:
-    path: "{{ item }}"
+    path: "{{ docker_persistent_storage }}/{{ homebridge_container_name }}"
     owner: root
     group: root
     mode: 0755
     state: directory
-  loop:
-    - /volume1/docker/homebridge
-    - /volume1/docker/homebridge/homebridge
 
 - template:
     src: "{{ item }}.j2"
-    dest: /volume1/docker/homebridge/homebridge/{{ item }}
+    dest: "{{ docker_persistent_storage }}/{{ homebridge_container_name }}/{{ item }}"
     owner: root
     group: root
     mode: 0644
@@ -59,4 +57,4 @@
     networks_cli_compatible: true
     restart_policy: unless-stopped
     volumes:
-      - /volume1/docker/homebridge/homebridge/:/homebridge/
+      - "{{ docker_persistent_storage }}/{{ homebridge_container_name }}/:/homebridge/"

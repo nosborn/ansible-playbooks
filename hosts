@@ -1,10 +1,17 @@
 [EdgeOS]
 usg
 
+# [OpenBSD]
+# wormhole
+
+[get_iplayer]
+diskstation
+
 [home]
 diskstation
 unifi
 usg
+# wormhole
 
 [homebridge]
 diskstation
@@ -15,3 +22,6 @@ diskstation
 [letsencrypt]
 diskstation
 unifi
+
+# [pihole]
+# diskstation

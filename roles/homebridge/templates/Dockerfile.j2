@@ -1,14 +1,14 @@
-FROM alpine:3.11.6
+FROM alpine:3.12.0
 
 RUN apk add --no-cache \
-		nodejs=12.15.0-r1 \
-		npm=12.15.0-r1 \
+		nodejs=12.17.0-r0 \
+		npm=12.17.0-r0 \
 		tzdata=2020a-r0 \
 	&& cp /usr/share/zoneinfo/{{ timezone }} /etc/localtime \
 	&& npm set global-style=true \
 	&& npm set package-lock=false \
 	&& npm install -g --unsafe-perm \
-		homebridge@1.0.4 \
+		homebridge@1.1.0 \
 		homebridge-unifi-occupancy-sensor \
 	&& mkdir /homebridge
 

@@ -1,0 +1,26 @@
+FROM alpine:3.12.0
+
+COPY pvr.sh /etc/periodic/hourly/pvr
+
+RUN apk add --no-cache \
+		ffmpeg=4.2.3-r0 \
+		perl=5.30.2-r0 \
+		perl-cgi=4.47-r0 \
+		perl-json=4.02-r0 \
+		perl-lwp-protocol-https=6.07-r1 \
+		perl-mojolicious=8.50-r0 \
+		perl-xml-libxml=2.0205-r0 \
+		tzdata=2020a-r0 \
+	&& cp /usr/share/zoneinfo/Asia/Singapore /etc/localtime \
+	&& echo 'Asia/Singapore' >/etc/timezone \
+	&& apk del --no-cache --purge tzdata \
+	&& apk add --no-cache --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing \
+		atomicparsley=0.9.6-r1 \
+	&& wget https://github.com/get-iplayer/get_iplayer/archive/v3.25.tar.gz \
+	&& tar -xzf v3.25.tar.gz \
+	&& rm v3.25.tar.gz \
+	&& chmod 755 get_iplayer-3.25/get_iplayer \
+	&& mv get_iplayer-3.25/get_iplayer /usr/bin/ \
+	&& rm -r get_iplayer-3.25
+
+CMD ["/usr/bin/get_iplayer", "--pvrscheduler", "3600", "--silent"]

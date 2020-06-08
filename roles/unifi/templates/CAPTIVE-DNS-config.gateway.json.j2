@@ -1,0 +1,36 @@
+{
+  "service": {
+    "nat": {
+      "rule": {
+        "1": {
+          "description": "Captive DNS",
+          "destination": {
+            "port": "53"
+          },
+          "inbound-interface": "{{ hostvars['usg']['lan_if'] }}",
+          "inside-address": {
+            "address": "{{ unbound_ipv4_address }}",
+            "port": "53"
+          },
+          "log": "enable",
+          "protocol": "tcp_udp",
+          "source": {
+            "address": "!{{ unifi_captive_dns_exclude }}"
+          },
+          "type": "destination"
+        },
+        "5001": {
+          "description": "Masquerade for Captive DNS",
+          "destination": {
+            "address": "{{ unbound_ipv4_address }}",
+            "port": "53"
+          },
+          "log": "disable",
+          "outbound-interface": "{{ hostvars['usg']['lan_if'] }}",
+          "protocol": "tcp_udp",
+          "type": "masquerade"
+        }
+      }
+    }
+  }
+}

@@ -45,8 +45,13 @@
 
   roles:
     # - role: cloud-sync
+    - role: get_iplayer
     - role: homebridge
     - role: imapfilter
+    - role: itunes-server
+    # - role: pihole
+    #   tags:
+    #     - pihole
     - role: unbound
     - role: video-station
 
@@ -69,6 +74,16 @@
       notify: update apt cache
 
   tasks:
+    - name: install script to mangle TTL with iptables
+      template:
+        src: post-config.d/iptables_ttl_mangle.sh.j2
+        dest: /config/scripts/post-config.d/iptables_ttl_mangle.sh
+        owner: root
+        group: vyattacfg
+        mode: 0755
+        validate: /bin/sh -n %s
+      notify: iptables mangle ttl
+
     - name: set allowed interfaces for avahi
       lineinfile:
         path: /etc/avahi/avahi-daemon.conf
@@ -120,13 +135,18 @@
           # - set service dns forwarding options proxy-dnssec
         save: true
       connection: network_cli
+      when: false
 
     - name: install wireguard
       apt:
         deb: https://github.com/WireGuard/wireguard-vyatta-ubnt/releases/download/1.0.20200506-1/ugw3-v1-v1.0.20200506-v1.0.20200319.deb
         state: present
+      when: false
 
   handlers:
+    - name: iptables mangle ttl
+      command: /config/scripts/post-config.d/iptables_ttl_mangle.sh
+
     - name: restart avahi-daemon
       service:
         name: avahi-daemon
@@ -135,3 +155,29 @@
     - name: update apt cache
       apt:
         update_cache: true
+
+- hosts: wormhole
+
+  # pre_tasks:
+  #   - name: set timezone
+  #     lineinfile:
+  #       path: /etc/synoinfo.conf
+  #       regexp: ^timezone=
+  #       line: timezone={{ synology_timezone }}
+  #       owner: root
+  #       group: root
+  #       mode: 0644
+  #     when: false
+
+  #   - name: set localtime
+  #     copy:
+  #       content: "{{ synology_tz }}\n"
+  #       dest: /etc/TZ
+  #       owner: root
+  #       group: root
+  #       mode: 0644
+  #     when: false
+
+  roles:
+    - role: unbound
+      when: false

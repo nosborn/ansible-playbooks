@@ -1,3 +1,4 @@
+# yamllint disable rule:line-length
 ---
 - name: create build directory
   file:
@@ -26,7 +27,7 @@
 
 - name: create persistent storage
   file:
-    path: /volume1/docker/imapfilter
+    path: "{{ docker_persistent_storage }}/imapfilter"
     owner: root
     group: root
     mode: 0755
@@ -35,7 +36,7 @@
 - name: upload configuration file
   template:
     src: config.lua.j2
-    dest: /volume1/docker/imapfilter/config.lua
+    dest: "{{ docker_persistent_storage }}/imapfilter/config.lua"
     owner: root
     group: root
     mode: 0644
@@ -51,4 +52,4 @@
     network_mode: bridge
     restart_policy: unless-stopped
     volumes:
-      - /volume1/docker/imapfilter/config.lua:/root/.imapfilter/config.lua:ro
+      - "{{ docker_persistent_storage }}/imapfilter/config.lua:/root/.imapfilter/config.lua:ro"
