@@ -1,5 +1,0 @@
----
-ansible_become: "{{ vault_ansible_become }}"
-ansible_python_interpreter: /usr/local/bin/python3
-ansible_user: "{{ vault_ansible_user }}"
-root_group: wheel

@@ -2,7 +2,7 @@ FROM alpine:3.12.0
 
 RUN apk add --no-cache \
 		tzdata=2020a-r0 \
-	&& cp /usr/share/zoneinfo/{{ timezone }} /etc/localtime \
+	&& cp '/usr/share/zoneinfo/{{ timezone }}' /etc/localtime \
 	&& echo '{{ timezone }}' >/etc/timezone \
 	&& apk del --no-cache --purge tzdata \
 	&& apk add --no-cache --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing \

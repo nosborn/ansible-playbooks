@@ -17,7 +17,7 @@
     mode: 0400
   loop:
     - Dockerfile
-    - pvr.sh
+    - pvr
 
 - name: build image
   docker_image:
@@ -48,7 +48,7 @@
     mode: 0444
   notify: restart get_iplayer
 
-- name: upload PCR configuration files
+- name: upload PVR configuration files
   template:
     src: show.j2
     dest: "{{ docker_persistent_storage }}/{{ get_iplayer_container_name }}/pvr/{{ item.key }}"

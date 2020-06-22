@@ -2,21 +2,11 @@
 ansible_host: "{{ lan_ipv4_address }}"
 ansible_python_interpreter: "{{ vault_ansible_python_interpreter }}"
 ansible_user: "{{ vault_ansible_user }}"
-dynamic_dns_cloudflare_host_name: "{{ vault_dynamic_dns_cloudflare_host_name }}"
-dynamic_dns_cloudflare_login: "{{ vault_dynamic_dns_cloudflare_login }}"
-dynamic_dns_cloudflare_options: "{{ vault_dynamic_dns_cloudflare_options }}"
-dynamic_dns_cloudflare_password: "{{ vault_dynamic_dns_cloudflare_password }}"
-dynamic_dns_cloudflare_server: api.cloudflare.com/client/v4
-dynamic_dns_dnsomatic_host_name: all.dnsomatic.com
-dynamic_dns_dnsomatic_login: "{{ vault_dynamic_dns_dnsomatic_login }}"
-dynamic_dns_dnsomatic_password: "{{ vault_dynamic_dns_dnsomatic_password }}"
-dynamic_dns_dnsomatic_protocol: dyndns2
-dynamic_dns_dnsomatic_server: updates.dnsomatic.com
 guest_if: "{{ vault_guest_if }}"
 guest_ipv4_address: "{{ vault_guest_ipv4_address }}"
 iot_if: "{{ vault_iot_if }}"
 lan_if: "{{ vault_lan_if }}"
 lan_ipv4_address: "{{ vault_lan_ipv4_address }}"
-lan_ipv6_address: "{{ vault_lan_ipv6_address }}"
 lan2_if: "{{ vault_lan2_if }}"
 wan_if: "{{ vault_wan_if }}"
+wan_ipv4_address: "{{ vault_wan_ipv4_address }}"

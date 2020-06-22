@@ -1,4 +1,19 @@
 {
+  "interfaces": {
+    "tunnel": {
+      "tun0": {
+        "address": [
+          "{{ ipv6_tunnel_address }}"
+        ],
+        "description": "IPv6 Tunnel",
+        "encapsulation": "sit",
+        "local-ip": "{{ hostvars['usg']['wan_ipv4_address'] }}",
+        "multicast": "disable",
+        "remote-ip": "{{ ipv6_tunnel_remote_ip }}",
+        "ttl": "255"
+      }
+    }
+  },
   "protocols": {
     "igmp-proxy": {
       "interface": {
@@ -11,6 +26,15 @@
           "role": "downstream",
           "threshold": "1",
           "alt-subnet": "0.0.0.0/0"
+        }
+      }
+    },
+    "static": {
+      "interface-route6": {
+        "::/0": {
+          "next-hop-interface": {
+            "tun0": "''"
+          }
         }
       }
     }

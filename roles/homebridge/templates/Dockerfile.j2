@@ -4,12 +4,13 @@ RUN apk add --no-cache \
 		nodejs=12.17.0-r0 \
 		npm=12.17.0-r0 \
 		tzdata=2020a-r0 \
-	&& cp /usr/share/zoneinfo/{{ timezone }} /etc/localtime \
+	&& cp '/usr/share/zoneinfo/{{ timezone }}' /etc/localtime \
+	&& echo '{{ timezone }}' >/etc/timezone \
 	&& npm set global-style=true \
 	&& npm set package-lock=false \
 	&& npm install -g --unsafe-perm \
 		homebridge@1.1.0 \
-		homebridge-unifi-occupancy-sensor \
+		homebridge-unifi-occupancy-sensor@1.0.0 \
 	&& mkdir /homebridge
 
 VOLUME /homebridge

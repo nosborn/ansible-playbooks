@@ -9,6 +9,7 @@
 - name: install python support
   pip:
     name: docker
+    executable: "{{ pip_executable }}"
     extra_args: --no-cache-dir
     state: present
 

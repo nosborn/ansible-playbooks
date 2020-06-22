@@ -1,26 +1,5 @@
 # yamllint disable rule:line-length
 ---
-- hosts: all
-  gather_facts: false
-
-  pre_tasks:
-    - name: create custom fact directory
-      file:
-        path: /etc/ansible/facts.d
-        state: directory
-        owner: root
-        mode: 0755
-      when: false
-
-    - name: install custom fact file
-      template:
-        src: facts.d/custom.fact.j2
-        dest: /etc/ansible/facts.d/custom.fact
-        owner: root
-        mode: 0555
-        validate: /bin/sh -n %s
-      when: false
-
 - hosts: diskstation
 
   pre_tasks:
@@ -45,13 +24,11 @@
 
   roles:
     # - role: cloud-sync
+    - role: download-station
     - role: get_iplayer
     - role: homebridge
     - role: imapfilter
     - role: itunes-server
-    # - role: pihole
-    #   tags:
-    #     - pihole
     - role: unbound
     - role: video-station
 
@@ -98,41 +75,14 @@
         line: deny-interfaces={{ wan_if }}
       notify: restart avahi-daemon
 
-    - name: install ddclient dependencies
-      apt:
-        name: libdata-validate-ip-perl
-        install_recommends: false
-        state: present
-
-    - name: upgrade ddclient
-      get_url:
-        url: https://raw.githubusercontent.com/ddclient/ddclient/v3.9.1/ddclient
-        dest: /usr/sbin/ddclient
-        backup: true
-        owner: root
-        group: root
-        mode: 0555
-        checksum: sha1:ee4727b722a209d67552d113cdc003e5fb89d9af
-
     - name: Domain Name Server (DNS) parameters
       edgeos_config:
         lines:
-          - set service dns dynamic interface {{ hostvars['usg']['wan_if'] }} service cloudflare host-name {{ dynamic_dns_cloudflare_host_name }}
-          - set service dns dynamic interface {{ hostvars['usg']['wan_if'] }} service cloudflare login {{ dynamic_dns_cloudflare_login }}
-          - set service dns dynamic interface {{ hostvars['usg']['wan_if'] }} service cloudflare options {{ dynamic_dns_cloudflare_options }}
-          - set service dns dynamic interface {{ hostvars['usg']['wan_if'] }} service cloudflare password '{{ dynamic_dns_cloudflare_password }}'
-          - set service dns dynamic interface {{ hostvars['usg']['wan_if'] }} service cloudflare server {{ dynamic_dns_cloudflare_server }}
-          # - set service dns dynamic interface {{ hostvars['usg']['wan_if'] }} service custom-dnsomatic host-name {{ dynamic_dns_dnsomatic_host_name }}
-          # - set service dns dynamic interface {{ hostvars['usg']['wan_if'] }} service custom-dnsomatic login {{ dynamic_dns_dnsomatic_login }}
-          # - set service dns dynamic interface {{ hostvars['usg']['wan_if'] }} service custom-dnsomatic password '{{ dynamic_dns_dnsomatic_password }}'
-          # - set service dns dynamic interface {{ hostvars['usg']['wan_if'] }} service custom-dnsomatic protocol {{ dynamic_dns_dnsomatic_protocol }}
-          # - set service dns dynamic interface {{ hostvars['usg']['wan_if'] }} service custom-dnsomatic server {{ dynamic_dns_dnsomatic_server }}
-          - set service dns dynamic interface {{ hostvars['usg']['wan_if'] }} web dyndns
-          # - set service dns forwarding cache-size 10000
-          # - set service dns forwarding except-interface {{ wan_if }}
-          # - set service dns forwarding options domain-needed
-          # - set service dns forwarding options no-resolv  # FIXME: is this needed?
-          # - set service dns forwarding options proxy-dnssec
+          - set service dns forwarding cache-size 10000
+          - set service dns forwarding except-interface {{ wan_if }}
+          - set service dns forwarding options domain-needed
+          - set service dns forwarding options no-resolv  # FIXME: is this needed?
+          - set service dns forwarding options proxy-dnssec
         save: true
       connection: network_cli
       when: false
@@ -155,29 +105,3 @@
     - name: update apt cache
       apt:
         update_cache: true
-
-- hosts: wormhole
-
-  # pre_tasks:
-  #   - name: set timezone
-  #     lineinfile:
-  #       path: /etc/synoinfo.conf
-  #       regexp: ^timezone=
-  #       line: timezone={{ synology_timezone }}
-  #       owner: root
-  #       group: root
-  #       mode: 0644
-  #     when: false
-
-  #   - name: set localtime
-  #     copy:
-  #       content: "{{ synology_tz }}\n"
-  #       dest: /etc/TZ
-  #       owner: root
-  #       group: root
-  #       mode: 0644
-  #     when: false
-
-  roles:
-    - role: unbound
-      when: false
