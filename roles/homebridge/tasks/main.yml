@@ -2,7 +2,7 @@
 ---
 - name: create build directory
   file:
-    path: "{{ homebridge_image_build_path }}"
+    path: "{{ docker_persistent_storage }}/{{ homebridge_container_name }}/@build"
     owner: root
     group: root
     mode: 0700
@@ -11,7 +11,7 @@
 - name: upload Dockerfile
   template:
     src: Dockerfile.j2
-    dest: "{{ homebridge_image_build_path }}/Dockerfile"
+    dest: "{{ docker_persistent_storage }}/{{ homebridge_container_name }}/@build/Dockerfile"
     owner: root
     group: root
     mode: 0400
@@ -21,7 +21,7 @@
     name: "{{ homebridge_image_name }}"
     build:
       dockerfile: Dockerfile
-      path: "{{ homebridge_image_build_path }}"
+      path: "{{ docker_persistent_storage }}/{{ homebridge_container_name }}/@build"
       pull: true
     source: build
 

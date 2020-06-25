@@ -1,8 +1,16 @@
 # yamllint disable rule:line-length
 ---
+- name: create persistent storage
+  file:
+    path: "{{ docker_persistent_storage }}/{{ imapfilter_container_name }}"
+    owner: root
+    group: root
+    mode: 0755
+    state: directory
+
 - name: create build directory
   file:
-    path: "{{ imapfilter_image_build_path }}"
+    path: "{{ docker_persistent_storage }}/{{ imapfilter_container_name }}/build"
     owner: root
     group: root
     mode: 0700
@@ -11,7 +19,7 @@
 - name: upload Dockerfile
   template:
     src: Dockerfile.j2
-    dest: "{{ imapfilter_image_build_path }}/Dockerfile"
+    dest: "{{ docker_persistent_storage }}/{{ imapfilter_container_name }}/build/Dockerfile"
     owner: root
     group: root
     mode: 0400
@@ -21,25 +29,17 @@
     name: "{{ imapfilter_image_name }}"
     build:
       dockerfile: Dockerfile
-      path: "{{ imapfilter_image_build_path }}"
+      path: "{{ docker_persistent_storage }}/{{ imapfilter_container_name }}/build"
       pull: true
     source: build
-
-- name: create persistent storage
-  file:
-    path: "{{ docker_persistent_storage }}/imapfilter"
-    owner: root
-    group: root
-    mode: 0755
-    state: directory
 
 - name: upload configuration file
   template:
     src: config.lua.j2
-    dest: "{{ docker_persistent_storage }}/imapfilter/config.lua"
+    dest: "{{ docker_persistent_storage }}/{{ imapfilter_container_name }}/config.lua"
     owner: root
     group: root
-    mode: 0644
+    mode: 0444
   notify: restart imapfilter
 
 - name: create container
@@ -52,4 +52,4 @@
     network_mode: bridge
     restart_policy: unless-stopped
     volumes:
-      - "{{ docker_persistent_storage }}/imapfilter/config.lua:/root/.imapfilter/config.lua:ro"
+      - "{{ docker_persistent_storage }}/{{ imapfilter_container_name }}/config.lua:/root/.imapfilter/config.lua:ro"

@@ -1,0 +1,7 @@
+---
+- name: install package
+  command: /usr/syno/bin/synopkg install_from_server Virtualization
+  args:
+    creates: /var/packages/Virtualization/INFO
+  register: virtualization_package_result
+  until: virtualization_package_result is succeeded

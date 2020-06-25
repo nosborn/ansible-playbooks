@@ -1,0 +1,7 @@
+---
+- name: install package
+  command: /usr/syno/bin/synopkg install_from_server ReplicationService
+  args:
+    creates: /var/packages/ReplicationService/INFO
+  register: replication_service_package_result
+  until: replication_service_package_result is succeeded

@@ -1,8 +1,16 @@
 # yamllint disable rule:line-length
 ---
+- name: create persistent storage
+  file:
+    path: "{{ docker_persistent_storage }}/{{ unbound_container_name }}"
+    owner: root
+    group: root
+    mode: 0755
+    state: directory
+
 - name: create build directory
   file:
-    path: "{{ unbound_image_build_path }}"
+    path: "{{ docker_persistent_storage }}/{{ unbound_container_name }}/build"
     owner: root
     group: root
     mode: 0700
@@ -11,7 +19,7 @@
 - name: upload build files
   template:
     src: Dockerfile.j2
-    dest: "{{ unbound_image_build_path }}/Dockerfile"
+    dest: "{{ docker_persistent_storage }}/{{ unbound_container_name }}/build/Dockerfile"
     owner: root
     group: root
     mode: 0400
@@ -21,22 +29,14 @@
     name: "{{ unbound_image_name }}"
     build:
       dockerfile: Dockerfile
-      path: "{{ unbound_image_build_path }}"
+      path: "{{ docker_persistent_storage }}/{{ unbound_container_name }}/build"
       pull: true
     source: build
-
-- name: create configuration directory
-  file:
-    path: "{{ docker_persistent_storage }}/{{ unbound_container_name }}/etc-unbound"
-    owner: root
-    group: root
-    mode: 0755
-    state: directory
 
 - name: upload confguration file
   template:
     src: unbound.conf.j2
-    dest: "{{ docker_persistent_storage }}/{{ unbound_container_name }}/etc-unbound/unbound.conf"
+    dest: "{{ docker_persistent_storage }}/{{ unbound_container_name }}/unbound.conf"
     owner: root
     group: root
     mode: 0444
@@ -58,4 +58,4 @@
     networks_cli_compatible: true
     restart_policy: unless-stopped
     volumes:
-      - "{{ docker_persistent_storage }}/{{ unbound_container_name }}/etc-unbound/unbound.conf:/etc/unbound/unbound.conf:ro"
+      - "{{ docker_persistent_storage }}/{{ unbound_container_name }}/unbound.conf:/etc/unbound/unbound.conf:ro"
