@@ -4,8 +4,8 @@ COPY pvr /etc/periodic/hourly/pvr
 
 RUN chmod 755 /etc/periodic/hourly/pvr \
 	&& apk add --no-cache \
-		ffmpeg=4.2.3-r0 \
-		perl=5.30.2-r0 \
+		ffmpeg=4.3-r0 \
+		perl=5.30.3-r0 \
 		perl-cgi=4.47-r0 \
 		perl-json=4.02-r0 \
 		perl-lwp-protocol-https=6.07-r1 \
@@ -17,11 +17,11 @@ RUN chmod 755 /etc/periodic/hourly/pvr \
 	&& apk del --no-cache --purge tzdata \
 	&& apk add --no-cache --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing \
 		atomicparsley=0.9.6-r1 \
-	&& wget https://github.com/get-iplayer/get_iplayer/archive/v3.25.tar.gz \
-	&& tar -xzf v3.25.tar.gz \
-	&& rm v3.25.tar.gz \
-	&& chmod 755 get_iplayer-3.25/get_iplayer \
-	&& mv get_iplayer-3.25/get_iplayer /usr/bin/ \
-	&& rm -r get_iplayer-3.25
+	&& wget https://github.com/get-iplayer/get_iplayer/archive/v{{ get_iplayer_version }}.tar.gz \
+	&& tar -xzf v{{ get_iplayer_version }}.tar.gz \
+	&& rm v{{ get_iplayer_version }}.tar.gz \
+	&& chmod 755 get_iplayer-{{ get_iplayer_version }}/get_iplayer \
+	&& mv get_iplayer-{{ get_iplayer_version }}/get_iplayer /usr/bin/ \
+	&& rm -r get_iplayer-{{ get_iplayer_version }}
 
 CMD ["/usr/sbin/crond", "-f"]

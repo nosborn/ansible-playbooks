@@ -8,43 +8,48 @@
     mode: 0755
     state: directory
 
-- name: create build directory
-  file:
-    path: "{{ docker_persistent_storage }}/{{ unbound_container_name }}/build"
-    owner: root
-    group: root
-    mode: 0700
-    state: directory
-
 - name: upload build files
   template:
-    src: Dockerfile.j2
-    dest: "{{ docker_persistent_storage }}/{{ unbound_container_name }}/build/Dockerfile"
+    src: "{{ item }}.j2"
+    dest: "{{ docker_persistent_storage }}/{{ unbound_container_name }}/{{ item }}"
     owner: root
     group: root
     mode: 0400
+  loop:
+    - .dockerignore
+    - Dockerfile
 
 - name: build image
   docker_image:
     name: "{{ unbound_image_name }}"
     build:
       dockerfile: Dockerfile
-      path: "{{ docker_persistent_storage }}/{{ unbound_container_name }}/build"
+      path: "{{ docker_persistent_storage }}/{{ unbound_container_name }}"
       pull: true
     source: build
 
-- name: upload confguration file
+- name: upload confguration files
   template:
-    src: unbound.conf.j2
-    dest: "{{ docker_persistent_storage }}/{{ unbound_container_name }}/unbound.conf"
+    src: "{{ item }}.j2"
+    dest: "{{ docker_persistent_storage }}/{{ unbound_container_name }}/{{ item }}"
     owner: root
     group: root
     mode: 0444
+  loop:
+    - blacklist.conf
+    - unbound.conf
   notify: restart unbound
 
 - name: create container
   docker_container:
     name: "{{ unbound_container_name }}"
+    cap_drop:
+      - all
+    capabilities:
+      - kill
+      - net_bind_service
+      - setgid
+      - setuid
     dns_servers:
       - "{{ hostvars['usg']['lan_ipv4_address'] }}"
     expose:
@@ -58,4 +63,5 @@
     networks_cli_compatible: true
     restart_policy: unless-stopped
     volumes:
+      - "{{ docker_persistent_storage }}/{{ unbound_container_name }}/blacklist.conf:/etc/unbound/blacklist.conf:ro"
       - "{{ docker_persistent_storage }}/{{ unbound_container_name }}/unbound.conf:/etc/unbound/unbound.conf:ro"

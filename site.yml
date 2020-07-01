@@ -31,7 +31,6 @@
     - role: itunes-server
     - role: unbound
     - role: video-station
-    - role: virtualization
 
 - hosts: unifi
 

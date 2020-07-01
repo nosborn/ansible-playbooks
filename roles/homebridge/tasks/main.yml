@@ -46,11 +46,19 @@
 - name: create container
   docker_container:
     name: "{{ homebridge_container_name }}"
-    # comparisons:
-    #   mac_address: ignore
+    cap_drop:
+      - all
+    capabilities:
+      - kill
+      - net_bind_service
+      - setgid
+      - setuid
+    comparisons:
+      mac_address: ignore
     dns_servers:
       - "{{ unbound_ipv4_address }}"
     image: "{{ homebridge_image_name }}"
+    init: true
     networks:
       - name: macvlan
         ipv4_address: "{{ homebridge_ipv4_address }}"

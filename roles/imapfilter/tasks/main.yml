@@ -8,28 +8,23 @@
     mode: 0755
     state: directory
 
-- name: create build directory
-  file:
-    path: "{{ docker_persistent_storage }}/{{ imapfilter_container_name }}/build"
-    owner: root
-    group: root
-    mode: 0700
-    state: directory
-
-- name: upload Dockerfile
+- name: upload build files
   template:
-    src: Dockerfile.j2
-    dest: "{{ docker_persistent_storage }}/{{ imapfilter_container_name }}/build/Dockerfile"
+    src: "{{ item }}.j2"
+    dest: "{{ docker_persistent_storage }}/{{ imapfilter_container_name }}/{{ item }}"
     owner: root
     group: root
     mode: 0400
+  loop:
+    - .dockerignore
+    - Dockerfile
 
 - name: build image
   docker_image:
     name: "{{ imapfilter_image_name }}"
     build:
       dockerfile: Dockerfile
-      path: "{{ docker_persistent_storage }}/{{ imapfilter_container_name }}/build"
+      path: "{{ docker_persistent_storage }}/{{ imapfilter_container_name }}"
       pull: true
     source: build
 
@@ -45,10 +40,12 @@
 - name: create container
   docker_container:
     name: "{{ imapfilter_container_name }}"
+    cap_drop:
+      - all
     dns_servers:
       - "{{ hostvars['usg']['lan_ipv4_address'] }}"
     image: "{{ imapfilter_image_name }}"
-    # init: true
+    init: true
     network_mode: bridge
     restart_policy: unless-stopped
     volumes:

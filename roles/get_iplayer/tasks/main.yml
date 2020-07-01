@@ -60,15 +60,13 @@
 - name: create container
   docker_container:
     name: "{{ get_iplayer_container_name }}"
-    dns_servers: "{{ mediastreamer_dns }}"
+    cap_drop:
+      - all
+    dns_servers: "{{ mediastreamer_nameservers | to_yaml }}"
     env:
       GETIPLAYER_PROFILE: /get_iplayer
     image: "{{ get_iplayer_image_name }}"
     init: true
-    networks:
-      - name: macvlan
-        ipv4_address: "{{ get_iplayer_ipv4_address }}"
-    networks_cli_compatible: true
     restart_policy: unless-stopped
     volumes:
       - "{{ docker_persistent_storage }}/{{ get_iplayer_container_name }}/:/get_iplayer/"

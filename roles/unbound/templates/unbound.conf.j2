@@ -1,46 +1,37 @@
 server:
 	verbosity: 1
 
-	interface: 0.0.0.0
-	interface: ::0
+	interface: {{ unbound_ipv4_address }}
+	outgoing-interface: {{ unbound_ipv4_address }}
 
-	# outgoing-interface: 192.0.2.153
-	# outgoing-interface: 2001:DB8::5
-	# outgoing-interface: 2001:DB8::6
-	# outgoing-interface: 2001:DB8::/64
+	# edns-buffer-size: 1472
 
-	edns-buffer-size: 1472
+	# msg-cache-size: 128m
 
-	msg-cache-size: 128m
+	# rrset-cache-size: 256m
 
-	so-reuseport: yes
+	define-tag: "guest iot main"
 
-	rrset-cache-size: 256m
+	do-ip6: no
 
-	# do-ip4: yes
-	# do-ip6: yes
-	# prefer-ip6: yes
-	# do-udp: yes
-	# do-tcp: yes
-	# tcp-upstream: no
+	# edns-tcp-keepalive: yes
 
-	edns-tcp-keepalive: yes
+	tls-cert-bundle: "/etc/ssl/cert.pem"
 
 	do-daemonize: no
 
 	access-control: 0.0.0.0/0 refuse
-	access-control: 127.0.0.0/8 allow
 	access-control: {{ lan_ipv4_subnet }} allow
-	access-control: ::0/0 refuse
-	access-control: ::1 allow
-	access-control: ::ffff:127.0.0.1 allow
+
+	access-control-tag: {{ guest_ipv4_subnet }} "guest"
+	access-control-tag: {{ iot_ipv4_subnet }} "iot"
+	access-control-tag: {{ lan_ipv4_subnet }} "main"
 
 	logfile: ""
-	use-syslog: no
 	log-queries: yes
-	log-replies: no
-	log-tag-queryreply: yes
-	log-local-actions: no
+	# log-replies: yes
+	# log-tag-queryreply: yes
+	log-local-actions: yes
 	log-servfail: yes
 
 	root-hints: /usr/share/dns-root-hints/named.root
@@ -49,18 +40,19 @@ server:
 	hide-version: yes
 	hide-trustanchor: yes
 
-	harden-glue: yes
-	harden-below-nxdomain: yes
-	harden-referral-path: yes
-	harden-algo-downgrade: yes
-
-	# qname-minimisation: yes
-	# qname-minimisation-strict: no
-
-	private-address: 10.0.0.0/8
-	private-address: 172.16.0.0/12
-	private-address: 192.168.0.0/16
-	private-address: 169.254.0.0/16
+	private-address: 0.0.0.0/8
+	private-address: 10.0.0.0/8         # Private-Use
+	private-address: 100.64.0.0/10      # Shared Address Space
+	private-address: 127.0.0.0/8        # Loopback
+	private-address: 169.254.0.0/16     # Link Local
+	private-address: 172.16.0.0/12      # Private-Use
+	private-address: 192.0.2.0/24       # Documentation (TEST-NET-1)
+	private-address: 192.168.0.0/16     # Private-Use
+	private-address: 198.18.0.0/15      # Benchmarking
+	private-address: 198.51.100.0/24    # Documentation (TEST-NET-2)
+	private-address: 203.0.113.0/24     # Documentation (TEST-NET-3)
+	private-address: 240.0.0.0/4        # Reserved
+	private-address: 255.255.255.255/32 # Limited Broadcast
 	private-address: fd00::/8
 	private-address: fe80::/10
 	private-address: ::ffff:0:0/96
@@ -68,16 +60,15 @@ server:
 	private-domain: "lan"
 	private-domain: "localdomain"
 
-	# do-not-query-address: 127.0.0.1/8
-	# do-not-query-address: ::1
 	do-not-query-localhost: yes
 
 	prefetch: yes
-	# prefetch-key: yes
+	# prefetch-key: yes
 
 	deny-any: yes
 
 	module-config: "iterator"
+	# trust-anchor-file: "/usr/share/dnssec-root/trusted-key.key"
 
 	# domain-insecure: "lan"
 	# domain-insecure: "localdomain"
@@ -131,16 +122,7 @@ server:
 
 	local-data: "unifi.{{ global_domain }}. A {{ hostvars['unifi']['lan_ipv4_address'] }}"
 
-	local-data: "c.news.apple. 86400 A 0.0.0.0"
-	local-data: "c.news.apple. 86400 AAAA ::"
-
-	local-data: "diagnostics.meethue.com. 86400 A 0.0.0.0"
-	local-data: "diagnostics.meethue.com. 86400 AAAA ::"
-
-	local-data: "trace.svc.ui.com. 86400 A 0.0.0.0"
-	local-data: "trace.svc.ui.com. 86400 AAAA ::"
-
-	tls-cert-bundle: "/etc/ssl/cert.pem"
+	include: "/etc/unbound/blacklist.conf"
 
 remote-control:
 	control-enable: no
@@ -149,6 +131,7 @@ remote-control:
 forward-zone:
 	name: "{{ zone }}."
 	forward-addr: "{{ hostvars['usg']['lan_ipv4_address'] }}"
+	forward-tls-upstream: no
 	forward-no-cache: yes
 
 {% endfor %}
@@ -162,44 +145,31 @@ forward-zone:
 	forward-addr: "{{ hostvars['usg']['lan_ipv4_address'] }}"
 	forward-no-cache: yes
 
-{% for mediastreamer_domain in mediastreamer_domains %}
+{% for domain in isp_domains %}
 forward-zone:
-	name: "{{ mediastreamer_domain }}."
-{%   for address in unbound_mediastreamer_nameservers %}
+	name: "{{ domain }}."
+{%   for address in isp_nameservers %}
 	forward-addr: {{ address }}
 {%   endfor %}
 
 {% endfor %}
+{% for domain in mediastreamer_exclusions %}
 forward-zone:
-	name: "myrepublic.com.sg."
-{% for address in unbound_isp_nameservers %}
+	name: "{{ domain }}."
+{%   for address in unbound_forwarders %}
 	forward-addr: {{ address }}
-{% endfor %}
+{%   endfor %}
+	forward-tls-upstream: yes
 
+{% endfor %}
+{% for domain in mediastreamer_domains %}
 forward-zone:
-	name: "netflix.com."
-{% for address in unbound_isp_nameservers %}
+	name: "{{ domain }}."
+{%   for address in mediastreamer_nameservers %}
 	forward-addr: {{ address }}
-{% endfor %}
+{%   endfor %}
 
-forward-zone:
-	name: "netflix.net."
-{% for address in unbound_isp_nameservers %}
-	forward-addr: {{ address }}
 {% endfor %}
-
-forward-zone:
-	name: "nflximg.com."
-{% for address in unbound_isp_nameservers %}
-	forward-addr: {{ address }}
-{% endfor %}
-
-forward-zone:
-	name: "nflxvideo.net."
-{% for address in unbound_isp_nameservers %}
-	forward-addr: {{ address }}
-{% endfor %}
-
 forward-zone:
 	name: "."
 {% for address in unbound_forwarders %}

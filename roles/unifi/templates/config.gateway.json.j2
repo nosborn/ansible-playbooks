@@ -1,19 +1,4 @@
 {
-  "interfaces": {
-    "tunnel": {
-      "tun0": {
-        "address": [
-          "{{ ipv6_tunnel_address }}"
-        ],
-        "description": "IPv6 Tunnel",
-        "encapsulation": "sit",
-        "local-ip": "{{ hostvars['usg']['wan_ipv4_address'] }}",
-        "multicast": "disable",
-        "remote-ip": "{{ ipv6_tunnel_remote_ip }}",
-        "ttl": "255"
-      }
-    }
-  },
   "protocols": {
     "igmp-proxy": {
       "interface": {
@@ -28,18 +13,21 @@
           "alt-subnet": "0.0.0.0/0"
         }
       }
-    },
-    "static": {
-      "interface-route6": {
-        "::/0": {
-          "next-hop-interface": {
-            "tun0": "''"
-          }
-        }
-      }
     }
   },
   "service": {
+    "dns": {
+      "forwarding": {
+        "cache-size": "10000",
+        "except-interface": [
+          "{{ hostvars['usg']['wan_if'] }}"
+        ],
+        "options": [
+          "server=1.1.1.1",
+          "server=1.0.0.1"
+        ]
+      }
+    },
     "gui": {
       "older-ciphers": "disable"
     },
@@ -49,6 +37,32 @@
           "{{ hostvars['usg']['lan_if'] }}",
           "{{ hostvars['usg']['iot_if'] }}"
         ]
+      }
+    }
+  },
+  "system": {
+    "static-host-mapping": {
+      "host-name": {
+        "ping.ui.com": {
+          "inet": [
+            "0.0.0.0"
+          ]
+        },
+        "ping.ubnt.com": {
+          "inet": [
+            "0.0.0.0"
+          ]
+        },
+        "trace.svc.ubnt.com": {
+          "inet": [
+            "0.0.0.0"
+          ]
+        },
+        "warranty.svc.ubnt.com": {
+          "inet": [
+            "0.0.0.0"
+          ]
+        }
       }
     }
   }
