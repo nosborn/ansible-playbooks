@@ -40,13 +40,21 @@ use constant LISTS => (
   # https://github.com/nextdns/metadata/blob/master/privacy/blocklists/perflyst-smarttv.json
   "https://raw.githubusercontent.com/Perflyst/PiHoleBlocklist/master/SmartTV.txt",
 
+  # https://github.com/nextdns/metadata/blob/master/privacy/blocklists/someonewhocares.json
+  "https://someonewhocares.org/hosts/hosts",
+
   # https://github.com/nextdns/metadata/blob/master/security/cryptojacking.json
   "https://raw.githubusercontent.com/hoshsadiq/adblock-nocoin-list/master/hosts.txt",
   "https://zerodot1.gitlab.io/CoinBlockerLists/hosts_browser",
 );
 
 my %names = (
+  "com\t7hor9gul4s"                        => 1,
+  "com\ta3yqjsrczwwp"                      => 1,
+  "com\ta4mt150303tl"                      => 1,
+  "com\tau79nt5wic4x"                      => 1,
   "com\tbrandmetrics"                      => 1,
+  "com\tchatango\tst"                      => 1,
   "com\tduckduckgo\ticons"                 => 1,
   "com\tfacebook\tgraph"                   => 1,
   "com\tgoogle\tl\tgstaticadssl"           => 1,
@@ -55,23 +63,32 @@ my %names = (
   "com\tmeethue\tdiagnostics"              => 1,
   "com\tmicrosoft\tipv6\twin10"            => 1,
   "com\tmicrosoft\tipv6\twin1710"          => 1,
+  "com\tmyadcash"                          => 1,
   "com\tnvidia\tgfe\tevents"               => 1,
+  "com\tphilips-hue\twww2"                 => 1,
+  "com\tr023m83skv5v"                      => 1,
   "com\treddit\te"                         => 1,
+  "com\trevenuecat\tapi"                   => 1,
   "com\troku\tcaptive"                     => 1,
   "com\troku\tcto\ttis"                    => 1,
   "com\tsnapchat\app-analytics"            => 1,
-  "com\tximad\tadserver"                   => 1,
-  "com\tximad\tmjp-analytics"              => 1,
-  "com\tximad\tmpuzzlesanalytics"          => 1,
+  "com\tsocialbars-web1"                   => 1,
+  "com\tsocialbars-web5"                   => 1,
   "com\tubnt\tping"                        => 1,
   "com\tubnt\tunifi-report"                => 1,
   "com\tui\tping"                          => 1,
   "com\tui\tsvc\ttrace"                    => 1,
   "com\tui\tsvc\twarranty"                 => 1,
+  "com\tw7zglmcdreij"                      => 1,
+  "com\tximad\tadserver"                   => 1,
+  "com\tximad\tmjp-analytics"              => 1,
+  "com\tximad\tmpuzzlesanalytics"          => 1,
+  "com\tzav4gln44kez"                      => 1,
   "la\tsoom\tteleport"                     => 1,
   "media\tnui"                             => 1,
   "net\tapple-dns\tfe\tmetrics"            => 1,
   "net\tbattle\ttelemetry-in"              => 1,
+  "today\tgetup"                           => 1,
   "uk\tco\tbbci\tfiles\tmybbc-analytics"   => 1,
 );
 my $verbose = 0;

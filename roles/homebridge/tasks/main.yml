@@ -57,6 +57,8 @@
       mac_address: ignore
     dns_servers:
       - "{{ unbound_ipv4_address }}"
+    etc_hosts:
+      unifi.osborn.io: "{{ hostvars['unifi']['lan_ipv4_address'] }}"
     image: "{{ homebridge_image_name }}"
     init: true
     networks:

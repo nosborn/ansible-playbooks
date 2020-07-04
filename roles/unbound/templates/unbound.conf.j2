@@ -30,7 +30,7 @@ server:
 	logfile: ""
 	log-queries: yes
 	# log-replies: yes
-	# log-tag-queryreply: yes
+	log-tag-queryreply: yes
 	log-local-actions: yes
 	log-servfail: yes
 
@@ -61,11 +61,6 @@ server:
 	private-domain: "localdomain"
 
 	do-not-query-localhost: yes
-
-	prefetch: yes
-	# prefetch-key: yes
-
-	deny-any: yes
 
 	module-config: "iterator"
 	# trust-anchor-file: "/usr/share/dnssec-root/trusted-key.key"
