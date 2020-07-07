@@ -39,17 +39,6 @@
 
 - hosts: usg
 
-  pre_tasks:
-    - name: Package update repository parameters
-      edgeos_config:
-        lines:
-          - set system package repository {{ ansible_distribution_release }} components main
-          - set system package repository {{ ansible_distribution_release }} distribution {{ ansible_distribution_release }}
-          - set system package repository {{ ansible_distribution_release }} url http://archive.debian.org/debian
-        save: true
-      connection: network_cli
-      notify: update apt cache
-
   tasks:
     - name: install script to mangle TTL with iptables
       template:
@@ -75,24 +64,6 @@
         line: deny-interfaces={{ wan_if }}
       notify: restart avahi-daemon
 
-    - name: Domain Name Server (DNS) parameters
-      edgeos_config:
-        lines:
-          - set service dns forwarding cache-size 10000
-          - set service dns forwarding except-interface {{ wan_if }}
-          - set service dns forwarding options domain-needed
-          - set service dns forwarding options no-resolv  # FIXME: is this needed?
-          - set service dns forwarding options proxy-dnssec
-        save: true
-      connection: network_cli
-      when: false
-
-    - name: install wireguard
-      apt:
-        deb: https://github.com/WireGuard/wireguard-vyatta-ubnt/releases/download/1.0.20200506-1/ugw3-v1-v1.0.20200506-v1.0.20200319.deb
-        state: present
-      when: false
-
   handlers:
     - name: iptables mangle ttl
       command: /config/scripts/post-config.d/iptables_ttl_mangle.sh
@@ -101,7 +72,3 @@
       service:
         name: avahi-daemon
         state: restarted
-
-    - name: update apt cache
-      apt:
-        update_cache: true

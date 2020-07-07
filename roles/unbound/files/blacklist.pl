@@ -65,7 +65,6 @@ my %names = (
   "com\tmicrosoft\tipv6\twin1710"          => 1,
   "com\tmyadcash"                          => 1,
   "com\tnvidia\tgfe\tevents"               => 1,
-  "com\tphilips-hue\twww2"                 => 1,
   "com\tr023m83skv5v"                      => 1,
   "com\treddit\te"                         => 1,
   "com\trevenuecat\tapi"                   => 1,
