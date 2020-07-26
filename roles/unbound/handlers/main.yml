@@ -1,4 +1,9 @@
 ---
+- name: clear unbound blacklist cache
+  file:
+    path: "{{ docker_persistent_storage }}/{{ unbound_container_name }}/.cache"
+    state: absent
+
 - name: restart unbound
   docker_container:
     name: "{{ unbound_container_name }}"

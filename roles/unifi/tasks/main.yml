@@ -68,22 +68,25 @@
     state: present
   when: ansible_python.version.major == 3
 
-- openssl_privatekey:
+- name: generate SSL private key
+  openssl_privatekey:
     path: /etc/ssl/private/cloudkey.key
     owner: root
     group: ssl-cert
-    mode: 0440
+    mode: 0640  # O/S sets this on boot
   notify: restart nginx
 
-- openssl_csr:
+- name: generate SSL CSR
+  openssl_csr:
     privatekey_path: /etc/ssl/private/cloudkey.key
     common_name: unifi.{{ global_domain }}
     path: /etc/ssl/private/cloudkey.csr
     owner: root
     group: ssl-cert
-    mode: 0440
+    mode: 0640
 
-- acme_certificate:
+- name: generate SSL certificate (part 1)
+  acme_certificate:
     account_key_content: "{{ letsencrypt_account_key }}"
     acme_directory: "{{ letsencrypt_acme_directory }}"
     acme_version: "{{ letsencrypt_acme_version }}"
@@ -109,7 +112,8 @@
   when: letsencrypt_challenge.changed
   delegate_to: localhost
 
-- acme_certificate:
+- name: generate SSL certificate (part 2)
+  acme_certificate:
     account_key_content: "{{ letsencrypt_account_key }}"
     acme_directory: "{{ letsencrypt_acme_directory }}"
     acme_version: "{{ letsencrypt_acme_version }}"
@@ -127,7 +131,7 @@
     path: /etc/ssl/private/cloudkey.crt
     owner: root
     group: ssl-cert
-    mode: 0444
+    mode: 0644  # will be reset to this by O/S
     state: file
   notify: restart nginx
 

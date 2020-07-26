@@ -28,17 +28,40 @@
       pull: true
     source: build
 
-- name: upload confguration files
+- name: upload configuration file
   template:
-    src: "{{ item }}.j2"
-    dest: "{{ docker_persistent_storage }}/{{ unbound_container_name }}/{{ item }}"
+    src: unbound.conf.j2
+    dest: "{{ docker_persistent_storage }}/{{ unbound_container_name }}/unbound.conf"
     owner: root
     group: root
     mode: 0444
-  loop:
-    - blacklist.conf
-    - unbound.conf
   notify: restart unbound
+
+- name: upload blacklist script
+  template:
+    src: update-blacklist.pl.j2
+    dest: "{{ docker_persistent_storage }}/{{ unbound_container_name }}/update-blacklist"
+    owner: root
+    group: root
+    mode: 0550
+    validate: perl -cw %s
+  notify: clear unbound blacklist cache
+
+- name: create blacklist
+  shell:
+    chdir: "{{ docker_persistent_storage }}/{{ unbound_container_name }}"
+    cmd: ./update-blacklist >blacklist.conf
+    creates: "{{ docker_persistent_storage }}/{{ unbound_container_name }}/blacklist.conf"
+  notify: restart unbound
+
+- name: upload blacklist task script
+  template:
+    src: update-blacklist-task.sh.j2
+    dest: "{{ docker_persistent_storage }}/{{ unbound_container_name }}/update-blacklist-task"
+    owner: root
+    group: root
+    mode: 0550
+    validate: sh -n %s
 
 - name: create container
   docker_container:
@@ -52,11 +75,7 @@
       - setuid
     dns_servers:
       - "{{ hostvars['usg']['lan_ipv4_address'] }}"
-    expose:
-      - 53:53/tcp
-      - 53:53/udp
     image: "{{ unbound_image_name }}"
-    init: true
     networks:
       - name: macvlan
         ipv4_address: "{{ unbound_ipv4_address }}"

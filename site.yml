@@ -29,6 +29,7 @@
     - role: homebridge
     - role: imapfilter
     - role: itunes-server
+    - role: log-center
     - role: unbound
     - role: video-station
 

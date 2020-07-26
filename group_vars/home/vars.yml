@@ -1,5 +1,5 @@
 ---
-get_iplayer_ipv4_address: "{{ vault_get_iplayer_ipv4_address }}"
+diskstation_ipv4_address: "{{ vault_diskstation_ipv4_address }}"
 get_iplayer_pvr_shows: "{{ vault_get_iplayer_pvr_shows }}"
 global_domain: "{{ vault_global_domain }}"
 guest_ipv4_subnet: "{{ vault_guest_ipv4_subnet }}"

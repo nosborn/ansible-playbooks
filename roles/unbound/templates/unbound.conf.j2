@@ -115,12 +115,15 @@ server:
 
 	local-zone: "use-application-dns.net." static
 
+	local-data: "diskstation.{{ global_domain }}. A {{ diskstation_ipv4_address }}"
 	local-data: "unifi.{{ global_domain }}. A {{ hostvars['unifi']['lan_ipv4_address'] }}"
 
 	include: "/etc/unbound/blacklist.conf"
 
 remote-control:
-	control-enable: no
+	control-enable: yes
+	control-interface: /run/unbound.control
+	control-use-cert: no
 
 {% for zone in unbound_nodefault_local_zones %}
 forward-zone:

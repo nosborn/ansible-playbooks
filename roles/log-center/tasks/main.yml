@@ -1,0 +1,7 @@
+---
+- name: install package
+  command: /usr/syno/bin/synopkg install_from_server LogCenter
+  args:
+    creates: /var/packages/LogCenter/INFO
+  register: log_center_package_result
+  until: log_center_package_result is succeeded

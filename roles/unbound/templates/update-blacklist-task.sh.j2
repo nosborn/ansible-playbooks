@@ -1,0 +1,13 @@
+#!/bin/sh
+
+cd "{{ docker_persistent_storage }}/{{ unbound_container_name }}" || exit
+./update-blacklist >blacklist.conf.$$
+
+if [ -s blacklist.conf.$$ ]; then
+  if ! cmp -s blacklist.conf.$$ blacklist.conf; then
+    mv blacklist.conf.$$ blacklist.conf
+    docker restart unbound
+  fi
+fi
+
+rm -f blacklist.conf.$$
