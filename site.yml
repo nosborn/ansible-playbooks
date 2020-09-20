@@ -27,7 +27,6 @@
     - role: download-station
     - role: get_iplayer
     - role: homebridge
-    - role: imapfilter
     - role: itunes-server
     - role: log-center
     - role: unbound

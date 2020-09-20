@@ -12,13 +12,21 @@
         "controller": "{{ homebridge_config_accessories_unifi_controller }}",
         "username": "{{ homebridge_config_accessories_unifi_username }}",
         "password": "{{ homebridge_config_accessories_unifi_password }}",
-        "site": "default"
+	"secure": true
       },
       "watch": [
         "{{ homebridge_config_accessories_watch | join('","') }}"
       ],
       "watchGuests": true,
       "mode": "any"
+    }
+  ],
+  "platforms": [
+    {
+      "platform": "config",
+      "name": "Config",
+      "port": 80,
+      "sudo": false
     }
   ]
 }

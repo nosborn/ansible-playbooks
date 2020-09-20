@@ -2,43 +2,43 @@
 ---
 - name: create build directory
   file:
-    path: "{{ docker_persistent_storage }}/{{ homebridge_container_name }}/@build"
+    path: "{{ docker_persistent_storage }}/{{ homebridge_container_name }}"
     owner: root
     group: root
     mode: 0700
     state: directory
 
-- name: upload Dockerfile
+- name: upload build files
   template:
-    src: Dockerfile.j2
-    dest: "{{ docker_persistent_storage }}/{{ homebridge_container_name }}/@build/Dockerfile"
+    src: "{{ item }}.j2"
+    dest: "{{ docker_persistent_storage }}/{{ homebridge_container_name }}/{{ item }}"
     owner: root
     group: root
     mode: 0400
+  loop:
+    - .dockerignore
+    - Dockerfile
 
 - name: build image
   docker_image:
     name: "{{ homebridge_image_name }}"
     build:
       dockerfile: Dockerfile
-      path: "{{ docker_persistent_storage }}/{{ homebridge_container_name }}/@build"
+      path: "{{ docker_persistent_storage }}/{{ homebridge_container_name }}"
       pull: true
     source: build
 
-- name: create persistent storage
-  file:
-    path: "{{ docker_persistent_storage }}/{{ homebridge_container_name }}"
-    owner: root
-    group: root
-    mode: 0755
-    state: directory
+- name: create volume
+  docker_volume:
+    volume_name: "{{ homebridge_container_name }}"
 
-- template:
+- name: upload config file
+  template:
     src: "{{ item }}.j2"
     dest: "{{ docker_persistent_storage }}/{{ homebridge_container_name }}/{{ item }}"
     owner: root
     group: root
-    mode: 0644
+    mode: 0640
   loop:
     - config.json
   notify: restart homebridge
@@ -46,13 +46,13 @@
 - name: create container
   docker_container:
     name: "{{ homebridge_container_name }}"
-    cap_drop:
-      - all
-    capabilities:
-      - kill
-      - net_bind_service
-      - setgid
-      - setuid
+    # cap_drop:
+    #   - all
+    # capabilities:
+    #   - kill
+    #   - net_bind_service
+    #   - setgid
+    #   - setuid
     comparisons:
       mac_address: ignore
     dns_servers:
@@ -67,4 +67,5 @@
     networks_cli_compatible: true
     restart_policy: unless-stopped
     volumes:
-      - "{{ docker_persistent_storage }}/{{ homebridge_container_name }}/:/homebridge/"
+      - "{{ homebridge_container_name }}:/homebridge/"
+      - "{{ docker_persistent_storage }}/{{ homebridge_container_name }}/config.json:/homebridge/config.json:ro"
