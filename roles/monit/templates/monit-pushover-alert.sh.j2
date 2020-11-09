@@ -1,0 +1,10 @@
+#!/bin/sh
+
+exec /usr/local/bin/curl \
+  --fail \
+  --form 'token={{ pushover_monit_api_token }}' \
+  --form 'user={{ pushover_user_key }}' \
+  --form-string "message=[${MONIT_HOST}] ${MONIT_SERVICE} - ${MONIT_DESCRIPTION}" \
+  --show-error \
+  --silent \
+  https://api.pushover.net/1/messages.json

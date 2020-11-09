@@ -1,4 +1,2 @@
 ---
-homebridge_container_name: homebridge
-homebridge_image_name: "{{ homebridge_container_name }}:20200920-1"
-homebridge_version: 1.2.2
+homebridge_version: 1.2.4

@@ -1,10 +1,10 @@
 ---
-- name: restart nginx
-  service:
-    name: nginx
+- name: restart unifi
+  ansible.builtin.service:
+    name: unifi
     state: restarted
 
-- name: restart unifi
-  service:
-    name: unifi
+- name: restart unifi-core
+  ansible.builtin.service:
+    name: unifi-core
     state: restarted

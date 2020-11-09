@@ -1,0 +1,5 @@
+---
+- name: restart heartbeat
+  ansible.builtin.service:
+    name: heartbeat
+    state: restarted

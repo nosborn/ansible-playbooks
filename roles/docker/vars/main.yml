@@ -1,4 +1,0 @@
----
-docker_macvlan_name: macvlan
-docker_macvlan_iprange: "{{ lan_ipv4_subnet | ipsubnet(27, -2) }}"
-docker_persistent_storage: /volume1/docker

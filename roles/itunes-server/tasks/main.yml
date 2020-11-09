@@ -1,7 +1,0 @@
----
-- name: install package
-  command: /usr/syno/bin/synopkg install_from_server iTunesServer
-  args:
-    creates: /var/packages/iTunesServer/INFO
-  register: itunes_server_package_result
-  until: itunes_server_package_result is succeeded

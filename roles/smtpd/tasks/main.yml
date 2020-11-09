@@ -1,0 +1,34 @@
+---
+- name: configure aliases
+  ansible.builtin.copy:
+    content: "{{ mail_aliases }}"
+    dest: /etc/mail/aliases
+    owner: root
+    group: wheel
+    mode: 0444
+  notify: update aliases table
+
+- name: install secrets file
+  ansible.builtin.copy:
+    content: "{{ smtpd_secrets_table }}"
+    dest: /etc/mail/secrets
+    owner: root
+    group: _smtpd
+    mode: 0440
+  notify: update secrets table
+
+- name: install configuration file
+  ansible.builtin.template:
+    src: smtpd.conf.j2
+    dest: /etc/mail/smtpd.conf
+    owner: root
+    group: wheel
+    mode: 0444
+    validate: /usr/sbin/smtpd -f %s -n
+  notify: restart smtpd
+
+- name: enable and start service
+  ansible.builtin.service:
+    name: smtpd
+    enabled: true
+    state: started

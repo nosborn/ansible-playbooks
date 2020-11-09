@@ -1,73 +1,52 @@
-# yamllint disable rule:line-length
 ---
-- name: create build directory
-  file:
-    path: "{{ get_iplayer_image_build_path }}"
-    owner: root
-    group: root
+- name: install package
+  become: false
+  ansible.builtin.package:
+    name: get_iplayer
+    state: present
+
+- name: create directories
+  become: false
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: "{{ ansible_user }}"
     mode: 0700
     state: directory
-
-- name: upload build files
-  template:
-    src: "{{ item }}.j2"
-    dest: "{{ get_iplayer_image_build_path }}/{{ item }}"
-    owner: root
-    group: root
-    mode: 0400
   loop:
-    - Dockerfile
-    - pvr
+    - "{{ lookup('env', 'HOME') }}/.get_iplayer"
+    - "{{ lookup('env', 'HOME') }}/.get_iplayer/pvr"
 
-- name: build image
-  docker_image:
-    name: "{{ get_iplayer_image_name }}"
-    build:
-      dockerfile: Dockerfile
-      path: "{{ get_iplayer_image_build_path }}"
-      pull: true
-    source: build
-
-- name: create persistent storage
-  file:
-    path: "{{ item }}"
-    owner: root
-    group: root
-    mode: 0755
-    state: directory
-  loop:
-    - "{{ docker_persistent_storage }}/{{ get_iplayer_container_name }}"
-    - "{{ docker_persistent_storage }}/{{ get_iplayer_container_name }}/pvr"
-
-- name: upload configuration file
-  template:
+- name: create options file
+  become: false
+  ansible.builtin.template:
     src: options.j2
-    dest: "{{ docker_persistent_storage }}/{{ get_iplayer_container_name }}/options"
-    owner: root
-    group: root
-    mode: 0444
-  notify: restart get_iplayer
+    dest: "{{ lookup('env', 'HOME') }}/.get_iplayer/options"
+    owner: "{{ ansible_user }}"
+    mode: 0400
 
-- name: upload PVR configuration files
-  template:
+- name: create PVR files
+  become: false
+  ansible.builtin.template:
     src: show.j2
-    dest: "{{ docker_persistent_storage }}/{{ get_iplayer_container_name }}/pvr/{{ item.key }}"
-    owner: root
-    group: root
-    mode: 0444
+    dest: "{{ lookup('env', 'HOME') }}/.get_iplayer/pvr/{{ item.key }}"
+    owner: "{{ ansible_user }}"
+    mode: 0400
   with_dict: "{{ get_iplayer_pvr_shows }}"
 
-- name: create container
-  docker_container:
-    name: "{{ get_iplayer_container_name }}"
-    cap_drop:
-      - all
-    dns_servers: "{{ mediastreamer_nameservers | to_yaml }}"
-    env:
-      GETIPLAYER_PROFILE: /get_iplayer
-    image: "{{ get_iplayer_image_name }}"
-    init: true
-    restart_policy: unless-stopped
-    volumes:
-      - "{{ docker_persistent_storage }}/{{ get_iplayer_container_name }}/:/get_iplayer/"
-      - /volume1/video/:/video/
+- name: refresh index
+  become: false
+  ansible.builtin.command:
+    argv:
+      - /usr/local/bin/get_iplayer
+      - --refresh
+      - --refresh-limit=30
+      - --silent
+    creates: "{{ lookup('env', 'HOME') }}/.get_iplayer/tv.cache"
+
+- name: schedule PVR
+  become: false
+  ansible.builtin.cron:
+    name: get_iplayer PVR
+    hour: 0,8,16
+    job: /usr/local/bin/get_iplayer --pvr --silent
+    state: present

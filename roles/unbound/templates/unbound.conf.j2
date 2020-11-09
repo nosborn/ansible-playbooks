@@ -1,8 +1,13 @@
 server:
 	verbosity: 1
 
-	interface: {{ unbound_ipv4_address }}
-	outgoing-interface: {{ unbound_ipv4_address }}
+	extended-statistics: yes
+
+	interface: 127.0.0.1
+	interface: {{ lan_ipv4_address }}
+	interface: ::1
+	outgoing-interface: {{ lan_ipv4_address }}
+	outgoing-range: 448
 
 	# edns-buffer-size: 1472
 
@@ -12,33 +17,28 @@ server:
 
 	define-tag: "guest iot main"
 
-	do-ip6: no
+	# do-ip6: no
 
-	# edns-tcp-keepalive: yes
+	# edns-tcp-keepalive: yes
 
 	tls-cert-bundle: "/etc/ssl/cert.pem"
 
-	do-daemonize: no
-
 	access-control: 0.0.0.0/0 refuse
 	access-control: {{ lan_ipv4_subnet }} allow
+	access-control: 127.0.0.0/8 allow
+	access-control: ::0/0 deny
+	access-control: ::1 allow
 
 	access-control-tag: {{ guest_ipv4_subnet }} "guest"
 	access-control-tag: {{ iot_ipv4_subnet }} "iot"
 	access-control-tag: {{ lan_ipv4_subnet }} "main"
 
-	logfile: ""
-	log-queries: yes
-	# log-replies: yes
-	log-tag-queryreply: yes
-	log-local-actions: yes
-	log-servfail: yes
+	log-replies: yes
 
-	root-hints: /usr/share/dns-root-hints/named.root
+	pidfile: /var/run/unbound.pid
 
 	hide-identity: yes
 	hide-version: yes
-	hide-trustanchor: yes
 
 	private-address: 0.0.0.0/8
 	private-address: 10.0.0.0/8         # Private-Use
@@ -59,19 +59,20 @@ server:
 
 	private-domain: "lan"
 	private-domain: "localdomain"
+	private-domain: "onion"
 
-	do-not-query-localhost: yes
+	do-not-query-localhost: no
 
 	module-config: "iterator"
-	# trust-anchor-file: "/usr/share/dnssec-root/trusted-key.key"
+	# auto-trust-anchor-file: "/var/unbound/db/root.key"
 
 	# domain-insecure: "lan"
 	# domain-insecure: "localdomain"
+	domain-insecure: "onion"
 
 	# local-zone: "localhost." nodefault
 	# local-zone: "127.in-addr.arpa." nodefault
 	# local-zone: "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa." nodefault
-	# local-zone: "onion." nodefault
 	# local-zone: "test." nodefault
 	# local-zone: "invalid." nodefault
 	# local-zone: "10.in-addr.arpa." nodefault
@@ -106,6 +107,8 @@ server:
 	# local-zone: "b.e.f.ip6.arpa." nodefault
 	# local-zone: "8.b.d.0.1.0.0.2.ip6.arpa." nodefault
 	# And for 64.100.in-addr.arpa. to 127.100.in-addr.arpa.
+	local-zone: "64.100.in-addr.arpa." nodefault
+	local-zone: "onion." nodefault
 {% for zone in unbound_nodefault_local_zones %}
 	local-zone: "{{ zone }}." nodefault
 {% endfor %}
@@ -115,14 +118,15 @@ server:
 
 	local-zone: "use-application-dns.net." static
 
-	local-data: "diskstation.{{ global_domain }}. A {{ diskstation_ipv4_address }}"
+	local-data: "tombstone.{{ global_domain }}. A {{ hostvars['tombstone']['lan_ipv4_address'] }}"
 	local-data: "unifi.{{ global_domain }}. A {{ hostvars['unifi']['lan_ipv4_address'] }}"
 
-	include: "/etc/unbound/blacklist.conf"
+	include: "/var/unbound/etc/blacklist.conf"
+	include: "/var/unbound/etc/doh-blacklist.conf"
 
 remote-control:
 	control-enable: yes
-	control-interface: /run/unbound.control
+	control-interface: /var/run/unbound.sock
 	control-use-cert: no
 
 {% for zone in unbound_nodefault_local_zones %}
@@ -143,15 +147,12 @@ forward-zone:
 	forward-addr: "{{ hostvars['usg']['lan_ipv4_address'] }}"
 	forward-no-cache: yes
 
-{% for domain in isp_domains %}
 forward-zone:
-	name: "{{ domain }}."
-{%   for address in isp_nameservers %}
-	forward-addr: {{ address }}
-{%   endfor %}
+	name: "onion."
+	forward-addr: 127.0.0.1@9053
+	forward-no-cache: yes
 
-{% endfor %}
-{% for domain in mediastreamer_exclusions %}
+{% for domain in smartdns_exclusions %}
 forward-zone:
 	name: "{{ domain }}."
 {%   for address in unbound_forwarders %}
@@ -160,10 +161,11 @@ forward-zone:
 	forward-tls-upstream: yes
 
 {% endfor %}
-{% for domain in mediastreamer_domains %}
+
+{% for domain in smartdns_domains %}
 forward-zone:
 	name: "{{ domain }}."
-{%   for address in mediastreamer_nameservers %}
+{%   for address in smartdns_servers %}
 	forward-addr: {{ address }}
 {%   endfor %}
 

@@ -1,0 +1,46 @@
+---
+heartbeat.config.monitors:
+  enabled: false
+
+heartbeat.monitors:
+  - type: icmp
+    id: diablo-iii-australia
+    name: Diablo III - Australia
+    hosts:
+      - 103.4.115.248
+    schedule: "@every 10s"
+  - type: icmp
+    id: diablo-iii-north-america
+    name: Diablo III - North America
+    hosts:
+      - 24.105.30.129
+    schedule: "@every 10s"
+
+http.enabled: true
+http.port: "{{ heartbeat_http_port }}"
+
+logging.ecs: true
+logging.json: true
+logging.metrics.enabled: false
+
+output.elasticsearch:
+  hosts:
+    - localhost:9200
+
+processors:
+  - add_observer_metadata:
+      # geo:
+      #   name: us-east-1a
+      #   location: "37.926868, -78.024902"
+
+setup.ilm.enabled: false
+
+setup.kibana:
+  host: localhost:5601
+
+setup.template.overwrite: true
+setup.template.settings:
+  # _source.enabled: false
+  index.codec: best_compression
+  index.number_of_shards: 1
+setup.template.type: index

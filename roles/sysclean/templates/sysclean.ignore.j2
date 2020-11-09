@@ -1,0 +1,13 @@
+/etc/mail/secrets
+/etc/rc.d/homebridge
+/etc/ssl/{{ ansible_fqdn }}.fullchain.pem
+/etc/ssl/{{ ansible_fqdn }}.chain.pem
+/etc/ssl/{{ ansible_fqdn }}.pem
+/etc/ssl/private/{{ ansible_fqdn }}.key
+/var/homebridge
+/var/unbound/etc/blacklist.backup
+/var/unbound/etc/blacklist.conf
+/var/unbound/etc/doh-blacklist.conf
+/var/www/cache
+
+@include "/etc/changelist"

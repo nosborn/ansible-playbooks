@@ -1,13 +1,10 @@
 ---
 - name: clear unbound blacklist cache
-  file:
-    path: "{{ docker_persistent_storage }}/{{ unbound_container_name }}/.cache"
+  ansible.builtin.file:
+    path: "{{ unbound_blacklist_cache }}"
     state: absent
 
 - name: restart unbound
-  docker_container:
-    name: "{{ unbound_container_name }}"
-    comparisons:
-      "*": ignore
-    restart: true
-    state: started
+  ansible.builtin.service:
+    name: unbound
+    state: restarted

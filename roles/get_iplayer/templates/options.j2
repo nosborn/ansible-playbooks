@@ -1,7 +1,6 @@
+commandtv cp -f '<filename>' '/Volumes/iTunes Media HD/Automatically Add to iTunes.localized'
 excludechannel BBC Alba,CBBC,CBeebies,S4C
-nopurge 1
-outputtv /video/TV show/
+output {{ lookup('env', 'HOME') }}/Downloads/iPlayer Downloads
 refreshexcludegroups regional,local
 subdir
-thumbsize 640
 thumbsquare 1

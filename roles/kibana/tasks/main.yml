@@ -1,0 +1,21 @@
+---
+- name: install package
+  community.general.openbsd_pkg:
+    name: kibana
+    state: present
+
+- name: install configuration
+  ansible.builtin.template:
+    src: kibana.yml.j2
+    dest: /etc/kibana/kibana.yml
+    owner: root
+    group: _kibana
+    mode: 0440
+    validate: "{{ yamllint_validation_command }}"
+  notify: restart kibana
+
+- name: enable and start service
+  ansible.builtin.service:
+    name: kibana
+    enabled: true
+    state: started

@@ -1,0 +1,11 @@
+---
+- name: install package
+  community.general.openbsd_pkg:
+    name: rsync--
+    state: present
+
+- name: stop and disable service
+  ansible.builtin.service:
+    name: rsyncd
+    enabled: false
+    state: stopped

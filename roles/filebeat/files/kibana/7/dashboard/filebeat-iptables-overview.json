@@ -1,0 +1,159 @@
+{
+  "objects": [
+    {
+      "attributes": {
+        "description": "",
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": "{\"query\": {\"language\": \"kuery\", \"query\": \"\"}, \"filter\": []}"
+        },
+        "savedSearchId": "b3f1b010-1f26-11e9-8ec4-cf5d91a864b3-ecs",
+        "title": "Events Timeline [Filebeat Iptables] ECS",
+        "uiStateJSON": "{}",
+        "version": 1,
+        "visState": "{\"title\": \"Events Timeline [Filebeat Iptables] ECS\", \"aggs\": [{\"type\": \"count\", \"enabled\": true, \"id\": \"1\", \"params\": {}, \"schema\": \"metric\"}, {\"type\": \"date_histogram\", \"enabled\": true, \"id\": \"2\", \"params\": {\"min_doc_count\": 1, \"field\": \"@timestamp\", \"interval\": \"auto\", \"time_zone\": \"Europe/Berlin\", \"drop_partials\": false, \"useNormalizedEsInterval\": true, \"customInterval\": \"2h\", \"extended_bounds\": {}}, \"schema\": \"segment\"}], \"params\": {\"categoryAxes\": [{\"show\": true, \"style\": {}, \"position\": \"bottom\", \"scale\": {\"type\": \"linear\"}, \"type\": \"category\", \"id\": \"CategoryAxis-1\", \"title\": {}, \"labels\": {\"show\": true, \"truncate\": 100}}], \"addTimeMarker\": false, \"addLegend\": true, \"valueAxes\": [{\"show\": true, \"style\": {}, \"position\": \"left\", \"scale\": {\"mode\": \"normal\", \"type\": \"linear\"}, \"type\": \"value\", \"id\": \"ValueAxis-1\", \"title\": {\"text\": \"Count\"}, \"labels\": {\"rotate\": 0, \"show\": true, \"truncate\": 100, \"filter\": false}, \"name\": \"LeftAxis-1\"}], \"times\": [], \"type\": \"area\", \"legendPosition\": \"right\", \"grid\": {\"style\": {\"color\": \"#eee\"}, \"categoryLines\": false}, \"seriesParams\": [{\"mode\": \"stacked\", \"showCircles\": true, \"interpolate\": \"linear\", \"drawLinesBetweenPoints\": true, \"show\": \"true\", \"type\": \"area\", \"data\": {\"id\": \"1\", \"label\": \"Count\"}, \"valueAxis\": \"ValueAxis-1\"}], \"addTooltip\": true}, \"type\": \"area\"}"
+      },
+      "id": "4c913eb0-1f51-11e9-93ed-f7e068f4aebb-ecs",
+      "type": "visualization",
+      "updated_at": "2019-01-23T20:56:04.891Z",
+      "version": 1
+    },
+    {
+      "attributes": {
+        "description": "",
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": "{\"query\": {\"language\": \"kuery\", \"query\": \"iptables.length:*\"}, \"filter\": []}"
+        },
+        "savedSearchId": "b3f1b010-1f26-11e9-8ec4-cf5d91a864b3-ecs",
+        "title": "Top Source Countries [Filebeat Iptables] ECS",
+        "uiStateJSON": "{\"vis\": {\"params\": {\"sort\": {\"columnIndex\": null, \"direction\": null}}}}",
+        "version": 1,
+        "visState": "{\"title\": \"Top Source Countries [Filebeat Iptables] ECS\", \"aggs\": [{\"type\": \"count\", \"enabled\": true, \"id\": \"1\", \"params\": {}, \"schema\": \"metric\"}, {\"type\": \"terms\", \"enabled\": true, \"id\": \"2\", \"params\": {\"orderBy\": \"1\", \"missingBucket\": false, \"otherBucketLabel\": \"Other\", \"field\": \"source.geo.country_iso_code\", \"customLabel\": \"Country\", \"size\": 5, \"otherBucket\": false, \"missingBucketLabel\": \"Missing\", \"order\": \"desc\"}, \"schema\": \"bucket\"}], \"params\": {\"sort\": {\"columnIndex\": null, \"direction\": null}, \"showTotal\": false, \"perPage\": 10, \"showMetricsAtAllLevels\": false, \"totalFunc\": \"sum\", \"showPartialRows\": false}, \"type\": \"table\"}"
+      },
+      "id": "2599f5e0-1e98-11e9-8ec4-cf5d91a864b3-ecs",
+      "type": "visualization",
+      "updated_at": "2019-01-23T20:51:02.293Z",
+      "version": 1
+    },
+    {
+      "attributes": {
+        "description": "",
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": "{\"query\": {\"language\": \"kuery\", \"query\": \"iptables.length:*\"}, \"filter\": []}"
+        },
+        "savedSearchId": "b3f1b010-1f26-11e9-8ec4-cf5d91a864b3-ecs",
+        "title": "Source Map [Filebeat Iptables] ECS",
+        "uiStateJSON": "{\"mapCenter\": [45.02695045318546, -44.82421875000001], \"mapZoom\": 3}",
+        "version": 1,
+        "visState": "{\"title\": \"Source Map [Filebeat Iptables] ECS\", \"aggs\": [{\"type\": \"count\", \"enabled\": true, \"id\": \"1\", \"params\": {}, \"schema\": \"metric\"}, {\"type\": \"geohash_grid\", \"enabled\": true, \"id\": \"2\", \"params\": {\"precision\": 2, \"field\": \"source.geo.location\", \"mapCenter\": [0, 0], \"autoPrecision\": true, \"isFilteredByCollar\": true, \"mapZoom\": 2, \"useGeocentroid\": true}, \"schema\": \"segment\"}], \"params\": {\"heatClusterSize\": 1.5, \"mapCenter\": [0, 0], \"wms\": {\"selectedTmsLayer\": {\"origin\": \"elastic_maps_service\", \"id\": \"road_map\", \"minZoom\": 0, \"maxZoom\": 18, \"attribution\": \"<p>&#169; <a href=\\\"http://www.openstreetmap.org/copyright\\\">OpenStreetMap</a> contributors | <a href=\\\"https://www.elastic.co/elastic-maps-service\\\">Elastic Maps Service</a></p>&#10;\"}, \"enabled\": false, \"options\": {\"transparent\": true, \"format\": \"image/png\"}}, \"mapType\": \"Scaled Circle Markers\", \"legendPosition\": \"bottomright\", \"isDesaturated\": true, \"colorSchema\": \"Yellow to Red\", \"mapZoom\": 2, \"addTooltip\": true}, \"type\": \"tile_map\"}"
+      },
+      "id": "c4394ec0-1efd-11e9-8ec4-cf5d91a864b3-ecs",
+      "type": "visualization",
+      "updated_at": "2019-01-23T20:51:02.293Z",
+      "version": 1
+    },
+    {
+      "attributes": {
+        "description": "",
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": "{\"query\": {\"language\": \"kuery\", \"query\": \"iptables.length:*\"}, \"filter\": []}"
+        },
+        "savedSearchId": "b3f1b010-1f26-11e9-8ec4-cf5d91a864b3-ecs",
+        "title": "Destination Map [Filebeat Iptables] ECS",
+        "uiStateJSON": "{}",
+        "version": 1,
+        "visState": "{\"title\": \"Destination Map [Filebeat Iptables] ECS\", \"aggs\": [{\"type\": \"count\", \"enabled\": true, \"id\": \"1\", \"params\": {}, \"schema\": \"metric\"}, {\"type\": \"geohash_grid\", \"enabled\": true, \"id\": \"2\", \"params\": {\"precision\": 2, \"field\": \"destination.geo.location\", \"mapCenter\": [0, 0], \"autoPrecision\": true, \"isFilteredByCollar\": true, \"mapZoom\": 2, \"useGeocentroid\": true}, \"schema\": \"segment\"}], \"params\": {\"heatClusterSize\": 1.5, \"mapCenter\": [0, 0], \"wms\": {\"selectedTmsLayer\": {\"origin\": \"elastic_maps_service\", \"id\": \"road_map\", \"minZoom\": 0, \"maxZoom\": 18, \"attribution\": \"<p>&#169; <a href=\\\"http://www.openstreetmap.org/copyright\\\">OpenStreetMap</a> contributors | <a href=\\\"https://www.elastic.co/elastic-maps-service\\\">Elastic Maps Service</a></p>&#10;\"}, \"enabled\": false, \"options\": {\"transparent\": true, \"format\": \"image/png\"}}, \"mapType\": \"Scaled Circle Markers\", \"legendPosition\": \"bottomright\", \"isDesaturated\": true, \"colorSchema\": \"Yellow to Red\", \"mapZoom\": 2, \"addTooltip\": true}, \"type\": \"tile_map\"}"
+      },
+      "id": "d8cea010-1efd-11e9-8ec4-cf5d91a864b3-ecs",
+      "type": "visualization",
+      "updated_at": "2019-01-23T20:51:02.293Z",
+      "version": 1
+    },
+    {
+      "attributes": {
+        "description": "",
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": "{\"query\": {\"language\": \"kuery\", \"query\": \"iptables.length:*\"}, \"filter\": []}"
+        },
+        "savedSearchId": "b3f1b010-1f26-11e9-8ec4-cf5d91a864b3-ecs",
+        "title": "Network Type Breakdown [Filebeat Iptables] ECS",
+        "uiStateJSON": "{\"vis\": {\"legendOpen\": false}}",
+        "version": 1,
+        "visState": "{\"title\": \"Network Type Breakdown [Filebeat Iptables] ECS\", \"aggs\": [{\"type\": \"count\", \"enabled\": true, \"id\": \"1\", \"params\": {}, \"schema\": \"metric\"}, {\"type\": \"terms\", \"enabled\": true, \"id\": \"2\", \"params\": {\"orderBy\": \"1\", \"missingBucket\": true, \"otherBucketLabel\": \"Other\", \"field\": \"network.type\", \"size\": 5, \"otherBucket\": true, \"missingBucketLabel\": \"Missing\", \"order\": \"desc\"}, \"schema\": \"segment\"}], \"params\": {\"isDonut\": true, \"addLegend\": true, \"type\": \"pie\", \"legendPosition\": \"right\", \"labels\": {\"values\": true, \"show\": true, \"truncate\": 100, \"last_level\": true}, \"addTooltip\": true}, \"type\": \"pie\"}"
+      },
+      "id": "b57b7370-1f1d-11e9-8ec4-cf5d91a864b3-ecs",
+      "type": "visualization",
+      "updated_at": "2019-01-23T20:51:02.293Z",
+      "version": 1
+    },
+    {
+      "attributes": {
+        "description": "",
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": "{\"query\": {\"language\": \"kuery\", \"query\": \"iptables.length:*\"}, \"filter\": []}"
+        },
+        "savedSearchId": "b3f1b010-1f26-11e9-8ec4-cf5d91a864b3-ecs",
+        "title": "Network Transport Breakdown [Filebeat Iptables] ECS",
+        "uiStateJSON": "{\"vis\": {\"legendOpen\": false}}",
+        "version": 1,
+        "visState": "{\"title\": \"Network Transport Breakdown [Filebeat Iptables] ECS\", \"aggs\": [{\"type\": \"count\", \"enabled\": true, \"id\": \"1\", \"params\": {}, \"schema\": \"metric\"}, {\"type\": \"terms\", \"enabled\": true, \"id\": \"2\", \"params\": {\"orderBy\": \"1\", \"missingBucket\": true, \"otherBucketLabel\": \"Other\", \"field\": \"network.transport\", \"size\": 5, \"otherBucket\": true, \"missingBucketLabel\": \"Missing\", \"order\": \"desc\"}, \"schema\": \"segment\"}], \"params\": {\"isDonut\": true, \"addLegend\": true, \"type\": \"pie\", \"legendPosition\": \"right\", \"labels\": {\"values\": true, \"show\": true, \"truncate\": 100, \"last_level\": true}, \"addTooltip\": true}, \"type\": \"pie\"}"
+      },
+      "id": "35fe0910-1f26-11e9-8ec4-cf5d91a864b3-ecs",
+      "type": "visualization",
+      "updated_at": "2019-01-23T20:51:02.293Z",
+      "version": 1
+    },
+    {
+      "attributes": {
+        "description": "",
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": "{\"query\": {\"language\": \"kuery\", \"query\": \"iptables.length:*\"}, \"filter\": []}"
+        },
+        "savedSearchId": "b3f1b010-1f26-11e9-8ec4-cf5d91a864b3-ecs",
+        "title": "Top Destination Ports [Filebeat Iptables] ECS",
+        "uiStateJSON": "{\"vis\": {\"params\": {\"sort\": {\"columnIndex\": null, \"direction\": null}}}}",
+        "version": 1,
+        "visState": "{\"title\": \"Top Destination Ports [Filebeat Iptables] ECS\", \"aggs\": [{\"type\": \"count\", \"enabled\": true, \"id\": \"1\", \"params\": {}, \"schema\": \"metric\"}, {\"type\": \"terms\", \"enabled\": true, \"id\": \"2\", \"params\": {\"orderBy\": \"1\", \"missingBucket\": false, \"otherBucketLabel\": \"Other\", \"field\": \"destination.port\", \"customLabel\": \"Port\", \"size\": 5, \"otherBucket\": false, \"missingBucketLabel\": \"Missing\", \"order\": \"desc\"}, \"schema\": \"bucket\"}], \"params\": {\"sort\": {\"columnIndex\": null, \"direction\": null}, \"showTotal\": false, \"perPage\": 10, \"showMetricsAtAllLevels\": false, \"totalFunc\": \"sum\", \"showPartialRows\": false}, \"type\": \"table\"}"
+      },
+      "id": "683402b0-1f29-11e9-8ec4-cf5d91a864b3-ecs",
+      "type": "visualization",
+      "updated_at": "2019-01-23T20:51:02.293Z",
+      "version": 1
+    },
+    {
+      "attributes": {
+        "columns": ["_source"],
+        "description": "",
+        "hits": 0,
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": "{\"version\": true, \"query\": {\"language\": \"kuery\", \"query\": \"iptables.length :*\"}, \"filter\": [], \"index\": \"filebeat-*\", \"highlightAll\": true}"
+        },
+        "sort": ["@timestamp", "desc"],
+        "title": "Events Search [Filebeat Iptables] ECS",
+        "version": 1
+      },
+      "id": "b3f1b010-1f26-11e9-8ec4-cf5d91a864b3-ecs",
+      "type": "search",
+      "updated_at": "2019-01-23T20:51:02.293Z",
+      "version": 1
+    },
+    {
+      "attributes": {
+        "description": "Overview of the iptables events dashboard.",
+        "hits": 0,
+        "kibanaSavedObjectMeta": {
+          "searchSourceJSON": "{\"query\": {\"language\": \"kuery\", \"query\": \"\"}, \"filter\": []}"
+        },
+        "optionsJSON": "{\"useMargins\": true, \"hidePanelTitles\": false, \"darkTheme\": false}",
+        "panelsJSON": "[{\"panelIndex\": \"1\", \"embeddableConfig\": {\"vis\": {\"legendOpen\": false}}, \"type\": \"visualization\", \"id\": \"4c913eb0-1f51-11e9-93ed-f7e068f4aebb-ecs\", \"gridData\": {\"h\": 15, \"y\": 0, \"i\": \"1\", \"x\": 0, \"w\": 37}, \"version\": \"6.6.0\"}, {\"panelIndex\": \"2\", \"embeddableConfig\": {}, \"type\": \"visualization\", \"id\": \"2599f5e0-1e98-11e9-8ec4-cf5d91a864b3-ecs\", \"gridData\": {\"h\": 15, \"y\": 0, \"i\": \"2\", \"x\": 37, \"w\": 11}, \"version\": \"6.6.0\"}, {\"panelIndex\": \"3\", \"embeddableConfig\": {\"mapCenter\": [47.15984001304432, -47.02148437500001], \"mapZoom\": 2}, \"type\": \"visualization\", \"id\": \"c4394ec0-1efd-11e9-8ec4-cf5d91a864b3-ecs\", \"gridData\": {\"h\": 15, \"y\": 15, \"i\": \"3\", \"x\": 0, \"w\": 24}, \"version\": \"6.6.0\"}, {\"panelIndex\": \"4\", \"embeddableConfig\": {\"mapCenter\": [49.15296965617042, -27.949218750000004], \"mapZoom\": 2}, \"type\": \"visualization\", \"id\": \"d8cea010-1efd-11e9-8ec4-cf5d91a864b3-ecs\", \"gridData\": {\"h\": 15, \"y\": 15, \"i\": \"4\", \"x\": 24, \"w\": 24}, \"version\": \"6.6.0\"}, {\"panelIndex\": \"5\", \"embeddableConfig\": {}, \"type\": \"visualization\", \"id\": \"b57b7370-1f1d-11e9-8ec4-cf5d91a864b3-ecs\", \"gridData\": {\"h\": 15, \"y\": 30, \"i\": \"5\", \"x\": 0, \"w\": 19}, \"version\": \"6.6.0\"}, {\"panelIndex\": \"6\", \"embeddableConfig\": {}, \"type\": \"visualization\", \"id\": \"35fe0910-1f26-11e9-8ec4-cf5d91a864b3-ecs\", \"gridData\": {\"h\": 15, \"y\": 30, \"i\": \"6\", \"x\": 19, \"w\": 18}, \"version\": \"6.6.0\"}, {\"panelIndex\": \"7\", \"embeddableConfig\": {}, \"type\": \"visualization\", \"id\": \"683402b0-1f29-11e9-8ec4-cf5d91a864b3-ecs\", \"gridData\": {\"h\": 15, \"y\": 30, \"i\": \"7\", \"x\": 37, \"w\": 11}, \"version\": \"6.6.0\"}, {\"panelIndex\": \"8\", \"embeddableConfig\": {}, \"type\": \"search\", \"id\": \"b3f1b010-1f26-11e9-8ec4-cf5d91a864b3-ecs\", \"gridData\": {\"h\": 19, \"y\": 45, \"i\": \"8\", \"x\": 0, \"w\": 48}, \"version\": \"6.6.0\"}]",
+        "timeRestore": false,
+        "title": "[Filebeat Iptables] Overview ECS",
+        "version": 1
+      },
+      "id": "ceefb9e0-1f51-11e9-93ed-f7e068f4aebb-ecs",
+      "type": "dashboard",
+      "updated_at": "2019-01-23T20:59:43.614Z",
+      "version": 1
+    }
+  ],
+  "version": "6.6.0"
+}

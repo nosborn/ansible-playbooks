@@ -1,8 +1,0 @@
----
-- name: restart imapfilter
-  docker_container:
-    name: "{{ imapfilter_container_name }}"
-    comparisons:
-      "*": ignore
-    restart: true
-    state: started

@@ -1,71 +1,64 @@
-# yamllint disable rule:line-length
 ---
-- name: create build directory
-  file:
-    path: "{{ docker_persistent_storage }}/{{ homebridge_container_name }}"
-    owner: root
-    group: root
+- name: create user
+  ansible.builtin.user:
+    name: _homebridge
+    comment: Homebridge
+    create_home: false
+    home: /var/homebridge
+    shell: /sbin/nologin
+    uid: 999
+    state: present
+
+- name: create directory
+  ansible.builtin.file:
+    name: /var/homebridge
+    owner: _homebridge
+    group: _homebridge
     mode: 0700
     state: directory
 
-- name: upload build files
-  template:
-    src: "{{ item }}.j2"
-    dest: "{{ docker_persistent_storage }}/{{ homebridge_container_name }}/{{ item }}"
-    owner: root
-    group: root
-    mode: 0400
-  loop:
-    - .dockerignore
-    - Dockerfile
-
-- name: build image
-  docker_image:
-    name: "{{ homebridge_image_name }}"
-    build:
-      dockerfile: Dockerfile
-      path: "{{ docker_persistent_storage }}/{{ homebridge_container_name }}"
-      pull: true
-    source: build
-
-- name: create volume
-  docker_volume:
-    volume_name: "{{ homebridge_container_name }}"
-
-- name: upload config file
-  template:
-    src: "{{ item }}.j2"
-    dest: "{{ docker_persistent_storage }}/{{ homebridge_container_name }}/{{ item }}"
-    owner: root
-    group: root
-    mode: 0640
-  loop:
-    - config.json
+- name: install package
+  community.general.npm:
+    name: homebridge
+    version: "{{ homebridge_version }}"
+    global: true
+    unsafe_perm: true
+    state: present
   notify: restart homebridge
 
-- name: create container
-  docker_container:
-    name: "{{ homebridge_container_name }}"
-    # cap_drop:
-    #   - all
-    # capabilities:
-    #   - kill
-    #   - net_bind_service
-    #   - setgid
-    #   - setuid
-    comparisons:
-      mac_address: ignore
-    dns_servers:
-      - "{{ unbound_ipv4_address }}"
-    etc_hosts:
-      unifi.osborn.io: "{{ hostvars['unifi']['lan_ipv4_address'] }}"
-    image: "{{ homebridge_image_name }}"
-    init: true
-    networks:
-      - name: macvlan
-        ipv4_address: "{{ homebridge_ipv4_address }}"
-    networks_cli_compatible: true
-    restart_policy: unless-stopped
-    volumes:
-      - "{{ homebridge_container_name }}:/homebridge/"
-      - "{{ docker_persistent_storage }}/{{ homebridge_container_name }}/config.json:/homebridge/config.json:ro"
+- name: install plugins
+  community.general.npm:
+    name: "{{ item.key }}"
+    version: "{{ item.value.version }}"
+    global: true
+    state: present
+  loop: "{{ homebridge_plugins | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+  notify: restart homebridge
+
+- name: upload config file
+  ansible.builtin.template:
+    src: config.json.j2
+    dest: /var/homebridge/config.json
+    owner: _homebridge
+    group: _homebridge
+    mode: 0640
+    validate: "{{ jsonlint_validation_command }}"
+  notify: restart homebridge
+
+- name: install control script
+  ansible.builtin.template:
+    src: homebridge.rc.j2
+    dest: /etc/rc.d/homebridge
+    owner: root
+    group: wheel
+    mode: 0555
+    validate: /bin/ksh -n %s
+  notify: restart homebridge
+
+- name: enable and start service
+  ansible.builtin.service:
+    name: homebridge
+    enabled: true
+    state: started

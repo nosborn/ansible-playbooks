@@ -1,20 +1,21 @@
+[Darwin]
+mac-mini
+
 [EdgeOS]
 usg
 
+[OpenBSD]
+tombstone
+
 [get_iplayer]
-diskstation
+mac-mini
 
 [home]
-diskstation
+mac-mini
+tombstone
 unifi
 usg
 
-[homebridge]
-diskstation
-
-[imapfilter]
-diskstation
-
 [letsencrypt]
-diskstation
+tombstone
 unifi

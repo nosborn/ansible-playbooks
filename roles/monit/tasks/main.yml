@@ -1,0 +1,34 @@
+---
+- name: install packages
+  community.general.openbsd_pkg:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - curl  # for alert script
+    - monit
+
+- name: install alert script
+  ansible.builtin.template:
+    src: monit-pushover-alert.sh.j2
+    dest: /usr/local/libexec/monit-pushover-alert
+    owner: root
+    group: wheel
+    mode: 0550
+    validate: /bin/sh -n %s
+  notify: reload monit
+
+- name: install configuration file
+  ansible.builtin.template:
+    src: monitrc.j2
+    dest: /etc/monitrc
+    owner: root
+    group: wheel
+    mode: 0400
+    validate: /usr/local/bin/monit -c %s -t
+  notify: reload monit
+
+- name: enable and start service
+  ansible.builtin.service:
+    name: monit
+    enabled: true
+    state: started

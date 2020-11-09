@@ -1,7 +1,0 @@
----
-- name: install package
-  command: /usr/syno/bin/synopkg install_from_server VideoStation
-  args:
-    creates: /var/packages/VideoStation/INFO
-  register: video_station_package_result
-  until: video_station_package_result is succeeded

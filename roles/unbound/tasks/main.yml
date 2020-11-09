@@ -1,86 +1,47 @@
-# yamllint disable rule:line-length
 ---
-- name: create persistent storage
-  file:
-    path: "{{ docker_persistent_storage }}/{{ unbound_container_name }}"
-    owner: root
-    group: root
-    mode: 0755
-    state: directory
+- name: install dependencies
+  community.general.openbsd_pkg:
+    name:
+      - p5-Digest-SHA1
+      - p5-IO-Socket-SSL
+    state: present
 
-- name: upload build files
-  template:
-    src: "{{ item }}.j2"
-    dest: "{{ docker_persistent_storage }}/{{ unbound_container_name }}/{{ item }}"
+- name: create blacklist script
+  ansible.builtin.template:
+    src: blacklist.pl.j2
+    dest: /usr/local/libexec/unbound-blacklist
     owner: root
-    group: root
-    mode: 0400
-  loop:
-    - .dockerignore
-    - Dockerfile
-
-- name: build image
-  docker_image:
-    name: "{{ unbound_image_name }}"
-    build:
-      dockerfile: Dockerfile
-      path: "{{ docker_persistent_storage }}/{{ unbound_container_name }}"
-      pull: true
-    source: build
-
-- name: upload configuration file
-  template:
-    src: unbound.conf.j2
-    dest: "{{ docker_persistent_storage }}/{{ unbound_container_name }}/unbound.conf"
-    owner: root
-    group: root
-    mode: 0444
-  notify: restart unbound
-
-- name: upload blacklist script
-  template:
-    src: update-blacklist.pl.j2
-    dest: "{{ docker_persistent_storage }}/{{ unbound_container_name }}/update-blacklist"
-    owner: root
-    group: root
+    group: wheel
     mode: 0550
-    validate: perl -cw %s
+    validate: /usr/bin/perl -cw %s
   notify: clear unbound blacklist cache
 
 - name: create blacklist
   shell:
-    chdir: "{{ docker_persistent_storage }}/{{ unbound_container_name }}"
-    cmd: ./update-blacklist >blacklist.conf
-    creates: "{{ docker_persistent_storage }}/{{ unbound_container_name }}/blacklist.conf"
+    cmd: /usr/local/libexec/unbound-blacklist >/var/unbound/etc/blacklist.conf
+    creates: /var/unbound/etc/blacklist.conf
   notify: restart unbound
 
-- name: upload blacklist task script
-  template:
-    src: update-blacklist-task.sh.j2
-    dest: "{{ docker_persistent_storage }}/{{ unbound_container_name }}/update-blacklist-task"
+- name: install DoH blacklist
+  ansible.builtin.template:
+    src: doh-blacklist.conf.j2
+    dest: /var/unbound/etc/doh-blacklist.conf
     owner: root
-    group: root
-    mode: 0550
-    validate: sh -n %s
+    group: wheel
+    mode: 0444
+  notify: restart unbound
 
-- name: create container
-  docker_container:
-    name: "{{ unbound_container_name }}"
-    cap_drop:
-      - all
-    capabilities:
-      - kill
-      - net_bind_service
-      - setgid
-      - setuid
-    dns_servers:
-      - "{{ hostvars['usg']['lan_ipv4_address'] }}"
-    image: "{{ unbound_image_name }}"
-    networks:
-      - name: macvlan
-        ipv4_address: "{{ unbound_ipv4_address }}"
-    networks_cli_compatible: true
-    restart_policy: unless-stopped
-    volumes:
-      - "{{ docker_persistent_storage }}/{{ unbound_container_name }}/blacklist.conf:/etc/unbound/blacklist.conf:ro"
-      - "{{ docker_persistent_storage }}/{{ unbound_container_name }}/unbound.conf:/etc/unbound/unbound.conf:ro"
+- name: install configuration file
+  ansible.builtin.template:
+    src: unbound.conf.j2
+    dest: /var/unbound/etc/unbound.conf
+    owner: root
+    group: wheel
+    mode: 0444
+  notify: restart unbound
+
+- name: enable and start service
+  ansible.builtin.service:
+    name: unbound
+    enabled: true
+    state: started

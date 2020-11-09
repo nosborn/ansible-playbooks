@@ -4,29 +4,6 @@
     "username": "{{ homebridge_config_bridge_username }}",
     "pin": "{{ homebridge_config_bridge_pin }}"
   },
-  "accessories": [
-    {
-      "accessory": "UniFi Occupancy Sensor",
-      "name": "Occupancy Sensor",
-      "unifi": {
-        "controller": "{{ homebridge_config_accessories_unifi_controller }}",
-        "username": "{{ homebridge_config_accessories_unifi_username }}",
-        "password": "{{ homebridge_config_accessories_unifi_password }}",
-	"secure": true
-      },
-      "watch": [
-        "{{ homebridge_config_accessories_watch | join('","') }}"
-      ],
-      "watchGuests": true,
-      "mode": "any"
-    }
-  ],
-  "platforms": [
-    {
-      "platform": "config",
-      "name": "Config",
-      "port": 80,
-      "sudo": false
-    }
-  ]
+  "platforms": {{ homebridge_config_platforms | to_nice_json }},
+  "accessories": {{ homebridge_config_accessories | to_nice_json }}
 }

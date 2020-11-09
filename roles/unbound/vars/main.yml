@@ -1,3 +1,2 @@
 ---
-unbound_container_name: unbound
-unbound_image_name: "{{ unbound_container_name }}:20200630-2"
+unbound_blacklist_cache: /var/cache/unbound-blacklist

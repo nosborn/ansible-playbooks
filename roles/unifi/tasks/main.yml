@@ -1,58 +1,21 @@
 # yamllint disable rule:line-length
 ---
-- file:
+- ansible.builtin.file:
     path: /srv/unifi/data/sites/default
     owner: unifi
     group: unifi
     mode: 0750
     state: directory
 
-- template:
+- ansible.builtin.template:
     src: config.gateway.json.j2
     dest: /srv/unifi/data/sites/default/config.gateway.json
     owner: unifi
     group: unifi
     mode: 0440
+    validate: "{{ jsonlint_validation_command }}"
 
-# - template:
-#     src: config.properties.j2
-#     dest: /usr/local/share/unifi/data/sites/default/config.properties
-#     owner: _unifi
-#     group: "{{ root_group }}"
-#     mode: 0600
-#   notify: restart unifi
-#   when: false
-
-# - name: configure system properties
-#   lineinfile:
-#     path: /usr/local/share/unifi/data/system.properties
-#     regex: "^{{ item.key }}="
-#     line: "{{ item.key }}={{ item.value }}"
-#     create: true
-#     owner: _unifi
-#     group: "{{ root_group }}"
-#     mode: 0600
-#   with_dict:
-#     # log.guest: "{{ unifi_properties_log_guest }}"
-#     log.inform: "{{ unifi_properties_log_inform }}"
-#     # log.inform.ap: "{{ unifi_properties_log_inform_ap }}"
-#     # log.inform.sta: "{{ unifi_properties_log_inform_sta }}"
-#     reporter-uuid: "{{ unifi_properties_reporter_uuid }}"
-#     system_ip: "{{ lan_ipv4_address }}"
-#     unifi.G1GC.enabled: true
-#     # unifi.https.ciphers: TLS_RSA_WITH_AES_256_CBC_SHA,TLS_RSA_WITH_AES_128_CBC_SHA
-#     unifi.https.hsts: true
-#     unifi.https.hsts.max_age: 31536000
-#     unifi.https.hsts.preload: true
-#     unifi.https.hsts.subdomain: true
-#     unifi.https.sslEnabledProtocols: TLSv1.2
-#     unifi.xms: "{{ unifi_properties_unifi_xms }}"
-#     unifi.xmx: "{{ unifi_properties_unifi_xmx }}"
-#     uuid: "{{ unifi_properties_uuid }}"
-#   notify: restart unifi
-#   when: false
-
-- apt:
+- ansible.builtin.apt:
     name:
       - python-cryptography
       - python-openssl
@@ -60,7 +23,7 @@
     state: present
   when: ansible_python.version.major == 2
 
-- apt:
+- ansible.builtin.apt:
     name:
       - python3-cryptography
       - python3-openssl
@@ -69,24 +32,25 @@
   when: ansible_python.version.major == 3
 
 - name: generate SSL private key
-  openssl_privatekey:
+  community.crypto.openssl_privatekey:
     path: /etc/ssl/private/cloudkey.key
     owner: root
     group: ssl-cert
     mode: 0640  # O/S sets this on boot
-  notify: restart nginx
+    state: present
 
 - name: generate SSL CSR
-  openssl_csr:
+  community.crypto.openssl_csr:
     privatekey_path: /etc/ssl/private/cloudkey.key
     common_name: unifi.{{ global_domain }}
     path: /etc/ssl/private/cloudkey.csr
     owner: root
     group: ssl-cert
     mode: 0640
+    state: present
 
 - name: generate SSL certificate (part 1)
-  acme_certificate:
+  community.crypto.acme_certificate:
     account_key_content: "{{ letsencrypt_account_key }}"
     acme_directory: "{{ letsencrypt_acme_directory }}"
     acme_version: "{{ letsencrypt_acme_version }}"
@@ -94,14 +58,32 @@
     csr: /etc/ssl/private/cloudkey.csr
     fullchain_dest: /etc/ssl/private/cloudkey.crt
     modify_account: false
-    remaining_days: "{{ unifi_acme_certificate_remaining_days }}"
+    remaining_days: 30
   register: letsencrypt_challenge
 
-- debug:
+- ansible.builtin.debug:
     var: letsencrypt_challenge
     verbosity: 1
 
-- cloudflare_dns:
+- ansible.builtin.copy:
+    src: /etc/ssl/private/cloudkey.crt
+    remote_src: true
+    dest: /data/unifi-core/config/unifi-core.crt
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart unifi-core
+
+- ansible.builtin.copy:
+    src: /etc/ssl/private/cloudkey.key
+    remote_src: true
+    dest: /data/unifi-core/config/unifi-core.key
+    owner: root
+    group: root
+    mode: 0640  # installs as 0644
+  notify: restart unifi-core
+
+- community.general.cloudflare_dns:
     account_api_token: "{{ cloudflare_account_api_token }}"
     account_email: "{{ cloudflare_account_email }}"
     record: "{{ letsencrypt_challenge.challenge_data['unifi.'~global_domain]['dns-01']['resource'] }}.unifi"
@@ -113,7 +95,7 @@
   delegate_to: localhost
 
 - name: generate SSL certificate (part 2)
-  acme_certificate:
+  community.crypto.acme_certificate:
     account_key_content: "{{ letsencrypt_account_key }}"
     acme_directory: "{{ letsencrypt_acme_directory }}"
     acme_version: "{{ letsencrypt_acme_version }}"
@@ -123,19 +105,17 @@
     data: "{{ letsencrypt_challenge }}"
     fullchain_dest: /etc/ssl/private/cloudkey.crt
     modify_account: false
-    remaining_days: "{{ unifi_acme_certificate_remaining_days }}"
-  notify: restart nginx
+    remaining_days: 30
   when: letsencrypt_challenge.changed
 
-- file:
+- ansible.builtin.file:
     path: /etc/ssl/private/cloudkey.crt
     owner: root
     group: ssl-cert
     mode: 0644  # will be reset to this by O/S
     state: file
-  notify: restart nginx
 
-- openssl_pkcs12:
+- community.crypto.openssl_pkcs12:
     path: /etc/ssl/private/cloudkey.p12
     friendly_name: unifi
     passphrase: "{{ unifi_jks_password }}"
@@ -146,7 +126,7 @@
     mode: 0400
     backup: true
 
-- java_cert:
+- ansible.builtin.java_cert:
     cert_alias: unifi
     keystore_pass: "{{ unifi_jks_password }}"
     keystore_path: /etc/ssl/private/unifi.keystore.jks
@@ -155,15 +135,15 @@
     pkcs12_path: /etc/ssl/private/cloudkey.p12
   notify: restart unifi
 
-- slurp:
+- ansible.builtin.slurp:
     src: /etc/ssl/private/cloudkey.crt
   register: unifi_certificate
 
-- slurp:
+- ansible.builtin.slurp:
     src: /etc/ssl/private/cloudkey.key
   register: unifi_private_key
 
-- java_keystore:
+- ansible.builtin.java_keystore:
     name: unifi
     certificate: "{{ unifi_certificate['content'] | b64decode }}"
     private_key: "{{ unifi_private_key['content'] | b64decode }}"
@@ -174,21 +154,21 @@
     mode: 0440
   notify: restart unifi
 
-- stat:
+- ansible.builtin.stat:
     path: /etc/ssl/private/unifi.keystore.jks
     checksum_algorithm: md5
     get_attributes: false
     get_mime: false
   register: unifi_keystore
 
-- copy:
+- ansible.builtin.copy:
     content: "{{ unifi_keystore.stat.checksum }} */etc/ssl/private/unifi.keystore.jks\n"
     dest: /etc/ssl/private/unifi.keystore.jks.md5
     owner: root
     group: root
     mode: 0444
 
-- fetch:
+- ansible.builtin.fetch:
     dest: backup
     src: "{{ item }}"
   loop:

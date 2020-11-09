@@ -1,36 +1,96 @@
 # yamllint disable rule:line-length
 ---
-- hosts: diskstation
-
-  pre_tasks:
-    - name: set timezone
-      lineinfile:
-        path: /etc/synoinfo.conf
-        regexp: ^timezone=
-        line: timezone={{ synology_timezone }}
-        owner: root
-        group: root
-        mode: 0644
-      when: false
-
-    - name: set localtime
-      copy:
-        content: "{{ synology_tz }}\n"
-        dest: /etc/TZ
-        owner: root
-        group: root
-        mode: 0644
-      when: false
+- hosts: mac-mini
 
   roles:
-    # - role: cloud-sync
-    - role: download-station
-    - role: get_iplayer
+    - get_iplayer
+
+- hosts: tombstone
+
+  pre_tasks:
+    - name: configure networking
+      ansible.builtin.copy:
+        content: |
+          inet {{ lan_ipv4_address }} {{ lan_ipv4_subnet | ipaddr('netmask') }} NONE
+          inet6 autoconf
+        dest: /etc/hostname.{{ lan_if }}
+        owner: root
+        group: wheel
+        mode: 0440
+      notify: restart networking
+
+    - name: set default gateway
+      ansible.builtin.copy:
+        content: |
+          192.168.1.1
+        dest: /etc/mygate
+        owner: root
+        group: wheel
+        mode: 0440
+      notify: restart networking
+
+    - name: set sysctl variables
+      ansible.posix.sysctl:
+        name: "{{ item.name }}"
+        value: "{{ item.value }}"
+      loop:
+        - name: ddb.panic
+          value: 0
+        - name: net.inet.ip.forwarding
+          value: 1
+
+    - name: set timezone
+      ansible.builtin.file:
+        path: /etc/localtime
+        src: /usr/share/zoneinfo/{{ timezone }}
+        state: link
+
+    - name: set /etc/hosts entries
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        line: "{{ hostvars['unifi'].lan_ipv4_address }}\tunifi.{{ global_domain }}"
+
+  roles:
+    - role: acme_client
+    - role: apmd
+    - role: elasticsearch
+    - role: filebeat
+    - role: heartbeat
     - role: homebridge
-    - role: itunes-server
-    - role: log-center
+    - role: kibana
+    - role: monit
+    - role: nginx
+    - role: ntpd
+    - role: pf
+    - role: smtpd
+    - role: sndiod
+    - role: sysclean
+    - role: tor
     - role: unbound
-    - role: video-station
+
+  tasks:
+    - name: sysmerge exclusions
+      ansible.builtin.copy:
+        content: |
+          /etc/mail/aliases
+          /etc/mail/smtpd.conf
+          /etc/monitrc
+          /etc/ntpd.conf
+          /etc/pf.conf
+          /etc/tor/torrc
+          /etc/ttys
+          /var/unbound/etc/unbound.conf
+        dest: /etc/sysmerge.ignore
+        owner: root
+        group: wheel
+        mode: 0444
+
+  handlers:
+    - name: restart networking
+      ansible.builtin.command:
+        argv:
+          - /bin/sh
+          - /etc/netstart
 
 - hosts: unifi
 
@@ -41,7 +101,7 @@
 
   tasks:
     - name: install script to mangle TTL with iptables
-      template:
+      ansible.builtin.template:
         src: post-config.d/iptables_ttl_mangle.sh.j2
         dest: /config/scripts/post-config.d/iptables_ttl_mangle.sh
         owner: root
@@ -51,14 +111,14 @@
       notify: iptables mangle ttl
 
     - name: set allowed interfaces for avahi
-      lineinfile:
+      ansible.builtin.lineinfile:
         path: /etc/avahi/avahi-daemon.conf
         regexp: allow-interfaces=
         line: allow-interfaces={{ lan_if }},{{ iot_if }}
       notify: restart avahi-daemon
 
     - name: set denied interfaces for avahi
-      lineinfile:
+      ansible.builtin.lineinfile:
         path: /etc/avahi/avahi-daemon.conf
         regexp: deny-interfaces=
         line: deny-interfaces={{ wan_if }}
@@ -66,9 +126,11 @@
 
   handlers:
     - name: iptables mangle ttl
-      command: /config/scripts/post-config.d/iptables_ttl_mangle.sh
+      ansible.builtin.command:
+        argv:
+          - /config/scripts/post-config.d/iptables_ttl_mangle.sh
 
     - name: restart avahi-daemon
-      service:
+      ansible.builtin.service:
         name: avahi-daemon
         state: restarted

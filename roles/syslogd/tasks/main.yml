@@ -1,0 +1,8 @@
+---
+- name: enable and start service
+  ansible.builtin.service:
+    name: syslogd
+    arguments: -rrZ
+    enabled: true
+    state: started
+  notify: restart syslogd  # because arguments

@@ -1,7 +1,0 @@
----
-- name: install package
-  command: /usr/syno/bin/synopkg install_from_server DownloadStation
-  args:
-    creates: /var/packages/DownloadStation/INFO
-  register: download_station_package_result
-  until: download_station_package_result is succeeded

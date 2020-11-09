@@ -1,8 +1,0 @@
----
-ansible_host: "{{ vault_ansible_host }}"
-ansible_python_interpreter: "{{ vault_ansible_python_interpreter }}"
-ansible_user: "{{ vault_ansible_user }}"
-lan_if: "{{ vault_lan_if }}"
-pip_executable: "{{ vault_pip_executable }}"
-synology_timezone: "{{ vault_synology_timezone }}"
-synology_tz: "{{ vault_synology_tz }}"

@@ -1,7 +1,0 @@
----
-- name: install package
-  command: /usr/syno/bin/synopkg install_from_server CloudSync
-  args:
-    creates: /var/packages/CloudSync/INFO
-  register: cloud_sync_package_result
-  until: cloud_sync_package_result is succeeded

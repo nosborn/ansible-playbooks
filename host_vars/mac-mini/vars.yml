@@ -1,0 +1,4 @@
+---
+ansible_host: "{{ vault_ansible_host }}"
+ansible_user: "{{ vault_ansible_user }}"
+get_iplayer_pvr_shows: "{{ vault_get_iplayer_pvr_shows }}"
