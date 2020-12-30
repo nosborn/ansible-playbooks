@@ -9,6 +9,5 @@ dependencies:
   - role: nginx
   - role: ntpd
   - role: smtpd
-  - role: squid
   - role: tor
   - role: unbound

@@ -55,11 +55,6 @@ filebeat.modules:
         - /var/www/log/error.log
     ingress_controller:
       enabled: false
-  # - module: squid
-  #   log:
-  #     var.input: file
-  #     var.paths:
-  #       -
   - module: system
     auth:
       var.paths:
