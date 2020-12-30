@@ -5,5 +5,4 @@ ansible_user: "{{ vault_ansible_user }}"
 lan_if: "{{ vault_lan_if }}"
 lan_ipv4_address: "{{ vault_lan_ipv4_address }}"
 unifi_base: /usr/lib/unifi  # https://help.ubnt.com/hc/en-us/articles/115004872967
-unifi_captive_dns_exclude: "{{ vault_unifi_captive_dns_exclude }}"
 unifi_jks_password: "{{ vault_unifi_jks_password }}"
