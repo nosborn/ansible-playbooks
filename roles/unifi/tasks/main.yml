@@ -1,13 +1,15 @@
 # yamllint disable rule:line-length
 ---
-- ansible.builtin.file:
+- name: create site directory
+  ansible.builtin.file:
     path: /srv/unifi/data/sites/default
     owner: unifi
     group: unifi
     mode: 0750
     state: directory
 
-- ansible.builtin.template:
+- name: install gateway configuration
+  ansible.builtin.template:
     src: config.gateway.json.j2
     dest: /srv/unifi/data/sites/default/config.gateway.json
     owner: unifi
@@ -15,7 +17,8 @@
     mode: 0440
     validate: "{{ jsonlint_validation_command }}"
 
-- ansible.builtin.apt:
+- name: install dependencies
+  ansible.builtin.apt:
     name:
       - python-cryptography
       - python-openssl
@@ -23,7 +26,8 @@
     state: present
   when: ansible_python.version.major == 2
 
-- ansible.builtin.apt:
+- name: install dependencies
+  ansible.builtin.apt:
     name:
       - python3-cryptography
       - python3-openssl
@@ -33,20 +37,21 @@
 
 - name: generate SSL private key
   community.crypto.openssl_privatekey:
-    path: /etc/ssl/private/cloudkey.key
+    path: /data/unifi-core/config/unifi-core.key
     owner: root
-    group: ssl-cert
-    mode: 0640  # O/S sets this on boot
+    group: root
+    mode: 0440
     state: present
+  notify: restart unifi-core
 
 - name: generate SSL CSR
   community.crypto.openssl_csr:
-    privatekey_path: /etc/ssl/private/cloudkey.key
+    privatekey_path: /data/unifi-core/config/unifi-core.key
     common_name: unifi.{{ global_domain }}
     path: /etc/ssl/private/cloudkey.csr
     owner: root
-    group: ssl-cert
-    mode: 0640
+    group: root
+    mode: 0440
     state: present
 
 - name: generate SSL certificate (part 1)
@@ -56,32 +61,14 @@
     acme_version: "{{ letsencrypt_acme_version }}"
     challenge: dns-01
     csr: /etc/ssl/private/cloudkey.csr
-    fullchain_dest: /etc/ssl/private/cloudkey.crt
+    fullchain_dest: /data/unifi-core/config/unifi-core.crt
     modify_account: false
     remaining_days: 30
   register: letsencrypt_challenge
 
-- ansible.builtin.debug:
+- ansible.builtin.debug:  # noqa 502
     var: letsencrypt_challenge
     verbosity: 1
-
-- ansible.builtin.copy:
-    src: /etc/ssl/private/cloudkey.crt
-    remote_src: true
-    dest: /data/unifi-core/config/unifi-core.crt
-    owner: root
-    group: root
-    mode: 0644
-  notify: restart unifi-core
-
-- ansible.builtin.copy:
-    src: /etc/ssl/private/cloudkey.key
-    remote_src: true
-    dest: /data/unifi-core/config/unifi-core.key
-    owner: root
-    group: root
-    mode: 0640  # installs as 0644
-  notify: restart unifi-core
 
 - community.general.cloudflare_dns:
     account_api_token: "{{ cloudflare_account_api_token }}"
@@ -91,7 +78,7 @@
     type: TXT
     value: "{{ letsencrypt_challenge.challenge_data['unifi.'~global_domain]['dns-01']['resource_value'] }}"
     zone: "{{ global_domain }}"
-  when: letsencrypt_challenge.changed
+  when: letsencrypt_challenge.changed  # noqa 503
   delegate_to: localhost
 
 - name: generate SSL certificate (part 2)
@@ -103,24 +90,17 @@
     challenge: dns-01
     csr: /etc/ssl/private/cloudkey.csr
     data: "{{ letsencrypt_challenge }}"
-    fullchain_dest: /etc/ssl/private/cloudkey.crt
+    fullchain_dest: /data/unifi-core/config/unifi-core.crt
     modify_account: false
     remaining_days: 30
-  when: letsencrypt_challenge.changed
-
-- ansible.builtin.file:
-    path: /etc/ssl/private/cloudkey.crt
-    owner: root
-    group: ssl-cert
-    mode: 0644  # will be reset to this by O/S
-    state: file
+  when: letsencrypt_challenge.changed  # noqa 503
 
 - community.crypto.openssl_pkcs12:
     path: /etc/ssl/private/cloudkey.p12
     friendly_name: unifi
     passphrase: "{{ unifi_jks_password }}"
-    certificate_path: /etc/ssl/private/cloudkey.crt
-    privatekey_path: /etc/ssl/private/cloudkey.key
+    certificate_path: /data/unifi-core/config/unifi-core.crt
+    privatekey_path: /data/unifi-core/config/unifi-core.key
     owner: root
     group: root
     mode: 0400
@@ -135,12 +115,12 @@
     pkcs12_path: /etc/ssl/private/cloudkey.p12
   notify: restart unifi
 
-- ansible.builtin.slurp:
-    src: /etc/ssl/private/cloudkey.crt
+- ansible.builtin.slurp:  # noqa 502
+    src: /data/unifi-core/config/unifi-core.crt
   register: unifi_certificate
 
-- ansible.builtin.slurp:
-    src: /etc/ssl/private/cloudkey.key
+- ansible.builtin.slurp:  # noqa 502
+    src: /data/unifi-core/config/unifi-core.key
   register: unifi_private_key
 
 - ansible.builtin.java_keystore:
@@ -172,9 +152,9 @@
     dest: backup
     src: "{{ item }}"
   loop:
-    - /etc/ssl/private/cloudkey.crt
+    - /data/unifi-core/config/unifi-core.crt
+    - /data/unifi-core/config/unifi-core.key
     - /etc/ssl/private/cloudkey.csr
-    - /etc/ssl/private/cloudkey.key
     - /etc/ssl/private/cloudkey.p12
     - /etc/ssl/private/unifi.keystore.jks
     - /etc/ssl/private/unifi.keystore.jks.md5

@@ -14,7 +14,7 @@
   loop:
     - robots.txt
 
-- ansible.builtin.stat:
+- ansible.builtin.stat:  # noqa 502
     path: /etc/ssl/{{ ansible_fqdn }}.fullchain.pem
   register: nginx_ssl_certificate
 
