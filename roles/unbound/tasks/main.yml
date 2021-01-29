@@ -1,34 +1,22 @@
 ---
-- name: install dependencies
-  community.general.openbsd_pkg:
-    name:
-      - p5-Digest-SHA1
-      - p5-IO-Socket-SSL
-    state: present
-
-- name: create blacklist script
-  ansible.builtin.template:
-    src: blacklist.pl.j2
-    dest: /usr/local/libexec/unbound-blacklist
-    owner: root
-    group: wheel
-    mode: 0550
-    validate: /usr/bin/perl -cw %s
-  notify: clear unbound blacklist cache
-
-- name: create blacklist
-  shell:
-    cmd: /usr/local/libexec/unbound-blacklist >/var/unbound/etc/blacklist.conf
-    creates: /var/unbound/etc/blacklist.conf
+- name: install RPZ databases
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: /var/unbound/db/{{ item }}
+    owner: _unbound
+    group: _unbound
+    mode: 0440
+  loop:
+    - rpz.doh
   notify: restart unbound
 
-- name: install DoH blacklist
-  ansible.builtin.template:
-    src: doh-blacklist.conf.j2
-    dest: /var/unbound/etc/doh-blacklist.conf
-    owner: root
-    group: wheel
-    mode: 0444
+- name: install RPZ
+  ansible.builtin.get_url:
+    url: "{{ unbound_rpz_url }}"
+    dest: /var/unbound/db/{{ unbound_rpz_name }}
+    owner: _unbound
+    group: _unbound
+    mode: 0640
   notify: restart unbound
 
 - name: install configuration file
@@ -38,6 +26,7 @@
     owner: root
     group: wheel
     mode: 0444
+    validate: /usr/sbin/unbound-checkconf %s
   notify: restart unbound
 
 - name: enable and start service

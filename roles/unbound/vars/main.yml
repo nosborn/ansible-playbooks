@@ -1,2 +1,3 @@
 ---
-unbound_blacklist_cache: /var/cache/unbound-blacklist
+unbound_rpz_name: rpz.oisd.nl
+unbound_rpz_url: https://rpz.oisd.nl/basic/

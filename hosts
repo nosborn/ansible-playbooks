@@ -1,17 +1,10 @@
-[Darwin]
-mac-mini
-
 [EdgeOS]
 usg
 
 [OpenBSD]
 tombstone
 
-[get_iplayer]
-mac-mini
-
 [home]
-mac-mini
 tombstone
 unifi
 usg

@@ -1,6 +1,0 @@
----
-dashboards:
-  - id: 55a9e6e0-a29e-11e7-928f-5dbe6f6f5519
-    file: filebeat-nginx-overview.json
-  - id: 046212a0-a2a1-11e7-928f-5dbe6f6f5519
-    file: filebeat-nginx-logs.json

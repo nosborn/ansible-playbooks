@@ -1,10 +1,5 @@
 # yamllint disable rule:line-length
 ---
-- hosts: mac-mini
-
-  roles:
-    - get_iplayer
-
 - hosts: tombstone
 
   pre_tasks:
@@ -53,11 +48,7 @@
   roles:
     - role: acme_client
     - role: apmd
-    - role: elasticsearch
-    - role: filebeat
-    - role: heartbeat
     - role: homebridge
-    - role: kibana
     - role: monit
     - role: nginx
     - role: ntpd
@@ -67,6 +58,8 @@
     - role: sysclean
     - role: tor
     - role: unbound
+      tags:
+        - unbound
 
   tasks:
     - name: sysmerge exclusions

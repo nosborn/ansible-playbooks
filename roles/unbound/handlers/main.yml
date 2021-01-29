@@ -1,9 +1,4 @@
 ---
-- name: clear unbound blacklist cache
-  ansible.builtin.file:
-    path: "{{ unbound_blacklist_cache }}"
-    state: absent
-
 - name: restart unbound
   ansible.builtin.service:
     name: unbound

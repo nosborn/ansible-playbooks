@@ -14,7 +14,8 @@ NoExec 1
 ExcludeNodes {{ tor_config_exclude_nodes | join(',') }}
 {% endif %}
 GeoIPExcludeUnknown 1
-VirtualAddrNetworkIPv4 {{ tor_virtual_addr_network }}
+VirtualAddrNetworkIPv4 {{ tor_virtual_addr_network_ipv4 }}
+VirtualAddrNetworkIPv6 {{ tor_virtual_addr_network_ipv6 }}
 TransPort 127.0.0.1:9080
 TransProxyType pf-divert
 AutomapHostsOnResolve 1

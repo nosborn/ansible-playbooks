@@ -6,18 +6,14 @@ server:
 	interface: 127.0.0.1
 	interface: {{ lan_ipv4_address }}
 	interface: ::1
-	outgoing-interface: {{ lan_ipv4_address }}
 	outgoing-range: 448
 
-	# edns-buffer-size: 1472
+	# This is the default in Unbound >= 0.12
+	edns-buffer-size: 1232
 
 	# msg-cache-size: 128m
 
 	# rrset-cache-size: 256m
-
-	define-tag: "guest iot main"
-
-	# do-ip6: no
 
 	# edns-tcp-keepalive: yes
 
@@ -25,16 +21,13 @@ server:
 
 	access-control: 0.0.0.0/0 refuse
 	access-control: {{ lan_ipv4_subnet }} allow
+	access-control: {{ guest_ipv4_subnet }} allow
+	access-control: {{ iot_ipv4_subnet }} allow
 	access-control: 127.0.0.0/8 allow
 	access-control: ::0/0 deny
 	access-control: ::1 allow
 
-	access-control-tag: {{ guest_ipv4_subnet }} "guest"
-	access-control-tag: {{ iot_ipv4_subnet }} "iot"
-	access-control-tag: {{ lan_ipv4_subnet }} "main"
-
-	log-replies: yes
-
+	log-servfail: yes
 	pidfile: /var/run/unbound.pid
 
 	hide-identity: yes
@@ -63,51 +56,53 @@ server:
 
 	do-not-query-localhost: no
 
-	module-config: "iterator"
+	prefetch: yes
+	prefetch-key: yes
+	deny-any: yes
+
+	module-config: "respip iterator"
 	# auto-trust-anchor-file: "/var/unbound/db/root.key"
 
 	# domain-insecure: "lan"
 	# domain-insecure: "localdomain"
 	domain-insecure: "onion"
 
-	# local-zone: "localhost." nodefault
-	# local-zone: "127.in-addr.arpa." nodefault
+	# local-zone: "0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa." nodefault
+	# local-zone: "0.in-addr.arpa." nodefault
 	# local-zone: "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa." nodefault
-	# local-zone: "test." nodefault
-	# local-zone: "invalid." nodefault
 	# local-zone: "10.in-addr.arpa." nodefault
+	# local-zone: "100.51.198.in-addr.arpa." nodefault
+	# local-zone: "113.0.203.in-addr.arpa." nodefault
+	# local-zone: "127.in-addr.arpa." nodefault
 	# local-zone: "16.172.in-addr.arpa." nodefault
+	# local-zone: "168.192.in-addr.arpa." nodefault
 	# local-zone: "17.172.in-addr.arpa." nodefault
 	# local-zone: "18.172.in-addr.arpa." nodefault
 	# local-zone: "19.172.in-addr.arpa." nodefault
+	# local-zone: "2.0.192.in-addr.arpa." nodefault
 	# local-zone: "20.172.in-addr.arpa." nodefault
 	# local-zone: "21.172.in-addr.arpa." nodefault
 	# local-zone: "22.172.in-addr.arpa." nodefault
 	# local-zone: "23.172.in-addr.arpa." nodefault
 	# local-zone: "24.172.in-addr.arpa." nodefault
 	# local-zone: "25.172.in-addr.arpa." nodefault
+	# local-zone: "254.169.in-addr.arpa." nodefault
+	# local-zone: "255.255.255.255.in-addr.arpa." nodefault
 	# local-zone: "26.172.in-addr.arpa." nodefault
 	# local-zone: "27.172.in-addr.arpa." nodefault
 	# local-zone: "28.172.in-addr.arpa." nodefault
 	# local-zone: "29.172.in-addr.arpa." nodefault
 	# local-zone: "30.172.in-addr.arpa." nodefault
 	# local-zone: "31.172.in-addr.arpa." nodefault
-	# local-zone: "168.192.in-addr.arpa." nodefault
-	# local-zone: "0.in-addr.arpa." nodefault
-	# local-zone: "254.169.in-addr.arpa." nodefault
-	# local-zone: "2.0.192.in-addr.arpa." nodefault
-	# local-zone: "100.51.198.in-addr.arpa." nodefault
-	# local-zone: "113.0.203.in-addr.arpa." nodefault
-	# local-zone: "255.255.255.255.in-addr.arpa." nodefault
-	# local-zone: "0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa." nodefault
-	# local-zone: "d.f.ip6.arpa." nodefault
+	# local-zone: "8.b.d.0.1.0.0.2.ip6.arpa." nodefault
 	# local-zone: "8.e.f.ip6.arpa." nodefault
 	# local-zone: "9.e.f.ip6.arpa." nodefault
 	# local-zone: "a.e.f.ip6.arpa." nodefault
 	# local-zone: "b.e.f.ip6.arpa." nodefault
-	# local-zone: "8.b.d.0.1.0.0.2.ip6.arpa." nodefault
-	# And for 64.100.in-addr.arpa. to 127.100.in-addr.arpa.
-	local-zone: "64.100.in-addr.arpa." nodefault
+	# local-zone: "d.f.ip6.arpa." nodefault
+	# local-zone: "invalid." nodefault
+	# local-zone: "localhost." nodefault
+	# local-zone: "test." nodefault
 	local-zone: "onion." nodefault
 {% for zone in unbound_nodefault_local_zones %}
 	local-zone: "{{ zone }}." nodefault
@@ -121,8 +116,7 @@ server:
 	local-data: "tombstone.{{ global_domain }}. A {{ hostvars['tombstone']['lan_ipv4_address'] }}"
 	local-data: "unifi.{{ global_domain }}. A {{ hostvars['unifi']['lan_ipv4_address'] }}"
 
-	include: "/var/unbound/etc/blacklist.conf"
-	include: "/var/unbound/etc/doh-blacklist.conf"
+	# include: "/var/unbound/etc/blacklist.conf"
 
 remote-control:
 	control-enable: yes
@@ -170,9 +164,22 @@ forward-zone:
 {%   endfor %}
 
 {% endfor %}
+{% for domain in unbound_forward_domains %}
 forward-zone:
-	name: "."
-{% for address in unbound_forwarders %}
+	name: "{{ domain }}."
+{%   for address in unbound_forwarders %}
 	forward-addr: {{ address }}
-{% endfor %}
+{%   endfor %}
 	forward-tls-upstream: yes
+
+{% endfor %}
+rpz:
+	name: "rpz.doh."
+	zonefile: "/var/unbound/db/rpz.doh"
+	rpz-log: yes
+
+rpz:
+	name: "{{ unbound_rpz_name }}."
+	url: "{{ unbound_rpz_url }}"
+	zonefile: "/var/unbound/db/{{ unbound_rpz_name }}"
+	rpz-log: yes

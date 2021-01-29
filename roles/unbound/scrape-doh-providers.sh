@@ -2,18 +2,27 @@
 
 set -euo pipefail
 
-get_page() {
-  curl -fLsS https://github.com/curl/curl/wiki/DNS-over-HTTPS
+scrape() {
+  curl -fLsS https://raw.githubusercontent.com/wiki/curl/curl/DNS-over-HTTPS.md |
+    sed -E '1,/^# Publicly available servers/d;/^#/,$d' |
+    grep -Eo '^\|[^|]+\|[^|]+\|' |
+    sed -E 's/\|[^|]+\|//;s/\|$//' |
+    sed -E 's/<br>|,/\n/g' |
+    sed -E 's/^ +//;s/ +$//' |
+    grep -Eo 'https://.+' |
+    sed -E 's|^.*https://||;s|(:[0-9]+)?(/.*)?$||' |
+    grep -Fvx 'blog.cloudflare.com' |
+    grep -Fvx 'my.nextdns.io'
 }
 
-extract_hosts() {
-  grep -Eo 'rel="nofollow">https://.+?<' |
-    grep -E 'd(ns|oh)' |
-    sed -E 's|^.+>https://||;s|(:[0-9]+)?/.*<||'
-}
+cat <<__END__
+\$TTL 30
 
-for zone in $(get_page | extract_hosts | sort | uniq); do
-  printf 'local-zone: "%s." redirect\n' "${zone}"
-  printf 'local-data: "%s. 3600 A 0.0.0.0"\n' "${zone}"
-  printf 'local-data: "%s. 3600 AAAA ::"\n' "${zone}"
+@ IN SOA rpz.doh. hostmaster.rpz.doh. $(date +%Y%m%d%H%M) 86400 3600 604800 30
+     NS localhost.
+
+__END__
+
+for zone in $(scrape | sort | uniq); do
+  printf '%s CNAME .\n' "${zone}"
 done

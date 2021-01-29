@@ -1,6 +1,0 @@
----
-dependencies:
-  - role: elasticsearch
-  - role: kibana
-  - role: rsync
-  - role: syslogd

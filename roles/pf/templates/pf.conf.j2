@@ -11,4 +11,4 @@ block return in on ! lo0 proto tcp to port 6000:6010
 # Port build user does not need network
 block return out log proto {tcp udp} user _pbuild
 
-pass in on {{ lan_if }} proto tcp from {{ lan_ipv4_subnet }} to {{ tor_virtual_addr_network }} divert-to 127.0.0.1 port 9080
+pass in on {{ lan_if }} proto tcp from {{ lan_ipv4_subnet }} to {{ tor_virtual_addr_network_ipv4 }} divert-to 127.0.0.1 port 9080

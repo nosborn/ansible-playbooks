@@ -1,11 +1,7 @@
 ---
 dependencies:
   - role: acme_client
-  - role: elasticsearch
-  - role: filebeat
-  - role: heartbeat
   - role: homebridge
-  - role: kibana
   - role: nginx
   - role: ntpd
   - role: smtpd
