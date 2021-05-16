@@ -1,2 +1,2 @@
 ---
-jsonlint_validation_command: /usr/local/bin/jsonlint-3 -- %s
+jsonlint_validation_command: /usr/local/bin/jsonlint -- %s

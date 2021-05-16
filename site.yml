@@ -1,12 +1,24 @@
 # yamllint disable rule:line-length
 ---
+# - hosts: all
+
+#   pre_tasks:
+#     - name: gather facts from ALL hosts
+#       ansible.builtin.setup:
+#       delegate_to: "{{ item }}"
+#       delegate_facts: True
+#       when: hostvars[item]['ansible_default_ipv4'] is not defined
+#       with_items: "{{ groups['all'] }}"
+#       tags:
+#         - always
+
 - hosts: tombstone
 
   pre_tasks:
     - name: configure networking
       ansible.builtin.copy:
         content: |
-          inet {{ lan_ipv4_address }} {{ lan_ipv4_subnet | ipaddr('netmask') }} NONE
+          inet {{ lan_ipv4_address }} 255.255.255.0 NONE
           inet6 autoconf
         dest: /etc/hostname.{{ lan_if }}
         owner: root
@@ -31,8 +43,6 @@
       loop:
         - name: ddb.panic
           value: 0
-        - name: net.inet.ip.forwarding
-          value: 1
 
     - name: set timezone
       ansible.builtin.file:
@@ -40,37 +50,36 @@
         src: /usr/share/zoneinfo/{{ timezone }}
         state: link
 
-    - name: set /etc/hosts entries
-      ansible.builtin.lineinfile:
-        path: /etc/hosts
-        line: "{{ hostvars['unifi'].lan_ipv4_address }}\tunifi.{{ global_domain }}"
-
   roles:
     - role: acme_client
     - role: apmd
+    - role: dnsupdate
+    # - role: elasticsearch
     - role: homebridge
     - role: monit
     - role: nginx
     - role: ntpd
-    - role: pf
+    - role: periodic
+    # # - role: pf
+    - role: smokeping
     - role: smtpd
     - role: sndiod
+    - role: sshd
     - role: sysclean
-    - role: tor
     - role: unbound
       tags:
         - unbound
 
   tasks:
-    - name: sysmerge exclusions
+    - name: configure sysmerge exclusions
       ansible.builtin.copy:
         content: |
           /etc/mail/aliases
           /etc/mail/smtpd.conf
-          /etc/monitrc
+          /etc/newsyslog.conf
           /etc/ntpd.conf
-          /etc/pf.conf
-          /etc/tor/torrc
+          # /etc/pf.conf
+          /etc/ssh/sshd_config
           /etc/ttys
           /var/unbound/etc/unbound.conf
         dest: /etc/sysmerge.ignore

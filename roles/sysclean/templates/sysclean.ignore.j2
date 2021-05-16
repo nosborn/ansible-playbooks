@@ -1,17 +1,14 @@
 /etc/mail/secrets
+/etc/ansible
 /etc/rc.d/homebridge
 /etc/ssl/{{ ansible_fqdn }}.chain.pem
 /etc/ssl/{{ ansible_fqdn }}.fullchain.pem
 /etc/ssl/{{ ansible_fqdn }}.pem
 /etc/ssl/private/{{ ansible_fqdn }}.key
+/var/dnsupdate
 /var/homebridge
-/var/unbound/db/rpz.doh
-/var/unbound/db/rpz.oisd.nl
-/var/unbound/etc/doh-blacklist.conf
-/var/www/cache/client_body_temp
-/var/www/cache/fastcgi_temp
-/var/www/cache/proxy_temp
-/var/www/cache/scgi_temp
-/var/www/cache/uwsgi_temp
+/var/unbound/db/rpz.blacklist
+/var/unbound/db/rpz.blacklist.*
+/var/www/cache
 
 @include "/etc/changelist"

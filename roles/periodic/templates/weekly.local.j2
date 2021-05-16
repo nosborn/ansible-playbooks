@@ -1,0 +1,11 @@
+if [ -e /usr/local/libexec/unbound-blacklist ]; then
+  start_part "Update DNS blacklist:"
+  /usr/local/libexec/unbound-blacklist >/var/unbound/db/rpz.blacklist.$$
+  if ! cmp -s /var/unbound/db/rpz.blacklist{,.$$}; then
+    cp -p /var/unbound/db/rpz.blacklist{,.bak}
+    mv -f /var/unbound/db/rpz.blacklist{.$$,}
+    unbound-control -q auth_zone_reload blacklist
+    unbound-control -q flush_zone blacklist
+  fi
+  rm -f /var/unbound/db/rpz.blacklist.$$
+fi

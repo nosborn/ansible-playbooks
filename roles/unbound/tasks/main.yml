@@ -1,35 +1,51 @@
 ---
-- name: install RPZ databases
+- name: install root trust anchor
+  ansible.builtin.command:
+    argv:
+      - unbound-anchor
+    creates: /var/unbound/db/root.key
+
+- name: install unbound dependencies
+  ansible.builtin.package:
+    name:
+      - p5-Digest-SHA1
+      - p5-IO-Socket-SSL
+    state: present
+
+- name: create blacklist cache directory
+  ansible.builtin.file:
+    path: /var/cache/unbound
+    owner: root
+    group: wheel
+    mode: 0755
+    state: directory
+
+- name: upload blacklist script
   ansible.builtin.copy:
-    src: "{{ item }}"
-    dest: /var/unbound/db/{{ item }}
-    owner: _unbound
-    group: _unbound
-    mode: 0440
-  loop:
-    - rpz.doh
+    src: blacklist.pl
+    dest: /usr/local/libexec/unbound-blacklist
+    owner: root
+    group: wheel
+    mode: 0550
+    validate: perl -cw %s
+
+- name: create blacklist
+  ansible.builtin.shell:
+    cmd: /usr/local/libexec/unbound-blacklist >/var/unbound/db/rpz.blacklist
+    creates: /var/unbound/db/rpz.blacklist
   notify: restart unbound
 
-- name: install RPZ
-  ansible.builtin.get_url:
-    url: "{{ unbound_rpz_url }}"
-    dest: /var/unbound/db/{{ unbound_rpz_name }}
-    owner: _unbound
-    group: _unbound
-    mode: 0640
-  notify: restart unbound
-
-- name: install configuration file
+- name: configure unbound
   ansible.builtin.template:
     src: unbound.conf.j2
     dest: /var/unbound/etc/unbound.conf
     owner: root
     group: wheel
     mode: 0444
-    validate: /usr/sbin/unbound-checkconf %s
+    validate: unbound-checkconf %s
   notify: restart unbound
 
-- name: enable and start service
+- name: enable and start unbound
   ansible.builtin.service:
     name: unbound
     enabled: true

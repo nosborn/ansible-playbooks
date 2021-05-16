@@ -1,39 +1,15 @@
-authority buypass {
-	api url "https://api.buypass.com/acme/directory"
-	account key "/etc/acme/buypass-privkey.pem"
-{% for contact in letsencrypt_contact | default([]) %}
-	contact "{{ contact }}"
-{% endfor %}
-}
-
-authority buypass-test {
-	api url "https://api.test4.buypass.no/acme/directory"
-	account key "/etc/acme/buypass-test-privkey.pem"
-{% for contact in letsencrypt_contact | default([]) %}
-	contact "{{ contact }}"
-{% endfor %}
-}
-
 authority letsencrypt {
 	api url "https://acme-v02.api.letsencrypt.org/directory"
 	account key "/etc/acme/letsencrypt-privkey.pem"
-{% for contact in letsencrypt_contact | default([]) %}
-	contact "{{ contact }}"
-{% endfor %}
 }
 
 authority letsencrypt-staging {
 	api url "https://acme-staging-v02.api.letsencrypt.org/directory"
 	account key "/etc/acme/letsencrypt-staging-privkey.pem"
-{% for contact in letsencrypt_contact | default([]) %}
-	contact "{{ contact }}"
-{% endfor %}
 }
 
 domain {{ ansible_fqdn }} {
 	domain key "/etc/ssl/private/{{ ansible_fqdn }}.key"
-	domain certificate "/etc/ssl/{{ ansible_fqdn }}.pem"
-	domain chain certificate "/etc/ssl/{{ ansible_fqdn }}.chain.pem"
 	domain full chain certificate "/etc/ssl/{{ ansible_fqdn }}.fullchain.pem"
 	sign with letsencrypt
 }

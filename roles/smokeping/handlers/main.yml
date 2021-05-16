@@ -1,0 +1,8 @@
+---
+- name: restart smokeping
+  ansible.builtin.service:
+    name: "{{ item }}"
+    state: restarted
+  loop:
+    - smokeping
+    - smokeping_fcgi

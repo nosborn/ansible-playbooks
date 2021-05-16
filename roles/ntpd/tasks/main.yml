@@ -6,7 +6,7 @@
     owner: root
     group: wheel
     mode: 0444
-    validate: /usr/sbin/ntpd -f %s -n
+    validate: ntpd -f %s -n
   notify: restart ntpd
 
 - name: enable and start service

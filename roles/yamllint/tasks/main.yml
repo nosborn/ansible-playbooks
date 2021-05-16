@@ -1,9 +1,0 @@
----
-- name: include OS-specific variables
-  include_vars: "{{ ansible_distribution }}.yml"
-
-- name: install package
-  community.general.openbsd_pkg:
-    name: py3-yamllint
-    state: present
-  when: ansible_distribution == 'OpenBSD'

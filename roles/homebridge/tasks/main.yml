@@ -1,15 +1,16 @@
 ---
-- name: create user
+- name: create homebridge user
   ansible.builtin.user:
     name: _homebridge
     comment: Homebridge
     create_home: false
     home: /var/homebridge
+    login_class: daemon
     shell: /sbin/nologin
     uid: 999
     state: present
 
-- name: create directory
+- name: create homebridge directory
   ansible.builtin.file:
     name: /var/homebridge
     owner: _homebridge
@@ -17,7 +18,7 @@
     mode: 0700
     state: directory
 
-- name: install package
+- name: install homebridge package
   community.general.npm:
     name: homebridge
     version: "{{ homebridge_version }}"
@@ -26,10 +27,10 @@
     state: present
   notify: restart homebridge
 
-- name: install plugins
+- name: install homebridge plugins
   community.general.npm:
     name: "{{ item.key }}"
-    version: "{{ item.value.version }}"
+    version: "{{ item.value }}"
     global: true
     state: present
   loop: "{{ homebridge_plugins | dict2items }}"
@@ -37,27 +38,26 @@
     label: "{{ item.key }}"
   notify: restart homebridge
 
-- name: upload config file
-  ansible.builtin.template:
-    src: config.json.j2
+- name: configure homebridge
+  ansible.builtin.copy:
+    content: "{{ homebridge_config | to_nice_json }}"
     dest: /var/homebridge/config.json
     owner: _homebridge
     group: _homebridge
-    mode: 0640
-    validate: "{{ jsonlint_validation_command }}"
+    mode: 0440
   notify: restart homebridge
 
-- name: install control script
-  ansible.builtin.template:
-    src: homebridge.rc.j2
+- name: install homebridge service
+  ansible.builtin.copy:
+    src: homebridge.rc
     dest: /etc/rc.d/homebridge
     owner: root
     group: wheel
     mode: 0555
-    validate: /bin/ksh -n %s
+    validate: ksh -n %s
   notify: restart homebridge
 
-- name: enable and start service
+- name: enable and start homebridge
   ansible.builtin.service:
     name: homebridge
     enabled: true

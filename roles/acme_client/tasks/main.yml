@@ -1,31 +1,16 @@
 ---
-- name: install account key
-  ansible.builtin.copy:
-    content: "{{ letsencrypt_account_key }}"
-    dest: /etc/acme/letsencrypt-privkey.pem
-    owner: root
-    group: wheel
-    mode: 0400
-  when: letsencrypt_account_key is defined
-
-- name: install configuration file
+- name: configure acme-client
   ansible.builtin.template:
     src: acme-client.conf.j2
     dest: /etc/acme-client.conf
     owner: root
     group: wheel
     mode: 0444
-    validate: /usr/sbin/acme-client -f %s -n
+    validate: acme-client -n -f %s
 
-- name: retrieve certificate
-  command:
+- name: issue certificate
+  ansible.builtin.command:
     argv:
-      - /usr/sbin/acme-client
+      - acme-client
       - "{{ ansible_fqdn }}"
-  register: result
-  failed_when: not (result.rc == 0 or result.rc == 2)
-  changed_when: result.rc == 0
-  notify:
-    - restart httpd
-    - restart kibana
-    - restart monit
+    creates: /etc/ssl/{{ ansible_fqdn }}.fullchain.pem

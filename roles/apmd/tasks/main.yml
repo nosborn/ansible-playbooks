@@ -1,5 +1,5 @@
 ---
-- name: enable and start service
+- name: enable and start apmd
   ansible.builtin.service:
     name: apmd
     arguments: -A

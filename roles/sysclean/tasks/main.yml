@@ -1,10 +1,10 @@
 ---
-- name: install package
-  community.general.openbsd_pkg:
+- name: install sysclean
+  ansible.builtin.package:
     name: sysclean
     state: present
 
-- name: configure exclusions
+- name: configure sysclean exclusions
   ansible.builtin.template:
     src: sysclean.ignore.j2
     dest: /etc/sysclean.ignore

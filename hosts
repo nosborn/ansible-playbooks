@@ -1,3 +1,6 @@
+[Debian]
+unifi
+
 [EdgeOS]
 usg
 
@@ -10,5 +13,4 @@ unifi
 usg
 
 [letsencrypt]
-tombstone
 unifi

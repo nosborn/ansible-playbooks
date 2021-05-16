@@ -1,2 +1,0 @@
----
-yamllint_validation_command: /usr/local/bin/yamllint-3 %s

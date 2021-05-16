@@ -13,15 +13,6 @@
           "alt-subnet": "0.0.0.0/0"
         }
       }
-    },
-    "static": {
-      "route": {
-        "{{ tor_virtual_addr_network_ipv4 }}": {
-          "next-hop": {
-            "{{ hostvars['tombstone']['lan_ipv4_address'] }}": "''"
-          }
-        }
-      }
     }
   },
   "service": {
@@ -31,10 +22,17 @@
         "except-interface": [
           "{{ hostvars['usg']['wan_if'] }}"
         ],
+        "name-server": [
+          "1.1.1.1",
+          "1.0.0.1"
+        ],
         "options": [
           "domain-needed",
-          "server=1.1.1.1",
-          "server=1.0.0.1"
+          "host-record=unifi,192.168.1.2",
+          "server=/{{ dns_forward_domains | join('/') }}/127.0.0.1#5053",
+{% for smartdns_server in smartdns_servers %}
+          "server=/{{ smartdns_domains | join('/') }}/{{ smartdns_server }}"{{ ',' if not loop.last }}
+{% endfor %}
         ]
       }
     },

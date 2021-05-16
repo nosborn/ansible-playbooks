@@ -1,19 +1,30 @@
 # set alert your-name@your.domain not on { instance, action }
 set daemon 30
   with start delay 60
-set httpd port 2812
-  address localhost
+set httpd unixsocket /var/www/run/monit.sock
+  uid www
+  gid www
+  permission 0660
+  signature disable
   allow admin:monit read-only
 set idfile /var/monit/id
 set log syslog
 set pidfile /var/run/monit.pid
-#set mail-format { from: monit@foo.bar }
+#set mail-format { from: monit@{{ ansible_fqdn }} }
 #set mailserver
 set statefile /var/monit/state
+
+#check process elasticsearch with pidfile /var/run/elasticsearch/elasticsearch.pid
+#  start program = "/usr/sbin/rcctl start elasticsearch"
+#  stop program = "/usr/sbin/rcctl stop elasticsearch"
 
 check process homebridge matching '^node: homebridge$'
   start program = "/usr/sbin/rcctl start homebridge"
   stop program = "/usr/sbin/rcctl stop homebridge"
+
+check process nginx with pidfile /var/run/nginx.pid
+  start program = "/usr/sbin/rcctl start nginx"
+  stop program = "/usr/sbin/rcctl stop nginx"
 
 check process ntpd with matching '^/usr/sbin/ntpd$'
   start program = "/usr/sbin/rcctl start ntpd"
@@ -21,6 +32,10 @@ check process ntpd with matching '^/usr/sbin/ntpd$'
   if failed port 123 ipv4 protocol ntp3
     for 5 cycles
     then alert
+
+check process smokeping with pidfile /var/run/smokeping/smokeping.pid
+  start program = "/usr/sbin/rcctl start smokeping"
+  stop program = "/usr/sbin/rcctl stop smokeping"
 
 check process sshd with pidfile /var/run/sshd.pid
   start program = "/usr/sbin/rcctl start sshd"
@@ -30,15 +45,10 @@ check process syslogd with pidfile /var/run/syslog.pid
   start program = "/usr/sbin/rcctl start syslogd"
   stop program = "/usr/sbin/rcctl stop syslogd"
 
-check process tor matching '^/usr/local/bin/tor$'
-  start program = "/usr/sbin/rcctl start tor"
-  stop program = "/usr/sbin/rcctl stop tor"
-  # if failed port 9053 ipv4 type udp protocol dns
-  #   for 5 cycles
-  #   then alert
-
 check process unbound with pidfile /var/run/unbound.pid
   start program = "/usr/sbin/rcctl start unbound"
   stop program = "/usr/sbin/rcctl stop unbound"
   if failed host {{ lan_ipv4_address }} port 53 ipv4 type udp protocol dns
     then alert
+  # if failed host {{ lan_ipv6_address }} port 53 ipv6 type udp protocol dns
+  #   then alert

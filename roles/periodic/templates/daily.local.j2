@@ -1,0 +1,5 @@
+start_part "Checking for available patches:"
+syspatch -c
+
+start_part "Renewing SSL certificate:"
+acme-client '{{ ansible_fqdn }}' && rcctl reload nginx

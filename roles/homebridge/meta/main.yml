@@ -1,4 +1,3 @@
 ---
 dependencies:
-  - role: jsonlint
-  - role: node
+  - role: nodejs

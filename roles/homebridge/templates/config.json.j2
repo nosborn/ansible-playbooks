@@ -1,9 +1,0 @@
-{
-  "bridge": {
-    "name": "Homebridge",
-    "username": "{{ homebridge_config_bridge_username }}",
-    "pin": "{{ homebridge_config_bridge_pin }}"
-  },
-  "platforms": {{ homebridge_config_platforms | to_nice_json }},
-  "accessories": {{ homebridge_config_accessories | to_nice_json }}
-}

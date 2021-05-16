@@ -1,0 +1,59 @@
+# yamllint disable rule:line-length
+---
+- name: install dnsupdate dependencies
+  ansible.builtin.package:
+    name:
+      - curl
+      - jq
+    state: present
+
+- name: create dnsupdate user
+  ansible.builtin.user:
+    name: _dnsupdate
+    comment: DNS Update
+    create_home: false
+    home: /var/dnsupdate
+    login_class: daemon
+    shell: /sbin/nologin
+    uid: 998
+    state: present
+
+- name: create dnsupdate directory
+  ansible.builtin.file:
+    name: /var/dnsupdate
+    owner: _dnsupdate
+    group: _dnsupdate
+    mode: 0700
+    state: directory
+
+- name: store dnsupdate credentials
+  ansible.builtin.copy:
+    content: |
+      machine www.getflix.com
+      login {{ getflix_api_key }}
+      password x
+    dest: /var/dnsupdate/.netrc
+    owner: _dnsupdate
+    group: _dnsupdate
+    mode: 0400
+
+- name: create Cloudflare update script
+  ansible.builtin.template:
+    src: cloudflare.sh.j2
+    dest: /usr/local/libexec/dnsupdate-cloudflare
+    owner: root
+    group: _dnsupdate
+    mode: 0550
+    validate: ksh -n %s
+
+- name: configure Cloudflare update job
+  ansible.builtin.cron:
+    name: cloudflare
+    job: /usr/local/libexec/dnsupdate-cloudflare
+    user: _dnsupdate
+
+- name: configure Getflix update job
+  ansible.builtin.cron:
+    name: getflix
+    job: curl -4fnsS -X PUT https://www.getflix.com/api/v1/addresses.json
+    user: _dnsupdate

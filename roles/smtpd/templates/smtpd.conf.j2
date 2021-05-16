@@ -21,8 +21,8 @@ action "relay-root" relay host smtp+tls://root@smtp.migadu.com:587 auth <secrets
 action "relay-unifi" relay host smtp+tls://unifi@smtp.migadu.com:587 auth <secrets>
 
 match for local action "local"
-match for any mail-from monit@tombstone.osborn.io action "relay-monit"
-match for any mail-from nick@tombstone.osborn.io action "relay-nick"
-match for any mail-from root@tombstone.osborn.io action "relay-root"
-match for any mail-from unifi@tombstone.osborn.io action "relay-unifi"
+match for any mail-from monit@{{ ansible_fqdn }} action "relay-monit"
+match for any mail-from nick@{{ ansible_fqdn }} action "relay-nick"
+match for any mail-from root@{{ ansible_fqdn }} action "relay-root"
+match for any mail-from unifi@{{ ansible_fqdn }} action "relay-unifi"
 # match for any action "relay"

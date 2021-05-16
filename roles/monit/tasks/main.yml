@@ -1,6 +1,6 @@
 ---
-- name: install packages
-  community.general.openbsd_pkg:
+- name: install monit
+  ansible.builtin.package:
     name: "{{ item }}"
     state: present
   loop:
@@ -16,15 +16,16 @@
     mode: 0550
     validate: /bin/sh -n %s
   notify: reload monit
+  when: false
 
-- name: install configuration file
+- name: configure monit
   ansible.builtin.template:
     src: monitrc.j2
     dest: /etc/monitrc
     owner: root
     group: wheel
     mode: 0400
-    validate: /usr/local/bin/monit -c %s -t
+    validate: monit -c %s -t
   notify: reload monit
 
 - name: enable and start service
