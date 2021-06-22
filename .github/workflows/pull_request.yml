@@ -1,0 +1,28 @@
+# yamllint disable rule:line-length
+---
+name: Pull Request
+
+on:  # yamllint disable rule:truthy
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+      - name: set PY
+        run: |
+          PY="$(python --version --version | sha256sum | cut -d' ' -f1)"
+          printf 'PY=%s\n' "${PY}" >>"${GITHUB_ENV}"
+      - uses: actions/cache@v2
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit|${{ env.PY }}|${{ hashFiles('.pre-commit-config.yaml') }}
+      - uses: pre-commit/action@v2.0.3
