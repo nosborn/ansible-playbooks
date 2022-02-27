@@ -1,0 +1,50 @@
+---
+- name: prepare configuration
+  become: false
+  delegate_to: localhost
+  ansible.builtin.command:
+    argv:
+      - openssl
+      - dgst
+    stdin: "{{ lookup('ansible.builtin.template', 'prometheus.yml.j2') }}"
+  register: prometheus_config_result
+  changed_when: false
+
+- name: create config
+  community.docker.docker_config:
+    name: prometheus-{{ prometheus_config_result.stdout | trim }}
+    data: "{{ lookup('ansible.builtin.template', 'prometheus.yml.j2') }}"
+    labels:
+      service: prometheus
+
+- name: create network
+  community.docker.docker_network:
+    name: prometheus
+    driver: overlay
+    internal: true
+    scope: swarm
+
+- name: create volume
+  community.docker.docker_volume:
+    name: prometheus
+
+- name: deploy prometheus
+  community.docker.docker_swarm_service:
+    name: prometheus
+    image: quay.io/prometheus/prometheus:v{{ prometheus_version }}
+    configs:
+      - config_name: prometheus-{{ prometheus_config_result.stdout | trim }}
+        filename: /etc/prometheus/prometheus.yml
+    hostname: prometheus.{{ domain_name }}
+    mounts:
+      - source: prometheus
+        target: /prometheus
+        type: volume
+    networks:
+      - name: prometheus
+    read_only: true
+    labels:
+      traefik.enable: !!str false
+    restart_config:
+      condition: on-failure
+      delay: 20s

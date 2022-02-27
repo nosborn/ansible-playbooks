@@ -1,0 +1,45 @@
+# yamllint disable rule:line-length
+---
+# global:
+#   scrape_interval: 15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+#   evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+#   # scrape_timeout is set to the global default (10s).
+
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets:
+#           # - alertmanager:9093
+
+# rule_files:
+#   # - "first_rules.yml"
+#   # - "second_rules.yml"
+
+scrape_configs:
+  # - job_name: blackbox
+  #   metrics_path: /probe
+  #   params:
+  #     module:
+  #       - icmp
+  #   static_configs:
+  #     - targets:
+  #         - 24.105.30.129 # Diablo III - North America
+  #         - 103.4.115.248 # Diablo III - Australia
+  #         - 117.52.35.79 # Diablo II: Resurrected - Asia
+  #         - 117.52.35.179 # Diablo II: Resurrected - Asia
+  #         - 137.221.106.88 # Diablo II: Resurrected - North America
+  #         - 137.221.106.188 # Diablo II: Resurrected - North America
+  #   relabel_configs:
+  #     - source_labels:
+  #         - __address__
+  #       target_label: __param_target
+  #     - source_labels:
+  #         - __param_target
+  #       target_label: instance
+  #     - target_label: __address__
+  #       replacement: 127.0.0.1:9115  # The blackbox exporter's real hostname:port.
+
+  - job_name: prometheus
+    static_configs:
+      - targets:
+          - localhost:9090

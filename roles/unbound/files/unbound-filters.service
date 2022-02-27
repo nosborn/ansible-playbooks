@@ -1,0 +1,24 @@
+[Unit]
+After=network.target
+Description=Update Unbound filters
+Wants=unbound-filters.timer
+
+[Service]
+ExecStart=/usr/local/bin/unbound-make-filters.sh
+MemoryDenyWriteExecute=yes
+PrivateTmp=yes
+ProtectClock=yes
+ProtectControlGroups=yes
+ProtectHostname=yes
+ProtectKernelLogs=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+ReadWriteDirectories=/etc/unbound/unbound.conf.d
+RemoveIPC=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+Type=oneshot
+UMask=0022
+
+[Install]
+WantedBy=multi-user.target

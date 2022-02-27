@@ -1,0 +1,21 @@
+[advice]
+	statusHints = false
+
+[fetch]
+	fsckobjects = true
+	prune = true
+	pruneTags = true
+
+[merge]
+	ff = only
+
+[pull]
+	rebase = true
+
+[rebase]
+	autoStash = true
+
+[user]
+	useConfigOnly = true
+
+# vim: ft=gitconfig

@@ -1,0 +1,8 @@
+---
+mobileconfig_disconnect_ssids: "{{ vault_mobileconfig_disconnect_ssids }}"
+mdm_dir: "{{ playbook_dir }}/.mdm"
+ownca_certificate: "{{ vault_ownca_certificate }}"
+ownca_common_name: "{{ vault_ownca_common_name }}"
+ownca_country_name: "{{ vault_ownca_country_name }}"
+ownca_dir: "{{ playbook_dir }}/.ownca"
+ownca_private_key: "{{ vault_ownca_private_key }}"

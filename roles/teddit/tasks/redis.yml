@@ -1,0 +1,18 @@
+---
+- name: deploy redis
+  community.docker.docker_swarm_service:
+    name: teddit-redis
+    image: redis:6-alpine
+    env:
+      REDIS_REPLICATION_MODE: master
+      TZ: "{{ timezone }}"
+    healthcheck:
+      test: redis-cli ping || exit 1
+    networks:
+      - name: teddit
+    read_only: true
+    labels:
+      traefik.enable: !!str false
+    restart_config:
+      condition: on-failure
+      delay: 20s

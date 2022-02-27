@@ -1,0 +1,15 @@
+---
+- name: create source directory
+  ansible.builtin.file:
+    path: /usr/local/src/invidious
+    owner: root
+    group: root
+    mode: 0755
+    state: directory
+
+- name: check out source
+  ansible.builtin.git:
+    repo: https://github.com/iv-org/invidious.git
+    version: master
+    dest: /usr/local/src/invidious
+  register: invidious_git_result

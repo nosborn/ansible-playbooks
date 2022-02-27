@@ -6,3 +6,8 @@ updates:
     directory: /
     schedule:
       interval: daily
+
+  - package-ecosystem: npm
+    directory: /roles/homebridge/files
+    schedule:
+      interval: daily

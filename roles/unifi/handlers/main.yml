@@ -4,7 +4,14 @@
     name: unifi
     state: restarted
 
-- name: restart unifi-core
-  ansible.builtin.service:
-    name: unifi-core
-    state: restarted
+- name: force provision gateway
+  ansible.builtin.shell: # noqa command-instead-of-shell
+    argv:
+      - echo
+      - "{{ playbook_dir }}/roles/{{ role_name }}/files/force-provision.sh"
+      - "{{ hostvars.usg.ansible_default_ipv4.macaddress }}"
+    environment:
+      PASSWORD: x
+      USER: x
+  delegate_to: localhost
+  when: false # FIXME

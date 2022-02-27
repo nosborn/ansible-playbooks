@@ -1,0 +1,42 @@
+[global]
+ea support = yes
+fruit:delete_empty_adfiles = yes
+fruit:metadata = stream
+fruit:model = MacSamba
+fruit:nfs_aces = no
+fruit:posix_rename = yes
+fruit:veto_appledouble = no
+fruit:wipe_intentionally_left_blank_rfork = yes
+fruit:zero_file_id = yes
+hosts allow = {{ lan_ipv4_subnet | ansible.netcommon.ipaddr('network') }}/{{ lan_ipv4_subnet | ansible.netcommon.ipaddr('netmask') }} EXCEPT {{ lan_ipv4_subnet | ansible.netcommon.nthhost(1) }}
+hosts deny = ALL
+log file = /var/log/samba/log.%m
+logging = file
+map to guest = bad user
+max log size = 1000
+min protocol = SMB2
+obey pam restrictions = yes
+pam password change = yes
+panic action = /usr/share/samba/panic-action %d
+passwd chat = *Enter\snew\s*\spassword:* %n\n *Retype\snew\s*\spassword:* %n\n *password\supdated\ssuccessfully* .
+passwd program = /usr/bin/passwd %u
+server role = standalone server
+unix password sync = yes
+usershare allow guests = yes
+vfs objects = fruit streams_xattr
+workgroup = WORKGROUP
+
+[homes]
+browseable = no
+comment = Home Directories
+create mask = 0700
+directory mask = 0700
+read only = yes
+valid users = %S
+
+; [share]
+; spotlight backend = elasticsearch
+
+[TimeMachineBackup]
+fruit:time machine = yes
+vfs objects = fruit streams_xattr

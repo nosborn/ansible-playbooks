@@ -1,2 +1,0 @@
----
-jsonlint_validation_command: /usr/local/bin/jsonlint -- %s

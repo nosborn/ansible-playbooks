@@ -1,0 +1,5 @@
+---
+- name: restart opensmtpd
+  ansible.builtin.systemd:
+    name: opensmtpd.service
+    state: restarted

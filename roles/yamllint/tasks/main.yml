@@ -1,0 +1,5 @@
+---
+- name: install yamllint
+  ansible.builtin.apt:
+    name: yamllint
+    install_recommends: false

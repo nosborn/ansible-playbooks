@@ -1,2 +1,0 @@
----
-jsonlint_validation_command: jsonlint-php %s -q

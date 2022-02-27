@@ -1,0 +1,25 @@
+#!/bin/sh
+
+restart=0
+
+if ! grep -s '^allow-interfaces={{ lan_if }},{{ iot_if }}$' /etc/avahi/avahi-daemon.conf; then
+  sed -i '/allow-interfaces=/s/.*/allow-interfaces={{ lan_if }},{{ iot_if }}/' \
+    /etc/avahi/avahi-daemon.conf
+  restart=1
+fi
+
+if ! grep -s '^browse-domains={{ domain_name }}$' /etc/avahi/avahi-daemon.conf; then
+  sed -i '/browse-domains=/s/.*/browse-domains={{ domain_name }}/' \
+    /etc/avahi/avahi-daemon.conf
+  restart=1
+fi
+
+if ! grep -s '^deny-interfaces={{ wan_if }}$' /etc/avahi/avahi-daemon.conf; then
+  sed -i '/deny-interfaces=/s/.*/deny-interfaces={{ wan_if }}/' \
+    /etc/avahi/avahi-daemon.conf
+  restart=1
+fi
+
+if [ ${restart} -ne 0 ]; then
+  service avahi-daemon restart
+fi

@@ -1,0 +1,40 @@
+---
+- name: create network
+  ansible.builtin.docker_network:
+    name: shepherd
+    driver: overlay
+    internal: true
+    scope: swarm
+
+- name: deploy notifier
+  ansible.builtin.import_tasks: notify.yml
+
+- name: deploy service
+  community.docker.docker_swarm_service:
+    name: shepherd
+    image: mazzolino/shepherd:{{ shepherd_version }}
+    env:
+      APPRISE_SIDECAR_URL: tasks.shepherd-notify:5000
+      FILTER_SERVICES: label=shepherd.enable=true
+      IGNORELIST_SERVICES: shepherd
+      IMAGE_AUTOCLEAN_LIMIT: !!str 5
+      ROLLBACK_ON_FAILURE: !!str true
+      SLEEP_TIME: 5m
+      TZ: "{{ timezone }}"
+    hostname: shepherd.{{ domain_name }}
+    mounts:
+      - source: /var/run/docker.sock
+        target: /var/run/docker.sock
+        readonly: true
+    networks:
+      - name: bridge
+      - name: shepherd
+    placement:
+      constraints:
+        - node.role==manager
+    read_only: true
+    labels:
+      traefik.enable: !!str false
+    restart_config:
+      condition: on-failure
+      delay: 20s

@@ -1,0 +1,28 @@
+---
+- name: ifdown wg0
+  ansible.builtin.command:
+    argv:
+      - ifdown
+      - --force
+      - wg0
+  failed_when: false
+
+- name: ifdown wg1
+  ansible.builtin.command:
+    argv:
+      - ifdown
+      - --force
+      - wg1
+  failed_when: false
+
+- name: ifup wg0
+  ansible.builtin.command:
+    argv:
+      - ifup
+      - wg0
+
+- name: ifup wg1
+  ansible.builtin.command:
+    argv:
+      - ifup
+      - wg1

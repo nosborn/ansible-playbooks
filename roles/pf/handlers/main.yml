@@ -1,7 +1,0 @@
----
-- name: reload pf
-  ansible.builtin.command:
-    argv:
-      - pfctl
-      - -f
-      - /etc/pf.conf

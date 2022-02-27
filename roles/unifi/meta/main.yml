@@ -1,4 +1,4 @@
 ---
 dependencies:
   - role: jsonlint
-  - role: letsencrypt
+  - role: unifi_core

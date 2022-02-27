@@ -1,0 +1,46 @@
+# yamllint disable rule:line-length
+---
+- name: create user
+  ansible.builtin.user:
+    name: rimgo
+    comment: Imgur Frontend
+    create_home: false
+    home: /var/empty
+    password_lock: true
+    shell: /usr/sbin/nologin
+    system: true
+  register: rimgo_user_result
+
+- name: deploy service
+  community.docker.docker_swarm_service:
+    name: rimgo
+    image: quay.io/pussthecatorg/rimgo:latest
+    env:
+      RIMGU_ADDRESS: 0.0.0.0
+      RIMGU_HOST: rimgo.{{ domain_name }}
+      RIMGU_IMGUR_CLIENT_ID: "{{ rimgo_imgur_client_id }}"
+      RIMGU_PORT: !!str 3000
+      TZ: "{{ timezone }}"
+    hostname: rimgo.{{ domain_name }}
+    networks:
+      - name: bridge
+      - name: traefik
+    read_only: true
+    user: "{{ rimgo_user_result.uid }}:{{ rimgo_user_result.group }}"
+    labels:
+      traefik.enable: !!str true
+      traefik.http.middlewares.imgur-redirect.redirectregex.regex: ^https://(?:i\\.)?imgur\\.com/(.*)
+      traefik.http.middlewares.imgur-redirect.redirectregex.replacement: https://imgur.{{ domain_name }}/$${1}
+      traefik.http.routers.imgur.entrypoints: websecure
+      traefik.http.routers.imgur.middlewares: imgur-redirect@docker
+      traefik.http.routers.imgur.rule: Host(`imgur.com`) || Host(`i.imgur.com`)
+      traefik.http.routers.imgur.service: rimgo
+      traefik.http.routers.rimgo.entrypoints: websecure
+      traefik.http.routers.rimgo.rule: Host(`rimgo.{{ domain_name }}`)
+      traefik.http.services.rimgo.loadbalancer.server.port: !!str 3000
+    restart_config:
+      condition: on-failure
+      delay: 20s
+
+- name: issue certificate
+  ansible.builtin.import_tasks: certificate.yml
