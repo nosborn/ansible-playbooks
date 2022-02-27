@@ -1,0 +1,49 @@
+# yamllint disable rule:line-length
+---
+- name: create network
+  community.docker.docker_network:
+    name: teddit
+    driver: overlay
+    scope: swarm
+
+- name: deploy redis
+  ansible.builtin.import_tasks: redis.yml
+
+- name: create volume
+  community.docker.docker_volume:
+    name: teddit
+
+- name: deploy teddit
+  community.docker.docker_swarm_service:
+    name: teddit
+    image: teddit/teddit:latest
+    env:
+      API_ENABLED: !!str true
+      DOMAIN: teddit.{{ domain_name }}
+      # DOMAIN_REPLACEMENTS:
+      NONSSL_PORT: "{{ teddit_port | string }}"
+      REDIS_HOST: tasks.teddit-redis
+      TRUST_PROXY: !!str true
+      TZ: "{{ timezone }}"
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8080/about || exit 1
+    hostname: teddit.{{ domain_name }}
+    mounts:
+      - source: teddit
+        target: /teddit/static
+        type: volume
+    networks:
+      - name: teddit
+      - name: traefik
+    read_only: true
+    labels:
+      traefik.enable: !!str true
+      traefik.http.routers.teddit.entrypoints: websecure
+      traefik.http.routers.teddit.rule: Host(`teddit.{{ domain_name }}`)
+      traefik.http.services.teddit.loadbalancer.server.port: "{{ teddit_port | string }}"
+    restart_config:
+      condition: on-failure
+      delay: 20s
+
+- name: issue certificate
+  ansible.builtin.import_tasks: certificate.yml

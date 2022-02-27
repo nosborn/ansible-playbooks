@@ -1,0 +1,93 @@
+# yamllint disable rule:line-length
+---
+- name: prepare configuration
+  become: false
+  delegate_to: localhost
+  ansible.builtin.command:
+    argv:
+      - openssl
+      - dgst
+    stdin: "{{ lookup('ansible.builtin.template', 'grafana.ini.j2') }}"
+  register: grafana_config_result
+  changed_when: false
+
+- name: create config
+  community.docker.docker_config:
+    name: grafana-{{ grafana_config_result.stdout | trim }}
+    data: "{{ lookup('ansible.builtin.template', 'grafana.ini.j2') }}"
+    labels:
+      service: grafana
+
+- name: prepare configuration
+  become: false
+  delegate_to: localhost
+  ansible.builtin.command:
+    argv:
+      - openssl
+      - dgst
+    stdin: "{{ lookup('ansible.builtin.template', 'datasources/loki.yml.j2') }}"
+  register: grafana_config_loki_result
+  changed_when: false
+
+- name: create config
+  community.docker.docker_config:
+    name: grafana-{{ grafana_config_loki_result.stdout | trim }}
+    data: "{{ lookup('ansible.builtin.template', 'datasources/loki.yml.j2') }}"
+    labels:
+      service: grafana
+
+- name: prepare configuration
+  become: false
+  delegate_to: localhost
+  ansible.builtin.command:
+    argv:
+      - openssl
+      - dgst
+    stdin: "{{ lookup('ansible.builtin.template', 'datasources/prometheus.yml.j2') }}"
+  register: grafana_config_prometheus_result
+  changed_when: false
+
+- name: create config
+  community.docker.docker_config:
+    name: grafana-{{ grafana_config_prometheus_result.stdout | trim }}
+    data: "{{ lookup('ansible.builtin.template', 'datasources/prometheus.yml.j2') }}"
+    labels:
+      service: grafana
+
+- name: create volume
+  community.docker.docker_volume:
+    name: grafana
+
+- name: deploy service
+  community.docker.docker_swarm_service:
+    name: grafana
+    image: grafana/grafana:{{ grafana_version }}
+    configs:
+      - config_name: grafana-{{ grafana_config_result.stdout | trim }}
+        filename: /etc/grafana/grafana.ini
+      - config_name: grafana-{{ grafana_config_loki_result.stdout | trim }}
+        filename: /etc/grafana/provisioning/datasources/loki.yml
+      - config_name: grafana-{{ grafana_config_prometheus_result.stdout | trim }}
+        filename: /etc/grafana/provisioning/datasources/prometheus.yml
+    hostname: grafana.{{ domain_name }}
+    mounts:
+      - source: grafana
+        target: /var/lib/grafana
+        type: volume
+    networks:
+      - name: bridge
+      - name: loki
+      - name: prometheus
+      - name: traefik
+    read_only: true
+    labels:
+      traefik.enable: !!str true
+      traefik.http.routers.grafana.entrypoints: websecure
+      traefik.http.routers.grafana.rule: Host(`grafana.{{ domain_name }}`)
+      traefik.http.services.grafana.loadbalancer.server.port: !!str 3000
+    restart_config:
+      condition: on-failure
+      delay: 20s
+
+- name: issue certificate
+  ansible.builtin.import_tasks: certificate.yml

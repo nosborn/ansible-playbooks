@@ -1,0 +1,12 @@
+[Interface]
+PrivateKey = {{ wireguard_item.value.private_key }}
+ListenPort = {{ wireguard_item.value.listen_port }}
+{% for peer in (wireguard_item.value.peers | default([])) %}
+
+[Peer]
+PublicKey = {{ peer.public_key }}
+{%   if wireguard_item.value.pre_shared_key is defined %}
+PresharedKey = {{ wireguard_item.value.pre_shared_key }}
+{%   endif %}
+AllowedIPs = {{ peer.address | join(',') }}
+{% endfor %}

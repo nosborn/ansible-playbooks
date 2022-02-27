@@ -1,9 +1,20 @@
 ---
+- name: install sshd
+  ansible.builtin.apt:
+    name: openssh-server
+
 - name: configure sshd
   ansible.builtin.template:
     src: sshd_config.j2
     dest: /etc/ssh/sshd_config
     owner: root
-    group: "{{ root_group }}"
+    group: root
     mode: 0444
+    validate: sshd -f %s -t
   notify: restart sshd
+
+- name: enable and start sshd
+  ansible.builtin.systemd:
+    name: ssh.service
+    enabled: true
+    state: started

@@ -1,0 +1,9 @@
+---
+lan_if: "{{ vault_lan_if }}"
+lan_ipv4_address: "{{ vault_lan_ipv4_address }}"
+lan_ipv6_address: "{{ vault_lan_ipv6_address }}"
+jsonlint_command: jsonlint-py3
+jsonlint_package_name:
+  - python-demjson # otherwise jsonlint-py3 doesn't work
+  - python3-demjson
+unifi_jks_password: "{{ vault_unifi_jks_password }}"

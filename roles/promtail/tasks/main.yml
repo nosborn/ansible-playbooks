@@ -1,0 +1,50 @@
+---
+- name: prepare configuration
+  become: false
+  delegate_to: localhost
+  ansible.builtin.command:
+    argv:
+      - openssl
+      - dgst
+    stdin: "{{ lookup('ansible.builtin.template', 'config.yml.j2') }}"
+  register: promtail_config_result
+  changed_when: false
+
+- name: create config
+  community.docker.docker_config:
+    name: promtail-{{ promtail_config_result.stdout | trim }}
+    data: "{{ lookup('ansible.builtin.template', 'config.yml.j2') }}"
+    labels:
+      service: promtail
+
+- name: create volume
+  community.docker.docker_volume:
+    name: promtail
+
+- name: deploy service
+  community.docker.docker_swarm_service:
+    name: promtail
+    image: grafana/promtail:{{ promtail_version }}
+    # command: -log-config-reverse-order
+    configs:
+      - config_name: promtail-{{ promtail_config_result.stdout | trim }}
+        filename: /etc/promtail/config.yml
+    hostname: promtail.{{ domain_name }}
+    mounts:
+      - source: /var/lib/docker/containers
+        target: /var/lib/docker/containers
+        readonly: true
+      - source: promtail
+        target: /var/lib/promtail
+        type: volume
+      - source: /var/log/journal
+        target: /var/log/journal
+        readonly: true
+    networks:
+      - name: loki
+    read_only: true
+    labels:
+      traefik.enable: !!str false
+    restart_config:
+      condition: on-failure
+      delay: 20s

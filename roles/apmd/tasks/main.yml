@@ -1,7 +1,0 @@
----
-- name: enable and start apmd
-  ansible.builtin.service:
-    name: apmd
-    arguments: -A
-    enabled: true
-    state: started

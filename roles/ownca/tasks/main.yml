@@ -1,0 +1,16 @@
+---
+- name: create SSL directory
+  ansible.builtin.file:
+    path: /usr/local/etc/ssl
+    owner: root
+    group: root
+    mode: 0755
+    state: directory
+
+- name: create SSL private directory
+  ansible.builtin.file:
+    path: /usr/local/etc/ssl/private
+    owner: root
+    group: root
+    mode: 0700
+    state: directory

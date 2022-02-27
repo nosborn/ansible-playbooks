@@ -1,0 +1,12 @@
+---
+# dovecot_first_valid_gid: "{{ vault_dovecot_first_valid_gid }}"
+# dovecot_first_valid_uid: "{{ vault_dovecot_first_valid_uid }}"
+# dovecot_last_valid_gid: "{{ vault_dovecot_last_valid_gid }}"
+# dovecot_last_valid_uid: "{{ vault_dovecot_last_valid_uid }}"
+nologin_shell: /usr/sbin/nologin
+# sshd_config_ciphers: "{{ vault_sshd_config_ciphers }}"
+# sshd_config_hmacs: "{{ vault_sshd_config_hmacs }}"
+# sshd_config_host_key_algorithms: "{{ vault_sshd_config_host_key_algorithms }}"
+# sshd_config_kex_algorithms: "{{ vault_sshd_config_kex_algorithms }}"
+# sshd_config_subsystem_sftp: /usr/lib/openssh/sftp-server
+# sshd_package_name: openssh-server

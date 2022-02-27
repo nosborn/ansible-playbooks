@@ -1,0 +1,16 @@
+---
+- name: install post-config scripts
+  ansible.builtin.template:
+    src: post-config.d/{{ unifi_gateway_item }}.j2
+    dest: /config/scripts/post-config.d/{{ unifi_gateway_item }}
+    owner: root
+    group: vyattacfg
+    mode: 0755
+    validate: sh -n %s
+  notify: run {{ unifi_gateway_item }}
+  loop:
+    - avahi_daemon_interfaces.sh
+    # - iptables_ttl_mangle.sh -- FIXME
+  loop_control:
+    loop_var: unifi_gateway_item
+  when: false

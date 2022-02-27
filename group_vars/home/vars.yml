@@ -5,3 +5,4 @@ iot_ipv4_subnet: "{{ vault_iot_ipv4_subnet }}"
 iot_vlan: "{{ vault_iot_vlan }}"
 lan_dns_ipv4_address: "{{ vault_lan_dns_ipv4_address }}"
 lan_ipv4_subnet: "{{ vault_lan_ipv4_subnet }}"
+unifi_discovery_port: 10001

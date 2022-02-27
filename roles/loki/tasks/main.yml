@@ -1,0 +1,28 @@
+---
+- name: create network
+  community.docker.docker_network:
+    name: loki
+    driver: overlay
+    scope: swarm
+
+- name: create volume
+  community.docker.docker_volume:
+    name: loki
+
+- name: deploy loki
+  community.docker.docker_swarm_service:
+    name: loki
+    image: grafana/loki:{{ loki_version }}
+    hostname: loki.{{ domain_name }}
+    mounts:
+      - source: loki
+        target: /loki
+        type: volume
+    networks:
+      - name: loki
+    read_only: true
+    labels:
+      traefik.enable: !!str false
+    restart_config:
+      condition: on-failure
+      delay: 20s

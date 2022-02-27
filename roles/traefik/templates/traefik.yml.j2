@@ -1,0 +1,45 @@
+---
+accessLog:
+
+api:
+  dashboard: true
+  insecure: true  # FIXME
+
+entryPoints:
+  web:
+    address: :80
+    http:
+      middlewares:  # applied in order listed
+        - security-headers@file
+        # - local-network-whitelist@file
+      redirections:
+        entryPoint:
+          to: websecure
+
+  websecure:
+    address: :443
+    http:
+      middlewares:  # applied in order listed
+        - security-headers@file
+        # - local-network-whitelist@file
+      tls:
+        options: default
+
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
+pilot:
+  dashboard: false
+
+# ping:
+
+providers:
+  docker:
+    endpoint: unix:///var/run/docker.sock
+    exposedByDefault: false
+    network: traefik
+    swarmMode: true
+  file:
+    filename: /etc/traefik/dynamic.yml
+    watch: true

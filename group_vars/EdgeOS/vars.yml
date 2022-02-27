@@ -1,5 +1,0 @@
----
-ansible_become: "{{ vault_ansible_become }}"
-ansible_network_os: edgeos
-ansible_user: "{{ vault_ansible_user }}"
-root_group: root

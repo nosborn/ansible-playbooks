@@ -1,64 +1,91 @@
+# yamllint disable rule:line-length
 ---
-- name: create homebridge user
+- name: create user
   ansible.builtin.user:
-    name: _homebridge
+    name: homebridge
     comment: Homebridge
     create_home: false
-    home: /var/homebridge
-    login_class: daemon
-    shell: /sbin/nologin
-    uid: 999
-    state: present
+    home: /var/lib/homebridge
+    password_lock: true
+    shell: /usr/sbin/nologin
+    system: true
+  register: homebridge_user_result
 
-- name: create homebridge directory
+- name: create directory
   ansible.builtin.file:
-    name: /var/homebridge
-    owner: _homebridge
-    group: _homebridge
+    path: /var/lib/homebridge
+    owner: homebridge
+    group: homebridge
     mode: 0700
     state: directory
 
-- name: install homebridge package
-  community.general.npm:
+- name: prepare configuration
+  become: false
+  delegate_to: localhost
+  ansible.builtin.command:
+    argv:
+      - openssl
+      - dgst
+    stdin: "{{ homebridge_config | to_json }}"
+  register: homebridge_config_result
+  changed_when: false
+
+- name: create configuration
+  community.docker.docker_config:
+    name: homebridge-config-{{ homebridge_config_result.stdout | trim }}
+    data: "{{ homebridge_config | to_json }}"
+    labels:
+      service: homebridge
+
+- name: prepare package configuration
+  become: false
+  delegate_to: localhost
+  ansible.builtin.command:
+    argv:
+      - openssl
+      - dgst
+    stdin: "{{ lookup('ansible.builtin.file', 'package.json') }}"
+  register: homebridge_package_result
+  changed_when: false
+
+- name: create package configuration
+  community.docker.docker_config:
+    name: homebridge-package-{{ homebridge_package_result.stdout | trim }}
+    data: "{{ lookup('ansible.builtin.file', 'package.json') | b64encode }}"
+    data_is_b64: true
+    labels:
+      service: homebridge
+
+- name: deploy service
+  community.docker.docker_swarm_service:
     name: homebridge
-    version: "{{ homebridge_version }}"
-    global: true
-    unsafe_perm: true
-    state: present
-  notify: restart homebridge
-
-- name: install homebridge plugins
-  community.general.npm:
-    name: "{{ item.key }}"
-    version: "{{ item.value }}"
-    global: true
-    state: present
-  loop: "{{ homebridge_plugins | dict2items }}"
-  loop_control:
-    label: "{{ item.key }}"
-  notify: restart homebridge
-
-- name: configure homebridge
-  ansible.builtin.copy:
-    content: "{{ homebridge_config | to_nice_json }}"
-    dest: /var/homebridge/config.json
-    owner: _homebridge
-    group: _homebridge
-    mode: 0440
-  notify: restart homebridge
-
-- name: install homebridge service
-  ansible.builtin.copy:
-    src: homebridge.rc
-    dest: /etc/rc.d/homebridge
-    owner: root
-    group: wheel
-    mode: 0555
-    validate: ksh -n %s
-  notify: restart homebridge
-
-- name: enable and start homebridge
-  ansible.builtin.service:
-    name: homebridge
-    enabled: true
-    state: started
+    image: oznu/homebridge:{{ homebridge_version }}
+    configs:
+      - config_name: homebridge-config-{{ homebridge_config_result.stdout | trim }}
+        filename: /homebridge/config.json
+        uid: "{{ homebridge_user_result.uid }}"
+        gid: "{{ homebridge_user_result.group }}"
+      - config_name: homebridge-package-{{ homebridge_package_result.stdout | trim }}
+        filename: /homebridge/package.json
+        uid: "{{ homebridge_user_result.uid }}"
+        gid: "{{ homebridge_user_result.group }}"
+    env:
+      PGID: "{{ homebridge_user_result.group }}"
+      PUID: "{{ homebridge_user_result.uid }}"
+      HOMEBRIDGE_CONFIG_UI: !!str false
+      TZ: "{{ timezone }}"
+    hostname: homebridge.{{ domain_name }}
+    mode: global
+    mounts:
+      - source: /var/lib/homebridge
+        target: /homebridge
+    networks:
+      - host
+    placement:
+      constraints:
+        - node.hostname==tombstone
+    labels:
+      traefik.enable: !!str false
+    restart_config:
+      condition: on-failure
+      delay: 20s

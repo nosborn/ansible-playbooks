@@ -1,0 +1,52 @@
+---
+- name: install dependencies
+  ansible.builtin.apt:
+    name:
+      - curl
+      - jq
+    install_recommends: false
+
+- name: install unbound filter scripts
+  ansible.builtin.copy:
+    src: "{{ unbound_item }}"
+    dest: /usr/local/bin/{{ unbound_item }}
+    owner: root
+    group: root
+    mode: 0550
+  loop:
+    - unbound-make-filters.sh
+    - unbound-shrink-filters.pl
+  loop_control:
+    loop_var: unbound_item
+
+- name: make unbound filters
+  ansible.builtin.command:
+    argv:
+      - /usr/local/bin/unbound-make-filters.sh
+    creates: /etc/unbound/unbound.conf.d/blacklist.conf
+  notify: restart unbound
+
+- name: install unbound-filters service
+  ansible.builtin.copy:
+    src: "{{ unbound_item }}"
+    dest: /etc/systemd/system/{{ unbound_item }}
+    owner: root
+    group: root
+    mode: 0444
+  loop:
+    - unbound-filters.service
+    - unbound-filters.timer
+  loop_control:
+    loop_var: unbound_item
+
+- name: enable unbound-filters service
+  ansible.builtin.systemd:
+    name: unbound-filters.service
+    enabled: true
+
+- name: enable and start unbound-filters timer
+  ansible.builtin.systemd:
+    name: unbound-filters.timer
+    daemon_reload: true
+    enabled: true
+    state: started

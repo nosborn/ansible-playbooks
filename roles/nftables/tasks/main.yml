@@ -1,0 +1,10 @@
+---
+- name: configure rules
+  ansible.builtin.template:
+    src: nftables.conf.j2
+    dest: /etc/nftables.conf
+    owner: root
+    group: root
+    mode: 0555
+    validate: nft -f %s -c
+  notify: reload nftables

@@ -1,5 +1,0 @@
----
-- name: restart homebridge
-  ansible.builtin.service:
-    name: homebridge
-    state: restarted

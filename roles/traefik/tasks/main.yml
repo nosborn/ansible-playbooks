@@ -1,0 +1,92 @@
+# yamllint disable rule:line-length
+---
+- name: prepare static configuration
+  become: false
+  delegate_to: localhost
+  ansible.builtin.command:
+    argv:
+      - openssl
+      - dgst
+    stdin: "{{ lookup('ansible.builtin.template', 'traefik.yml.j2') }}"
+  register: traefik_static_config_result
+  changed_when: false
+
+- name: create static configuration
+  community.docker.docker_config:
+    name: traefik-static-{{ traefik_static_config_result.stdout | trim }}
+    data: "{{ lookup('ansible.builtin.template', 'traefik.yml.j2') }}"
+    labels:
+      service: traefik
+
+- name: prepare dynamic configuration
+  become: false
+  delegate_to: localhost
+  ansible.builtin.command:
+    argv:
+      - openssl
+      - dgst
+    stdin: "{{ lookup('ansible.builtin.template', 'dynamic.yml.j2') }}"
+  register: traefik_dynamic_config_result
+  changed_when: false
+
+- name: create dynamic configuration
+  community.docker.docker_config:
+    name: traefik-dynamic-{{ traefik_dynamic_config_result.stdout | trim }}
+    data: "{{ lookup('ansible.builtin.template', 'dynamic.yml.j2') }}"
+    labels:
+      service: traefik
+
+- name: issue certificate
+  ansible.builtin.import_tasks: certificate.yml
+
+- name: create network
+  community.docker.docker_network:
+    name: traefik
+    driver: overlay
+    internal: true
+    scope: swarm
+
+- name: deploy service
+  community.docker.docker_swarm_service:
+    name: traefik
+    image: traefik:v{{ traefik_version }}
+    configs:
+      - config_name: traefik-static-{{ traefik_static_config_result.stdout | trim }}
+        filename: /etc/traefik/traefik.yml
+      - config_name: traefik-dynamic-{{ traefik_dynamic_config_result.stdout | trim }}
+        filename: /etc/traefik/dynamic.yml
+    env:
+      TZ: "{{ timezone }}"
+    # healthcheck:
+    #   test: traefik healthcheck
+    hostname: traefik.{{ domain_name }}
+    mode: global
+    mounts:
+      - source: /usr/local/etc/ssl
+        target: /usr/local/etc/ssl
+        readonly: true
+      - source: /var/run/docker.sock
+        target: /var/run/docker.sock
+    networks:
+      - name: bridge
+      - name: traefik
+    placement:
+      constraints:
+        - node.role==manager
+    publish:
+      - mode: host
+        published_port: 80
+        target_port: 80
+      - mode: host
+        published_port: 443
+        target_port: 443
+      - mode: host
+        published_port: 8080
+        target_port: 8080
+    read_only: true
+    restart_config:
+      condition: on-failure
+      delay: 20s
+
+- name: run any handler tasks
+  ansible.builtin.meta: flush_handlers
