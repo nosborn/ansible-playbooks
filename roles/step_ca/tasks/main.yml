@@ -1,0 +1,122 @@
+# yamllint disable rule:line-length
+---
+- name: create step-ca user
+  ansible.builtin.user:
+    name: step
+    comment: Step CA
+    create_home: false
+    home: /var/empty
+    password_lock: true
+    shell: "{{ nologin_shell }}"
+    system: true
+  register: step_ca_user_result
+
+- name: create step-ca configuration directory
+  ansible.builtin.file:
+    path: "{{ step_ca_item }}"
+    owner: root
+    group: "{{ step_ca_user_result.group }}"
+    mode: 0750
+    state: directory
+  loop:
+    - "{{ step_ca_config_dir }}"
+    - "{{ step_ca_config_dir }}/certs"
+    - "{{ step_ca_config_dir }}/config"
+    - "{{ step_ca_config_dir }}/secrets"
+  loop_control:
+    loop_var: step_ca_item
+
+- name: configure step-ca
+  ansible.builtin.template:
+    src: config/{{ step_ca_item }}.j2
+    dest: "{{ step_ca_config_dir }}/config/{{ step_ca_item }}"
+    owner: root
+    group: "{{ step_ca_user_result.group }}"
+    mode: 0440
+    validate: "{{ jsonlint_validate_command }}"
+  loop:
+    - ca.json
+    - defaults.json
+  loop_control:
+    loop_var: step_ca_item
+  notify: restart step-ca
+
+- name: configure step-ca certificates
+  ansible.builtin.copy:
+    src: certs/{{ step_ca_item }}
+    dest: "{{ step_ca_config_dir }}/certs/{{ step_ca_item }}"
+    owner: root
+    group: "{{ step_ca_user_result.group }}"
+    mode: 0440
+  loop:
+    - intermediate_ca.crt
+    - root_ca.crt
+  loop_control:
+    loop_var: step_ca_item
+  notify: restart step-ca
+
+- name: configure step-ca secrets
+  ansible.builtin.copy:
+    content: "{{ step_ca_item.value }}\n"
+    dest: "{{ step_ca_config_dir }}/secrets/{{ step_ca_item.name }}"
+    owner: root
+    group: "{{ step_ca_user_result.group }}"
+    mode: 0440
+  loop: "{{ step_ca_secrets }}"
+  loop_control:
+    label: "{{ step_ca_item.name }}"
+    loop_var: step_ca_item
+  notify: restart step-ca
+
+- name: create step-ca data directory
+  ansible.builtin.file:
+    path: "{{ step_ca_item }}"
+    owner: "{{ step_ca_user_result.uid }}"
+    group: "{{ step_ca_user_result.group }}"
+    mode: 0700
+    state: directory
+  loop:
+    - "{{ step_ca_data_dir }}"
+    - "{{ step_ca_data_dir }}/db"
+  loop_control:
+    loop_var: step_ca_item
+
+- name: deploy step-ca
+  community.docker.docker_container:
+    name: step-ca
+    image: smallstep/step-ca:{{ step_ca_version }}
+    # cap_drop:
+    #   - ALL
+    etc_hosts:  # FIXME
+      atlantis.home.arpa: 192.168.1.3
+      bibliogram.home.arpa: 192.168.1.3
+      invidious.home.arpa: 192.168.1.3
+      nitter.home.arpa: 192.168.1.3
+      rimgo.home.arpa: 192.168.1.3
+      scribe.home.arpa: 192.168.1.3
+      teddit.home.arpa: 192.168.1.3
+    env:
+      CONFIGPATH: /etc/step/config/ca.json
+      PWDPATH: /etc/step/secrets/password
+      STEPPATH: /etc/step
+      WATCHTOWER_MONITOR_ONLY: !!str true
+      TZ: "{{ timezone }}"
+    exposed_ports:
+      - 9000
+    hostname: ca.{{ domain_name }}
+    read_only: true
+    security_opts:
+      - no-new-privileges=true
+    user: "{{ step_ca_user_result.uid }}:{{ step_ca_user_result.group }}"
+    volumes:
+      - "{{ step_ca_config_dir }}:/etc/step:ro"
+      - "{{ step_ca_data_dir }}:/var/lib/step"
+    labels:
+      com.centurylinklabs.watchtower.enable: !!str true
+      traefik.enable: !!str false
+    comparisons:
+      env: allow_more_present
+      healthcheck: allow_more_present
+      "*": strict
+    restart_policy: unless-stopped
+    state: started

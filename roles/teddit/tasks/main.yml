@@ -1,0 +1,76 @@
+---
+- name: create teddit user
+  ansible.builtin.user:
+    name: teddit
+    comment: Reddit Frontend
+    create_home: false
+    home: /var/empty
+    password_lock: true
+    shell: "{{ nologin_shell }}"
+    system: true
+  register: teddit_user_result
+
+- name: create teddit-internal network
+  community.docker.docker_network:
+    name: teddit-internal
+    internal: true
+
+- name: deploy teddit-redis
+  community.docker.docker_container:
+    name: teddit-redis
+    image: redis:6-alpine
+    cap_drop:
+      - ALL
+    capabilities:
+      - SETGID
+      - SETUID
+    env:
+      TZ: "{{ timezone }}"
+    healthcheck:
+      test: redis-cli ping || exit 1
+    hostname: teddit.{{ domain_name }}"
+    networks:
+      - name: teddit-internal
+    security_opts:
+      - no-new-privileges=true
+    labels:
+      com.centurylinklabs.watchtower.enable: !!str true
+      traefik.enable: !!str false
+    comparisons:
+      env: allow_more_present
+      "*": strict
+    restart_policy: unless-stopped
+    state: started
+
+- name: deploy teddit
+  community.docker.docker_container:
+    name: teddit
+    image: teddit/teddit:latest
+    cap_drop:
+      - ALL
+    env:
+      API_ENABLED: !!str true
+      DOMAIN: teddit.{{ domain_name }}
+      DOMAIN_REPLACEMENTS: "{{ teddit_domain_replacements | to_json }}"
+      REDIS_HOST: teddit-redis
+      TRUST_PROXY: !!str true
+      TZ: "{{ timezone }}"
+    exposed_ports:
+      - 8080
+    networks:
+      - name: bridge
+      - name: teddit-internal
+      # TODO - name: vpngateway
+    security_opts:
+      - no-new-privileges=true
+    user: "{{ teddit_user_result.uid }}:{{ teddit_user_result.group }}"
+    labels:
+      com.centurylinklabs.watchtower.enable: !!str true
+      traefik.enable: !!str true
+      traefik.http.routers.teddit.entrypoints: websecure
+      traefik.http.routers.teddit.rule: Host(`teddit.{{ domain_name }}`)
+    comparisons:
+      env: allow_more_present
+      "*": strict
+    restart_policy: unless-stopped
+    state: started

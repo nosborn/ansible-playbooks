@@ -1,0 +1,11 @@
+[Interface]
+ListenPort = {{ vpn_listen_port }}
+PrivateKey = {{ vpn_private_key }}
+{% for peer in vpn_peers %}
+
+[Peer]
+PublicKey={{ peer.public_key }}
+PresharedKeyFile={{ vpn_pre_shared_key }}
+AllowedIPs={{ peer.ipv4_address }}/32
+AllowedIPs={{ peer.ipv6_address }}/128
+{% endfor %}

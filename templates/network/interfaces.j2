@@ -1,0 +1,20 @@
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+source /etc/network/interfaces.d/*
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network interface
+auto {{ lan_if }}
+iface {{ lan_if }} inet static
+	address {{ lan_ipv4_address }}/24
+	gateway {{ lan_ipv4_subnet | ansible.netcommon.nthhost(1) }}
+iface {{ lan_if }} inet6 static
+	address {{ lan_ipv6_address }}/64
+	# Use SLAAC to get global IPv6 address from the router. We may not
+	# enable ipv6 forwarding, otherwise SLAAC gets disabled.
+	autoconf 1
+	accept_ra 2

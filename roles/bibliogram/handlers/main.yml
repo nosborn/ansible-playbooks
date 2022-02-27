@@ -1,0 +1,6 @@
+---
+- name: restart bibliogram
+  community.docker.docker_container:
+    name: bibliogram
+    restart: true
+    state: started

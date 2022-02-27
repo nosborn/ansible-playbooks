@@ -1,0 +1,26 @@
+---
+- name: install samba
+  ansible.builtin.apt:
+    name: samba
+    install_recommends: false
+    state: present
+
+- name: configure samba
+  ansible.builtin.template:
+    src: smb.conf.j2
+    dest: /etc/samba/smb.conf
+    owner: root
+    group: root
+    mode: 0444
+  notify: restart samba
+
+- name: enable and start samba
+  ansible.builtin.systemd:
+    name: "{{ samba_item }}"
+    enabled: true
+    state: started
+  loop:
+    - nmbd.service
+    - smbd.service
+  loop_control:
+    loop_var: samba_item

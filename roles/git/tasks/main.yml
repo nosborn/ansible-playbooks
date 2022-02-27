@@ -1,0 +1,8 @@
+---
+- name: install Git
+  ansible.builtin.apt:
+    name:
+      - git
+      - git-lfs
+    install_recommends: false
+    state: present

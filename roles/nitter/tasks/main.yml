@@ -1,0 +1,98 @@
+---
+- name: create nitter user
+  ansible.builtin.user:
+    name: nitter
+    comment: Twitter Frontend
+    create_home: false
+    home: /var/empty
+    password_lock: true
+    shell: "{{ nologin_shell }}"
+    system: true
+  register: nitter_user_result
+
+- name: create nitter configuration directory
+  ansible.builtin.file:
+    name: "{{ nitter_config_dir }}"
+    owner: root
+    group: "{{ nitter_user_result.group }}"
+    mode: 0750
+    state: directory
+  notify: restart nitter
+
+- name: configure nitter
+  ansible.builtin.template:
+    src: nitter.conf.j2
+    dest: "{{ nitter_config_dir }}/nitter.conf"
+    owner: root
+    group: "{{ nitter_user_result.group }}"
+    mode: 0440
+  notify: restart nitter
+
+- name: create nitter-internal network
+  community.docker.docker_network:
+    name: nitter-internal
+    internal: true
+
+- name: create nitter-redis-data volume
+  community.docker.docker_volume:
+    name: nitter-redis-data
+
+- name: deploy nitter-redis
+  community.docker.docker_container:
+    name: nitter-redis
+    image: redis:6-alpine
+    cap_drop:
+      - ALL
+    capabilities:
+      - SETGID
+      - SETUID
+    command: redis-server --save 60 1 --loglevel warning
+    command_handling: correct
+    env:
+      TZ: "{{ timezone }}"
+    healthcheck:
+      test: redis-cli ping || exit 1
+    networks:
+      - name: nitter-internal
+    security_opts:
+      - no-new-privileges=true
+    volumes:
+      - nitter-redis-data:/data
+    labels:
+      com.centurylinklabs.watchtower.enable: !!str true
+      traefik.enable: !!str false
+    comparisons:
+      env: allow_more_present
+      "*": strict
+    restart_policy: unless-stopped
+    state: started
+
+- name: deploy nitter
+  community.docker.docker_container:
+    name: nitter
+    image: zedeus/nitter:latest
+    cap_drop:
+      - ALL
+    env:
+      TZ: "{{ timezone }}"
+    exposed_ports:
+      - 8080
+    networks:
+      - name: bridge
+      - name: nitter-internal
+      # TODO: - name: vpngateway
+    security_opts:
+      - no-new-privileges=true
+    user: "{{ nitter_user_result.uid }}:{{ nitter_user_result.group }}"
+    volumes:
+      - "{{ nitter_config_dir }}/nitter.conf:/src/nitter.conf:ro"
+    labels:
+      com.centurylinklabs.watchtower.enable: !!str true
+      traefik.enable: !!str true
+      traefik.http.routers.nitter.entrypoints: websecure
+      traefik.http.routers.nitter.rule: Host(`nitter.{{ domain_name }}`)
+    comparisons:
+      env: allow_more_present
+      "*": strict
+    restart_policy: unless-stopped
+    state: started

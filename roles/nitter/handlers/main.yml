@@ -1,0 +1,6 @@
+---
+- name: restart nitter
+  community.docker.docker_container:
+    name: nitter
+    restart: true
+    state: started

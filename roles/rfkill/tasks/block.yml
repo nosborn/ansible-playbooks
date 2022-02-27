@@ -1,0 +1,19 @@
+---
+- name: get {{ rfkill_item }} device state
+  ansible.builtin.command:
+    argv:
+      - rfkill
+      - list
+      - --noheadings
+      - --output=SOFT
+      - "{{ rfkill_item }}"
+  register: rfkill_result
+  changed_when: false
+
+- name: block {{ rfkill_item }} device
+  ansible.builtin.command:
+    argv:
+      - rfkill
+      - block
+      - "{{ rfkill_item }}"
+  when: rfkill_result.stdout == 'unblocked'

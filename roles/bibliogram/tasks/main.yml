@@ -1,0 +1,69 @@
+---
+- name: create bibliogram user
+  ansible.builtin.user:
+    name: bibliogram
+    comment: Instagram Frontend
+    create_home: false
+    home: /var/empty
+    password_lock: true
+    shell: "{{ nologin_shell }}"
+    system: true
+  register: bibliogram_user_result
+
+- name: create bibliogram configuration directory
+  ansible.builtin.file:
+    name: "{{ bibliogram_config_dir }}"
+    owner: root
+    group: "{{ bibliogram_user_result.group }}"
+    mode: 0750
+    state: directory
+  notify: restart bibliogram
+
+- name: configure bibliogram
+  ansible.builtin.template:
+    src: config.js.j2
+    dest: "{{ bibliogram_config_dir }}/config.js"
+    owner: root
+    group: "{{ bibliogram_user_result.group }}"
+    mode: 0440
+  notify: restart bibliogram
+
+- name: create bibliogram data directory
+  ansible.builtin.file:
+    name: "{{ bibliogram_data_dir }}"
+    owner: "{{ bibliogram_user_result.uid }}"
+    group: "{{ bibliogram_user_result.group }}"
+    mode: 0700
+    state: directory
+  notify: restart bibliogram
+
+- name: deploy bibliogram
+  community.docker.docker_container:
+    name: bibliogram
+    image: cloudrac3r/bibliogram:latest
+    cap_drop:
+      - ALL
+    env:
+      TZ: "{{ timezone }}"
+    exposed_ports:
+      - 10407
+    networks:
+      - name: bridge
+      # TODO: name: vpnproxy
+    read_only: true
+    security_opts:
+      - no-new-privileges=true
+    user: "{{ bibliogram_user_result.uid }}:{{ bibliogram_user_result.group }}"
+    volumes:
+      - "{{ bibliogram_config_dir }}/config.js:/app/config.js:ro"
+      - "{{ bibliogram_data_dir }}:/app/db"
+    labels:
+      com.centurylinklabs.watchtower.enable: !!str true
+      traefik.enable: !!str true
+      traefik.http.routers.bibliogram.entrypoints: websecure
+      traefik.http.routers.bibliogram.rule: Host(`bibliogram.{{ domain_name }}`)
+    comparisons:
+      env: allow_more_present
+      "*": strict
+    restart_policy: unless-stopped
+    state: started

@@ -1,0 +1,117 @@
+#!/usr/sbin/nft -f
+
+flush ruleset
+
+# Original:
+table inet filter {
+	chain input {
+		type filter hook input priority 0;
+	}
+	chain forward {
+		type filter hook forward priority 0;
+	}
+	chain output {
+		type filter hook output priority 0;
+	}
+}
+
+# Translated:
+# add table ip raw
+# add chain ip raw PREROUTING { type filter hook prerouting priority -300; policy accept; }
+# add chain ip raw OUTPUT { type filter hook output priority -300; policy accept; }
+# add rule ip raw PREROUTING fib saddr . iif oif 0 limit rate 5/minute burst 10 packets counter log
+# add rule ip raw PREROUTING fib saddr . iif oif 0 counter drop
+# add table ip filter
+# add chain ip filter INPUT { type filter hook input priority 0; policy drop; }
+# add chain ip filter FORWARD { type filter hook forward priority 0; policy drop; }
+# add chain ip filter OUTPUT { type filter hook output priority 0; policy accept; }
+# add chain ip filter TCP
+# add chain ip filter UDP
+# add rule ip filter INPUT ct state related,established counter accept
+# add rule ip filter INPUT iifname "lo" counter accept
+# add rule ip filter INPUT ct state invalid limit rate 5/minute burst 10 packets counter log
+# add rule ip filter INPUT ct state invalid counter drop
+# add rule ip filter INPUT ip saddr 192.168.1.0/24 ip daddr 192.168.1.3 counter accept
+# add rule ip filter INPUT ip saddr 192.168.1.0/24 ip daddr 192.168.1.255 counter accept
+# add rule ip filter INPUT ip saddr 192.168.1.0/24 ip daddr 224.0.0.0/24 counter accept
+# add rule ip filter INPUT ip saddr 192.168.1.0/24 ip daddr 255.255.255.255 counter accept
+# add rule ip filter INPUT icmp type echo-request ct state new counter accept
+# add rule ip filter INPUT tcp flags & (fin|syn|rst|ack) == syn ct state new counter jump TCP
+# add rule ip filter INPUT ip protocol tcp limit rate 5/minute burst 10 packets counter log
+# add rule ip filter INPUT ip protocol tcp counter reject with tcp reset
+# add rule ip filter INPUT ip protocol udp ct state new counter jump UDP
+# add rule ip filter INPUT ip protocol udp limit rate 5/minute burst 10 packets counter log
+# add rule ip filter INPUT ip protocol udp counter reject
+# add rule ip filter INPUT limit rate 5/minute burst 10 packets counter log
+# add rule ip filter INPUT counter reject with icmp type prot-unreachable
+# add rule ip filter TCP ip saddr 192.168.1.0/24 tcp dport 22 counter accept
+# add rule ip filter TCP tcp dport 53 counter accept
+# add rule ip filter TCP tcp dport 80 counter accept
+# add rule ip filter TCP tcp dport 443 counter accept
+# add rule ip filter TCP ip saddr 192.168.1.0/24 tcp dport 4141 counter accept
+# add rule ip filter TCP ip saddr 192.30.252.0/22 tcp dport 4141 counter accept
+# add rule ip filter TCP ip saddr 185.199.108.0/22 tcp dport 4141 counter accept
+# add rule ip filter TCP ip saddr 140.82.112.0/20 tcp dport 4141 counter accept
+# add rule ip filter TCP ip saddr 143.55.64.0/20 tcp dport 4141 counter accept
+# add rule ip filter UDP udp dport 53 counter accept
+# add rule ip filter UDP ip saddr 192.168.1.0/24 udp dport 51820 counter accept
+
+# # Result:
+# table ip raw {
+# 	chain PREROUTING {
+# 		type filter hook prerouting priority raw; policy accept;
+# 		fib saddr . iif oif 0 limit rate 5/minute burst 10 packets counter packets 0 bytes 0 log
+# 		fib saddr . iif oif 0 counter packets 0 bytes 0 drop
+# 	}
+#
+# 	chain OUTPUT {
+# 		type filter hook output priority raw; policy accept;
+# 	}
+# }
+#
+# table ip filter {
+# 	chain INPUT {
+# 		type filter hook input priority filter; policy drop;
+# 		ct state established,related counter packets 35 bytes 2432 accept
+# 		iifname "lo" counter packets 0 bytes 0 accept
+# 		ct state invalid limit rate 5/minute burst 10 packets counter packets 0 bytes 0 log
+# 		ct state invalid counter packets 0 bytes 0 drop
+# 		ip saddr 192.168.1.0/24 ip daddr 192.168.1.3 counter packets 0 bytes 0 accept
+# 		ip saddr 192.168.1.0/24 ip daddr 192.168.1.255 counter packets 0 bytes 0 accept
+# 		ip saddr 192.168.1.0/24 ip daddr 224.0.0.0/24 counter packets 2 bytes 921 accept
+# 		ip saddr 192.168.1.0/24 ip daddr 255.255.255.255 counter packets 0 bytes 0 accept
+# 		icmp type echo-request ct state new counter packets 0 bytes 0 accept
+# 		tcp flags & (fin | syn | rst | ack) == syn ct state new counter packets 0 bytes 0 jump TCP
+# 		ip protocol tcp limit rate 5/minute burst 10 packets counter packets 0 bytes 0 log
+# 		ip protocol tcp counter packets 0 bytes 0 reject with tcp reset
+# 		ip protocol udp ct state new counter packets 0 bytes 0 jump UDP
+# 		ip protocol udp limit rate 5/minute burst 10 packets counter packets 0 bytes 0 log
+# 		ip protocol udp counter packets 0 bytes 0 reject
+# 		limit rate 5/minute burst 10 packets counter packets 0 bytes 0 log
+# 		counter packets 0 bytes 0 reject with icmp type prot-unreachable
+# 	}
+#
+# 	chain FORWARD {
+# 		type filter hook forward priority filter; policy drop;
+# 	}
+#
+# 	chain OUTPUT {
+# 		type filter hook output priority filter; policy accept;
+# 	}
+#
+# 	chain TCP {
+# 		ip saddr 192.168.1.0/24 tcp dport 22 counter packets 0 bytes 0 accept
+# 		tcp dport 53 counter packets 0 bytes 0 accept
+# 		tcp dport 80 counter packets 0 bytes 0 accept
+# 		tcp dport 443 counter packets 0 bytes 0 accept
+# 		ip saddr 192.168.1.0/24 tcp dport 4141 counter packets 0 bytes 0 accept
+{% for source in github_hooks | ansible.netcommon.ipv4 %}
+#		ip saddr {{ source }} tcp dport 4141 counter packets 0 bytes 0 accept
+{% endfor %}
+#	}
+#
+#	chain UDP {
+#		udp dport 53 counter packets 0 bytes 0 accept
+#		ip saddr 192.168.1.0/24 udp dport 51820 counter packets 0 bytes 0 accept
+#	}
+#}

@@ -1,159 +1,141 @@
 # yamllint disable rule:line-length
 ---
-- name: create site directory
+- name: create unifi user
+  ansible.builtin.user:
+    name: unifi
+    comment: UniFi Network
+    create_home: false
+    home: /var/empty
+    password_lock: true
+    shell: "{{ nologin_shell }}"
+    system: true
+  register: unifi_user_result
+
+- name: create unifi configuration directories
   ansible.builtin.file:
-    path: /srv/unifi/data/sites/default
-    owner: unifi
-    group: unifi
+    path: "{{ unifi_item }}"
+    owner: root
+    group: "{{ unifi_user_result.group }}"
+    mode: 0750
+    state: directory
+  loop:
+    - "{{ unifi_config_dir }}"
+    - "{{ unifi_config_dir }}/sites"
+    - "{{ unifi_config_dir }}/sites/default"
+  loop_control:
+    loop_var: unifi_item
+
+# TODO: trigger usg reload
+- name: configure unifi default site
+  ansible.builtin.template:
+    src: config.gateway.json.j2
+    dest: "{{ unifi_config_dir }}/sites/default/config.gateway.json"
+    owner: root
+    group: "{{ unifi_user_result.group }}"
+    mode: 0440
+    validate: "{{ jsonlint_validate_command }}"
+
+- name: create unifi data directory
+  ansible.builtin.file:
+    path: "{{ unifi_data_dir }}"
+    owner: "{{ unifi_user_result.uid }}"
+    group: "{{ unifi_user_result.group }}"
+    mode: 0700
+    state: directory
+
+- name: create unifi log directory
+  ansible.builtin.file:
+    path: "{{ unifi_log_dir }}"
+    owner: "{{ unifi_user_result.uid }}"
+    group: "{{ unifi_user_result.group }}"
     mode: 0750
     state: directory
 
-- name: install gateway configuration
-  ansible.builtin.template:
-    src: config.gateway.json.j2
-    dest: /srv/unifi/data/sites/default/config.gateway.json
-    owner: unifi
-    group: unifi
-    mode: 0440
-    validate: "{{ jsonlint_validation_command }}"
-
-- name: install dependencies
-  ansible.builtin.apt:
-    name:
-      - python-cryptography
-      - python-openssl
-    install_recommends: false
-    state: present
-  when: ansible_python.version.major == 2
-
-- name: install dependencies
-  ansible.builtin.apt:
-    name:
-      - python3-cryptography
-      - python3-openssl
-    install_recommends: false
-    state: present
-  when: ansible_python.version.major == 3
-
-- name: generate SSL private key
-  community.crypto.openssl_privatekey:
-    path: /data/unifi-core/config/unifi-core.key
-    owner: root
-    group: root
-    mode: 0440
-    state: present
-  notify: restart unifi-core
-
-- name: generate SSL CSR
-  community.crypto.openssl_csr:
-    privatekey_path: /data/unifi-core/config/unifi-core.key
-    common_name: unifi.{{ domain_name }}
-    path: /etc/ssl/private/cloudkey.csr
-    owner: root
-    group: root
-    mode: 0440
-    state: present
-
-- name: generate SSL certificate (part 1)
-  community.crypto.acme_certificate:
-    account_key_content: "{{ letsencrypt_account_key }}"
-    acme_directory: "{{ letsencrypt_acme_directory }}"
-    acme_version: "{{ letsencrypt_acme_version }}"
-    challenge: dns-01
-    csr: /etc/ssl/private/cloudkey.csr
-    fullchain_dest: /data/unifi-core/config/unifi-core.crt
-    modify_account: false
-    remaining_days: 30
-  register: letsencrypt_challenge
-
-- name: create DNS record
-  community.general.cloudflare_dns:
-    account_api_token: "{{ cloudflare_account_api_token }}"
-    account_email: "{{ cloudflare_account_email }}"
-    record: "{{ letsencrypt_challenge.challenge_data['unifi.'~domain_name]['dns-01']['resource'] }}.unifi"
-    solo: true
-    type: TXT
-    value: "{{ letsencrypt_challenge.challenge_data['unifi.'~domain_name]['dns-01']['resource_value'] }}"
-    zone: "{{ domain_name }}"
-  when: letsencrypt_challenge.changed  # noqa 503
-  delegate_to: localhost
-
-- name: generate SSL certificate (part 2)
-  community.crypto.acme_certificate:
-    account_key_content: "{{ letsencrypt_account_key }}"
-    acme_directory: "{{ letsencrypt_acme_directory }}"
-    acme_version: "{{ letsencrypt_acme_version }}"
-    account_uri: "{{ letsencrypt_challenge.account_uri }}"
-    challenge: dns-01
-    csr: /etc/ssl/private/cloudkey.csr
-    data: "{{ letsencrypt_challenge }}"
-    fullchain_dest: /data/unifi-core/config/unifi-core.crt
-    modify_account: false
-    remaining_days: 30
-  when: letsencrypt_challenge.changed  # noqa 503
-
-- community.crypto.openssl_pkcs12:  # noqa 502
-    path: /etc/ssl/private/cloudkey.p12
-    friendly_name: unifi
-    passphrase: "{{ unifi_jks_password }}"
-    certificate_path: /data/unifi-core/config/unifi-core.crt
-    privatekey_path: /data/unifi-core/config/unifi-core.key
-    owner: root
-    group: root
-    mode: 0400
-    backup: true
-
-- community.general.java_cert:  # noqa 502
-    cert_alias: unifi
-    keystore_pass: "{{ unifi_jks_password }}"
-    keystore_path: /etc/ssl/private/unifi.keystore.jks
-    keystore_type: JKS
-    pkcs12_alias: unifi
-    pkcs12_password: "{{ unifi_jks_password }}"
-    pkcs12_path: /etc/ssl/private/cloudkey.p12
-  notify: restart unifi
-
-- ansible.builtin.slurp:  # noqa 502
-    src: /data/unifi-core/config/unifi-core.crt
-  register: unifi_certificate
-
-- ansible.builtin.slurp:  # noqa 502
-    src: /data/unifi-core/config/unifi-core.key
-  register: unifi_private_key
-
-- ansible.builtin.java_keystore:  # noqa 502
+- name: create unifi-internal network
+  community.docker.docker_network:
     name: unifi
-    certificate: "{{ unifi_certificate['content'] | b64decode }}"
-    private_key: "{{ unifi_private_key['content'] | b64decode }}"
-    password: "{{ unifi_jks_password }}"
-    dest: /etc/ssl/private/unifi.keystore.jks
-    owner: root
-    group: ssl-cert
-    mode: 0440
-  notify: restart unifi
+    internal: true
 
-- ansible.builtin.stat:  # noqa 502
-    path: /etc/ssl/private/unifi.keystore.jks
-    checksum_algorithm: md5
-    get_attributes: false
-    get_mime: false
-  register: unifi_keystore
-
-- ansible.builtin.copy:  # noqa 502
-    content: "{{ unifi_keystore.stat.checksum }} */etc/ssl/private/unifi.keystore.jks\n"
-    dest: /etc/ssl/private/unifi.keystore.jks.md5
-    owner: root
-    group: root
-    mode: 0444
-
-- name: fetch files for backup
-  ansible.builtin.fetch:
-    dest: backup
-    src: "{{ item }}"
+- name: create unifi-mongo-data volumes
+  community.docker.docker_volume:
+    name: "{{ unifi_item }}"
   loop:
-    - /data/unifi-core/config/unifi-core.crt
-    - /data/unifi-core/config/unifi-core.key
-    - /etc/ssl/private/cloudkey.csr
-    - /etc/ssl/private/cloudkey.p12
-    - /etc/ssl/private/unifi.keystore.jks
-    - /etc/ssl/private/unifi.keystore.jks.md5
+    - unifi-mongo-data-configdb
+    - unifi-mongo-data-db
+  loop_control:
+    loop_var: unifi_item
+
+- name: deploy unifi-mongo
+  community.docker.docker_container:
+    name: unifi-mongo
+    image: mongo:3.6
+    # cap_drop:
+    #   - ALL
+    env:
+      TZ: "{{ timezone }}"
+    # exposed_ports:
+    #   - 27017
+    healthcheck:
+      test: >
+        bash -c "if mongo --eval 'quit(db.runCommand({ ping: 1 }).ok ? 0 : 2)'; then exit 0; fi; exit 1"
+    networks:
+      - name: unifi-internal
+    read_only: true
+    security_opts:
+      - no-new-privileges=true
+    tmpfs:
+      - /tmp
+    volumes:
+      - unifi-mongo-data-configdb:/data/configdb
+      - unifi-mongo-data-db:/data/db
+    labels:
+      com.centurylinklabs.watchtower.enable: !!str true
+      traefik.enable: !!str false
+    comparisons:
+      "*": strict
+    restart_policy: unless-stopped
+    state: started
+
+- name: deploy unifi
+  community.docker.docker_container:
+    name: unifi
+    image: jacobalberty/unifi:v6
+    # cap_drop:
+    #   - ALL
+    env:
+      DB_NAME: unifi
+      DB_URI: mongodb://unifi-mongo/unifi
+      STATDB_URI: mongodb://unifi-mongo/unifi_stat
+      TZ: "{{ timezone }}"
+      UNIFI_GID: "{{ unifi_user_result.uid }}"
+      UNIFI_UID: "{{ unifi_user_result.group }}"
+      RUNAS_UID0: !!str false
+    init: true
+    networks:
+      - name: bridge
+      - name: unifi-internal
+    published_ports:
+      - "{{ lan_ipv4_address }}:{{ unifi_discovery_port }}:{{ unifi_discovery_port }}/udp"
+    security_opts:
+      - no-new-privileges=true
+    volumes:
+      - "{{ unifi_config_dir }}/sites:/unifi/data/sites:ro"
+      - "{{ unifi_data_dir }}:/unifi/data"
+      - "{{ unifi_log_dir }}:/unifi/log"
+    labels:
+      com.centurylinklabs.watchtower.enable: !!str true
+      traefik.enable: !!str true
+      traefik.http.routers.unifi.entrypoints: websecure
+      traefik.http.routers.unifi.rule: Host(`unifi.{{ domain_name }}`)
+      traefik.http.routers.unifi.service: unifi
+      traefik.http.services.unifi.loadbalancer.server.port: !!str 8080
+      traefik.http.routers.unifi-api.entrypoints: unifi
+      traefik.http.routers.unifi-api.rule: Host(`unifi.{{ domain_name }}`)
+      traefik.http.routers.unifi-api.service: unifi
+      traefik.http.services.unifi-api.loadbalancer.server.port: !!str 8443
+    comparisons:
+      healthcheck: allow_more_present
+      labels: allow_more_present
+      "*": strict
+    restart_policy: unless-stopped
+    state: started

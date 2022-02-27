@@ -1,15 +1,19 @@
+# yamllint disable rule:line-length
 ---
-certbot_email_address: "{{ vault_certbot_email_address }}"
+ansible_become: "{{ vault_ansible_become }}"
+ansible_scp_if_ssh: "{{ vault_ansible_scp_if_ssh }}"
+ansible_user: "{{ vault_ansible_user }}"
 dns_forward_domains: "{{ vault_dns_forward_domains }}"
 domain_name: "{{ vault_domain_name }}"
-elastic_version: 7.12.1
-elasticsearch_host: "{{ vault_elasticsearch_host }}"
 getflix_api_key: "{{ vault_getflix_api_key }}"
-kibana_host: "{{ vault_kibana_host }}"
+hosts: "{{ vault_hosts }}"
+letsencrypt_email: "{{ vault_letsencrypt_email }}"
+ntp_interfaces: "{{ vault_ntp_interfaces }}"
+ntp_pool_member: "{{ vault_ntp_pool_member }}"
+ntp_servers: "{{ vault_ntp_servers }}"
+pushover_user_key: "{{ vault_pushover_user_key }}"
 root_group: root
-smartdns_domains: "{{ vault_smartdns_domains | sort }}"
-smartdns_exclusions: "{{ vault_smartdns_exclusions | sort }}"
-smartdns_servers: "{{ vault_smartdns_servers }}"
+sshd_config_allow_tcp_forwarding: "{{ vault_sshd_config_allow_tcp_forwarding }}"
 timezone: "{{ vault_timezone }}"
-wireguard_ipv4_subnet: "{{ vault_wireguard_ipv4_subnet }}"
-wireguard_port: "{{ vault_wireguard_port }}"
+vpn_ipv4_subnet: "{{ vault_vpn_ipv4_subnet }}"
+vpn_ipv6_subnet: "{{ vault_vpn_ipv6_subnet }}"

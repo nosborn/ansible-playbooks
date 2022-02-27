@@ -1,0 +1,6 @@
+---
+- name: restart step-ca
+  community.docker.docker_container:
+    name: step-ca
+    restart: true
+    state: started

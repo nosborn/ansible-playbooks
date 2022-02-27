@@ -1,5 +1,8 @@
 ---
-- name: install nodejs
-  ansible.builtin.package:
-    name: node
+- name: install Node.js
+  ansible.builtin.apt:
+    name:
+      - nodejs
+      - npm
+    install_recommends: false
     state: present

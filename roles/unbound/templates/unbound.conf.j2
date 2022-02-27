@@ -1,17 +1,20 @@
 server:
 	verbosity: 1
 
-	interface: 127.0.0.1
-	interface: {{ lan_ipv4_address }}
-	# interface: {{ guest_ipv4_address }}
-	# interface: {{ iot_ipv4_address }}
-	interface: ::1
-	interface: {{ lan_ipv6_address }}
+	extended-statistics: yes
 
-	define-tag: "guest iot main"
+{% for interface in unbound_config_interfaces %}
+	interface: {{ interface }}
+{% endfor %}
+
+	outgoing-port-avoid: {{ unifi_discovery_port }}
+	outgoing-port-avoid: {{ vpn_listen_port }}
+
+	ip-freebind: yes
 
 	prefer-ip6: yes
-	outgoing-range: 425
+
+	edns-tcp-keepalive: yes
 
 	msg-cache-size: 32m
 	msg-cache-slabs: 2
@@ -21,28 +24,18 @@ server:
 
 	infra-cache-slabs: 2
 
-	# edns-tcp-keepalive: yes
-
-	tls-cert-bundle: "/etc/ssl/cert.pem"
-
-	access-control: 0.0.0.0/0 refuse
-	access-control: {{ lan_ipv4_subnet }} allow
-	access-control: {{ guest_ipv4_subnet }} allow
-	access-control: {{ iot_ipv4_subnet }} allow
-	access-control: 127.0.0.0/8 allow
-	access-control: ::0/0 deny
-	access-control: ::1 allow
+{% for access_control in unbound_config_access_controls %}
+	access-control: {{ access_control }}
+{% endfor %}
 
 	log-queries: yes
 	# log-replies: yes
-	# log-tag-queryreply: yes
+	log-tag-queryreply: yes
 	log-servfail: yes
-	pidfile: /var/run/unbound.pid
 
 	hide-identity: yes
 	hide-version: yes
 
-	aggressive-nsec: yes
 	private-address: 0.0.0.0/8
 	private-address: 10.0.0.0/8         # Private-Use
 	private-address: 100.64.0.0/10      # Shared Address Space
@@ -58,183 +51,104 @@ server:
 	private-address: 255.255.255.255/32 # Limited Broadcast
 	private-address: fd00::/8
 	private-address: fe80::/10
-	private-address: ::ffff:0:0/96
-	private-domain: "lan"
-	private-domain: "localdomain"
-	private-domain: "onion"
+	private-address: ::ffff:0:0/96      # IPv4-mapped IPv6 addresses
+	private-domain: "{{ domain_name }}"
 
+	prefetch: yes
+	prefetch-key: yes
 	deny-any: yes
 
-	module-config: "respip validator iterator"
+{% if unbound_config_module_config is defined %}
+	module-config: "{{ unbound_config_module_config | join(' ') }}"
 
-	auto-trust-anchor-file: "/var/unbound/db/root.key"
+{% endif %}
 
-	# domain-insecure: "lan"
-	# domain-insecure: "localdomain"
+{% if smartdns_domains is defined %}
+{%   for domain in smartdns_domains %}
+	domain-insecure: "{{ domain }}"
+{%   endfor %}
 
+{% endif %}
 	val-log-level: 2
 
+	serve-expired: yes
+	serve-expired-ttl: 86400
+	serve-expired-ttl-reset: yes
+	serve-expired-reply-ttl: 30
+	serve-expired-client-timeout: 1800
+
 	key-cache-slabs: 2
-
-	# local-zone: "0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa." nodefault
-	# local-zone: "0.in-addr.arpa." nodefault
-	# local-zone: "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa." nodefault
-	# local-zone: "10.in-addr.arpa." nodefault
-	# local-zone: "100.51.198.in-addr.arpa." nodefault
-	# local-zone: "113.0.203.in-addr.arpa." nodefault
-	# local-zone: "127.in-addr.arpa." nodefault
-	# local-zone: "16.172.in-addr.arpa." nodefault
-	# local-zone: "168.192.in-addr.arpa." nodefault
-	# local-zone: "17.172.in-addr.arpa." nodefault
-	# local-zone: "18.172.in-addr.arpa." nodefault
-	# local-zone: "19.172.in-addr.arpa." nodefault
-	# local-zone: "2.0.192.in-addr.arpa." nodefault
-	# local-zone: "20.172.in-addr.arpa." nodefault
-	# local-zone: "21.172.in-addr.arpa." nodefault
-	# local-zone: "22.172.in-addr.arpa." nodefault
-	# local-zone: "23.172.in-addr.arpa." nodefault
-	# local-zone: "24.172.in-addr.arpa." nodefault
-	# local-zone: "25.172.in-addr.arpa." nodefault
-	# local-zone: "254.169.in-addr.arpa." nodefault
-	# local-zone: "255.255.255.255.in-addr.arpa." nodefault
-	# local-zone: "26.172.in-addr.arpa." nodefault
-	# local-zone: "27.172.in-addr.arpa." nodefault
-	# local-zone: "28.172.in-addr.arpa." nodefault
-	# local-zone: "29.172.in-addr.arpa." nodefault
-	# local-zone: "30.172.in-addr.arpa." nodefault
-	# local-zone: "31.172.in-addr.arpa." nodefault
-	# local-zone: "8.b.d.0.1.0.0.2.ip6.arpa." nodefault
-	# local-zone: "8.e.f.ip6.arpa." nodefault
-	# local-zone: "9.e.f.ip6.arpa." nodefault
-	# local-zone: "a.e.f.ip6.arpa." nodefault
-	# local-zone: "b.e.f.ip6.arpa." nodefault
-	# local-zone: "d.f.ip6.arpa." nodefault
-	# local-zone: "invalid." nodefault
-	# local-zone: "localhost." nodefault
-	# local-zone: "test." nodefault
-{% for zone in unbound_nodefault_local_zones %}
-	local-zone: "{{ zone }}." nodefault
-{% endfor %}
-
-	# unblock-lan-zones: no
-	# insecure-lan-zones: no
 
 	# https://support.mozilla.org/en-US/kb/canary-domain-use-application-dnsnet
 	local-zone: "use-application-dns.net." static
 
-	local-zone: "3yqjsrczwwp.com." static
-	local-zone: "7hor9gul4s.com." static
-	local-zone: "a4mt150303tl.com." static
-	local-zone: "adservice.google.com." static
-	local-zone: "adservice.google.com.sg." static
-	local-zone: "api.revenuecat.com." static
-	local-zone: "app-analytics.snapchat.com." static
-	local-zone: "app-measurement.com." static
-	local-zone: "apu.samsungelectronics.com." static
-	local-zone: "au79nt5wic4x.com." static
-	local-zone: "bpu.samsungelectronics.com." static
-	local-zone: "captive.roku.com." static
-	local-zone: "channel4.sc.omtrdc.net." static
-	local-zone: "codepush.appcenter.ms." static
-	local-zone: "cpu.samsungelectronics.com." static
-	local-zone: "crashlyticsreports-pa.googleapis.com." static
-	local-zone: "diagnostics.meethue.com." static
-	local-zone: "dpu.samsungelectronics.com." static
-	local-zone: "e.reddit.com." static
-	local-zone: "firebaselogging.googleapis.com." static
-	local-zone: "getup.today." static
-	local-zone: "graph.facebook.com." static
-	local-zone: "gstaticadssl.l.google.com." static
-	local-zone: "hits-secure.theguardian.com." static
-	local-zone: "icons.duckduckgo.icons." static
-	local-zone: "iphonesubmissions.apple.com." static
-	local-zone: "kpu.samsungelectronics.com." static
-	local-zone: "metrics.icloud.com." static
-	local-zone: "metrics.tfe.apple-dns.net." static
-	local-zone: "myadcash.com." static
-	local-zone: "mybbc-analytics.files.bbci.co.uk." static
-	local-zone: "nui.media." static
-	local-zone: "pixel.facebook.com." static
-	local-zone: "r023m83skv5v.com." static
-	local-zone: "socialbars-web1.com." static
-	local-zone: "socialbars-web5.com." static
-	local-zone: "telemetry-in.battle.net." static
-	local-zone: "teleport.soom.la." static
-	local-zone: "trace.svc.ui.com." static
-	local-zone: "txt.chatango.com." static
-	local-zone: "unifi-report.ubnt.com." static
-	local-zone: "upu.samsungelectronics.com." static
-	local-zone: "w7zglmcdreij.com." static
-	local-zone: "win10.ipv6.microsoft.com." static
-	local-zone: "win1710.ipv6.microsoft.com." static
-	local-zone: "xpu.samsungelectronics.com." static
-	local-zone: "ypu.samsungelectronics.com." static
-	local-zone: "zav4gln44kez.com." static
-	local-zone: "zpu.samsungelectronics.com." static
-
+{% if inventory_hostname == 'tombstone' %}
 	# DNS-over-HTTPS
-	local-zone: "dns.google.com." static
-	local-zone: "dig.bdurl.net." static
 	local-zone: "doh.dns.apple.com." static
 
+	local-zone: "{{ domain_name }}." static
+	local-zone: "local." static
+
+	local-data: "atlantis.{{ domain_name }}. CNAME tombstone.{{ domain_name }}."
+	local-data: "bibliogram.{{ domain_name }}. CNAME tombstone.{{ domain_name }}."
+	local-data: "ca.{{ domain_name }}. CNAME tombstone.{{ domain_name }}."
+	local-data: "invidious.{{ domain_name }}. CNAME tombstone.{{ domain_name }}."
+	local-data: "nitter.{{ domain_name }}. CNAME tombstone.{{ domain_name }}."
+	local-data: "rimgo.{{ domain_name }}. CNAME tombstone.{{ domain_name }}."
+	local-data: "scribe.{{ domain_name }}. CNAME tombstone.{{ domain_name }}."
+	local-data: "teddit.{{ domain_name }}. CNAME tombstone.{{ domain_name }}."
 	local-data: "tombstone.{{ domain_name }}. A {{ hostvars.tombstone.lan_ipv4_address }}"
-	local-data: "tombstone.{{ domain_name }}. AAAA {{ hostvars.tombstone.lan_ipv6_address }}"
-	local-data: "unifi.{{ domain_name }}. A {{ hostvars.unifi.lan_ipv4_address }}"
-	local-data: "unifi.{{ domain_name }}. AAAA {{ hostvars.unifi.lan_ipv6_address }}"
+	# local-data: "unifi.{{ domain_name }}. A {{ hostvars.unifi.lan_ipv4_address }}"
+	local-data: "unifi.{{ domain_name }}. CNAME tombstone.{{ domain_name }}."
 
-	# include: "/var/unbound/etc/blacklist.conf"
+	local-data: "imgur.{{ domain_name }}. CNAME rimgo.{{ domain_name }}."
+	local-data: "instagram.{{ domain_name }}. CNAME bibliogram.{{ domain_name }}."
+	local-data: "medium.{{ domain_name }}. CNAME scribe.{{ domain_name }}."
+	local-data: "reddit.{{ domain_name }}. CNAME teddit.{{ domain_name }}."
+	local-data: "twitter.{{ domain_name }}. CNAME nitter.{{ domain_name }}."
+	local-data: "youtube.{{ domain_name }}. CNAME invidious.{{ domain_name }}."
 
-remote-control:
-	control-enable: yes
-	control-interface: /var/run/unbound.sock
-	control-use-cert: no
+	# local-data: "i.imgur.com. CNAME imgur.{{ domain_name }}."
+	# local-data: "imgur.com. CNAME imgur.{{ domain_name }}."
+	# local-data: "medium.com. CNAME scribe.{{ domain_name }}."
 
-{% for zone in unbound_nodefault_local_zones %}
-forward-zone:
-	name: "{{ zone }}."
-	forward-addr: "{{ hostvars['usg']['lan_ipv4_address'] }}"
-	forward-tls-upstream: no
-	forward-no-cache: yes
+	local-data-ptr: "{{ hostvars.tombstone.lan_ipv4_address }} tombstone.{{ domain_name }}."
+	local-data-ptr: "{{ hostvars.unifi.lan_ipv4_address }} unifi.{{ domain_name }}."
 
-{% endfor %}
-forward-zone:
-	name: "lan."
-	forward-addr: "{{ hostvars['usg']['lan_ipv4_address'] }}"
-	forward-no-cache: yes
+# The following line includes additional configuration files from the
+# /etc/unbound/unbound.conf.d directory.
+include-toplevel: "/etc/unbound/unbound.conf.d/*.conf"
 
-forward-zone:
-	name: "localdomain."
-	forward-addr: "{{ hostvars['usg']['lan_ipv4_address'] }}"
-	forward-no-cache: yes
+{% endif %}
+# remote-control:
+# 	control-enable: yes
+# 	control-interface: /var/run/unbound.sock
+# 	control-use-cert: no
+{% if smartdns_exclusions is defined and unbound_forwarders is defined %}
+{%   for domain in smartdns_exclusions %}
 
-{% for domain in smartdns_exclusions %}
-forward-zone:
-	name: "{{ domain }}."
-{%   for address in unbound_forwarders %}
-	forward-addr: {{ address }}
-{%   endfor %}
-	forward-tls-upstream: yes
-
-{% endfor %}
-{% for domain in smartdns_domains %}
 forward-zone:
 	name: "{{ domain }}."
-{%   for address in smartdns_servers %}
+{%     for address in unbound_forwarders %}
 	forward-addr: {{ address }}
+{%     endfor %}
 {%   endfor %}
+{% endif %}
+{% if smartdns_domains is defined %}
+{%   for domain in smartdns_domains %}
 
-{% endfor %}
-{% for domain in unbound_forward_domains %}
 forward-zone:
 	name: "{{ domain }}."
-{%   for address in unbound_forwarders %}
+{%     for address in smartdns_servers %}
 	forward-addr: {{ address }}
+{%     endfor %}
 {%   endfor %}
-	forward-tls-upstream: yes
+{% endif %}
+{% if unbound_forwarders is defined %}
 
-{% endfor %}
-rpz:
-	name: "blacklist"
-	zonefile: "/var/unbound/db/rpz.blacklist"
-	rpz-log: yes
-	# tags: "iot main"
+forward-zone:
+	name: "."
+{%   for forwarder in unbound_forwarders %}
+	forward-addr: {{ forwarder }}
+{%   endfor %}
+{% endif %}

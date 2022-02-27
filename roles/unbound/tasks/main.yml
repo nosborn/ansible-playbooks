@@ -1,52 +1,25 @@
 ---
-- name: install root trust anchor
-  ansible.builtin.command:
-    argv:
-      - unbound-anchor
-    creates: /var/unbound/db/root.key
-
-- name: install unbound dependencies
-  ansible.builtin.package:
-    name:
-      - p5-Digest-SHA1
-      - p5-IO-Socket-SSL
+- name: install unbound
+  ansible.builtin.apt:
+    name: unbound
+    install_recommends: false
     state: present
-
-- name: create blacklist cache directory
-  ansible.builtin.file:
-    path: /var/cache/unbound
-    owner: root
-    group: wheel
-    mode: 0755
-    state: directory
-
-- name: upload blacklist script
-  ansible.builtin.copy:
-    src: blacklist.pl
-    dest: /usr/local/libexec/unbound-blacklist
-    owner: root
-    group: wheel
-    mode: 0550
-    validate: perl -cw %s
-
-- name: create blacklist
-  ansible.builtin.shell:
-    cmd: /usr/local/libexec/unbound-blacklist >/var/unbound/db/rpz.blacklist
-    creates: /var/unbound/db/rpz.blacklist
-  notify: restart unbound
 
 - name: configure unbound
   ansible.builtin.template:
     src: unbound.conf.j2
-    dest: /var/unbound/etc/unbound.conf
+    dest: /etc/unbound/unbound.conf
     owner: root
-    group: wheel
+    group: root
     mode: 0444
     validate: unbound-checkconf %s
   notify: restart unbound
 
 - name: enable and start unbound
-  ansible.builtin.service:
-    name: unbound
+  ansible.builtin.systemd:
+    name: unbound.service
     enabled: true
     state: started
+
+- name: set up unbound filters
+  ansible.builtin.import_tasks: filters.yml

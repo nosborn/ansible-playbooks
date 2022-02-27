@@ -1,103 +1,140 @@
 # yamllint disable rule:line-length
 ---
-# - hosts: all
-
-#   pre_tasks:
-#     - name: gather facts from ALL hosts
-#       ansible.builtin.setup:
-#       delegate_to: "{{ item }}"
-#       delegate_facts: True
-#       when: hostvars[item]['ansible_default_ipv4'] is not defined
-#       with_items: "{{ groups['all'] }}"
-#       tags:
-#         - always
-
-- hosts: tombstone
+- hosts: all
 
   pre_tasks:
-    - name: configure networking
-      ansible.builtin.copy:
-        content: |
-          inet {{ lan_ipv4_address }} 255.255.255.0 NONE
-          inet6 autoconf
-        dest: /etc/hostname.{{ lan_if }}
-        owner: root
-        group: wheel
-        mode: 0440
-      notify: restart networking
+    - name: gather facts from excluded hosts
+      ansible.builtin.setup:
+      delegate_to: "{{ item }}"
+      delegate_facts: true
+      loop: "{{ groups['all'] }}"
+      when: item not in ansible_play_hosts
+      run_once: true
+      tags:
+        - always
 
-    - name: set default gateway
-      ansible.builtin.copy:
-        content: |
-          192.168.1.1
-        dest: /etc/mygate
-        owner: root
-        group: wheel
-        mode: 0440
-      notify: restart networking
+- hosts: tombstone
+  gather_facts: false
 
-    - name: set sysctl variables
-      ansible.posix.sysctl:
-        name: "{{ item.name }}"
-        value: "{{ item.value }}"
-      loop:
-        - name: ddb.panic
-          value: 0
-
-    - name: set timezone
+  pre_tasks:
+    - name: set time zone
       ansible.builtin.file:
         path: /etc/localtime
         src: /usr/share/zoneinfo/{{ timezone }}
         state: link
+      tags:
+        - always
+
+    - name: configure hosts file
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        regexp: "^127\\.0\\.1\\.1\t"
+        line: "{{ lan_ipv4_address }}\ttombstone.{{ domain_name }}\ttombstone"
+
+    - name: configure network interfaces
+      ansible.builtin.template:
+        src: network/interfaces.j2
+        dest: /etc/network/interfaces
+        owner: root
+        group: root
+        mode: 0444
+      notify: restart networking
+
+    - name: configure resolver
+      ansible.builtin.copy:
+        content: "{{ resolver_configuration }}"
+        dest: /etc/resolv.conf
+        owner: root
+        group: root
+        mode: 0444
+      notify: restart networking
+
+    - name: restart networking now
+      ansible.builtin.meta: flush_handlers
 
   roles:
-    - role: acme_client
-    - role: apmd
-    - role: dnsupdate
-    # - role: elasticsearch
+    - role: atlantis
+      tags:
+        - atlantis
+    - role: bibliogram
+      tags:
+        - bibliogram
+    - role: chrony
+    - role: ddclient
     - role: homebridge
-    - role: monit
-    - role: nginx
-    - role: ntpd
-    - role: periodic
-    # # - role: pf
-    - role: smokeping
-    - role: smtpd
-    - role: sndiod
+      tags:
+        - homebridge
+    - role: invidious
+      tags:
+        - invidious
+    - role: locale
+    - role: nano
+    # - role: nftables
+    - role: nitter
+      tags:
+        - nitter
+    - role: nomad
+      tags:
+        - nomad
+      when: false  # FIXME
+    - role: opensmtpd
+    - role: restic
+    - role: rfkill
+    - role: rimgo
+      tags:
+        - rimgo
+    - role: samba
+    - role: scribe
+      tags:
+        - scribe
     - role: sshd
-    - role: sysclean
+    - role: step_ca
+    - role: teddit
+      tags:
+        - teddit
+    - role: traefik
+      tags:
+        - traefik
     - role: unbound
       tags:
         - unbound
+    - role: unifi
+      tags:
+        - unifi
+    - role: vpngateway
+    - role: watchtower
+    - role: wireguard
 
   tasks:
-    - name: configure sysmerge exclusions
-      ansible.builtin.copy:
-        content: |
-          /etc/mail/aliases
-          /etc/mail/smtpd.conf
-          /etc/newsyslog.conf
-          /etc/ntpd.conf
-          # /etc/pf.conf
-          /etc/ssh/sshd_config
-          /etc/ttys
-          /var/unbound/etc/unbound.conf
-        dest: /etc/sysmerge.ignore
-        owner: root
-        group: wheel
-        mode: 0444
+    - become: false
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/vpn"
+        mode: 0700
+        state: directory
+      delegate_to: localhost
+
+    - become: false
+      ansible.builtin.template:
+        src: vpn/client.mobileconfig.j2
+        dest: "{{ playbook_dir }}/vpn/{{ item.name }}.mobileconfig"
+        mode: 0400
+        validate: plutil -lint %s
+      loop: "{{ vpn_peers }}"
+      loop_control:
+        label: "{{ item.name }}"
+      delegate_to: localhost
 
   handlers:
     - name: restart networking
-      ansible.builtin.command:
-        argv:
-          - /bin/sh
-          - /etc/netstart
+      ansible.builtin.systemd:
+        name: networking.service
+        state: restarted
 
-- hosts: unifi
-
-  roles:
-    - role: unifi
+# - hosts: unifi
+#
+#   roles:
+#     - role: unifi
+#       when: false  # FIXME
 
 - hosts: usg
 
@@ -111,6 +148,7 @@
         mode: 0755
         validate: /bin/sh -n %s
       notify: iptables mangle ttl
+      when: false  # FIXME
 
     - name: set allowed interfaces for avahi
       ansible.builtin.lineinfile:
@@ -118,6 +156,7 @@
         regexp: allow-interfaces=
         line: allow-interfaces={{ lan_if }},{{ iot_if }}
       notify: restart avahi-daemon
+      when: false  # FIXME
 
     - name: set denied interfaces for avahi
       ansible.builtin.lineinfile:
@@ -125,14 +164,17 @@
         regexp: deny-interfaces=
         line: deny-interfaces={{ wan_if }}
       notify: restart avahi-daemon
+      when: false  # FIXME
 
   handlers:
     - name: iptables mangle ttl
       ansible.builtin.command:
         argv:
           - /config/scripts/post-config.d/iptables_ttl_mangle.sh
+      when: false  # FIXME
 
     - name: restart avahi-daemon
       ansible.builtin.service:
         name: avahi-daemon
         state: restarted
+      when: false  # FIXME

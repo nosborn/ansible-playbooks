@@ -1,0 +1,5 @@
+---
+- name: build locales
+  ansible.builtin.command:
+    argv:
+      - locale-gen

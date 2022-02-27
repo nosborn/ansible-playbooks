@@ -1,0 +1,2 @@
+---
+yamllint_validate_command: yamllint --strict %s

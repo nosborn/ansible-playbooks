@@ -1,0 +1,112 @@
+---
+# - name: create vpnbridge network
+#   community.docker.docker_network:
+#     name: vpnbridge
+#     enable_ipv6: false  # TODO
+#     ipam_config:
+#       - gateway: 172.16.0.2
+#         subnet: 172.16.0.0/24
+
+- name: create vpngateway source directory
+  ansible.builtin.file:
+    path: /usr/local/src/vpngateway
+    owner: root
+    group: root
+    mode: 0700
+    state: directory
+
+- name: upload vpngateway Dockerfile
+  ansible.builtin.copy:
+    src: "{{ vpngateway_item }}"
+    dest: /usr/local/src/vpngateway/{{ vpngateway_item }}
+    owner: root
+    group: root
+    mode: 0400
+  loop:
+    - Dockerfile
+    - entrypoint.sh
+  loop_control:
+    loop_var: vpngateway_item
+
+- name: derive vpngateway version number
+  delegate_to: localhost
+  run_once: true
+  ansible.builtin.command:  # noqa command-instead-of-module
+    argv:
+      - git
+      - rev-list
+      - HEAD
+      - --count
+      - --
+      - roles/{{ role_name }}/
+    chdir: "{{ playbook_dir }}"
+  register: vpngateway_version_result
+  changed_when: false
+
+- name: build vpngateway image
+  community.docker.docker_image:
+    name: local/vpngateway
+    source: build
+    build:
+      path: /usr/local/src/vpngateway
+    tag: "{{ vpngateway_version_result.stdout | trim }}"
+    force_tag: true
+
+- name: create vpngateway configuration directory
+  ansible.builtin.file:
+    path: "{{ vpngateway_item }}"
+    owner: root
+    group: root
+    mode: 0700
+    state: directory
+  loop:
+    - /etc/vpngateway
+    - /etc/vpngateway/wireguard
+  loop_control:
+    loop_var: vpngateway_item
+
+- name: configure vpngateway
+  ansible.builtin.template:
+    src: "{{ vpngateway_item }}.j2"
+    dest: /etc/vpngateway/{{ vpngateway_item }}
+    owner: root
+    group: root
+    mode: 0400
+  loop:
+    - wireguard/wg0.conf
+  loop_control:
+    loop_var: vpngateway_item
+  notify: restart vpngateway
+
+- name: deploy vpngateway
+  community.docker.docker_container:
+    name: vpngateway
+    image: local/vpngateway:{{ vpngateway_version_result.stdout | trim }}
+    cap_drop:
+      - ALL
+    capabilities:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_MODULE
+    env:
+      TZ: "{{ timezone }}"
+    healthcheck:
+      test: /bin/ping -4 -c 1 www.google.com || exit 1
+    # networks:
+    #   - name: vpnbridge
+    #     ipv4_address: 172.16.0.2 -- FIXME
+    security_opts:
+      - no-new-privileges=true
+    sysctls:
+      net.ipv4.conf.all.src_valid_mark: 1
+      net.ipv6.conf.all.disable_ipv6: 0
+    volumes:
+      - /etc/vpngateway/wireguard/wg0.conf:/etc/wireguard/wg0.conf:ro
+      - /lib/modules:/lib/modules:ro
+    labels:
+      com.centurylinklabs.watchtower.enable: !!str false
+      traefik.enable: !!str false
+    comparisons:
+      "*": strict
+    restart_policy: unless-stopped
+    state: started

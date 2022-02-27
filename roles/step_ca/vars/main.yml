@@ -1,0 +1,6 @@
+---
+step_ca_config_dir: /usr/local/etc/step
+step_ca_data_dir: /var/lib/step
+step_ca_port: 9000
+step_ca_url: https://ca.{{ domain_name }}:{{ step_ca_port }}
+step_ca_version: 0.18.1

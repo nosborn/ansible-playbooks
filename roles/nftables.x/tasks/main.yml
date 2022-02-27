@@ -1,0 +1,32 @@
+---
+- name: install nftables
+  ansible.builtin.apt:
+    name: nftables
+    install_recommends: false
+    state: present
+
+- name: fetch GitHub meta information
+  ansible.builtin.uri:
+    url: https://api.github.com/meta
+    return_content: true
+    headers:
+      Accept: application/vnd.github.v3+json
+  register: nftables_github_meta_result
+
+- name: configure nftables
+  ansible.builtin.template:
+    src: nftables.conf.j2
+    dest: /etc/nftables.conf
+    owner: root
+    group: root
+    mode: 0555
+  vars:
+    github_hooks:
+      "{{ (nftables_github_meta_result.content | from_json).hooks }}"
+  notify: reload nftables
+
+- name: enable and start nftables
+  ansible.builtin.systemd:
+    name: nftables.service
+    enabled: true
+    state: started

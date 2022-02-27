@@ -1,0 +1,5 @@
+---
+invidious_config_dir: /usr/local/etc/invidious
+invidious_db_dbname: invidious
+invidious_db_user: invidious
+invidious_source_dir: /usr/local/src/invidious

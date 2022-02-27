@@ -1,0 +1,18 @@
+auto wg0
+
+iface wg0 inet static
+	address {{ vpn_ipv4_address }}/24
+	pre-up ip link add wg0 type wireguard
+	pre-up wg setconf wg0 /etc/wireguard/server.conf
+	## route packages when the VPN interface is up
+	#post-up sysctl --write net.ipv4.ip_forward=1
+	## and stop routing when stopping the VPN interface
+	#post-down sysctl --write net.ipv4.ip_forward=0
+	post-down ip link del wg0
+
+# iface wg0 inet6 static
+#	address {{ vpn_ipv6_address }}/64
+#	## route packages when the VPN interface is up
+#	#post-up sysctl --write net.ipv6.conf.all.forwarding=1
+#	## and stop routing when stopping the VPN interface
+#	#post-down sysctl --write net.ipv6.conf.all.forwarding=0

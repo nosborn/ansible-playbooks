@@ -1,0 +1,91 @@
+---
+db:
+  dbname: "{{ invidious_db_dbname }}"
+  host: invidious-postgres
+  password: "{{ invidious_db_password }}"
+  port: 5432
+  user: "{{ invidious_db_user }}"
+check_tables: true
+
+# port: 3000
+# external_port:
+# host_binding: 0.0.0.0
+domain: invidious.{{ domain_name }}
+https_only: true
+hsts: false
+
+# disable_proxy: false
+# pool_size: 100
+use_quic: true  # TODO: test this
+# cookies:
+# force_resolve:
+
+# output: STDOUT
+# log_level: Info
+
+popular_enabled: false
+# statistics_enabled: false
+
+registration_enabled: false
+login_enabled: false
+# captcha_enabled: true
+# admins: [""]
+
+# channel_threads: 1
+# channel_refresh_interval: 30m
+# full_refresh: false
+# feed_threads: 1
+# decrypt_polling: true
+
+# captcha_api_url: https://api.anti-captcha.com
+# captcha_key:
+
+# banner:
+# use_pubsub_feeds: false
+hmac_key: "{{ invidious_hmac_key }}"
+# dmca_content:
+# cache_annotations: false
+# modified_source_code_url: ""
+
+default_user_preferences:
+  # locale: en-US
+  region: SG
+  captions:
+    - English
+    - English (auto-generated)"
+    - ""
+  # dark_mode:
+  # thin_mode: false
+  feed_menu:
+    - Trending
+    - Subscriptions
+    - Playlists
+  default_home: Trending
+  # max_results: 40
+  # annotations: false
+  # annotations_subscribed: false
+  # comments: ["youtube", ""]
+  # player_style: invidious
+  # related_videos: true
+
+  # autoplay: false
+  # continue: false
+  # continue_autoplay: true
+  # listen: false
+  # video_loop: false
+
+  # quality: hd720
+  # quality_dash: auto
+  # speed: 1.0
+  # volume: 100
+  # vr_mode: true
+
+  # latest_only: false
+  # notifications_only: false
+  # unseen_only: false
+  # sort: published
+
+  local: true
+  # show_nick: true
+  # automatic_instance_redirect: false
+  # extend_desc: false

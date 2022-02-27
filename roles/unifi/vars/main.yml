@@ -1,0 +1,5 @@
+---
+unifi_config_dir: /usr/local/etc/unifi
+unifi_data_dir: /var/lib/unifi
+unifi_discovery_port: 10001
+unifi_log_dir: /var/log/unifi

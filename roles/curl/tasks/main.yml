@@ -1,0 +1,6 @@
+---
+- name: install curl
+  ansible.builtin.apt:
+    name: curl
+    install_recommends: false
+    state: present

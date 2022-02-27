@@ -1,0 +1,6 @@
+---
+- name: restart scribe
+  community.docker.docker_container:
+    name: scribe
+    restart: true
+    state: started

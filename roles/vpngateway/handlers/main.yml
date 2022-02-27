@@ -1,0 +1,6 @@
+---
+- name: restart vpngateway
+  community.docker.docker_container:
+    name: vpngateway
+    restart: true
+    state: started

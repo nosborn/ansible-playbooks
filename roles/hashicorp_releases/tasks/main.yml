@@ -1,0 +1,13 @@
+---
+- name: install Hashicorp signing key
+  ansible.builtin.apt_key:
+    data: "{{ hashicorp_releases_apt_key }}"
+    keyring: /usr/share/keyrings/hashicorp-releases.gpg
+
+- name: install Hashicorp repository
+  ansible.builtin.apt_repository:
+    repo: >
+      deb [arch=amd64 signed-by=/usr/share/keyrings/hashicorp-releases.gpg]
+      https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main
+    filename: hashicorp-releases
+    mode: 0444

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>PayloadContent</key>
+	<array>
+		<dict>
+			<key>OnDemandEnabled</key>
+			<integer>1</integer>
+			<key>OnDemandRules</key>
+			<array>
+				<dict>
+					<key>Action</key>
+					<string>Disconnect</string>
+					<key>InterfaceTypeMatch</key>
+					<string>WiFi</string>
+					<key>SSIDMatch</key>
+					<array>
+						<string>Alpacalypse_2G</string>
+						<string>Alpacalypse_5G</string>
+					</array>
+				</dict>
+				<dict>
+					<key>Action</key>
+					<string>Connect</string>
+				</dict>
+			</array>
+			<key>PayloadDisplayName</key>
+			<string>VPN</string>
+			<key>PayloadIdentifier</key>
+			<string>io.osborn.wireguard.tombstone</string>
+			<key>PayloadType</key>
+			<string>com.apple.vpn.managed</string>
+			<key>PayloadUUID</key>
+			<string>3DC402BC-B14C-4169-9519-C52397EDD7C5</string>
+			<key>PayloadVersion</key>
+			<integer>1</integer>
+			<key>UserDefinedName</key>
+			<string>Home</string>
+			<key>VendorConfig</key>
+			<dict>
+				<key>WgQuickConfig</key>
+				<string>
+					[Interface]
+					Address = {{ item.ipv4_address }}, {{ item.ipv6_address }}
+					PrivateKey = {{ item.private_key }}
+					DNS = {{ vpn_ipv4_address }}
+					[Peer]
+					PublicKey = {{ vpn_public_key }}
+					PresharedKey = {{ vpn_pre_shared_key }}
+					Endpoint = {{ external_fqdn }}:{{ vpn_listen_port }}
+					AllowedIPs = 0.0.0.0/0, ::/0
+				</string>
+			</dict>
+			<key>VPN</key>
+			<dict>
+				<key>AuthenticationMethod</key>
+				<string>Password</string>
+				<key>RemoteAddress</key>
+				<string>{{ external_fqdn }}:{{ vpn_listen_port }}</string>
+			</dict>
+			<key>VPNSubType</key>
+			<string>com.wireguard.ios</string>
+			<key>VPNType</key>
+			<string>VPN</string>
+		</dict>
+	</array>
+	<key>PayloadDisplayName</key>
+	<string>Home Tunnel</string>
+	<key>PayloadIdentifier</key>
+	<string>io.osborn.wireguard.FCC9BF80-C540-44C1-B243-521FDD1B2905</string>
+	<key>PayloadType</key>
+	<string>Configuration</string>
+	<key>PayloadUUID</key>
+	<string>1099BB89-950E-4D58-82B6-2EDF0468EAFA</string>
+	<key>PayloadVersion</key>
+	<integer>1</integer>
+</dict>
+</plist>

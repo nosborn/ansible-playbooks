@@ -1,0 +1,29 @@
+---
+- name: install docker
+  ansible.builtin.apt:
+    name:
+      - docker.io
+      - python3-docker
+    install_recommends: false
+    state: present
+
+- name: configure docker
+  ansible.builtin.template:
+    src: daemon.json.j2
+    dest: /etc/docker/daemon.json
+    owner: root
+    group: root
+    mode: 0400
+    validate: "{{ jsonlint_validate_command }}"
+  notify: restart docker
+
+- name: enable and start docker
+  ansible.builtin.systemd:
+    name: docker.service
+    enabled: true
+    state: started
+
+- name: look up docker group
+  ansible.builtin.getent:
+    database: group
+    key: docker

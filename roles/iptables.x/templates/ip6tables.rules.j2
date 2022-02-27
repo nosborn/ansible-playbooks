@@ -1,0 +1,42 @@
+*raw
+:PREROUTING ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+-A PREROUTING -m rpfilter --invert -m limit --limit 5/m --limit-burst 10 -j LOG
+-A PREROUTING -m rpfilter --invert -j DROP
+COMMIT
+
+*filter
+:INPUT DROP [0:0]
+:FORWARD DROP [0:0]
+:OUTPUT ACCEPT [0:0]
+:TCP - [0:0]
+:UDP - [0:0]
+-A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+-A INPUT -i lo -j ACCEPT
+-A INPUT -m conntrack --ctstate INVALID -m limit --limit 5/m --limit-burst 10 -j LOG
+-A INPUT -m conntrack --ctstate INVALID -j DROP
+
+-A INPUT -s 2406:3003:2077:1f08::/64 -j ACCEPT
+-A INPUT -s fd5d:5f5a:29c1:488c::/64 -j ACCEPT
+-A INPUT -s fe80::/8 -j ACCEPT
+-A INPUT -d ff00::/8 -j ACCEPT
+
+-A INPUT -s fe80::/10 -p ipv6-icmp -j ACCEPT
+-A INPUT -p ipv6-icmp -m icmp6 --icmpv6-type 128 -m conntrack --ctstate NEW -j ACCEPT
+-A INPUT -p tcp -m tcp --tcp-flags FIN,SYN,RST,ACK SYN -m conntrack --ctstate NEW -j TCP
+-A INPUT -p tcp -m limit --limit 5/m --limit-burst 10 -j LOG
+-A INPUT -p tcp -j REJECT --reject-with tcp-reset
+-A INPUT -p udp -m udp --sport 547 --dport 546 -j ACCEPT
+-A INPUT -p udp -m conntrack --ctstate NEW -j UDP
+-A INPUT -p udp -m limit --limit 5/m --limit-burst 10 -j LOG
+-A INPUT -p udp -j REJECT --reject-with icmp6-adm-prohibited
+-A INPUT -m limit --limit 5/m --limit-burst 10 -j LOG
+-A INPUT -j REJECT --reject-with icmp6-adm-prohibited
+-A TCP -p tcp -m tcp --dport 22 -j ACCEPT
+-A TCP -p tcp -m tcp --dport 53 -j ACCEPT
+{% for source in github_hooks | ansible.netcommon.ipv6 %}
+-A TCP -s {{ source }} -p tcp -m tcp --dport 4141 -j ACCEPT
+{% endfor %}
+-A UDP -p udp -m udp --dport 53 -j ACCEPT
+-A UDP -p udp -m udp --dport 51820 -j ACCEPT
+COMMIT

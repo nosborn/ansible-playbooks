@@ -1,0 +1,18 @@
+---
+teddit_domain_replacements:
+  # Imgur
+  - - imgur\.com
+    - rimgo.{{ domain_name }}
+  - - i\.imgur\.com
+    - rimgo.{{ domain_name }}
+  # Instagram
+  - - ([A-z.]+\.)?instagram\.com
+    - bibliogram.{{ domain_name }}"]
+  # Medium
+  - - medium\.com
+    - scribe.{{ domain_name }}
+  # Twitter
+  - - ([A-z.]+\.)?twitter\.com
+    - nitter.{{ domain_name }}"
+
+#     ["([A-z.]+\\.)?youtu(be\\.com|\\.be)", "invidious.{{ domain_name }}"]

@@ -1,0 +1,21 @@
+---
+- name: install ddclient
+  ansible.builtin.apt:
+    name: ddclient
+    state: present
+
+- name: configure ddclient
+  ansible.builtin.template:
+    src: ddclient.conf.j2
+    dest: /etc/ddclient.conf
+    owner: root
+    group: root
+    mode: 0400
+    validate: ddclient -file %s -daemon=0 -debug -noquiet
+  notify: restart ddclient
+
+- name: enable and start ddclient
+  ansible.builtin.service:
+    name: ddclient.service
+    enabled: true
+    state: started

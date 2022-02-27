@@ -1,0 +1,2 @@
+---
+jsonlint_validate_command: jsonlint %s

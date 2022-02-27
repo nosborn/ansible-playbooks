@@ -1,0 +1,80 @@
+# yamllint disable rule:line-length
+---
+- name: create scribe user
+  ansible.builtin.user:
+    name: scribe
+    comment: Medium Frontend
+    create_home: false
+    home: /var/empty
+    password_lock: true
+    shell: "{{ nologin_shell }}"
+    system: true
+  register: scribe_user_result
+
+- name: create scribe source directory
+  ansible.builtin.file:
+    name: "{{ scribe_source_dir }}"
+    owner: root
+    group: root
+    mode: 0700
+    state: directory
+
+- name: clone scribe source
+  ansible.builtin.git:
+    repo: https://git.sr.ht/~edwardloveall/scribe
+    version: main
+    dest: "{{ scribe_source_dir }}"
+    force: true
+
+- name: derive scribe version
+  ansible.builtin.shell:
+    cmd: echo $(git log -1 --date=short --pretty=format:%cd)-$(git rev-parse --short HEAD)
+    chdir: "{{ scribe_source_dir }}"
+  register: scribe_version_result
+  changed_when: false
+
+- name: build scribe image
+  community.docker.docker_image:
+    name: local/scribe
+    source: build
+    build:
+      args:
+        PGID: "{{ scribe_user_result.group }}"
+        PUID: "{{ scribe_user_result.uid }}"
+      dockerfile: Dockerfile
+      path: "{{ scribe_source_dir }}"
+    tag: "{{ scribe_version_result.stdout | trim }}"
+    force_tag: true
+
+- name: deploy scribe
+  community.docker.docker_container:
+    name: scribe
+    image: local/scribe:{{ scribe_version_result.stdout | trim }}
+    cap_drop:
+      - ALL
+    env:
+      APP_DOMAIN: http://scribe.{{ domain_name }}
+      DATABASE_URL: postgres://does@not/matter
+      # GITHUB_PERSONAL_ACCESS_TOKEN: TODO
+      # GITHUB_USERNAME: TODO
+      LUCKY_ENV: production
+      PORT: "{{ scribe_port | string }}"
+      SECRET_KEY_BASE: "{{ scribe_secret_key_base }}"
+      TZ: "{{ timezone }}"
+    exposed_ports:
+      - "{{ scribe_port }}"
+    networks:
+      - name: bridge
+      # TODO: - name: vpnproxy
+    read_only: false  # explicit default
+    security_opts:
+      - no-new-privileges=true
+    labels:
+      com.centurylinklabs.watchtower.enable: !!str false
+      traefik.enable: !!str true
+      traefik.http.routers.scribe.entrypoints: websecure
+      traefik.http.routers.scribe.rule: Host(`scribe.{{ domain_name }}`)
+    comparisons:
+      "*": strict
+    restart_policy: unless-stopped
+    state: started

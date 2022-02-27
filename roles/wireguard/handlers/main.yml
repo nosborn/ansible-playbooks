@@ -1,0 +1,6 @@
+---
+- name: ifup wg0
+  ansible.builtin.command:
+    argv:
+      - ifup
+      - wg0

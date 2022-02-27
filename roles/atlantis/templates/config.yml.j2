@@ -1,0 +1,22 @@
+---
+atlantis-url: https://{{ atlantis_hostname }}:{{ atlantis_port }}
+data-dir: "{{ atlantis_data_dir }}"
+enable-diff-markdown-format: true
+{% if atlantis_gh_app_id is defined %}
+gh-app-id: "{{ atlantis_gh_app_id }}"
+gh-app-key: |
+  {{ atlantis_gh_app_key | indent(width=2) }}
+{% endif %}
+{% if atlantis_gh_app_id is not defined %}
+gh-token: fake
+gh-user: fake
+{% endif %}
+{% if atlantis_gh_app_id is defined %}
+gh-webhook-secret: "{{ atlantis_gh_webhook_secret }}"
+{% endif %}
+hide-prev-plan-comments: true
+port: {{ atlantis_port }}
+repo-allowlist: "{{ atlantis_repo_allowlist }}"
+{% if atlantis_gh_app_id is defined %}
+write-git-creds: true
+{% endif %}

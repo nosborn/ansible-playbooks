@@ -1,0 +1,3 @@
+---
+scribe_port: 5000
+scribe_source_dir: /usr/local/src/scribe

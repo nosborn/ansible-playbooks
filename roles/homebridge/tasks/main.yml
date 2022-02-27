@@ -1,64 +1,69 @@
 ---
 - name: create homebridge user
   ansible.builtin.user:
-    name: _homebridge
+    name: homebridge
     comment: Homebridge
     create_home: false
-    home: /var/homebridge
-    login_class: daemon
-    shell: /sbin/nologin
-    uid: 999
-    state: present
+    home: "{{ homebridge_dir }}"
+    password_lock: true
+    shell: "{{ nologin_shell }}"
+    system: true
 
 - name: create homebridge directory
   ansible.builtin.file:
-    name: /var/homebridge
-    owner: _homebridge
-    group: _homebridge
+    name: "{{ homebridge_dir }}"
+    owner: homebridge
+    group: homebridge
     mode: 0700
     state: directory
 
-- name: install homebridge package
-  community.general.npm:
-    name: homebridge
-    version: "{{ homebridge_version }}"
-    global: true
-    unsafe_perm: true
-    state: present
-  notify: restart homebridge
+- name: configure homebridge packages
+  ansible.builtin.copy:
+    src: package.json
+    dest: "{{ homebridge_dir }}/package.json"
+    owner: homebridge
+    group: homebridge
+    mode: 0400
+    validate: "{{ jsonlint_validate_command }}"
 
-- name: install homebridge plugins
+- name: install homebridge
+  become: true
+  become_method: runas
+  become_user: homebridge
   community.general.npm:
-    name: "{{ item.key }}"
-    version: "{{ item.value }}"
-    global: true
-    state: present
-  loop: "{{ homebridge_plugins | dict2items }}"
-  loop_control:
-    label: "{{ item.key }}"
+    path: "{{ homebridge_dir }}"
+    ignore_scripts: true
+    no_optional: true
+    production: true
+  environment:
+    HOME: "{{ homebridge_dir }}"
+    NPM_FUND: !!str false
+    NPM_SEND_METRICS: !!str false
+    NPM_UPDATE_NOTIFIER: !!str false
   notify: restart homebridge
 
 - name: configure homebridge
   ansible.builtin.copy:
-    content: "{{ homebridge_config | to_nice_json }}"
-    dest: /var/homebridge/config.json
-    owner: _homebridge
-    group: _homebridge
-    mode: 0440
+    content: "{{ homebridge_config | to_nice_json }}\n"
+    dest: "{{ homebridge_dir }}/config.json"
+    owner: homebridge
+    group: homebridge
+    mode: 0400
+    validate: "{{ jsonlint_validate_command }}"
   notify: restart homebridge
 
-- name: install homebridge service
-  ansible.builtin.copy:
-    src: homebridge.rc
-    dest: /etc/rc.d/homebridge
+- name: configure homebridge service
+  ansible.builtin.template:
+    src: homebridge.service.j2
+    dest: /etc/systemd/system/homebridge.service
     owner: root
-    group: wheel
-    mode: 0555
-    validate: ksh -n %s
+    group: root
+    mode: 0444
   notify: restart homebridge
 
 - name: enable and start homebridge
-  ansible.builtin.service:
-    name: homebridge
+  ansible.builtin.systemd:
+    name: homebridge.service
+    daemon_reload: true
     enabled: true
     state: started

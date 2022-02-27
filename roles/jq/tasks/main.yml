@@ -1,0 +1,6 @@
+---
+- name: install jq
+  ansible.builtin.apt:
+    name: jq
+    install_recommends: false
+    state: present

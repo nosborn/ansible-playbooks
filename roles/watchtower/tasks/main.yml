@@ -1,0 +1,35 @@
+# yamllint disable rule:line-length
+---
+- name: deploy watchtower
+  community.docker.docker_container:
+    name: watchtower
+    image: containrrr/watchtower:{{ watchtower_version }}
+    # cap_drop:
+    #   - ALL
+    env:
+      WATCHTOWER_NO_STARTUP_MESSAGE: !!str true
+      WATCHTOWER_NOTIFICATIONS: email
+      WATCHTOWER_NOTIFICATION_EMAIL_FROM: "{{ watchtower_notification_email_from }}"
+      WATCHTOWER_NOTIFICATION_EMAIL_SERVER: "{{ watchtower_notification_email_server }}"
+      WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PASSWORD: "{{ watchtower_notification_email_server_password }}"
+      WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PORT: "{{ watchtower_notification_email_server_port }}"
+      WATCHTOWER_NOTIFICATION_EMAIL_SERVER_USER: "{{ watchtower_notification_email_server_user }}"
+      WATCHTOWER_NOTIFICATION_EMAIL_TO: "{{ watchtower_notification_email_to }}"
+      WATCHTOWER_MONITOR_ONLY: !!str true
+      TZ: "{{ timezone }}"
+    groups:
+      - "{{ getent_group.docker[1] }}"
+    hostname: watchtower.{{ domain_name }}
+    security_opts:
+      - no-new-privileges=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      com.centurylinklabs.watchtower: !!str true
+      com.centurylinklabs.watchtower.enable: !!str true
+      traefik.enable: !!str false
+    comparisons:
+      env: allow_more_present
+      "*": strict
+    restart_policy: unless-stopped
+    state: started

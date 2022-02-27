@@ -1,0 +1,6 @@
+---
+- name: restart rimgo
+  community.docker.docker_container:
+    name: rimgo
+    restart: true
+    state: started

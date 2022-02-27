@@ -1,0 +1,74 @@
+---
+# accessLog:
+
+api:
+  dashboard: true
+  insecure: true  # FIXME
+
+certificatesResolvers:
+  home:
+    acme:
+      caServer: "{{ step_ca_url }}/acme/home/directory"
+      email: "{{ traefik_acme_email }}"
+      storage: /storage/acme.json
+      tlsChallenge: true
+  letsencrypt:
+    acme:
+      # caServer: https://acme-v02.api.letsencrypt.org/directory
+      caServer: https://acme-staging-v02.api.letsencrypt.org/directory
+      email: "{{ traefik_acme_email }}"
+      storage: /storage/acme.json
+      tlsChallenge: true
+
+entryPoints:
+  atlantis:
+    address: :{{ atlantis_port }}
+    http:
+      # middlewares:  # applied in order listed
+      #   - local-network-whitelist@file
+      tls:
+        certResolver: letsencrypt
+
+  unifi:
+    address: :8443
+    http:
+      # middlewares:  # applied in order listed
+      #   - local-network-whitelist@file
+      tls:
+        certResolver: home
+
+  web:
+    address: :80
+    http:
+      middlewares:  # applied in order listed
+        - security-headers@file
+        # - local-network-whitelist@file
+      redirections:
+        entryPoint:
+          to: websecure
+
+  websecure:
+    address: :443
+    http:
+      middlewares:  # applied in order listed
+        - security-headers@file
+        # - local-network-whitelist@file
+      tls:
+        certResolver: home
+
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
+pilot:
+  dashboard: false
+
+# ping:
+
+providers:
+  docker:
+    endpoint: unix:///var/run/docker.sock
+    exposedByDefault: false
+  file:
+    filename: /etc/traefik/dynamic.yml
+    watch: true

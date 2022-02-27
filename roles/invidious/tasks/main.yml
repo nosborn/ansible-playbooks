@@ -1,0 +1,139 @@
+# yamllint disable rule:line-length
+---
+- name: create invidious user
+  ansible.builtin.user:
+    name: invidious
+    comment: YouTube Frontend
+    create_home: false
+    home: /var/empty
+    password_lock: true
+    shell: "{{ nologin_shell }}"
+    system: true
+  register: invidious_user_result
+
+- name: create invidious configuration directory
+  ansible.builtin.file:
+    name: "{{ invidious_config_dir }}"
+    owner: root
+    group: "{{ invidious_user_result.group }}"
+    mode: 0750
+    state: directory
+
+- name: configure invidious
+  ansible.builtin.template:
+    src: config.yml.j2
+    dest: "{{ invidious_config_dir }}/config.yml"
+    owner: root
+    group: "{{ invidious_user_result.group }}"
+    mode: 0440
+    validate: "{{ yamllint_validate_command }}"
+  notify: restart invidious
+
+- name: create invidious source directory
+  ansible.builtin.file:
+    name: "{{ invidious_source_dir }}"
+    owner: root
+    group: root
+    mode: 0700
+    state: directory
+
+- name: clone invidious source
+  ansible.builtin.git:
+    repo: https://github.com/iv-org/invidious.git
+    version: master
+    dest: "{{ invidious_source_dir }}"
+    force: true
+
+- name: derive invidious version
+  ansible.builtin.shell:
+    cmd: echo $(git log -1 --date=short --pretty=format:%cd)-$(git rev-parse --short HEAD)
+    chdir: "{{ invidious_source_dir }}"
+  register: invidious_version_result
+  changed_when: false
+
+- name: build invidious image
+  community.docker.docker_image:
+    name: local/invidious
+    source: build
+    build:
+      args:
+        release: !!str 1
+      dockerfile: docker/Dockerfile
+      path: "{{ invidious_source_dir }}"
+    tag: "{{ invidious_version_result.stdout | trim }}"
+    force_tag: true
+
+- name: create invidious-internal network
+  community.docker.docker_network:
+    name: invidious-internal
+    internal: true
+
+- name: create invidious-postgres-data volume
+  community.docker.docker_volume:
+    name: invidious-postgres-data
+
+- name: deploy invidious-postgres
+  community.docker.docker_container:
+    name: invidious-postgres
+    image: library/postgres:14-alpine
+    # cap_drop:
+    #   - ALL
+    # capabilities:
+    #   - CAP_CHOWN
+    #   - CAP_SETGID
+    #   - CAP_SETUID
+    env:
+      POSTGRES_DB: "{{ invidious_db_dbname }}"
+      POSTGRES_PASSWORD: "{{ invidious_db_password }}"
+      POSTGRES_USER: "{{ invidious_db_user }}"
+    healthcheck:
+      test: pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB
+    networks:
+      - name: invidious-internal
+    read_only: false  # explicit default
+    security_opts:
+      - no-new-privileges=true
+    volumes:
+      - "{{ invidious_source_dir }}/config/sql:/config/sql:ro"
+      - "{{ invidious_source_dir }}/docker/init-invidious-db.sh:/docker-entrypoint-initdb.d/init-invidious-db.sh:ro"
+      - invidious-postgres-data:/var/lib/postgresql/data
+    labels:
+      com.centurylinklabs.watchtower.enable: !!str true
+      traefik.enable: !!str false
+    comparisons:
+      "*": strict
+    restart_policy: unless-stopped
+    state: started
+
+- name: deploy invidious
+  community.docker.docker_container:
+    name: invidious
+    image: local/invidious:{{ invidious_version_result.stdout | trim }}
+    # cap_drop:
+    #   - ALL
+    env:
+      TZ: "{{ timezone }}"
+    # exposed_ports:
+    #   - "{{ invidious_port }}"
+    healthcheck:
+      test: wget -nv --tries=1 --spider http://127.0.0.1:3000/api/v1/comments/jNQXAC9IVRw || exit 1
+    hostname: invidious.{{ domain_name }}
+    networks:
+      - name: bridge
+      - name: invidious-internal
+      # TODO: - name: vpnproxy
+    read_only: true
+    security_opts:
+      - no-new-privileges=true
+    volumes:
+      - "{{ invidious_config_dir }}/config.yml:/invidious/config/config.yml:ro"
+    user: "{{ invidious_user_result.uid }}:{{ invidious_user_result.group }}"
+    labels:
+      com.centurylinklabs.watchtower.enable: !!str false
+      traefik.enable: !!str true
+      traefik.http.routers.invidious.entrypoints: websecure
+      traefik.http.routers.invidious.rule: Host(`invidious.{{ domain_name }}`)
+    comparisons:
+      "*": strict
+    restart_policy: unless-stopped
+    state: started

@@ -1,0 +1,59 @@
+---
+- name: create rimgo user
+  ansible.builtin.user:
+    name: rimgo
+    comment: Imgur Frontend
+    create_home: false
+    home: /var/empty
+    password_lock: true
+    shell: "{{ nologin_shell }}"
+    system: true
+  register: rimgo_user_result
+
+- name: create rimgo configuration directory
+  ansible.builtin.file:
+    path: "{{ rimgo_config_dir }}"
+    owner: root
+    group: "{{ rimgo_user_result.group }}"
+    mode: 0750
+    state: directory
+
+- name: configure rimgo
+  ansible.builtin.template:
+    src: config.yml.j2
+    dest: "{{ rimgo_config_dir }}/config.yml"
+    owner: root
+    group: "{{ rimgo_user_result.group }}"
+    mode: 0440
+    validate: yamllint --strict %s
+  notify: restart rimgo
+
+- name: deploy rimgo
+  community.docker.docker_container:
+    name: rimgo
+    image: quay.io/pussthecatorg/rimgo:latest
+    cap_drop:
+      - ALL
+    env:
+      TZ: "{{ timezone }}"
+    exposed_ports:
+      - 3000
+    networks:
+      - name: bridge
+      # TODO: - name: vpnproxy
+    read_only: true
+    security_opts:
+      - no-new-privileges=true
+    user: "{{ rimgo_user_result.uid }}:{{ rimgo_user_result.group }}"
+    volumes:
+      - "{{ rimgo_config_dir }}/config.yml:/app/config.yml:ro"
+    labels:
+      com.centurylinklabs.watchtower.enable: !!str true
+      traefik.enable: !!str true
+      traefik.http.routers.rimgo.entrypoints: websecure
+      traefik.http.routers.rimgo.rule: Host(`rimgo.{{ domain_name }}`)
+    comparisons:
+      labels: allow_more_present
+      "*": strict
+    restart_policy: unless-stopped
+    state: started

@@ -1,0 +1,9 @@
+[Interface]
+Address = {{ vpngateway_wireguard_address | join(',') }}
+DNS = {{ vpngateway_wireguard_dns }}
+PrivateKey = {{ vpngateway_wireguard_private_key }}
+
+[Peer]
+PublicKey = {{ vpngateway_wireguard_public_key }}
+AllowedIPs = 0.0.0.0/0,::0/0
+Endpoint = {{ vpngateway_wireguard_endpoint }}

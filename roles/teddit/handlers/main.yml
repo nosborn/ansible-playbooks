@@ -1,0 +1,6 @@
+---
+- name: restart teddit
+  community.docker.docker_container:
+    name: teddit
+    restart: true
+    state: started

@@ -1,3 +1,5 @@
 ---
 dependencies:
+  - role: avahi_daemon
+  - role: jsonlint
   - role: nodejs

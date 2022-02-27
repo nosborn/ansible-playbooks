@@ -1,0 +1,8 @@
+---
+- name: install GPG
+  ansible.builtin.apt:
+    name:
+      - gpg
+      - gpg-agent
+    install_recommends: false
+    state: present

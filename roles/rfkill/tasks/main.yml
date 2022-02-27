@@ -1,0 +1,14 @@
+---
+- name: install rfkill
+  ansible.builtin.apt:
+    name: rfkill
+    install_recommends: false
+    state: present
+
+- name: block wireless devices
+  ansible.builtin.include_tasks: block.yml
+  loop:
+    - bluetooth
+    - wlan
+  loop_control:
+    loop_var: rfkill_item

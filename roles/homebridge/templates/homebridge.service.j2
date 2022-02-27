@@ -1,0 +1,29 @@
+[Unit]
+After=syslog.target network-online.target
+Description=Node.js HomeKit Server
+
+[Service]
+ExecStart={{ homebridge_dir }}/node_modules/.bin/homebridge -Q -T -U {{ homebridge_dir }}
+; IPAddressAllow=
+NoNewPrivileges=yes
+PrivateDevices=yes
+PrivateMounts=yes
+PrivateTmp=yes
+ProtectControlGroups=yes
+ProtectHome=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+ProtectSystem=strict
+ReadWriteDirectories={{ homebridge_dir }}
+RemoveIPC=true
+Restart=on-failure
+RestartSec=20
+RestrictRealtime=yes
+RestrictSUIDSGID=true
+Type=simple
+UMask=0077
+User=homebridge
+WorkingDirectory={{ homebridge_dir }}
+
+[Install]
+WantedBy=multi-user.target

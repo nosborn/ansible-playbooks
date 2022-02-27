@@ -1,16 +1,6 @@
 ---
-- name: include OS-specific variables
-  include_vars: "{{ ansible_distribution }}.yml"
-
 - name: install jsonlint
   ansible.builtin.apt:
-    name: jsonlint
+    name: python3-demjson
     install_recommends: false
     state: present
-  when: ansible_distribution == 'Debian'
-
-- name: install jsonlint
-  ansible.builtin.package:
-    name: py3-demjson
-    state: present
-  when: ansible_distribution == 'OpenBSD'

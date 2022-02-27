@@ -1,8 +1,0 @@
----
-# dependencies:
-#   - role: homebridge
-#   - role: nginx
-#   - role: ntpd
-#   - role: smtpd
-#   - role: tor
-#   - role: unbound

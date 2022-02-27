@@ -1,0 +1,4 @@
+---
+atlantis_config_dir: /usr/local/etc/atlantis
+atlantis_data_dir: /var/lib/atlantis
+atlantis_version: 0.18.2

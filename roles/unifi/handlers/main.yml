@@ -1,10 +1,6 @@
 ---
 - name: restart unifi
-  ansible.builtin.service:
+  community.docker.docker_container:
     name: unifi
-    state: restarted
-
-- name: restart unifi-core
-  ansible.builtin.service:
-    name: unifi-core
-    state: restarted
+    restart: true
+    state: started

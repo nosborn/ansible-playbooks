@@ -1,0 +1,12 @@
+---
+- name: install Nomad
+  ansible.builtin.apt:
+    name: nomad
+    install_recommends: false
+    state: present
+
+- name: enable and start Nomad
+  ansible.builtin.systemd:
+    name: nomad.service
+    enabled: true
+    state: started

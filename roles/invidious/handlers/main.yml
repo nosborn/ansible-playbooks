@@ -1,0 +1,6 @@
+---
+- name: restart invidious
+  community.docker.docker_container:
+    name: invidious
+    restart: true
+    state: started

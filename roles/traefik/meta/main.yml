@@ -1,0 +1,6 @@
+---
+dependencies:
+  - role: docker
+  - role: step_ca
+  - role: unbound
+  - role: yamllint

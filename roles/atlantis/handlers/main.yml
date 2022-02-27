@@ -1,0 +1,6 @@
+---
+- name: restart atlantis
+  community.docker.docker_container:
+    name: atlantis
+    restart: true
+    state: started

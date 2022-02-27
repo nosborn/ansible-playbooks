@@ -1,0 +1,104 @@
+# yamllint disable rule:line-length
+---
+- name: create atlantis user
+  ansible.builtin.user:
+    name: atlantis
+    comment: Atlantis
+    create_home: false
+    home: "{{ atlantis_data_dir }}"
+    password_lock: true
+    shell: "{{ nologin_shell }}"
+    system: true
+  register: atlantis_user_result
+
+- name: create atlantis configuration directory
+  ansible.builtin.file:
+    path: "{{ atlantis_config_dir }}"
+    owner: root
+    group: "{{ atlantis_user_result.group }}"
+    mode: 0750
+    state: directory
+
+- name: configure atlantis
+  ansible.builtin.template:
+    src: "{{ atlantis_item }}.j2"
+    dest: "{{ atlantis_config_dir }}/{{ atlantis_item }}"
+    owner: root
+    group: "{{ atlantis_user_result.group }}"
+    mode: 0440
+    validate: yamllint --strict %s
+  loop:
+    - config.yml
+    - repo-config.yml
+  loop_control:
+    loop_var: atlantis_item
+  notify: restart atlantis
+
+- name: configure atlantis environment
+  ansible.builtin.copy:
+    content: "{{ atlantis_environment }}\n"
+    dest: "{{ atlantis_config_dir }}/environment"
+    owner: root
+    group: "{{ atlantis_user_result.group }}"
+    mode: 0440
+    validate: sh -n %s
+  notify: restart atlantis
+
+- name: create atlantis data directory
+  ansible.builtin.file:
+    path: "{{ atlantis_data_dir }}"
+    owner: "{{ atlantis_user_result.uid }}"
+    group: "{{ atlantis_user_result.group }}"
+    mode: 0700
+    state: directory
+
+- name: fetch GitHub meta information
+  ansible.builtin.uri:
+    url: https://api.github.com/meta
+    return_content: true
+    headers:
+      Accept: application/vnd.github.v3+json
+  register: atlantis_github_meta_result
+
+- name: deploy atlantis
+  community.docker.docker_container:
+    name: atlantis
+    image: runatlantis/atlantis:v{{ atlantis_version }}
+    # cap_drop:
+    #   - ALL
+    command:
+      - server
+      - --config=/etc/atlantis/config.yml
+      - --repo-config=/etc/atlantis/repo-config.yml
+    env:
+      CHECKPOINT_DISABLE: !!str 1
+      TF_IN_AUTOMATION: !!str 1
+      TZ: "{{ timezone }}"
+    env_file: "{{ atlantis_config_dir }}/environment"
+    exposed_ports:
+      - "{{ atlantis_port }}"
+    networks:
+      - name: bridge
+    read_only: true
+    security_opts:
+      - no-new-privileges=true
+    user: "{{ atlantis_user_result.uid }}:{{ atlantis_user_result.group }}"
+    volumes:
+      - "{{ atlantis_config_dir }}/config.yml:/etc/atlantis/config.yml:ro"
+      - "{{ atlantis_config_dir }}/repo-config.yml:/etc/atlantis/repo-config.yml:ro"
+      - "{{ atlantis_data_dir }}:/var/lib/atlantis"
+    labels:
+      com.centurylinklabs.watchtower.enable: !!str true
+      traefik.enable: !!str true
+      # traefik.http.middlewares.github_hooks.ipwhitelist.sourcerange:
+      #   "{{ (atlantis_github_meta_result.content | from_json).hooks | join(',') }}"
+      traefik.http.routers.atlantis.entrypoints: websecure
+      traefik.http.routers.atlantis.rule: Host(`atlantis.{{ domain_name }}`)
+      traefik.http.routers.atlantis-external.entrypoints: atlantis
+      # traefik.http.routers.atlantis-external.middlewares: github_hooks
+      traefik.http.routers.atlantis-external.rule: Host(`{{ atlantis_hostname }}`)
+    comparisons:
+      labels: allow_more_present
+      "*": strict
+    restart_policy: unless-stopped
+    state: started

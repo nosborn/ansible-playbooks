@@ -1,0 +1,23 @@
+---
+http:
+  middlewares:
+    local-network-whitelist:
+      ipWhitelist:
+        sourceRange: "{{ lan_ipv4_subnet }}"
+        # sourceRange: "{{ lan_ipv4_subnet }},{{ vpn_ipv4_subnet }}"
+
+    security-headers:
+      headers:
+        browserXssFilter: true
+        contentTypeNosniff: true
+        customResponseHeaders:
+          X-Powered-By: ""
+        frameDeny: true
+        permissionsPolicy: interest-cohort=()
+        referrerPolicy: same-origin
+
+tls:
+  options:
+    default:
+      minVersion: VersionTLS12
+      sniStrict: true
