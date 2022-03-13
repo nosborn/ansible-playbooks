@@ -106,6 +106,20 @@ server:
 	local-data: "teddit.{{ domain_name }}. CNAME tombstone.{{ domain_name }}."
 	local-data: "traefik.{{ domain_name }}. CNAME tombstone.{{ domain_name }}."
 
+	private-domain: "imgur.com"
+	domain-insecure: "imgur.com"
+	local-zone: "imgur.com." redirect
+	# local-data: "imgur.com. A tombstone.{{ domain_name }}."
+	# local-data: "imgur.com. AAAA tombstone.{{ domain_name }}."
+	local-data: "imgur.com. CNAME bibliogram.{{ domain_name }}."
+
+	private-domain: "instagram.com"
+	domain-insecure: "instagram.com"
+	local-zone: "instagram.com." redirect
+	# local-data: "instagram.com. A tombstone.{{ domain_name }}."
+	# local-data: "instagram.com. AAAA tombstone.{{ domain_name }}."
+	local-data: "instagram.com. CNAME bibliogram.{{ domain_name }}."
+
 	private-domain: "medium.com"
 	domain-insecure: "medium.com"
 	local-zone: "medium.com." redirect
@@ -113,14 +127,21 @@ server:
 	# local-data: "medium.com. AAAA tombstone.{{ domain_name }}."
 	local-data: "medium.com. CNAME scribe.{{ domain_name }}."
 
-	local-data: "i.imgur.com. CNAME rimgo.{{ domain_name }}."
-	local-data: "imgur.com. CNAME rimgo.{{ domain_name }}."
-	local-data: "instagram.com. CNAME bibliogram.{{ domain_name }}."
+	private-domain: "twitter.com"
+	domain-insecure: "twitter.com"
+	local-zone: "twitter.com." redirect
+	# local-data: "twitter.com. A tombstone.{{ domain_name }}."
+	# local-data: "twitter.com. AAAA tombstone.{{ domain_name }}."
+	local-data: "twitter.com. CNAME scribe.{{ domain_name }}."
+
+	# local-data: "i.imgur.com. CNAME rimgo.{{ domain_name }}."
+	# local-data: "imgur.com. CNAME rimgo.{{ domain_name }}."
+	# local-data: "instagram.com. CNAME bibliogram.{{ domain_name }}."
 	# local-data: "medium.com. CNAME scribe.{{ domain_name }}."
 	# # # local-data: "old.reddit.com. CNAME reddit.{{ domain_name }}."
 	# # local-data: "old.reddit.com. A {{ hostvars.tombstone.lan_ipv4_address }}"
 	# local-data: "reddit.com. CNAME teddit.{{ domain_name }}."
-	local-data: "twitter.com. CNAME nitter.{{ domain_name }}."
+	# local-data: "twitter.com. CNAME nitter.{{ domain_name }}."
 	# local-data: "youtu.be. CNAME invidious.{{ domain_name }}."
 	# local-data: "youtube.com. CNAME invidious.{{ domain_name }}."
 

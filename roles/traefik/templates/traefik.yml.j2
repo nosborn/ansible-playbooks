@@ -3,15 +3,15 @@ accessLog:
 
 api:
   dashboard: true
-  insecure: true  # FIXME
+  insecure: true # FIXME
 
 entryPoints:
   web:
     address: :80
     http:
-      middlewares:  # applied in order listed
+      middlewares: # applied in order listed
         - security-headers@file
-        # - local-network-whitelist@file
+        - local-network-whitelist@file
       redirections:
         entryPoint:
           to: websecure
@@ -19,9 +19,9 @@ entryPoints:
   websecure:
     address: :443
     http:
-      middlewares:  # applied in order listed
+      middlewares: # applied in order listed
         - security-headers@file
-        # - local-network-whitelist@file
+        - local-network-whitelist@file
       tls:
         options: default
 
@@ -32,7 +32,7 @@ global:
 pilot:
   dashboard: false
 
-# ping:
+ping: # FIXME
 
 providers:
   docker:

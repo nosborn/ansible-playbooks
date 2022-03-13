@@ -1,12 +1,12 @@
 ---
 - name: create postgres volume
   community.docker.docker_volume:
-    name: invidious-db
+    name: invidious-postgres-data
 
 - name: deploy postgres
   community.docker.docker_swarm_service:
-    name: invidious-db
-    image: postgres:14
+    name: invidious-postgres
+    image: postgres:14-alpine
     env:
       POSTGRES_DB: "{{ invidious_db_dbname }}"
       POSTGRES_PASSWORD: "{{ invidious_db_password }}"
@@ -14,23 +14,22 @@
     healthcheck:
       test: pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB
     mounts:
-      - target: /var/run
-        type: tmpfs
       - source: /usr/local/src/invidious/config/sql
         target: /config/sql
         readonly: true
       - source: /usr/local/src/invidious/docker/init-invidious-db.sh
         target: /docker-entrypoint-initdb.d/init-invidious-db.sh
         readonly: true
-      - source: invidious-db
+      - source: invidious-postgres-data
         target: /var/lib/postgresql/data
         type: volume
     networks:
       - name: invidious
-    read_only: true
     labels:
       invidious.commit: "{{ invidious_git_result.after }}"
       traefik.enable: !!str false
+    container_labels:
+      com.centurylinklabs.watchtower.enable: !!str true
     restart_config:
       condition: on-failure
       delay: 20s

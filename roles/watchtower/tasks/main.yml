@@ -1,0 +1,28 @@
+---
+- name: deploy service
+  community.docker.docker_swarm_service:
+    name: watchtower
+    image: watchtower:v{{ watchtower_version }}
+    env:
+      TZ: "{{ timezone }}"
+      WATCHTOWER_MONITOR_ONLY: !!str true
+      # WATCHTOWER_NO_STARTUP_MESSAGE: !!str true # TODO
+      WATCHTOWER_NOTIFICATION_URL: "{{ watchtower_notification_url }}"
+      WATCHTOWER_NOTIFICATIONS: shoutrrr
+    hostname: watchtower.{{ domain_name }}
+    mounts:
+      - source: /var/run/docker.sock
+        target: /var/run/docker.sock
+    placement:
+      constraints:
+        - node.role==manager
+    read_only: true
+    labels:
+      traefik.enable: !!str false
+    container_labels:
+      com.centurylinklabs.watchtower.enable: !!str true
+    restart_config:
+      condition: on-failure
+      delay: 20s
+    update_config:
+      order: start-first

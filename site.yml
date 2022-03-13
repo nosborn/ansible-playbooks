@@ -30,6 +30,16 @@
       tags:
         - always
 
+    - name: set time zone
+      ansible.builtin.copy:
+        content: "{{ timezone }}\n"
+        dest: /etc/timezone
+        owner: root
+        group: root
+        mode: 0444
+      tags:
+        - always
+
     - name: configure hosts file
       ansible.builtin.lineinfile:
         path: /etc/hosts
@@ -73,10 +83,9 @@
     - role: docker
       tags:
         - docker
-    - role: grafana
-      tags:
-        - grafana
-      when: false # FIXME
+    # - role: grafana
+    #   tags:
+    #     - grafana
     - role: homebridge
       tags:
         - homebridge
@@ -84,10 +93,9 @@
       tags:
         - invidious
     - role: locale
-    - role: loki
-      tags:
-        - loki
-      when: false # FIXME
+    # - role: loki
+    #   tags:
+    #     - loki
     - role: nano
     - role: nftables
       tags:
@@ -96,15 +104,15 @@
       tags:
         - nitter
     - role: opensmtpd
+      tags:
+        - opensmtpd
     - role: ownca
-    - role: prometheus
-      tags:
-        - prometheus
-      when: false # FIXME
-    - role: promtail
-      tags:
-        - promtail
-      when: false # FIXME
+    # - role: prometheus
+    #   tags:
+    #     - prometheus
+    # - role: promtail
+    #   tags:
+    #     - promtail
     - role: restic
       when: false # FIXME
     - role: rfkill
@@ -115,9 +123,6 @@
     - role: scribe
       tags:
         - scribe
-    - role: shepherd
-      tags:
-        - shepherd
     - role: sshd
     - role: teddit
       tags:
@@ -131,6 +136,9 @@
           "{{ [unifi_discovery_port, wireguard_configs | dict2items | map(attribute='value.listen_port')] | flatten | sort | unique }}"
       tags:
         - unbound
+    - role: watchtower
+      tags:
+        - watchtower
     - role: wireguard
 
   handlers:

@@ -11,7 +11,7 @@
 
 - name: create volume
   community.docker.docker_volume:
-    name: teddit
+    name: teddit-static
 
 - name: deploy teddit
   community.docker.docker_swarm_service:
@@ -29,7 +29,7 @@
       test: wget --no-verbose --tries=1 --spider http://localhost:8080/about || exit 1
     hostname: teddit.{{ domain_name }}
     mounts:
-      - source: teddit
+      - source: teddit-static
         target: /teddit/static
         type: volume
     networks:
@@ -41,6 +41,8 @@
       traefik.http.routers.teddit.entrypoints: websecure
       traefik.http.routers.teddit.rule: Host(`teddit.{{ domain_name }}`)
       traefik.http.services.teddit.loadbalancer.server.port: "{{ teddit_port | string }}"
+    container_labels:
+      com.centurylinklabs.watchtower.enable: !!str true
     restart_config:
       condition: on-failure
       delay: 20s
