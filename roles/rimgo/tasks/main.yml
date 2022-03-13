@@ -29,18 +29,22 @@
     user: "{{ rimgo_user_result.uid }}:{{ rimgo_user_result.group }}"
     labels:
       traefik.enable: !!str true
-      traefik.http.middlewares.imgur-redirect.redirectregex.regex: ^https://(?:i\\.)?imgur\\.com/(.*)
-      traefik.http.middlewares.imgur-redirect.redirectregex.replacement: https://imgur.{{ domain_name }}/$${1}
+      traefik.http.middlewares.imgur-redirect.redirectregex.regex: ^https://(?:.+\.)?imgur\.com/(.*)
+      traefik.http.middlewares.imgur-redirect.redirectregex.replacement: https://rimgo.{{ domain_name }}/${1}
       traefik.http.routers.imgur.entrypoints: websecure
       traefik.http.routers.imgur.middlewares: imgur-redirect@docker
-      traefik.http.routers.imgur.rule: Host(`imgur.com`) || Host(`i.imgur.com`)
+      traefik.http.routers.imgur.rule: Host(`imgur.com`) || Host(`*.imgur.com`)
       traefik.http.routers.imgur.service: rimgo
       traefik.http.routers.rimgo.entrypoints: websecure
       traefik.http.routers.rimgo.rule: Host(`rimgo.{{ domain_name }}`)
       traefik.http.services.rimgo.loadbalancer.server.port: !!str 3000
+    container_labels:
+      com.centurylinklabs.watchtower.enable: !!str true
     restart_config:
       condition: on-failure
       delay: 20s
+    update_config:
+      order: start-first
 
 - name: issue certificate
   ansible.builtin.import_tasks: certificate.yml

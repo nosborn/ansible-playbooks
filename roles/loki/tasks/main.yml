@@ -3,6 +3,7 @@
   community.docker.docker_network:
     name: loki
     driver: overlay
+    internal: true
     scope: swarm
 
 - name: create volume
@@ -23,6 +24,8 @@
     read_only: true
     labels:
       traefik.enable: !!str false
+    container_labels:
+      com.centurylinklabs.watchtower.enable: !!str true
     restart_config:
       condition: on-failure
       delay: 20s

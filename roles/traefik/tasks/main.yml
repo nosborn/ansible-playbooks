@@ -57,7 +57,7 @@
         filename: /etc/traefik/dynamic.yml
     env:
       TZ: "{{ timezone }}"
-    # healthcheck:
+    # healthcheck: -- FIXME
     #   test: traefik healthcheck
     hostname: traefik.{{ domain_name }}
     mode: global
@@ -84,9 +84,13 @@
         published_port: 8080
         target_port: 8080
     read_only: true
+    container_labels:
+      com.centurylinklabs.watchtower.enable: !!str true
     restart_config:
       condition: on-failure
       delay: 20s
+    update_config:
+      order: start-first
 
 - name: run any handler tasks
   ansible.builtin.meta: flush_handlers

@@ -37,13 +37,16 @@
     networks:
       - name: bridge
       - name: scribe
-    # read_only: false -- explicit default
     user: "{{ scribe_user_result.uid }}:{{ scribe_user_result.group }}"
     labels:
       traefik.enable: !!str false
+    container_labels:
+      com.centurylinklabs.watchtower.enable: !!str false
     restart_config:
       condition: on-failure
       delay: 20s
+    update_config:
+      order: start-first
 
 - name: deploy nginx
   ansible.builtin.import_tasks: nginx.yml

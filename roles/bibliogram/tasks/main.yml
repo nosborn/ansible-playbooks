@@ -23,7 +23,7 @@
 
 - name: create bibliogram volume
   community.docker.docker_volume:
-    name: bibliogram
+    name: bibliogram-db
 
 - name: deploy bibliogram
   community.docker.docker_swarm_service:
@@ -36,7 +36,7 @@
       TZ: "{{ timezone }}"
     hostname: bibliogram.{{ domain_name }}
     mounts:
-      - source: bibliogram
+      - source: bibliogram-db
         target: /app/db
         type: volume
     networks:
@@ -45,8 +45,8 @@
     read_only: true
     labels:
       traefik.enable: !!str true
-      traefik.http.middlewares.instagram-redirect.redirectregex.regex: ^https://instagram\\.com/(.*)
-      traefik.http.middlewares.instagram-redirect.redirectregex.replacement: https://bibliogram.{{ domain_name }}/$${1}
+      traefik.http.middlewares.instagram-redirect.redirectregex.regex: ^https://instagram\.com/(.*)
+      traefik.http.middlewares.instagram-redirect.redirectregex.replacement: https://bibliogram.{{ domain_name }}/${1}
       traefik.http.routers.bibliogram.entrypoints: websecure
       traefik.http.routers.bibliogram.rule: Host(`bibliogram.{{ domain_name }}`)
       traefik.http.routers.instagram.entrypoints: websecure
@@ -54,6 +54,8 @@
       traefik.http.routers.instagram.rule: Host(`instagram.com`)
       traefik.http.routers.instagram.service: bibliogram
       traefik.http.services.bibliogram.loadbalancer.server.port: !!str 10407
+    container_labels:
+      com.centurylinklabs.watchtower.enable: !!str false
     restart_config:
       condition: on-failure
       delay: 20s
