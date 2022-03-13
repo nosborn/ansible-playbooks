@@ -23,7 +23,7 @@
     subject_alt_name:
       - DNS:rimgo.{{ domain_name }}
       - DNS:imgur.com
-      - DNS:i.imgur.com
+      - DNS:*.imgur.com
 
 - name: save private key
   ansible.builtin.copy:

@@ -1,7 +1,7 @@
 ---
 - name: create redis volume
   community.docker.docker_volume:
-    name: nitter-redis
+    name: nitter-redis-data
 
 - name: deploy redis
   community.docker.docker_swarm_service:
@@ -13,7 +13,7 @@
     healthcheck:
       test: redis-cli ping || exit 1
     mounts:
-      - source: nitter-redis
+      - source: nitter-redis-data
         target: /data
         type: volume
     networks:
@@ -21,6 +21,8 @@
     read_only: true
     labels:
       traefik.enable: !!str false
+    container_labels:
+      com.centurylinklabs.watchtower.enable: !!str true
     restart_config:
       condition: on-failure
       delay: 20s

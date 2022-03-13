@@ -2,7 +2,7 @@
 invidious_config:
   db:
     dbname: "{{ invidious_db_dbname }}"
-    host: tasks.invidious-db
+    host: tasks.invidious-postgres
     password: "{{ invidious_db_password }}"
     port: 5432
     user: "{{ invidious_db_user }}"

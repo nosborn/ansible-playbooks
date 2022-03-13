@@ -92,43 +92,7 @@ server:
 	local-zone: "{{ domain_name }}." static
 	local-zone: "local." static
 
-	local-data: "tombstone.{{ domain_name }}. A {{ hostvars.tombstone.lan_ipv4_address }}"
-	local-data: "tombstone.{{ domain_name }}. AAAA {{ hostvars.tombstone.lan_ipv6_address }}"
-	local-data: "uck-g2.{{ domain_name }}. A {{ hostvars['uck-g2'].lan_ipv4_address }}"
-	local-data: "usg.{{ domain_name }}. A {{ hostvars.usg.lan_ipv4_address }}"
-
-	local-data: "bibliogram.{{ domain_name }}. CNAME tombstone.{{ domain_name }}."
-	local-data: "grafana.{{ domain_name }}. CNAME tombstone.{{ domain_name }}."
-	local-data: "invidious.{{ domain_name }}. CNAME tombstone.{{ domain_name }}."
-	local-data: "nitter.{{ domain_name }}. CNAME tombstone.{{ domain_name }}."
-	local-data: "rimgo.{{ domain_name }}. CNAME tombstone.{{ domain_name }}."
-	local-data: "scribe.{{ domain_name }}. CNAME tombstone.{{ domain_name }}."
-	local-data: "teddit.{{ domain_name }}. CNAME tombstone.{{ domain_name }}."
-	local-data: "traefik.{{ domain_name }}. CNAME tombstone.{{ domain_name }}."
-
-	private-domain: "medium.com"
-	domain-insecure: "medium.com"
-	local-zone: "medium.com." redirect
-	# local-data: "medium.com. A tombstone.{{ domain_name }}."
-	# local-data: "medium.com. AAAA tombstone.{{ domain_name }}."
-	local-data: "medium.com. CNAME scribe.{{ domain_name }}."
-
-	local-data: "i.imgur.com. CNAME rimgo.{{ domain_name }}."
-	local-data: "imgur.com. CNAME rimgo.{{ domain_name }}."
-	local-data: "instagram.com. CNAME bibliogram.{{ domain_name }}."
-	# local-data: "medium.com. CNAME scribe.{{ domain_name }}."
-	# # # local-data: "old.reddit.com. CNAME reddit.{{ domain_name }}."
-	# # local-data: "old.reddit.com. A {{ hostvars.tombstone.lan_ipv4_address }}"
-	# local-data: "reddit.com. CNAME teddit.{{ domain_name }}."
-	local-data: "twitter.com. CNAME nitter.{{ domain_name }}."
-	# local-data: "youtu.be. CNAME invidious.{{ domain_name }}."
-	# local-data: "youtube.com. CNAME invidious.{{ domain_name }}."
-
-	local-data: "unifi.{{ domain_name }}. CNAME uck-g2.{{ domain_name }}."
-
-	local-data-ptr: "{{ hostvars.tombstone.lan_ipv4_address }} tombstone.{{ domain_name }}."
-	local-data-ptr: "{{ hostvars.usg.lan_ipv4_address }} usg.{{ domain_name }}."
-	local-data-ptr: "{{ hostvars['uck-g2'].lan_ipv4_address }} uck-g2.{{ domain_name }}."
+	{{ unbound_config_local_data | trim | indent('\t') }}
 
 # The following line includes additional configuration files from the
 # /etc/unbound/unbound.conf.d directory.

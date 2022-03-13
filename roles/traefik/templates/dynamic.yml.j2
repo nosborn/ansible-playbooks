@@ -1,10 +1,10 @@
+# yamllint disable rule:line-length
 ---
 http:
   middlewares:
     local-network-whitelist:
       ipWhitelist:
-        sourceRange: "{{ lan_ipv4_subnet }}"
-        # sourceRange: "{{ lan_ipv4_subnet }},{{ vpn_ipv4_subnet }}"
+        sourceRange: "{{ lan_ipv4_subnet }},{{ lan_ipv6_subnet }},{{ vpn_ipv4_subnet }},{{ vpn_ipv6_subnet }}"
 
     security-headers:
       headers:
@@ -18,20 +18,34 @@ http:
 
 tls:
   certificates:
+{% if 'bibliogram' in ansible_role_names %}
     - certFile: /usr/local/etc/ssl/bibliogram.{{ domain_name }}.crt
       keyFile: /usr/local/etc/ssl/private/bibliogram.{{ domain_name }}.key
+{% endif %}
+{% if 'grafana' in ansible_role_names %}
     - certFile: /usr/local/etc/ssl/grafana.{{ domain_name }}.crt
       keyFile: /usr/local/etc/ssl/private/grafana.{{ domain_name }}.key
+{% endif %}
+{% if 'invidious' in ansible_role_names %}
     - certFile: /usr/local/etc/ssl/invidious.{{ domain_name }}.crt
       keyFile: /usr/local/etc/ssl/private/invidious.{{ domain_name }}.key
+{% endif %}
+{% if 'nitter' in ansible_role_names %}
     - certFile: /usr/local/etc/ssl/nitter.{{ domain_name }}.crt
       keyFile: /usr/local/etc/ssl/private/nitter.{{ domain_name }}.key
+{% endif %}
+{% if 'rimgo' in ansible_role_names %}
     - certFile: /usr/local/etc/ssl/rimgo.{{ domain_name }}.crt
       keyFile: /usr/local/etc/ssl/private/rimgo.{{ domain_name }}.key
+{% endif %}
+{% if 'scribe' in ansible_role_names %}
     - certFile: /usr/local/etc/ssl/scribe.{{ domain_name }}.crt
       keyFile: /usr/local/etc/ssl/private/scribe.{{ domain_name }}.key
+{% endif %}
+{% if 'teddit' in ansible_role_names %}
     - certFile: /usr/local/etc/ssl/teddit.{{ domain_name }}.crt
       keyFile: /usr/local/etc/ssl/private/teddit.{{ domain_name }}.key
+{% endif %}
   options:
     default:
       minVersion: VersionTLS12

@@ -86,6 +86,8 @@
         - node.hostname==tombstone
     labels:
       traefik.enable: !!str false
+    container_labels:
+      com.centurylinklabs.watchtower.enable: !!str true
     restart_config:
       condition: on-failure
       delay: 20s
