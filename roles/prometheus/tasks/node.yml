@@ -1,0 +1,24 @@
+---
+- name: "node-exporter : install packages"
+  ansible.builtin.apt:
+    name:
+      - prometheus-node-exporter
+      - prometheus-node-exporter-collectors
+    install_recommends: false
+
+- name: "node-exporter : configure defaults"
+  ansible.builtin.lineinfile:
+    path: /etc/default/prometheus-node-exporter
+    regexp: ^ARGS=
+    line: ARGS="--web.listen-address=localhost:9100"
+    owner: root
+    group: root
+    mode: 0444
+    validate: sh -n %s
+  notify: restart prometheus-node-exporter
+
+- name: "node-exporter : enable and start service"
+  ansible.builtin.systemd:
+    name: prometheus-node-exporter
+    enabled: true
+    state: started

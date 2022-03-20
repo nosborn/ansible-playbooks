@@ -1,7 +1,3 @@
 ---
 dependencies:
-  - role: docker
-  - role: loki
-  - role: ownca
-  - role: prometheus
-  - role: traefik
+  - role: yamllint
