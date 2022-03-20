@@ -2,7 +2,7 @@
 - name: deploy service
   community.docker.docker_swarm_service:
     name: watchtower
-    image: watchtower:v{{ watchtower_version }}
+    image: containrrr/watchtower:{{ watchtower_version }}
     env:
       TZ: "{{ timezone }}"
       WATCHTOWER_MONITOR_ONLY: !!str true

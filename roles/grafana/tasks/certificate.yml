@@ -2,13 +2,13 @@
 ---
 - name: read existing private key
   ansible.builtin.slurp:
-    src: /usr/local/etc/ssl/private/grafana.{{ domain_name }}.key
+    src: /etc/grafana/server.key
   register: grafana_privatekey_result
   failed_when: false
 
 - name: read existing certificate
   ansible.builtin.slurp:
-    src: /usr/local/etc/ssl/grafana.{{ domain_name }}.crt
+    src: /etc/grafana/server.crt
   register: grafana_certificate_result
   failed_when: false
 
@@ -26,16 +26,16 @@
 - name: save private key
   ansible.builtin.copy:
     content: "{{ ownca_privatekey_result.privatekey }}\n"
-    dest: /usr/local/etc/ssl/private/grafana.{{ domain_name }}.key
+    dest: /etc/grafana/server.key
     owner: root
-    group: root
-    mode: 0400
+    group: grafana
+    mode: 0440
     validate: openssl rsa -in %s -noout
 
 - name: save certificate
   ansible.builtin.copy:
     content: "{{ ownca_certificate_result.certificate }}\n"
-    dest: /usr/local/etc/ssl/grafana.{{ domain_name }}.crt
+    dest: /etc/grafana/server.crt
     owner: root
     group: root
     mode: 0444

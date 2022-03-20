@@ -1,52 +1,38 @@
 ---
-- name: prepare configuration
-  become: false
-  delegate_to: localhost
-  ansible.builtin.command:
-    argv:
-      - openssl
-      - dgst
-    stdin: "{{ lookup('ansible.builtin.template', 'prometheus.yml.j2') }}"
-  register: prometheus_config_result
-  changed_when: false
-
-- name: create config
-  community.docker.docker_config:
-    name: prometheus-{{ prometheus_config_result.stdout | trim }}
-    data: "{{ lookup('ansible.builtin.template', 'prometheus.yml.j2') }}"
-    labels:
-      service: prometheus
-
-- name: create network
-  community.docker.docker_network:
+- name: install package
+  ansible.builtin.apt:
     name: prometheus
-    driver: overlay
-    internal: true
-    scope: swarm
+    install_recommends: false
 
-- name: create volume
-  community.docker.docker_volume:
-    name: prometheus
+- name: configure defaults
+  ansible.builtin.lineinfile:
+    path: /etc/default/prometheus
+    regexp: ^ARGS=
+    line: ARGS="--web.listen-address=localhost:9090"
+    owner: root
+    group: root
+    mode: 0444
+    validate: sh -n %s
+  notify: restart prometheus
 
-- name: deploy prometheus
-  community.docker.docker_swarm_service:
+- name: install configuration
+  ansible.builtin.template:
+    src: prometheus.yml.j2
+    dest: /etc/prometheus/prometheus.yml
+    owner: root
+    group: root
+    mode: 0444
+    validate: "{{ yamllint_validate_command }}"
+  notify: restart prometheus
+
+- name: enable and start service
+  ansible.builtin.systemd:
     name: prometheus
-    image: quay.io/prometheus/prometheus:v{{ prometheus_version }}
-    configs:
-      - config_name: prometheus-{{ prometheus_config_result.stdout | trim }}
-        filename: /etc/prometheus/prometheus.yml
-    hostname: prometheus.{{ domain_name }}
-    mounts:
-      - source: prometheus
-        target: /prometheus
-        type: volume
-    networks:
-      - name: prometheus
-    read_only: true
-    labels:
-      traefik.enable: !!str false
-    container_labels:
-      com.centurylinklabs.watchtower.enable: !!str true
-    restart_config:
-      condition: on-failure
-      delay: 20s
+    enabled: true
+    state: started
+
+- name: install blackbox-exporter
+  ansible.builtin.import_tasks: blackbox.yml
+
+- name: install node-exporter
+  ansible.builtin.import_tasks: node.yml

@@ -1,7 +1,7 @@
-# This is the sshd server system-wide configuration file.  See sshd_config(5)
+# This is the sshd server system-wide configuration file. See sshd_config(5)
 # for more information.
 
-# This sshd was compiled with PATH=/usr/bin:/bin:/usr/sbin:/sbin
+# This sshd was compiled with PATH=/usr/local/bin:/usr/bin:/bin:/usr/games
 
 # The strategy used for options in the default sshd_config shipped with OpenSSH
 # is to specify options with their default value where possible, but leave them
@@ -57,7 +57,7 @@ PasswordAuthentication no
 
 # Change to yes to enable challenge-response passwords (beware issues with
 # some PAM modules and threads)
-ChallengeResponseAuthentication no
+KbdInteractiveAuthentication no
 
 # Kerberos options
 #KerberosAuthentication no
@@ -73,12 +73,12 @@ ChallengeResponseAuthentication no
 
 # Set this to 'yes' to enable PAM authentication, account processing, and
 # session processing. If this is enabled, PAM authentication will be allowed
-# through the ChallengeResponseAuthentication and PasswordAuthentication.
+# through the KbdInteractiveAuthentication and PasswordAuthentication.
 # Depending on your PAM configuration, PAM authentication via
-# ChallengeResponseAuthentication may bypass the setting of "PermitRootLogin
+# KbdInteractiveAuthentication may bypass the setting of "PermitRootLogin
 # without-password". If you just want the PAM account and session checks to run
 # without PAM authentication, then enable this but set PasswordAuthentication
-# and ChallengeResponseAuthentication to 'no'.
+# and KbdInteractiveAuthentication to 'no'.
 UsePAM yes
 
 {% if sshd_config_allow_users | default([]) | length %}

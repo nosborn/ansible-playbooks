@@ -59,16 +59,6 @@
       tags:
         - always
 
-    - name: configure resolver
-      ansible.builtin.copy:
-        content: "{{ resolver_configuration }}"
-        dest: /etc/resolv.conf
-        owner: root
-        group: root
-        mode: 0444
-      tags:
-        - always
-
     - name: restart networking now
       ansible.builtin.meta: flush_handlers
       tags:
@@ -83,9 +73,9 @@
     - role: docker
       tags:
         - docker
-    # - role: grafana
-    #   tags:
-    #     - grafana
+    - role: grafana
+      tags:
+        - grafana
     - role: homebridge
       tags:
         - homebridge
@@ -93,9 +83,9 @@
       tags:
         - invidious
     - role: locale
-    # - role: loki
-    #   tags:
-    #     - loki
+    - role: loki
+      tags:
+        - loki
     - role: nano
     - role: nftables
       tags:
@@ -107,12 +97,12 @@
       tags:
         - opensmtpd
     - role: ownca
-    # - role: prometheus
-    #   tags:
-    #     - prometheus
-    # - role: promtail
-    #   tags:
-    #     - promtail
+    - role: prometheus
+      tags:
+        - prometheus
+    - role: promtail
+      tags:
+        - promtail
     - role: restic
       when: false # FIXME
     - role: rfkill
@@ -130,9 +120,6 @@
     - role: traefik
       tags:
         - traefik
-    - role: unattended_upgrades
-      tags:
-        - unattended-upgrades
     - role: unbound
       vars:
         unbound_outgoing_port_avoid:

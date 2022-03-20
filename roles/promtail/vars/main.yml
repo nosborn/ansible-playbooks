@@ -1,3 +1,2 @@
 ---
-promtail_container_name: promtail
 promtail_version: 2.4.2

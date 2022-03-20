@@ -1,0 +1,33 @@
+# yamllint disable rule:line-length
+---
+- name: "blackbox-exporter : install packages"
+  ansible.builtin.apt:
+    name: prometheus-blackbox-exporter
+    install_recommends: false
+
+- name: "blackbox-exporter : configure defaults"
+  ansible.builtin.lineinfile:
+    path: /etc/default/prometheus-blackbox-exporter
+    regexp: ^ARGS=
+    line: ARGS="--config.file=/etc/prometheus/blackbox.yml --web.listen-address=localhost:9115"
+    owner: root
+    group: root
+    mode: 0444
+    validate: sh -n %s
+  notify: restart prometheus-blackbox-exporter
+
+- name: "blackbox-exporter : install configuration"
+  ansible.builtin.template:
+    src: blackbox.yml.j2
+    dest: /etc/prometheus/blackbox.yml
+    owner: root
+    group: root
+    mode: 0444
+    validate: "{{ yamllint_validate_command }}"
+  notify: restart prometheus-blackbox-exporter
+
+- name: "blackbox-exporter : enable and start service"
+  ansible.builtin.systemd:
+    name: prometheus-blackbox-exporter
+    enabled: true
+    state: started

@@ -1,0 +1,12 @@
+[Unit]
+After=network.target
+Description=Promtail
+Wants=loki.service
+
+[Service]
+ExecStart=/usr/local/sbin/promtail -config.file /usr/local/etc/promtail-local-config.yaml
+SupplementaryGroups=adm systemd-journal
+User=promtail
+
+[Install]
+WantedBy=multi-user.target

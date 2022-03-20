@@ -29,7 +29,7 @@
 #################################### Server ####################################
 [server]
 # Protocol (http, https, h2, socket)
-;protocol = http
+protocol = https
 
 # The ip address to bind to, empty will bind to all interfaces
 ;http_addr =
@@ -42,7 +42,7 @@ domain = grafana.{{ domain_name }}
 
 # Redirect to correct domain if host header does not match domain
 # Prevents DNS rebinding attacks
-enforce_domain = false
+enforce_domain = true
 
 # The full public facing url you use in browser, used for redirects and emails
 # If you use reverse proxy and sub path specify full url (with sub path)
@@ -61,8 +61,8 @@ enforce_domain = false
 ;enable_gzip = false
 
 # https certs & key file
-;cert_file =
-;cert_key =
+cert_file = /etc/grafana/server.crt
+cert_key = /etc/grafana/server.key
 
 # Unix socket path
 ;socket =
