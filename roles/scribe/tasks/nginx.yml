@@ -58,8 +58,6 @@
       traefik.http.routers.scribe.rule: Host(`scribe.{{ domain_name }}`) || Host(`medium.com`) || Host(`*.medium.com`)
       traefik.http.routers.scribe.service: scribe
       traefik.http.services.scribe.loadbalancer.server.port: !!str 80
-    container_labels:
-      com.centurylinklabs.watchtower.enable: !!str true
     restart_config:
       condition: on-failure
       delay: 20s

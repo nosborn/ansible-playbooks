@@ -19,75 +19,46 @@
     mode: 0700
     state: directory
 
-- name: prepare configuration
-  become: false
-  delegate_to: localhost
-  ansible.builtin.command:
-    argv:
-      - openssl
-      - dgst
-    stdin: "{{ homebridge_config | to_json }}"
-  register: homebridge_config_result
-  changed_when: false
-
 - name: create configuration
-  community.docker.docker_config:
-    name: homebridge-config-{{ homebridge_config_result.stdout | trim }}
-    data: "{{ homebridge_config | to_json }}"
-    labels:
-      service: homebridge
-
-- name: prepare package configuration
-  become: false
-  delegate_to: localhost
-  ansible.builtin.command:
-    argv:
-      - openssl
-      - dgst
-    stdin: "{{ lookup('ansible.builtin.file', 'package.json') }}"
-  register: homebridge_package_result
-  changed_when: false
+  ansible.builtin.copy:
+    content: "{{ homebridge_config | to_json }}\n"
+    dest: /var/lib/homebridge/config.json
+    owner: homebridge
+    group: homebridge
+    mode: 0400
+    validate: "{{ jsonlint_validate_command }}"
+  notify: restart homebridge
 
 - name: create package configuration
-  community.docker.docker_config:
-    name: homebridge-package-{{ homebridge_package_result.stdout | trim }}
-    data: "{{ lookup('ansible.builtin.file', 'package.json') | b64encode }}"
-    data_is_b64: true
-    labels:
-      service: homebridge
+  ansible.builtin.copy:
+    src: package.json
+    dest: /var/lib/homebridge/package.json
+    owner: homebridge
+    group: homebridge
+    mode: 0400
+    validate: "{{ jsonlint_validate_command }}"
+  notify: restart homebridge
 
-- name: deploy service
-  community.docker.docker_swarm_service:
-    name: homebridge
-    image: oznu/homebridge:{{ homebridge_version }}
-    configs:
-      - config_name: homebridge-config-{{ homebridge_config_result.stdout | trim }}
-        filename: /homebridge/config.json
-        uid: "{{ homebridge_user_result.uid }}"
-        gid: "{{ homebridge_user_result.group }}"
-      - config_name: homebridge-package-{{ homebridge_package_result.stdout | trim }}
-        filename: /homebridge/package.json
-        uid: "{{ homebridge_user_result.uid }}"
-        gid: "{{ homebridge_user_result.group }}"
-    env:
-      PGID: "{{ homebridge_user_result.group }}"
-      PUID: "{{ homebridge_user_result.uid }}"
-      HOMEBRIDGE_CONFIG_UI: !!str false
-      TZ: "{{ timezone }}"
-    hostname: homebridge.{{ domain_name }}
-    mode: global
-    mounts:
-      - source: /var/lib/homebridge
-        target: /homebridge
-    networks:
-      - host
-    placement:
-      constraints:
-        - node.hostname==tombstone
-    labels:
-      traefik.enable: !!str false
-    container_labels:
-      com.centurylinklabs.watchtower.enable: !!str true
-    restart_config:
-      condition: on-failure
-      delay: 20s
+- name: install packages
+  become_flags: --set-home
+  become_user: homebridge
+  community.general.npm:
+    path: /var/lib/homebridge
+    ignore_scripts: true
+  notify: restart homebridge
+
+- name: install service unit
+  ansible.builtin.template:
+    src: homebridge.service.j2
+    dest: /etc/systemd/system/homebridge.service
+    owner: root
+    group: root
+    mode: 0444
+  notify: restart homebridge
+
+- name: enable and start service
+  ansible.builtin.systemd:
+    name: homebridge.service
+    daemon_reload: true
+    enabled: true
+    state: started

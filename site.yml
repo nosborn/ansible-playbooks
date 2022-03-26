@@ -114,6 +114,7 @@
       tags:
         - scribe
     - role: sshd
+    - role: tcpdump
     - role: teddit
       tags:
         - teddit
@@ -126,9 +127,6 @@
           "{{ [unifi_discovery_port, wireguard_configs | dict2items | map(attribute='value.listen_port')] | flatten | sort | unique }}"
       tags:
         - unbound
-    - role: watchtower
-      tags:
-        - watchtower
     - role: wireguard
 
   handlers:

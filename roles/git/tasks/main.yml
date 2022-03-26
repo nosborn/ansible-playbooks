@@ -1,7 +1,9 @@
 ---
-- name: install package
+- name: install packages
   ansible.builtin.apt:
-    name: git
+    name:
+      - git
+      - git-lfs
     install_recommends: false
 
 - name: install system-wide configuration

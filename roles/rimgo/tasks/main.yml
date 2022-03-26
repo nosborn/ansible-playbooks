@@ -38,8 +38,6 @@
       traefik.http.routers.rimgo.entrypoints: websecure
       traefik.http.routers.rimgo.rule: Host(`rimgo.{{ domain_name }}`)
       traefik.http.services.rimgo.loadbalancer.server.port: !!str 3000
-    container_labels:
-      com.centurylinklabs.watchtower.enable: !!str true
     restart_config:
       condition: on-failure
       delay: 20s

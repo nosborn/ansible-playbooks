@@ -4,9 +4,33 @@ Description=Promtail
 Wants=loki.service
 
 [Service]
+CapabilityBoundingSet=
 ExecStart=/usr/local/sbin/promtail -config.file /usr/local/etc/promtail-local-config.yaml
-SupplementaryGroups=adm systemd-journal
-User=promtail
+LockPersonality=yes
+NoNewPrivileges=yes
+PrivateDevices=yes
+PrivateIPC=yes
+PrivateTmp=yes
+PrivateUsers=yes
+ProtectClock=yes
+ProtectControlGroups=yes
+ProtectHome=yes
+ProtectHostname=yes
+ProtectKernelLogs=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+ProtectSystem=strict
+ReadWritePaths=/var/lib/promtail
+RemoveIPC=yes
+Restart=on-failure
+RestartSec=20
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+SecureBits=
+SystemCallArchitectures=native
+Type=simple
+User=root
+WorkingDirectory=/var/lib/promtail
 
 [Install]
 WantedBy=multi-user.target

@@ -1,16 +1,19 @@
 [Unit]
-After=network.target
-Description=Loki
+After=network-online.target
+Description=HomeKit Server
+Documentation=https://homebridge.io
 
 [Service]
 CapabilityBoundingSet=
-ExecStart=/usr/local/sbin/loki -config.file /usr/local/etc/loki-local-config.yaml
+DeviceAllow=
+ExecStart=/usr/bin/npm exec -- homebridge -Q -T -U /var/lib/homebridge
+Group=homebridge
 LockPersonality=yes
 NoNewPrivileges=yes
 PrivateDevices=yes
 PrivateIPC=yes
 PrivateTmp=yes
-PrivateUsers=yes
+#ProcSubset=pid
 ProtectClock=yes
 ProtectControlGroups=yes
 ProtectHome=yes
@@ -18,18 +21,21 @@ ProtectHostname=yes
 ProtectKernelLogs=yes
 ProtectKernelModules=yes
 ProtectKernelTunables=yes
+#ProtectProc=invisible
 ProtectSystem=strict
-ReadWritePaths=/var/lib/loki
+ReadWritePaths=/var/lib/homebridge/accessories /var/lib/homebridge/persist
 RemoveIPC=yes
 Restart=on-failure
 RestartSec=20
+RestrictAddressFamilies=AF_INET AF_INET6 AF_NETLINK
 RestrictRealtime=yes
 RestrictSUIDSGID=yes
 SecureBits=
 SystemCallArchitectures=native
 Type=simple
-User=loki
-WorkingDirectory=/var/lib/loki
+UMask=0077
+User=homebridge
+WorkingDirectory=/var/lib/homebridge
 
 [Install]
 WantedBy=multi-user.target

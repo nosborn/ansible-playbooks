@@ -1,0 +1,4 @@
+---
+prometheus_golang_version: !!str 1.17
+prometheus_unbound_exporter_port: 9167
+prometheus_unbound_exporter_version: latest

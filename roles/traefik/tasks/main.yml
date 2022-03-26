@@ -84,8 +84,6 @@
         published_port: 8080
         target_port: 8080
     read_only: true
-    container_labels:
-      com.centurylinklabs.watchtower.enable: !!str true
     restart_config:
       condition: on-failure
       delay: 20s

@@ -18,6 +18,7 @@
     - unbound-shrink-filters.pl
   loop_control:
     loop_var: unbound_item
+  notify: start unbound-filters
 
 - name: make unbound filters
   ansible.builtin.command:

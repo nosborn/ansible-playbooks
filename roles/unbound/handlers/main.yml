@@ -3,3 +3,8 @@
   ansible.builtin.systemd:
     name: unbound.service
     state: restarted
+
+- name: start unbound-filters
+  ansible.builtin.systemd:
+    name: unbound-filters.service
+    state: started

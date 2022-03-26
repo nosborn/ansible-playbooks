@@ -39,6 +39,7 @@
     mode: 0440
   loop:
     - nodes_rev1.json
+    - unbound_rev1.json
   loop_control:
     loop_var: grafana_item
   notify: restart grafana-server
@@ -55,6 +56,7 @@
     - dashboards/default.yml
     - datasources/loki.yml
     - datasources/prometheus.yml
+    - plugins/piechart.yml
   loop_control:
     loop_var: grafana_item
   notify: restart grafana-server

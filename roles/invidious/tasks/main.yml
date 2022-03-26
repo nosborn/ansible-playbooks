@@ -31,8 +31,6 @@
       traefik.http.routers.invidious.entrypoints: websecure
       traefik.http.routers.invidious.rule: Host(`invidious.{{ domain_name }}`)
       traefik.http.services.invidious.loadbalancer.server.port: !!str 3000
-    container_labels:
-      com.centurylinklabs.watchtower.enable: !!str true
     restart_config:
       condition: on-failure
       delay: 20s

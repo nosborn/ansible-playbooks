@@ -1,0 +1,7 @@
+---
+- name: install packages
+  ansible.builtin.apt:
+    name:
+      - nodejs
+      - npm
+    install_recommends: false

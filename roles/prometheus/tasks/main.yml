@@ -36,3 +36,6 @@
 
 - name: install node-exporter
   ansible.builtin.import_tasks: node.yml
+
+- name: install unbound-exporter
+  ansible.builtin.import_tasks: unbound.yml

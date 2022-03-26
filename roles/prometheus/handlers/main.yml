@@ -13,3 +13,9 @@
   ansible.builtin.systemd:
     name: prometheus-node-exporter.service
     state: restarted
+
+- name: restart prometheus-unbound-exporter
+  ansible.builtin.systemd:
+    name: prometheus-unbound-exporter.service
+    daemon_reload: true
+    state: restarted

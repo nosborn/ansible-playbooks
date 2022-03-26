@@ -41,8 +41,6 @@
       traefik.http.routers.teddit.entrypoints: websecure
       traefik.http.routers.teddit.rule: Host(`teddit.{{ domain_name }}`)
       traefik.http.services.teddit.loadbalancer.server.port: "{{ teddit_port | string }}"
-    container_labels:
-      com.centurylinklabs.watchtower.enable: !!str true
     restart_config:
       condition: on-failure
       delay: 20s

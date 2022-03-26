@@ -48,8 +48,8 @@
 - name: create data directory
   ansible.builtin.file:
     path: /var/lib/promtail
-    owner: promtail
-    group: promtail
+    owner: root
+    group: root
     mode: 0700
     state: directory
 

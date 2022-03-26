@@ -54,8 +54,6 @@
       traefik.http.routers.instagram.rule: Host(`instagram.com`)
       traefik.http.routers.instagram.service: bibliogram
       traefik.http.services.bibliogram.loadbalancer.server.port: !!str 10407
-    container_labels:
-      com.centurylinklabs.watchtower.enable: !!str false
     restart_config:
       condition: on-failure
       delay: 20s

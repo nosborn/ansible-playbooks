@@ -57,8 +57,6 @@
       traefik.http.routers.twitter.rule: Host(`twitter.com`)
       traefik.http.routers.twitter.service: nitter
       traefik.http.services.nitter.loadbalancer.server.port: !!str 8080
-    container_labels:
-      com.centurylinklabs.watchtower.enable: !!str false
     restart_config:
       condition: on-failure
       delay: 20s

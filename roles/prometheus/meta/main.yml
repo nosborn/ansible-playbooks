@@ -1,0 +1,5 @@
+---
+dependencies:
+  - role: golang
+    vars:
+      golang_version: "{{ prometheus_golang_version }}"

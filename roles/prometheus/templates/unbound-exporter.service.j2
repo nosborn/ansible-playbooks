@@ -1,10 +1,9 @@
 [Unit]
-After=network.target
-Description=Loki
+Description=Unbound exporter for Prometheus
 
 [Service]
 CapabilityBoundingSet=
-ExecStart=/usr/local/sbin/loki -config.file /usr/local/etc/loki-local-config.yaml
+ExecStart=/usr/local/bin/prometheus-unbound-exporter -web.listen-address localhost:{{ prometheus_unbound_exporter_port }}
 LockPersonality=yes
 NoNewPrivileges=yes
 PrivateDevices=yes
@@ -19,7 +18,6 @@ ProtectKernelLogs=yes
 ProtectKernelModules=yes
 ProtectKernelTunables=yes
 ProtectSystem=strict
-ReadWritePaths=/var/lib/loki
 RemoveIPC=yes
 Restart=on-failure
 RestartSec=20
@@ -28,8 +26,7 @@ RestrictSUIDSGID=yes
 SecureBits=
 SystemCallArchitectures=native
 Type=simple
-User=loki
-WorkingDirectory=/var/lib/loki
+User=root
 
 [Install]
 WantedBy=multi-user.target
