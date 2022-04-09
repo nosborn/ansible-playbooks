@@ -1,0 +1,20 @@
+---
+- name: install avahi-daemon
+  ansible.builtin.apt:
+    name: avahi-daemon
+
+- name: configure avahi-daemon
+  ansible.builtin.template:
+    src: avahi-daemon.conf.j2
+    dest: /etc/avahi/avahi-daemon.conf
+    owner: root
+    group: root
+    mode: 0444
+  notify: restart avahi-daemon
+  when: false
+
+- name: enable and start avahi-daemon
+  ansible.builtin.systemd:
+    name: avahi-daemon
+    enabled: true
+    state: started

@@ -5,13 +5,20 @@ Wants=unbound-filters.timer
 
 [Service]
 ExecStart=/usr/local/bin/unbound-make-filters.sh
+LockPersonality=yes
 MemoryDenyWriteExecute=yes
+NoNewprivileges=yes
+PrivateDevices=yes
+PrivateIPC=yes
 PrivateTmp=yes
+PrivateUsers=yes
 ProtectClock=yes
 ProtectControlGroups=yes
+ProtectHome=yes
 ProtectHostname=yes
 ProtectKernelLogs=yes
 ProtectKernelModules=yes
+ProtectSystem=strict
 ProtectKernelTunables=yes
 ReadWriteDirectories=/etc/unbound/unbound.conf.d
 RemoveIPC=yes

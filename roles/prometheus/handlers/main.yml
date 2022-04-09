@@ -2,6 +2,7 @@
 - name: restart prometheus
   ansible.builtin.systemd:
     name: prometheus.service
+    daemon_reload: true
     state: restarted
 
 - name: restart prometheus-blackbox-exporter

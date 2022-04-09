@@ -1,1 +1,2 @@
 **/vault.yml diff=ansible-vault linguist-generated merge=binary
+.ansible-lint linguist-language=yaml

@@ -2,7 +2,6 @@
 - name: install samba
   ansible.builtin.apt:
     name: samba
-    install_recommends: false
 
 - name: configure samba
   ansible.builtin.template:
@@ -11,6 +10,7 @@
     owner: root
     group: root
     mode: 0444
+    validate: testparm -s %s
   notify: restart samba
 
 - name: enable and start samba

@@ -1,6 +1,8 @@
-# .ansible-lint
 # vim: ft=yaml
 ---
+exclude_paths:
+  - group_vars/*/vault.yml
+  - host_vars/*/vault.yml
 skip_list:
   - "204"
   - "701"

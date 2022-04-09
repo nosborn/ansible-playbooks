@@ -62,11 +62,11 @@
     hostname: traefik.{{ domain_name }}
     mode: global
     mounts:
+      - source: /run/docker.sock
+        target: /run/docker.sock
       - source: /usr/local/etc/ssl
         target: /usr/local/etc/ssl
         readonly: true
-      - source: /var/run/docker.sock
-        target: /var/run/docker.sock
     networks:
       - name: bridge
       - name: traefik

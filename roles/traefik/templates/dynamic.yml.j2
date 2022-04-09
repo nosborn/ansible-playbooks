@@ -1,10 +1,13 @@
-# yamllint disable rule:line-length
 ---
 http:
   middlewares:
     local-network-whitelist:
       ipWhitelist:
-        sourceRange: "{{ lan_ipv4_subnet }},{{ lan_ipv6_subnet }},{{ vpn_ipv4_subnet }},{{ vpn_ipv6_subnet }}"
+        sourceRange:
+          - "{{ lan_ipv4_subnet }}"
+          - "{{ lan_ipv6_subnet }}"
+          - "{{ vpn_ipv4_subnet }}"
+          - "{{ vpn_ipv6_subnet }}"
 
     security-headers:
       headers:

@@ -110,6 +110,8 @@
       tags:
         - rimgo
     - role: samba
+      tags:
+        - samba
     - role: scribe
       tags:
         - scribe
@@ -123,8 +125,7 @@
         - traefik
     - role: unbound
       vars:
-        unbound_outgoing_port_avoid:
-          "{{ [unifi_discovery_port, wireguard_configs | dict2items | map(attribute='value.listen_port')] | flatten | sort | unique }}"
+        unbound_outgoing_port_avoid: "{{ [unifi_discovery_port, wireguard_configs | dict2items | map(attribute='value.listen_port')] | flatten | sort | unique }}"
       tags:
         - unbound
     - role: wireguard

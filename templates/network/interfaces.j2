@@ -11,8 +11,8 @@ iface lo inet loopback
 auto {{ lan_if }}
 iface {{ lan_if }} inet static
 	address {{ lan_ipv4_address }}/24
-	gateway {{ lan_ipv4_subnet | ansible.netcommon.nthhost(1) }}
-	dns-nameserver {{ lan_ipv4_subnet | ansible.netcommon.nthhost(1) }}
+	gateway {{ lan_ipv4_subnet | ansible.utils.nthhost(1) }}
+	dns-nameserver {{ lan_ipv4_subnet | ansible.utils.nthhost(1) }}
 	dns-search {{ domain_name }}
 iface {{ lan_if }} inet6 static
 	address {{ lan_ipv6_address }}/64
