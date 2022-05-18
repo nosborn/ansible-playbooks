@@ -9,7 +9,7 @@
     argv:
       - echo
       - "{{ playbook_dir }}/roles/{{ role_name }}/files/force-provision.sh"
-      - "{{ hostvars.usg.ansible_default_ipv4.macaddress }}"
+      - "{{ hostvars['usg-p3'].ansible_default_ipv4.macaddress }}"
     environment:
       PASSWORD: x
       USER: x

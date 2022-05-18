@@ -61,15 +61,13 @@
 
     - name: restart networking now
       ansible.builtin.meta: flush_handlers
-      tags:
-        - always
 
   roles:
     - role: bibliogram
       tags:
         - bibliogram
+      when: false # FIXME
     - role: chrony
-    - role: ddclient
     - role: docker
       tags:
         - docker
@@ -109,9 +107,6 @@
     - role: rimgo
       tags:
         - rimgo
-    - role: samba
-      tags:
-        - samba
     - role: scribe
       tags:
         - scribe
@@ -142,7 +137,7 @@
   roles:
     - role: unifi
 
-- hosts: usg
+- hosts: usg-p3
   gather_facts: false
 
   roles:

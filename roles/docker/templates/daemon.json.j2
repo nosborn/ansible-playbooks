@@ -1,10 +1,7 @@
 {
   "dns": [
-    "{{ hostvars.usg.lan_ipv4_address }}"
+    "{{ hostvars['usg-p3'].lan_ipv4_address }}"
   ],
   "experimental": true,
-  "fixed-cidr-v6": "{{ docker_ipv6_subnet }}",
-  "ip6tables": true,
-  "ipv6": true,
   "metrics-addr" : "127.0.0.1:9323"
 }

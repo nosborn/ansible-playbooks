@@ -5,9 +5,13 @@ http:
       ipWhitelist:
         sourceRange:
           - "{{ lan_ipv4_subnet }}"
+{% if lan_ipv6_address is defined %}
           - "{{ lan_ipv6_subnet }}"
+{% endif %}
           - "{{ vpn_ipv4_subnet }}"
+{% if vpn_ipv6_address is defined %}
           - "{{ vpn_ipv6_subnet }}"
+{% endif %}
 
     security-headers:
       headers:

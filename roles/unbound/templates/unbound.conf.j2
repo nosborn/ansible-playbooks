@@ -8,6 +8,8 @@ server:
 	interface: {{ interface }}
 {% endfor %}
 
+	outgoing-interface: {{ lan_ipv4_address }}
+
 {% if unbound_outgoing_port_avoid | length %}
 {%   for port in unbound_outgoing_port_avoid %}
 	outgoing-port-avoid: {{ port }}
@@ -15,8 +17,6 @@ server:
 
 {% endif %}
 	ip-freebind: yes
-
-	prefer-ip6: yes
 
 	edns-tcp-keepalive: yes
 

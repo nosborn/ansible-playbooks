@@ -14,9 +14,11 @@ iface {{ lan_if }} inet static
 	gateway {{ lan_ipv4_subnet | ansible.utils.nthhost(1) }}
 	dns-nameserver {{ lan_ipv4_subnet | ansible.utils.nthhost(1) }}
 	dns-search {{ domain_name }}
-iface {{ lan_if }} inet6 static
-	address {{ lan_ipv6_address }}/64
-	# Use SLAAC to get global IPv6 address from the router. We may not
-	# enable ipv6 forwarding, otherwise SLAAC gets disabled.
-	autoconf 1
-	accept_ra 2
+{% if lan_ipv6_address is defined %}
+#iface {{ lan_if }} inet6 static
+#	address {{ lan_ipv6_address }}/64
+#	# Use SLAAC to get global IPv6 address from the router. We may not
+#	# enable ipv6 forwarding, otherwise SLAAC gets disabled.
+#	autoconf 1
+#	accept_ra 2
+{% endif %}
