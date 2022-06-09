@@ -1,9 +1,4 @@
-# yamllint disable rule:line-length
 ---
-domain_name: "{{ vault_domain_name }}"
-ntp_interfaces: "{{ vault_ntp_interfaces }}"
-ntp_pool_member: "{{ vault_ntp_pool_member }}"
-ntp_servers: "{{ vault_ntp_servers }}"
 pushover_user_key: "{{ vault_pushover_user_key }}"
 sshd_config_allow_tcp_forwarding: "{{ vault_sshd_config_allow_tcp_forwarding }}"
 timezone: "{{ vault_timezone }}"

@@ -1,4 +1,5 @@
 ---
+domain_name: "{{ vault_domain_name }}"
 guest_ipv4_subnet: "{{ vault_guest_ipv4_subnet }}"
 guest_vlan: "{{ vault_guest_vlan }}"
 iot_ipv4_subnet: "{{ vault_iot_ipv4_subnet }}"

@@ -1,4 +1,3 @@
 ---
 dependencies:
-  - role: jsonlint
   - role: unifi_core

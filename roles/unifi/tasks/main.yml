@@ -1,3 +1,4 @@
+# yamllint disable rule:line-length
 ---
 - ansible.builtin.fetch: # noqa 502
     dest: /etc/ssl/private/cloudkey.p12
@@ -13,8 +14,8 @@
     path: "{{ ownca_private_path }}/cloudkey.p12" # FIXME
     friendly_name: unifi
     passphrase: "{{ unifi_jks_password }}"
-    certificate_path: "{{ ownca_path }}/unifi.home.arpa.crt" # FIXME
-    privatekey_path: "{{ ownca_private_path }}/unifi.home.arpa.key" # FIXME
+    certificate_path: "{{ ownca_path }}/unifi.{{ domain_name }}.crt" # FIXME
+    privatekey_path: "{{ ownca_private_path }}/unifi.{{ domain_name }}.key" # FIXME
     owner: root
     group: root
     mode: 0400
@@ -97,5 +98,4 @@
     owner: unifi
     group: unifi
     mode: 0444
-    validate: "{{ jsonlint_validate_command }}"
   notify: force provision gateway
