@@ -31,7 +31,7 @@
     group: root
     mode: 0400
     validate: openssl rsa -in %s -noout
-  ignore_errors: true # FIXME
+  failed_when: false # FIXME
 
 - name: save certificate
   ansible.builtin.copy:
@@ -41,4 +41,4 @@
     group: root
     mode: 0444
     validate: openssl x509 -in %s -noout
-  ignore_errors: true # FIXME
+  failed_when: false # FIXME
