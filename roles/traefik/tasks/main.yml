@@ -36,8 +36,8 @@
     labels:
       service: traefik
 
-- name: issue certificate
-  ansible.builtin.import_tasks: certificate.yml
+# - name: issue certificate
+#   ansible.builtin.import_tasks: certificate.yml
 
 - name: create network
   community.docker.docker_network:

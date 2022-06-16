@@ -74,6 +74,9 @@
     - role: grafana
       tags:
         - grafana
+    - role: grub
+      tags:
+        - grub
     - role: homebridge
       tags:
         - homebridge
