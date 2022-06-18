@@ -65,6 +65,7 @@ txt.chatango.com
 unifi-report.ubnt.com
 win10.ipv6.microsoft.com
 win1710.ipv6.microsoft.com
+yospace.com
 EOT
 
 curl -fLsS https://raw.githubusercontent.com/nextdns/cname-cloaking-blocklist/master/domains |
