@@ -63,64 +63,18 @@
       ansible.builtin.meta: flush_handlers
 
   roles:
-    - role: bibliogram
-      tags:
-        - bibliogram
-      when: false # FIXME
     - role: chrony
-    - role: docker
-      tags:
-        - docker
-    - role: grafana
-      tags:
-        - grafana
     - role: grub
       tags:
         - grub
     - role: homebridge
       tags:
         - homebridge
-    - role: invidious
-      tags:
-        - invidious
     - role: locale
-    - role: loki
-      tags:
-        - loki
-    - role: nano
-    - role: nftables
-      tags:
-        - nftables
-    - role: nitter
-      tags:
-        - nitter
-    - role: opensmtpd
-      tags:
-        - opensmtpd
     - role: ownca
-    - role: prometheus
-      tags:
-        - prometheus
-    - role: promtail
-      tags:
-        - promtail
-    - role: restic
-      when: false # FIXME
     - role: rfkill
-    - role: rimgo
-      tags:
-        - rimgo
-    - role: scribe
-      tags:
-        - scribe
     - role: sshd
     - role: tcpdump
-    - role: teddit
-      tags:
-        - teddit
-    - role: traefik
-      tags:
-        - traefik
     - role: unbound
       vars:
         unbound_outgoing_port_avoid: "{{ [unifi_discovery_port, wireguard_configs | dict2items | map(attribute='value.listen_port')] | flatten | sort | unique }}"
@@ -134,13 +88,13 @@
         name: networking.service
         state: restarted
 
-- hosts: uck-g2
+- hosts: cloudkey
   gather_facts: false
 
   roles:
     - role: unifi
 
-- hosts: usg-p3
+- hosts: gateway
   gather_facts: false
 
   roles:

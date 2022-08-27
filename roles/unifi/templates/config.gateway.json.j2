@@ -1,16 +1,40 @@
 {
+  "interfaces": {
+    "tunnel": {
+      "tun0": {
+        "address": [
+          "2a06:a003:713c::2/48"
+        ],
+        "description": "{{ hostvars.gateway.ipv6_tunnel_description }}",
+        "encapsulation": "sit",
+        "local-ip": "{{ hostvars.gateway.wan_ipv4_address }}",
+        "multicast": "disable",
+        "remote-ip": "{{ hostvars.gateway.ipv6_tunnel_remote_ip }}",
+        "ttl": "255"
+      }
+    }
+  },
   "protocols": {
     "igmp-proxy": {
       "interface": {
-        "{{ hostvars['usg-p3'].lan_if }}": {
+        "{{ hostvars.gateway.lan_if }}": {
           "role": "upstream",
           "threshold": "1",
           "alt-subnet": "0.0.0.0/0"
         },
-        "{{ hostvars['usg-p3'].iot_if }}": {
+        "{{ hostvars.gateway.iot_if }}": {
           "role": "downstream",
           "threshold": "1",
           "alt-subnet": "0.0.0.0/0"
+        }
+      }
+    },
+    "static": {
+      "interface-route6": {
+        "::/0": {
+          "next-hop-interface": {
+            "{{ hostvars.gateway.ipv6_tunnel_if }}": "''"
+          }
         }
       }
     }
@@ -20,7 +44,7 @@
       "forwarding": {
         "cache-size": "10000",
         "except-interface": [
-          "{{ hostvars['usg-p3'].wan_if }}"
+          "{{ hostvars.gateway.wan_if }}"
         ],
         "name-server": [
           "1.1.1.1",
@@ -42,8 +66,8 @@
     "mdns": {
       "repeater": {
         "interface": [
-          "{{ hostvars['usg-p3'].lan_if }}",
-          "{{ hostvars['usg-p3'].iot_if }}"
+          "{{ hostvars.gateway.lan_if }}",
+          "{{ hostvars.gateway.iot_if }}"
         ]
       }
     }

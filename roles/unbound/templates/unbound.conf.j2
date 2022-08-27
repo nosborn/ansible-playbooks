@@ -45,6 +45,7 @@ server:
 	private-address: 203.0.113.0/24     # Documentation (TEST-NET-3)
 	private-address: 240.0.0.0/4        # Reserved
 	private-address: 255.255.255.255/32 # Limited Broadcast
+	private-address: "{{ lan_ipv6_subnet }}"
 	private-address: fd00::/8
 	private-address: fe80::/10
 	private-address: ::ffff:0:0/96      # IPv4-mapped IPv6 addresses

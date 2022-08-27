@@ -1,6 +1,6 @@
 # yamllint disable rule:line-length
 ---
-- ansible.builtin.fetch: # noqa 502
+- ansible.builtin.fetch: # noqa name[missing]
     dest: /etc/ssl/private/cloudkey.p12
     src: "{{ ownca_private_path }}/cloudkey.p12" # FIXME
     flat: true
@@ -10,7 +10,7 @@
 
 - become: false
   delegate_to: localhost
-  community.crypto.openssl_pkcs12: # noqa 502
+  community.crypto.openssl_pkcs12: # noqa name[missing]
     path: "{{ ownca_private_path }}/cloudkey.p12" # FIXME
     friendly_name: unifi
     passphrase: "{{ unifi_jks_password }}"
@@ -21,7 +21,7 @@
     mode: 0400
   when: false # FIXME
 
-- ansible.builtin.copy: # noqa 502
+- ansible.builtin.copy: # noqa name[missing]
     src: "{{ ownca_private_path }}/cloudkey.p12" # FIXME
     dest: /etc/ssl/private/cloudkey.p12
     owner: root
@@ -30,7 +30,7 @@
   notify: restart unifi
   when: false # FIXME
 
-- community.general.java_cert: # noqa 502
+- community.general.java_cert: # noqa name[missing]
     cert_alias: unifi
     keystore_pass: "{{ unifi_jks_password }}"
     keystore_path: /etc/ssl/private/unifi.keystore.jks
@@ -42,13 +42,13 @@
   when: false # FIXME
 
 - name: read the certificate
-  ansible.builtin.slurp: # noqa 502
+  ansible.builtin.slurp:
     src: "{{ unifi_core_certificate_path }}"
   register: unifi_certificate
   when: false # FIXME
 
 - name: read the private key
-  ansible.builtin.slurp: # noqa 502
+  ansible.builtin.slurp:
     src: "{{ unifi_core_privatekey_path }}"
   register: unifi_privatekey
   when: false # FIXME
@@ -66,7 +66,7 @@
   notify: restart unifi
   when: false # FIXME
 
-- ansible.builtin.stat: # noqa 502
+- ansible.builtin.stat: # noqa name[missing]
     path: "{{ unifi_keystore_path }}"
     checksum_algorithm: md5
     get_attributes: false
@@ -98,4 +98,33 @@
     owner: unifi
     group: unifi
     mode: 0444
-  notify: force provision gateway
+  register: config_gateway_result
+
+- name: log in
+  ansible.builtin.uri: # noqa no-handler
+    url: https://192.168.1.2/api/auth/login
+    method: POST
+    headers:
+      Content-Type: application/json
+      Referer: https://192.168.1.2/login
+    body:
+      username: admin
+      password: jexWid-qicbo1-vazneh
+    body_format: json
+    validate_certs: false
+  register: login_result
+  when: config_gateway_result is changed
+
+- name: force reprovision
+  ansible.builtin.uri: # noqa no-handler
+    url: https://192.168.1.2/proxy/network/api/s/default/cmd/devmgr
+    method: POST
+    headers:
+      Content-Type: application/json
+      Cookie: "{{ login_result.cookies_string }}"
+    body:
+      cmd: force-provision
+      mac: "{{ hostvars.gateway.ansible_default_ipv4.macaddress | lower }}"
+    body_format: json
+    validate_certs: false
+  when: config_gateway_result is changed

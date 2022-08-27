@@ -11,6 +11,7 @@
     owner: root
     group: root
     mode: 0444
+    # validate: chronyd -f %s -p -- FIXME
   notify: restart chrony
 
 - name: enable and start chrony

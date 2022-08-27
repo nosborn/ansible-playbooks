@@ -14,7 +14,7 @@
     dest: /usr/local/src/bibliogram
 
 - name: derive source version
-  ansible.builtin.command:
+  ansible.builtin.command: # noqa command-instead-of-module
     argv:
       - git
       - log
