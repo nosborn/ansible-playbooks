@@ -3,14 +3,13 @@
     "tunnel": {
       "tun0": {
         "address": [
-          "2a06:a003:713c::2/48"
+          "{{ hostvars.gateway.ipv6_tunnel_address }}"
         ],
         "description": "{{ hostvars.gateway.ipv6_tunnel_description }}",
         "encapsulation": "sit",
         "local-ip": "{{ hostvars.gateway.wan_ipv4_address }}",
         "multicast": "disable",
-        "remote-ip": "{{ hostvars.gateway.ipv6_tunnel_remote_ip }}",
-        "ttl": "255"
+        "remote-ip": "{{ hostvars.gateway.ipv6_tunnel_remote_ip }}"
       }
     }
   },
