@@ -1,16 +1,19 @@
 # yamllint disable rule:line-length
 ---
-- name: install package
+- name: "unbound : install package"
+  become: true
+  become_flags: --set-home
+  become_user: prometheus
   ansible.builtin.command:
     argv:
-      - /usr/lib/go-{{ prometheus_golang_version }}/bin/go
+      - go
       - install
       - github.com/letsencrypt/unbound_exporter@{{ prometheus_unbound_exporter_version }}
   changed_when: false
 
-- name: install binary
+- name: "unbound : install binary"
   ansible.builtin.copy:
-    src: /root/go/bin/unbound_exporter
+    src: /var/lib/prometheus/go/bin/unbound_exporter
     remote_src: true
     dest: /usr/local/bin/prometheus-unbound-exporter
     owner: root
@@ -18,7 +21,7 @@
     mode: 0555
   notify: restart prometheus-unbound-exporter
 
-- name: install service unit
+- name: "unbound : install service unit"
   ansible.builtin.template:
     src: unbound-exporter.service.j2
     dest: /etc/systemd/system/prometheus-unbound-exporter.service
@@ -27,7 +30,7 @@
     mode: 0444
   notify: restart prometheus-unbound-exporter
 
-- name: enable and start service
+- name: "unbound : enable and start service"
   ansible.builtin.systemd:
     name: prometheus-unbound-exporter.service
     daemon_reload: true

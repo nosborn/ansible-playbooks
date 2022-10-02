@@ -1,0 +1,39 @@
+# yamllint disable rule:line-length
+---
+- name: "snmp-generator : install build dependencies"
+  ansible.builtin.apt:
+    name: libsnmp-dev
+
+- name: "snmp-generator : build package"
+  become: true
+  become_flags: --set-home
+  become_user: prometheus
+  ansible.builtin.command:
+    argv:
+      - go
+      - install
+      - github.com/prometheus/snmp_exporter/generator@v{{ version }}
+    creates: /var/lib/prometheus/go/pkg/mod/github.com/prometheus/snmp_exporter@v{{ version }}/snmp.yml
+
+- name: "snmp-generator : build package"
+  become: true
+  become_flags: --set-home
+  become_user: prometheus
+  ansible.builtin.command:
+    argv:
+      - go
+      - build
+    chdir: /var/lib/prometheus/go/pkg/mod/github.com/prometheus/snmp_exporter@v{{ version }}/generator
+    creates: /var/lib/prometheus/go/bin/generator
+
+- name: "snmp-generator : make mibs"
+  become: true
+  become_flags: --set-home
+  become_user: prometheus
+  ansible.builtin.command:
+    argv:
+      - make
+      - mibs
+    chdir: /var/lib/prometheus/go/pkg/mod/github.com/prometheus/snmp_exporter@v{{ version }}/generator
+    creates: /var/lib/prometheus/go/pkg/mod/github.com/prometheus/snmp_exporter@v{{ version }}/foo
+  when: false

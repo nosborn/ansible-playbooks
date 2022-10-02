@@ -29,7 +29,7 @@
 #################################### Server ####################################
 [server]
 # Protocol (http, https, h2, socket)
-protocol = https
+protocol = http
 
 # The ip address to bind to, empty will bind to all interfaces
 ;http_addr =
@@ -38,11 +38,11 @@ protocol = https
 ;http_port = 3000
 
 # The public facing domain name used to access grafana from a browser
-domain = grafana.{{ domain_name }}
+; domain = grafana.{{ domain_name }}
 
 # Redirect to correct domain if host header does not match domain
 # Prevents DNS rebinding attacks
-enforce_domain = true
+; enforce_domain = true
 
 # The full public facing url you use in browser, used for redirects and emails
 # If you use reverse proxy and sub path specify full url (with sub path)
@@ -61,8 +61,8 @@ enforce_domain = true
 ;enable_gzip = false
 
 # https certs & key file
-cert_file = /etc/grafana/server.crt
-cert_key = /etc/grafana/server.key
+; cert_file = /etc/grafana/server.crt
+; cert_key = /etc/grafana/server.key
 
 # Unix socket path
 ;socket =
@@ -222,7 +222,7 @@ disable_gravatar = true
 ;disable_brute_force_login_protection = false
 
 # set to true if you host Grafana behind HTTPS. default is false.
-cookie_secure = true
+; cookie_secure = true
 
 # set cookie SameSite attribute. defaults to `lax`. can be set to "lax", "strict", "none" and "disabled"
 cookie_samesite = strict

@@ -1,0 +1,20 @@
+---
+- name: install rsyslog
+  ansible.builtin.apt:
+    name: rsyslog
+
+- name: configure rsyslog
+  ansible.builtin.template:
+    src: rsyslog.conf.j2
+    dest: /etc/rsyslog.conf
+    owner: root
+    group: root
+    mode: 0444
+    validate: rsyslogd -f %s -N 1
+  notify: restart rsyslog
+
+- name: enable and start rsyslog
+  ansible.builtin.systemd:
+    name: rsyslog.service
+    enabled: true
+    state: started

@@ -2,7 +2,6 @@
 - name: install package
   ansible.builtin.apt:
     name: prometheus
-    install_recommends: false
 
 - name: configure defaults
   ansible.builtin.lineinfile:
@@ -22,7 +21,7 @@
     owner: root
     group: root
     mode: 0444
-    validate: "{{ yamllint_validate_command }}"
+    # validate: "{{ yamllint_validate_command }}"
   notify: restart prometheus
 
 - name: create service overrides directory
@@ -33,16 +32,16 @@
     mode: 0755
     state: directory
 
-- name: create service overrides
-  ansible.builtin.copy:
-    content: |
-      [Service]
-      SupplementaryGroups=docker
-    dest: /etc/systemd/system/prometheus.service.d/override.conf
-    owner: root
-    group: root
-    mode: 0444
-  notify: restart prometheus
+# - name: create service overrides
+#   ansible.builtin.copy:
+#     content: |
+#       [Service]
+#       SupplementaryGroups=docker
+#     dest: /etc/systemd/system/prometheus.service.d/override.conf
+#     owner: root
+#     group: root
+#     mode: 0444
+#   notify: restart prometheus
 
 - name: enable and start service
   ansible.builtin.systemd:
@@ -51,11 +50,14 @@
     enabled: true
     state: started
 
-- name: install blackbox-exporter
-  ansible.builtin.import_tasks: blackbox.yml
-
 - name: install node-exporter
   ansible.builtin.import_tasks: node.yml
+
+- name: install smokeping-prober
+  ansible.builtin.import_tasks: smokeping.yml
+
+- name: install snmp-exporter
+  ansible.builtin.import_tasks: snmp.yml
 
 - name: install unbound-exporter
   ansible.builtin.import_tasks: unbound.yml

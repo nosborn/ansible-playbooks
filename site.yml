@@ -64,6 +64,9 @@
 
   roles:
     - role: chrony
+    - role: grafana
+      tags:
+        - grafana
     - role: grub
       tags:
         - grub
@@ -71,10 +74,24 @@
       tags:
         - homebridge
     - role: locale
-    - role: ownca
+    - role: loki
+      tags:
+        - loki
+    - role: prometheus
+      tags:
+        - prometheus
+    - role: promtail
+      tags:
+        - promtail
     - role: rfkill
+    - role: rsyslog
+      tags:
+        - rsyslog
     - role: sshd
     - role: tcpdump
+    - role: teleport
+      tags:
+        - teleport
     - role: unbound
       vars:
         unbound_outgoing_port_avoid: "{{ [unifi_discovery_port, wireguard_configs | dict2items | map(attribute='value.listen_port')] | flatten | sort | unique }}"

@@ -2,11 +2,11 @@
 server:
   disable: true
 
-positions:
-  filename: /var/lib/promtail/positions.yaml
-
 clients:
   - url: http://localhost:3100/loki/api/v1/push
+
+positions:
+  filename: /var/lib/promtail/positions.yaml
 
 scrape_configs:
   - job_name: containers
@@ -38,3 +38,9 @@ scrape_configs:
         labels:
           job: varlogs
           __path__: /var/log/*log
+
+# limits_config:
+
+# target_config:
+
+# options:

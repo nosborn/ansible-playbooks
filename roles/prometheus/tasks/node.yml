@@ -4,7 +4,6 @@
     name:
       - prometheus-node-exporter
       - prometheus-node-exporter-collectors
-    install_recommends: false
 
 - name: "node-exporter : configure defaults"
   ansible.builtin.lineinfile:
