@@ -1,4 +1,5 @@
 ---
-prometheus_golang_version: !!str 1.17
+prometheus_smokeping_prober_port: 9374
+prometheus_snmp_exporter_port: 9116
 prometheus_unbound_exporter_port: 9167
 prometheus_unbound_exporter_version: latest

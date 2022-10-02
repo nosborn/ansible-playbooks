@@ -1,5 +1,5 @@
 ---
-- name: "{{ common_name }} : generate private key"
+- name: "generate private key : {{ common_name }}"
   delegate_to: localhost
   community.crypto.openssl_privatekey_pipe:
     content: "{{ privatekey_content }}"
@@ -7,7 +7,7 @@
     return_current_key: true
   register: ownca_privatekey_result
 
-- name: "{{ common_name }} : generate CSR"
+- name: "generate CSR : {{ common_name }}"
   delegate_to: localhost
   community.crypto.openssl_csr_pipe:
     privatekey_content: "{{ ownca_privatekey_result.privatekey }}"
@@ -22,7 +22,7 @@
   register: ownca_csr_result
   changed_when: false
 
-- name: "{{ common_name }} : generate certificate"
+- name: "generate certificate : {{ common_name }}"
   delegate_to: localhost
   community.crypto.x509_certificate_pipe:
     content: "{{ certificate_content }}"

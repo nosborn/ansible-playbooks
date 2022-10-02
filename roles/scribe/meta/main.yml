@@ -1,6 +1,0 @@
----
-dependencies:
-  - role: docker
-  - role: git
-  - role: ownca
-  - role: traefik

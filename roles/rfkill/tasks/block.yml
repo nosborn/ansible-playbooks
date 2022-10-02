@@ -1,5 +1,5 @@
 ---
-- name: "{{ rfkill_item }} : get device state"
+- name: "get device state : {{ rfkill_item }}"
   ansible.builtin.command:
     argv:
       - rfkill
@@ -10,7 +10,7 @@
   register: rfkill_result
   changed_when: false
 
-- name: "{{ rfkill_item }} : block device"
+- name: "block device : {{ rfkill_item }}"
   ansible.builtin.command:
     argv:
       - rfkill

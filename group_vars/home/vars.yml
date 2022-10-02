@@ -1,11 +1,9 @@
 ---
 domain_name: "{{ vault_domain_name }}"
 guest_ipv4_subnet: "{{ vault_guest_ipv4_subnet }}"
-guest_ipv6_subnet: "{{ vault_guest_ipv6_subnet }}"
 guest_vlan: "{{ vault_guest_vlan }}"
 iot_ipv4_subnet: "{{ vault_iot_ipv4_subnet }}"
 iot_vlan: "{{ vault_iot_vlan }}"
 lan_dns_ipv4_address: "{{ vault_lan_dns_ipv4_address }}"
 lan_ipv4_subnet: "{{ vault_lan_ipv4_subnet }}"
-lan_ipv6_subnet: "{{ vault_lan_ipv6_subnet }}"
 unifi_discovery_port: 10001

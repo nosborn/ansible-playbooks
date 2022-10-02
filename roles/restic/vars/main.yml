@@ -1,3 +1,0 @@
----
-restic_config_dir: /etc/restic
-restic_password_file: "{{ restic_config_dir }}/password"

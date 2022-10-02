@@ -5,14 +5,19 @@
     daemon_reload: true
     state: restarted
 
-- name: restart prometheus-blackbox-exporter
-  ansible.builtin.systemd:
-    name: prometheus-blackbox-exporter.service
-    state: restarted
-
 - name: restart prometheus-node-exporter
   ansible.builtin.systemd:
     name: prometheus-node-exporter.service
+    state: restarted
+
+- name: restart prometheus-smokeping-prober
+  ansible.builtin.systemd:
+    name: prometheus-smokeping-prober.service
+    state: restarted
+
+- name: restart prometheus-snmp-exporter
+  ansible.builtin.systemd:
+    name: prometheus-snmp-exporter.service
     state: restarted
 
 - name: restart prometheus-unbound-exporter

@@ -2,6 +2,7 @@
 After=network-online.target
 Description=HomeKit Server
 Documentation=https://homebridge.io
+Requires=avahi-daemon.socket
 
 [Service]
 CapabilityBoundingSet=
@@ -13,7 +14,7 @@ NoNewPrivileges=yes
 PrivateDevices=yes
 PrivateIPC=yes
 PrivateTmp=yes
-#ProcSubset=pid
+# ProcSubset=pid
 ProtectClock=yes
 ProtectControlGroups=yes
 ProtectHome=yes
@@ -21,13 +22,13 @@ ProtectHostname=yes
 ProtectKernelLogs=yes
 ProtectKernelModules=yes
 ProtectKernelTunables=yes
-#ProtectProc=invisible
+# ProtectProc=invisible
 ProtectSystem=strict
 ReadWritePaths=/var/lib/homebridge/accessories /var/lib/homebridge/persist
 RemoveIPC=yes
 Restart=on-failure
 RestartSec=20
-RestrictAddressFamilies=AF_INET AF_INET6 AF_NETLINK
+; RestrictAddressFamilies=AF_INET AF_INET6 AF_NETLINK
 RestrictRealtime=yes
 RestrictSUIDSGID=yes
 SecureBits=
