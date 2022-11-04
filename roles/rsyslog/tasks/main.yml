@@ -5,12 +5,11 @@
 
 - name: configure rsyslog
   ansible.builtin.template:
-    src: rsyslog.conf.j2
-    dest: /etc/rsyslog.conf
+    src: local.conf.j2
+    dest: /etc/rsyslog.d/local.conf
     owner: root
     group: root
     mode: 0444
-    validate: rsyslogd -f %s -N 1
   notify: restart rsyslog
 
 - name: enable and start rsyslog

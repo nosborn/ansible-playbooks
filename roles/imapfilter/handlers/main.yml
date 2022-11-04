@@ -1,0 +1,6 @@
+---
+- name: restart imapfilter
+  ansible.builtin.systemd:
+    name: imapfilter.service
+    daemon_reload: true
+    state: restarted

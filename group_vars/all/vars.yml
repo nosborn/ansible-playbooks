@@ -2,4 +2,3 @@
 pushover_user_key: "{{ vault_pushover_user_key }}"
 sshd_config_allow_tcp_forwarding: "{{ vault_sshd_config_allow_tcp_forwarding }}"
 timezone: "{{ vault_timezone }}"
-vpn_ipv4_subnet: "{{ vault_vpn_ipv4_subnet }}"

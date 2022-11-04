@@ -10,8 +10,8 @@ server:
 
 	outgoing-interface: {{ lan_ipv4_address }}
 
-{% if unbound_outgoing_port_avoid | length %}
-{%   for port in unbound_outgoing_port_avoid %}
+{% if unbound_config_outgoing_port_avoid | length %}
+{%   for port in unbound_config_outgoing_port_avoid %}
 	outgoing-port-avoid: {{ port }}
 {%   endfor %}
 
@@ -45,9 +45,6 @@ server:
 	private-address: 203.0.113.0/24     # Documentation (TEST-NET-3)
 	private-address: 240.0.0.0/4        # Reserved
 	private-address: 255.255.255.255/32 # Limited Broadcast
-{% if lan_ipv6_subnet is defined %}
-	private-address: "{{ lan_ipv6_subnet }}"
-{% endif %}
 	private-address: fd00::/8
 	private-address: fe80::/10
 	private-address: ::ffff:0:0/96      # IPv4-mapped IPv6 addresses

@@ -1,0 +1,48 @@
+---
+- name: install package
+  ansible.builtin.apt:
+    name: imapfilter
+  notify: restart imapfilter
+
+- name: create user
+  ansible.builtin.user:
+    name: imapfilter
+    comment: IMAP Filter
+    create_home: false
+    home: /nonexistent
+    password_lock: true
+    shell: /usr/sbin/nologin
+    system: true
+
+- name: create configuration directory
+  ansible.builtin.file:
+    path: /etc/imapfilter
+    owner: root
+    group: imapfilter
+    mode: 0750
+    state: directory
+
+- name: create configuration
+  ansible.builtin.copy:
+    content: "{{ imapfilter_config }}"
+    dest: /etc/imapfilter/config.lua
+    owner: root
+    group: imapfilter
+    mode: 0440
+  notify: restart imapfilter
+
+- name: configure service
+  ansible.builtin.template:
+    src: imapfilter.service.j2
+    dest: /etc/systemd/system/imapfilter.service
+    owner: root
+    group: root
+    mode: 0444
+  notify: restart imapfilter
+
+- name: enable and start service
+  ansible.builtin.systemd:
+    name: imapfilter.service
+    daemon_reload: true
+    enabled: true
+    state: started

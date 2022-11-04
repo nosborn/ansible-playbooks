@@ -12,8 +12,6 @@
     group: root
     mode: 0444
     validate: unbound-checkconf %s
-  vars:
-    outgoing_port_avoid: "{{ wireguard_listen_ports | join(' ') }}"
   notify: restart unbound
 
 - name: enable and start unbound

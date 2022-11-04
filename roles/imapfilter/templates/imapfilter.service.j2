@@ -1,0 +1,42 @@
+[Unit]
+After=network-online.target
+
+[Service]
+CapabilityBoundingSet=
+ConfigurationDirectory=imapfilter
+ConfigurationDirectoryMode=0750
+DeviceAllow=
+Environment=IMAPFILTER_HOME=/etc/imapfilter
+ExecStart=/usr/bin/imapfilter -nv
+Group=imapfilter
+LockPersonality=yes
+NoNewPrivileges=yes
+PrivateDevices=yes
+PrivateIPC=yes
+PrivateTmp=yes
+; ProcSubset=pid
+ProtectClock=yes
+ProtectControlGroups=yes
+ProtectHome=yes
+ProtectHostname=yes
+ProtectKernelLogs=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+; ProtectProc=invisible
+ProtectSystem=strict
+RemoveIPC=yes
+Restart=on-failure
+RestartSec=20
+; RestrictAddressFamilies=AF_INET AF_INET6 AF_NETLINK
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+RuntimeDirectory=imapfilter
+SecureBits=
+SystemCallArchitectures=native
+Type=simple
+UMask=0077
+User=imapfilter
+WorkingDirectory=/run/imapfilter
+
+[Install]
+WantedBy=multi-user.target

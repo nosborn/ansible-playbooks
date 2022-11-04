@@ -1,5 +1,4 @@
 .envrc
-.mdm/
 .ownca/
 .vault_password
 backup/
