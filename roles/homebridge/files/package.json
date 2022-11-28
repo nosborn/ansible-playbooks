@@ -1,7 +1,7 @@
 {
   "description": "This file keeps track of which plugins should be installed.",
   "dependencies": {
-    "homebridge": "1.5.1",
+    "homebridge": "1.6.0",
     "homebridge-samsung-tizen": "5.2.4",
     "homebridge-unifi-occupancy-sensor": "2.0.1"
   },
