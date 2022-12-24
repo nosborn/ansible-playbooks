@@ -64,9 +64,6 @@
 
   roles:
     - role: chrony
-    - role: grafana
-      tags:
-        - grafana
     - role: grub
       tags:
         - grub
@@ -80,18 +77,6 @@
       tags:
         - k3s
     - role: locale
-    - role: loki
-      tags:
-        - loki
-      when: false
-    - role: prometheus
-      tags:
-        - prometheus
-      when: false
-    - role: promtail
-      tags:
-        - promtail
-      when: false
     - role: rfkill
     - role: rsyslog
       tags:

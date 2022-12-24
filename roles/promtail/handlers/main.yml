@@ -1,6 +1,0 @@
----
-- name: restart promtail
-  ansible.builtin.systemd:
-    name: promtail.service
-    daemon_reload: true
-    state: restarted
