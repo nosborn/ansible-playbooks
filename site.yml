@@ -64,6 +64,9 @@
 
   roles:
     - role: chrony
+    - role: f1tv_proxy
+      tags:
+        - f1tv-proxy
     - role: grub
       tags:
         - grub
@@ -73,9 +76,9 @@
     - role: imapfilter
       tags:
         - imapfilter
-    - role: k3s
-      tags:
-        - k3s
+    # - role: k3s
+    #   tags:
+    #     - k3s
     - role: locale
     - role: rfkill
     - role: rsyslog
@@ -83,10 +86,9 @@
         - rsyslog
     - role: sshd
     - role: tcpdump
-    - role: teleport
-      tags:
-        - teleport
-      when: false
+    # - role: teleport
+    #   tags:
+    #     - teleport
     - role: unbound
       tags:
         - unbound

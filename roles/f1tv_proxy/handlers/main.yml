@@ -1,0 +1,5 @@
+---
+- name: restart f1tv-proxy
+  ansible.builtin.systemd:
+    name: systemd-nspawn@f1tv-proxy.service
+    state: restarted

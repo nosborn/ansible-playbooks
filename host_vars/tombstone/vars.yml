@@ -2,6 +2,11 @@
 ---
 external_domain: "{{ vault_external_domain }}"
 external_fqdn: "{{ vault_external_fqdn }}"
+f1tv_proxy_wireguard_interface_address: "{{ vault_f1tv_proxy_wireguard_interface_address }}"
+f1tv_proxy_wireguard_interface_privatekey: "{{ vault_f1tv_proxy_wireguard_interface_privatekey }}"
+f1tv_proxy_wireguard_peer_allowedips: "{{ vault_f1tv_proxy_wireguard_peer_allowedips }}"
+f1tv_proxy_wireguard_peer_endpoint: "{{ vault_f1tv_proxy_wireguard_peer_endpoint }}"
+f1tv_proxy_wireguard_peer_publickey: "{{ vault_f1tv_proxy_wireguard_peer_publickey }}"
 gateway: "{{ vault_gateway }}"
 grafana_security_secret_key: "{{ vault_grafana_security_secret_key }}"
 grub_cmdline_linux_default: "{{ vault_grub_cmdline_linux_default }}"
