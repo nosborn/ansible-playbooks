@@ -3,21 +3,12 @@
 
 source /etc/network/interfaces.d/*
 
-# The loopback network interface
 auto lo
 iface lo inet loopback
 
-# The primary network interface
 auto {{ lan_if }}
 iface {{ lan_if }} inet static
 	address {{ lan_ipv4_address }}/24
 	gateway {{ lan_ipv4_subnet | ansible.utils.nthhost(1) }}
 	dns-nameserver {{ lan_ipv4_subnet | ansible.utils.nthhost(1) }}
 	dns-search {{ domain_name }}
-{% if lan_ipv6_address is defined %}
-iface {{ lan_if }} inet6 static
-	address {{ lan_ipv6_address }}/64
-	accept_ra 1
-	autoconf 1
-	privext 2
-{% endif %}

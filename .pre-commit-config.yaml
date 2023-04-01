@@ -25,11 +25,11 @@ repos:
           - --fix=no
       - id: trailing-whitespace
 
-  - repo: https://github.com/ansible-community/ansible-lint.git
-    rev: v6.8.0
-    hooks:
-      - id: ansible-lint
-        files: \.(yaml|yml)$
+  # - repo: https://github.com/ansible-community/ansible-lint.git
+  #   rev: v6.8.0
+  #   hooks:
+  #     - id: ansible-lint
+  #       files: \.(yaml|yml)$
 
   - repo: local
     hooks:

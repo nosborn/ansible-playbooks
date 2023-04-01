@@ -64,9 +64,6 @@
 
   roles:
     - role: chrony
-    - role: f1tv_proxy
-      tags:
-        - f1tv-proxy
     - role: grub
       tags:
         - grub

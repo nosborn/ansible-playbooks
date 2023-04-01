@@ -1,8 +1,0 @@
-[Interface]
-PrivateKey = {{ f1tv_proxy_wireguard_interface_privatekey }}
-Address = {{ f1tv_proxy_wireguard_interface_address | join(',') }}
-
-[Peer]
-PublicKey = {{ f1tv_proxy_wireguard_peer_publickey }}
-AllowedIPs = {{ f1tv_proxy_wireguard_peer_allowedips | join(',') }}
-Endpoint = {{ f1tv_proxy_wireguard_peer_endpoint }}

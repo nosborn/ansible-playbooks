@@ -30,11 +30,14 @@ cdn.http.anno.channel4.com
 codepush.appcenter.ms
 data.meethue.com
 delivery.aimatch.net
+device.marketingcloudapis.com
 diag.meethue.com
 diagnostics.meethue.com
 demdex.net
 e.reddit.com
 events.channel4.com
+events.data.microsoft.com
+firebaselogging-pa.googleapis.com
 getup.today
 graph.facebook.com
 gstaticadssl.l.google.com
@@ -68,50 +71,52 @@ win1710.ipv6.microsoft.com
 yospace.com
 EOT
 
+touch "${whitelist}"
+
 curl -fLsS https://raw.githubusercontent.com/nextdns/cname-cloaking-blocklist/master/domains |
   grep -Eo '^[^#]+' |
   awk 'NF==1 {print tolower($1)}' >>"${blacklist}"
 
-for list in disconnect-ads.json disconnect-malvertising.json disconnect-tracking.json nextdns-recommended.json; do
-  data="$(curl -fLsS "https://raw.githubusercontent.com/nextdns/metadata/master/privacy/blocklists/${list}")"
-
-  jq -r '(.exclusions // []) | .[]' <<<"${data}" | sed 's/^\*\.//' >>"${whitelist}"
-
-  {
-    for url in $(jq -r '.source | select(.format=="hosts") | .url' <<<"${data}"); do
-      curl -fLsS "${url}" |
-        grep -Eo '^[^#]+' |
-        awk 'NF==2 {print tolower($2)}'
-    done
-
-    for url in $(jq -r '.sources[] | select(.format=="hosts") | .url' <<<"${data}"); do
-      curl -fLsS "${url}" |
-        grep -Eo '^[^#]+' |
-        awk 'NF==2 {print tolower($2)}'
-    done
-
-    for url in $(jq -r '.source | select(.format=="domains") | .url' <<<"${data}"); do
-      curl -fLsS "${url}" |
-        grep -Eo '^[^#]+' |
-        awk 'NF==1 {print tolower($1)}'
-    done
-
-    for url in $(jq -r '.sources[] | select(.format=="domains") | .url' <<<"${data}"); do
-      curl -fLsS "${url}" |
-        grep -Eo '^[^#]+' |
-        awk 'NF==1 {print tolower($1)}'
-    done
-  } | grep -Ex '.+\..+' | grep -Evx '([0-9]\.[0-9]\.[0-9]\.[0-9]|localhost\..+)' >>"${blacklist}"
-done
+# for list in disconnect-ads.json disconnect-malvertising.json disconnect-tracking.json nextdns-recommended.json; do
+#   data="$(curl -fLsS "https://raw.githubusercontent.com/nextdns/metadata/master/privacy/blocklists/${list}")"
+#
+#   jq -r '(.exclusions // []) | .[]' <<<"${data}" | sed 's/^\*\.//' >>"${whitelist}"
+#
+#   {
+#     for url in $(jq -r '.source | select(.format=="hosts") | .url' <<<"${data}"); do
+#       curl -fLsS "${url}" |
+#         grep -Eo '^[^#]+' |
+#         awk 'NF==2 {print tolower($2)}'
+#     done
+#
+#     for url in $(jq -r '.sources[] | select(.format=="hosts") | .url' <<<"${data}"); do
+#       curl -fLsS "${url}" |
+#         grep -Eo '^[^#]+' |
+#         awk 'NF==2 {print tolower($2)}'
+#     done
+#
+#     for url in $(jq -r '.source | select(.format=="domains") | .url' <<<"${data}"); do
+#       curl -fLsS "${url}" |
+#         grep -Eo '^[^#]+' |
+#         awk 'NF==1 {print tolower($1)}'
+#     done
+#
+#     for url in $(jq -r '.sources[] | select(.format=="domains") | .url' <<<"${data}"); do
+#       curl -fLsS "${url}" |
+#         grep -Eo '^[^#]+' |
+#         awk 'NF==1 {print tolower($1)}'
+#     done
+#   } | grep -Ex '.+\..+' | grep -Evx '([0-9]\.[0-9]\.[0-9]\.[0-9]|localhost\..+)' >>"${blacklist}"
+# done
 
 for name in alexa apple huawei roku samsung sonos windows xiaomi; do
-  curl -fLsS "https://raw.githubusercontent.com/nextdns/metadata/master/privacy/native/${name}"
+  curl -fLsS "https://raw.githubusercontent.com/nextdns/native-tracking-domains/main/domains/${name}"
 done | grep -Eo '^[^#]+' | awk 'NF==1 {print tolower($1)}' >>"${blacklist}"
 
-# shellcheck disable=SC2043
-for name in parked-domains-cname; do
-  curl -fLsS "https://raw.githubusercontent.com/nextdns/metadata/master/security/${name}"
-done | grep -Eo '^[^#]+' | awk 'NF==1 {print tolower($1)}' >>"${blacklist}"
+# # shellcheck disable=SC2043
+# for name in parked-domains-cname; do
+#   curl -fLsS "https://raw.githubusercontent.com/nextdns/metadata/master/security/${name}"
+# done | grep -Eo '^[^#]+' | awk 'NF==1 {print tolower($1)}' >>"${blacklist}"
 
 sort "${blacklist}" |
   uniq |

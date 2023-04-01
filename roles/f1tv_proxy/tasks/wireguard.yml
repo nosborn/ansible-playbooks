@@ -1,8 +1,0 @@
----
-- ansible.builtin.template:
-    src: wg0.conf.j2
-    dest: /var/lib/machines/f1tv-proxy/etc/wireguard/wg0.conf
-    owner: root
-    group: root
-    mode: 0400
-  notify: restart f1tv-proxy

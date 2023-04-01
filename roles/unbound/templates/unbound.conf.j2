@@ -18,14 +18,11 @@ server:
 {% endif %}
 	ip-freebind: yes
 
-	edns-tcp-keepalive: yes
-
 {% for access_control in unbound_config_access_controls %}
 	access-control: {{ access_control }}
 {% endfor %}
 
 	log-queries: yes
-	# log-replies: yes
 	log-tag-queryreply: yes
 	log-servfail: yes
 
@@ -50,8 +47,6 @@ server:
 	private-address: ::ffff:0:0/96      # IPv4-mapped IPv6 addresses
 	private-domain: "{{ domain_name }}"
 
-	prefetch: yes
-	prefetch-key: yes
 	deny-any: yes
 
 {% if unbound_config_module_config is defined %}
