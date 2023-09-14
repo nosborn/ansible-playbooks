@@ -50,8 +50,8 @@
 
     - name: configure network interfaces
       ansible.builtin.template:
-        src: network/interfaces.j2
-        dest: /etc/network/interfaces
+        src: network/lan.network.j2
+        dest: /etc/systemd/network/lan.network
         owner: root
         group: root
         mode: 0444
@@ -64,6 +64,9 @@
 
   roles:
     - role: chrony
+    - role: grafana
+      tags:
+        - grafana
     - role: grub
       tags:
         - grub
@@ -89,11 +92,14 @@
     - role: unbound
       tags:
         - unbound
+    - role: wireguard
+      tags:
+        - wireguard
 
   handlers:
     - name: restart networking
       ansible.builtin.systemd:
-        name: networking.service
+        name: systemd-networkd.service
         state: restarted
 
 - hosts: cloudkey

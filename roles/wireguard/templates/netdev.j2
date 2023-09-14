@@ -1,0 +1,14 @@
+[NetDev]
+Kind=wireguard
+Name=wg0
+
+[WireGuard]
+ListenPort=51820
+PrivateKey={{ wireguard_private_key }}
+{% for peer in wireguard_peers %}
+
+[WireguardPeer]
+AllowedIPs={{ peer.ipv4_address }}/32
+PreSharedKey={{ wireguard_preshared_key }}
+PublicKey={{ peer.public_key }}
+{% endfor %}

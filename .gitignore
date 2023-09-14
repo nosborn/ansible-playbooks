@@ -1,4 +1,4 @@
 .envrc
-.ownca/
 .vault_password
 backup/
+wg-*.conf

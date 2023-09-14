@@ -1,0 +1,7 @@
+[Match]
+Name={{ lan_if }}
+
+[Network]
+Address={{ lan_ipv4_address }}/24
+DNS={{ lan_ipv4_subnet | ansible.utils.nthhost(1) }}
+Gateway={{ lan_ipv4_subnet | ansible.utils.nthhost(1) }}

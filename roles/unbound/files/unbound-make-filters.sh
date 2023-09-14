@@ -118,6 +118,10 @@ done | grep -Eo '^[^#]+' | awk 'NF==1 {print tolower($1)}' >>"${blacklist}"
 #   curl -fLsS "https://raw.githubusercontent.com/nextdns/metadata/master/security/${name}"
 # done | grep -Eo '^[^#]+' | awk 'NF==1 {print tolower($1)}' >>"${blacklist}"
 
+curl -fLsS https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts |
+  grep -Eo '^[^#]+' |
+  awk 'NF==2 && $1=="0.0.0.0" {print tolower($2)}' >>"${blacklist}"
+
 sort "${blacklist}" |
   uniq |
   unbound-shrink-filters.pl |

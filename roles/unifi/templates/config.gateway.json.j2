@@ -47,6 +47,15 @@
             "{{ hostvars.gateway.tunnelbroker_if }}": "''"
           }
         }
+      },
+      "route": {
+        "{{ hostvars.tombstone.wireguard_ipv4_subnet }}": {
+          "next-hop": {
+            "{{ hostvars.tombstone.lan_ipv4_address }}": {
+              "distance": 1
+            }
+          }
+        }
       }
     }
   },
