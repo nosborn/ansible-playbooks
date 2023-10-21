@@ -20,23 +20,32 @@ whitelist="${workdir}/whitelist.raw"
 cat >>"${blacklist}" <<EOT
 2cnt.net
 adservice.google.com.sg
+advertising.amazon.co.uk
+advertising.amazon.com
 adtag.sphdigital.com
 api.revenuecat.com
 apptelemetry.io
 assets.adobetm.com
+c.betly.me
+c4-ads-creative-prod.s3.eu-west-1.amazonaws.com.
 c5ads.ott.skymedia.co.uk
 captive.roku.com
+cde-ta-g7g.amazon.com
 cdn.http.anno.channel4.com
 codepush.appcenter.ms
 data.meethue.com
 delivery.aimatch.net
+demdex.net
 device.marketingcloudapis.com
 diag.meethue.com
 diagnostics.meethue.com
-demdex.net
 e.reddit.com
 events.channel4.com
 events.data.microsoft.com
+faro-collector-dev-us-central-0.grafana-dev.net
+faro-collector-ops-us-east-0.grafana-ops.net
+faro-collector-prod-eu-west-2.grafana.net
+faro-collector-prod-us-central-0.grafana.net
 firebaselogging-pa.googleapis.com
 getup.today
 graph.facebook.com
@@ -48,30 +57,39 @@ in.appcenter.ms
 init.cedexis-radar.net
 iphonesubmissions.apple.com
 metrics.tfe.apple-dns.net
-monitor.channel4.com
+mobile-app-expan.amazon.com
 monitoring.ede565d7c6c3ee6b.xhst.bbci.co.uk
 myadcash.com
 nui.media
 piwik.nic.cz
 pixel.ad
+public-live-ibl-user-activity-772687216.eu-west-1.elb.amazonaws.com
 public.edigitalresearch.com
 sc.omtrdc.net
+sec-flare.com
 skyadsuk.hs.llnwd.net
 socialbars-web1.com
 socialbars-web5.com
+stats.grafana.org
 stats.puri.sm
 telemetry-in.battle.net
+telemetry.insights.video.a2z.com
 test.huedatastore.com
 trace.aws.singtel.com
 trk.adtracker3.com
 txt.chatango.com
+unagi.amazon.com
+unagi-fe.amazon.com
+unagi-na.amazon.com
 unifi-report.ubnt.com
 win10.ipv6.microsoft.com
 win1710.ipv6.microsoft.com
 yospace.com
 EOT
 
-touch "${whitelist}"
+cat >>"${whitelist}" <<EOT
+channel4.sc.omtrdc.net
+EOT
 
 curl -fLsS https://raw.githubusercontent.com/nextdns/cname-cloaking-blocklist/master/domains |
   grep -Eo '^[^#]+' |
@@ -109,9 +127,10 @@ curl -fLsS https://raw.githubusercontent.com/nextdns/cname-cloaking-blocklist/ma
 #   } | grep -Ex '.+\..+' | grep -Evx '([0-9]\.[0-9]\.[0-9]\.[0-9]|localhost\..+)' >>"${blacklist}"
 # done
 
-for name in alexa apple huawei roku samsung sonos windows xiaomi; do
-  curl -fLsS "https://raw.githubusercontent.com/nextdns/native-tracking-domains/main/domains/${name}"
-done | grep -Eo '^[^#]+' | awk 'NF==1 {print tolower($1)}' >>"${blacklist}"
+# Moved to RPZ.
+# for name in alexa apple huawei roku samsung sonos windows xiaomi; do
+#   curl -fLsS "https://raw.githubusercontent.com/nextdns/native-tracking-domains/main/domains/${name}"
+# done | grep -Eo '^[^#]+' | awk 'NF==1 {print tolower($1)}' >>"${blacklist}"
 
 # # shellcheck disable=SC2043
 # for name in parked-domains-cname; do

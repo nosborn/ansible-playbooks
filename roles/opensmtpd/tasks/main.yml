@@ -10,7 +10,7 @@
     dest: /etc/aliases
     owner: root
     group: root
-    mode: 0444
+    mode: !!str 0444
   notify: restart opensmtpd
 
 - name: configure smtpd
@@ -19,7 +19,7 @@
     dest: /etc/smtpd.conf
     owner: root
     group: root
-    mode: 0440
+    mode: !!str 0440
     validate: smtpd -f %s -n
   notify: restart opensmtpd
 

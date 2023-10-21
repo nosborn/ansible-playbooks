@@ -5,7 +5,7 @@
     src: "{{ ownca_private_path }}/cloudkey.p12" # FIXME
     flat: true
     fail_on_missing: false
-    mode: 0400
+    mode: !!str 0400
   when: false # FIXME
 
 - become: false
@@ -18,7 +18,7 @@
     privatekey_path: "{{ ownca_private_path }}/unifi.{{ domain_name }}.key" # FIXME
     owner: root
     group: root
-    mode: 0400
+    mode: !!str 0400
   when: false # FIXME
 
 - ansible.builtin.copy: # noqa name[missing]
@@ -26,7 +26,7 @@
     dest: /etc/ssl/private/cloudkey.p12
     owner: root
     group: root
-    mode: 0400
+    mode: !!str 0400
   notify: restart unifi
   when: false # FIXME
 
@@ -62,7 +62,7 @@
     dest: "{{ unifi_keystore_path }}"
     owner: root
     group: ssl-cert
-    mode: 0440
+    mode: !!str 0440
   notify: restart unifi
   when: false # FIXME
 
@@ -80,7 +80,7 @@
     dest: "{{ unifi_keystore_path }}.md5"
     owner: root
     group: root
-    mode: 0444
+    mode: !!str 0444
   when: false # FIXME
 
 - name: create site directory
@@ -88,7 +88,7 @@
     path: "{{ unifi_dir }}/data/sites/default"
     owner: unifi
     group: unifi
-    mode: 0750
+    mode: !!str 0750
     state: directory
 
 - name: install gateway configuration
@@ -97,7 +97,7 @@
     dest: "{{ unifi_dir }}/data/sites/default/config.gateway.json"
     owner: unifi
     group: unifi
-    mode: 0444
+    mode: !!str 0444
   register: config_gateway_result
 
 - name: log in

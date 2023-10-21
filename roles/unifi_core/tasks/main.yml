@@ -1,72 +1,18 @@
-# yamllint disable rule:line-length
 ---
-- name: read current private key
-  ansible.builtin.slurp:
-    path: "{{ unifi_core_privatekey_path }}"
-  register: unifi_core_privatekey_result
-  failed_when: false
-  when: false # FIXME
-
-- name: generate private key
-  become: false
-  delegate_to: localhost
-  community.crypto.openssl_privatekey_pipe:
-    content: "{{ unifi_core_privatekey_result.content | default('') | b64decode }}"
-    type: ECC
-    curve: secp256r1
-    return_current_key: true
-  register: unifi_core_privatekey_result
-  when: false # FIXME
-
 - name: upload private key
   ansible.builtin.copy:
-    content: "{{ unifi_core_privatekey_result.privatekey }}\n"
+    content: "{{ tls_private_key }}"
     dest: "{{ unifi_core_privatekey_path }}"
     owner: root
     group: root
-    mode: 0400
+    mode: !!str 0400
   notify: restart unifi-core
-  when: false # FIXME
-
-- name: generate CSR
-  become: false
-  delegate_to: localhost
-  community.crypto.openssl_csr_pipe:
-    privatekey_content: "{{ unifi_core_privatekey_result.privatekey }}"
-    common_name: unifi.{{ domain_name }}
-    country_name: SG
-    key_usage:
-      - digitalSignature
-    key_usage_critical: true
-    extended_key_usage:
-      - serverAuth
-    subject_alt_name:
-      - DNS:unifi.{{ domain_name }}
-  register: unifi_core_csr_result
-  when: false # FIXME
-
-- name: read current certificate
-  ansible.builtin.slurp:
-    path: "{{ unifi_core_certificate_path }}"
-  register: unifi_core_certificate_result
-  failed_when: false
-  when: false # FIXME
-
-- name: issue certificate
-  ansible.builtin.import_role:
-    name: ownca
-    tasks_from: issue.yml
-  vars:
-    content: "{{ unifi_core_certificate_result.content | default('') | b64decode }}"
-    csr_content: "{{ unifi_core_csr_result.csr }}"
-  when: false # FIXME
 
 - name: upload certificate
   ansible.builtin.copy:
-    content: "{{ ownca_result.certificate }}\n"
+    content: "{{ tls_certificate }}"
     dest: "{{ unifi_core_certificate_path }}"
     owner: root
     group: root
-    mode: 0444
+    mode: !!str 0444
   notify: restart unifi-core
-  when: false # FIXME

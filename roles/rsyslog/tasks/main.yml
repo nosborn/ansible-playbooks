@@ -9,7 +9,7 @@
     dest: /etc/rsyslog.d/local.conf
     owner: root
     group: root
-    mode: 0444
+    mode: !!str 0444
   notify: restart rsyslog
 
 - name: enable and start rsyslog

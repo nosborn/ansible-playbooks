@@ -3,5 +3,3 @@
   ansible.builtin.systemd:
     name: nftables.service
     state: reloaded
-  notify: restart docker
-  when: false # FIXME

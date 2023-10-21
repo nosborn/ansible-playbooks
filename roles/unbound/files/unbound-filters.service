@@ -4,7 +4,8 @@ Description=Update Unbound filters
 Wants=unbound-filters.timer
 
 [Service]
-ExecStart=/usr/local/bin/unbound-make-filters.sh
+; ExecStart=/usr/local/bin/unbound-make-filters.sh
+ExecStart=/usr/local/sbin/unbound-make-rpz.sh
 LockPersonality=yes
 MemoryDenyWriteExecute=yes
 NoNewPrivileges=yes
@@ -20,12 +21,14 @@ ProtectKernelLogs=yes
 ProtectKernelModules=yes
 ProtectSystem=strict
 ProtectKernelTunables=yes
-ReadWriteDirectories=/etc/unbound/unbound.conf.d
+; ReadWriteDirectories=/etc/unbound/unbound.conf.d
+ReadWriteDirectories=/var/lib/unbound
 RemoveIPC=yes
 RestrictRealtime=yes
 RestrictSUIDSGID=yes
 Type=oneshot
 UMask=0022
+User=unbound
 
 [Install]
 WantedBy=multi-user.target

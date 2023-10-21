@@ -1,28 +1,26 @@
 {
-  "interfaces": {
-    "tunnel": {
-      "{{ hostvars.gateway.tunnelbroker_if }}": {
-        "address": [
-          "{{ hostvars.gateway.tunnelbroker_address }}"
-        ],
-        "description": "{{ hostvars.gateway.tunnelbroker_description }}",
-        "encapsulation": "sit",
-        "firewall": {
-          "in": {
-            "ipv6-name": "WANv6_IN"
-          },
-          "local": {
-            "ipv6-name": "WANv6_LOCAL"
-          },
-          "out": {
-            "ipv6-name": "WANv6_OUT"
-          }
+  "tunnel": {
+    "{{ hostvars.gateway.tunnelbroker_if }}": {
+      "address": [
+        "{{ hostvars.gateway.tunnelbroker_client_ipv6_address }}/64"
+      ],
+      "description": "Tunnelbroker IPv6 Tunnel",
+      "encapsulation": "sit",
+      "firewall": {
+        "in": {
+          "ipv6-name": "WANv6_IN"
         },
-        "local-ip": "{{ hostvars.gateway.wan_ipv4_address }}",
-        "multicast": "disable",
-        "remote-ip": "{{ hostvars.gateway.tunnelbroker_remote_ip }}",
-        "ttl": 255
-      }
+        "local": {
+          "ipv6-name": "WANv6_LOCAL"
+        },
+        "out": {
+          "ipv6-name": "WANv6_OUT"
+        }
+      },
+      "local-ip": "{{ hostvars.gateway.wan_ipv4_address }}",
+      "multicast": "disable",
+      "remote-ip": "{{ hostvars.gateway.tunnelbroker_server_ipv4_address }}",
+      "ttl": "255"
     }
   },
   "protocols": {
@@ -45,15 +43,6 @@
         "::/0": {
           "next-hop-interface": {
             "{{ hostvars.gateway.tunnelbroker_if }}": "''"
-          }
-        }
-      },
-      "route": {
-        "{{ hostvars.tombstone.wireguard_ipv4_subnet }}": {
-          "next-hop": {
-            "{{ hostvars.tombstone.lan_ipv4_address }}": {
-              "distance": 1
-            }
           }
         }
       }

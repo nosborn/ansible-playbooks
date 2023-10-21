@@ -7,7 +7,7 @@
     dest: /etc/default/locale
     owner: root
     group: root
-    mode: 0444
+    mode: !!str 0444
 
 - name: configure build locales
   ansible.builtin.lineinfile:

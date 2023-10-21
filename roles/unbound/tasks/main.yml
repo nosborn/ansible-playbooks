@@ -10,15 +10,15 @@
     dest: /etc/unbound/unbound.conf
     owner: root
     group: root
-    mode: 0444
+    mode: !!str 0444
     validate: unbound-checkconf %s
   notify: restart unbound
+
+- name: set up unbound filters
+  ansible.builtin.import_tasks: filters.yml
 
 - name: enable and start unbound
   ansible.builtin.systemd:
     name: unbound.service
     enabled: true
     state: started
-
-- name: set up unbound filters
-  ansible.builtin.import_tasks: filters.yml

@@ -1,4 +1,6 @@
 ---
+ca_certificate: "{{ vault_ca_certificate }}"
+ca_private_key: "{{ vault_ca_private_key }}"
 domain_name: "{{ vault_domain_name }}"
 guest_ipv4_subnet: "{{ vault_guest_ipv4_subnet }}"
 guest_ipv6_subnet: "{{ vault_guest_ipv6_subnet }}"

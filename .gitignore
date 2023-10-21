@@ -1,4 +1,5 @@
 .envrc
 .vault_password
 backup/
+ca/
 wg-*.conf

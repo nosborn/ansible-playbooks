@@ -19,7 +19,7 @@
     path: /etc/imapfilter
     owner: root
     group: imapfilter
-    mode: 0750
+    mode: !!str 0750
     state: directory
 
 - name: create configuration
@@ -28,7 +28,7 @@
     dest: /etc/imapfilter/config.lua
     owner: root
     group: imapfilter
-    mode: 0440
+    mode: !!str 0440
   notify: restart imapfilter
 
 - name: configure service
@@ -37,7 +37,7 @@
     dest: /etc/systemd/system/imapfilter.service
     owner: root
     group: root
-    mode: 0444
+    mode: !!str 0444
   notify: restart imapfilter
 
 - name: enable and start service

@@ -2,5 +2,9 @@
 Name=wg0
 
 [Network]
-Address={{ wireguard_ipv4_address }}/24
-IPForward=yes
+Address={{ wireguard_ipv4_address }}/32
+IPForward=ipv4
+
+[Route]
+Gateway={{ wireguard_ipv4_address }}
+Destination={{ wireguard_ipv4_subnet }}

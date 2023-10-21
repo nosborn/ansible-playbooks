@@ -18,6 +18,10 @@ server:
 {% endif %}
 	ip-freebind: yes
 
+	do-ip6: no
+
+	tls-cert-bundle: /etc/ssl/certs/ca-certificates.crt
+
 {% for access_control in unbound_config_access_controls %}
 	access-control: {{ access_control }}
 {% endfor %}
@@ -47,15 +51,20 @@ server:
 	private-address: ::ffff:0:0/96      # IPv4-mapped IPv6 addresses
 	private-domain: "{{ domain_name }}"
 
+#	prefetch: yes
+
 	deny-any: yes
 
-{% if unbound_config_module_config is defined %}
-	module-config: "{{ unbound_config_module_config | join(' ') }}"
-
-{% endif %}
+	module-config: "respip validator iterator"
 
 {% if smartdns_domains is defined %}
 {%   for domain in smartdns_domains %}
+	domain-insecure: "{{ domain }}"
+{%   endfor %}
+
+{% endif %}
+{% if smartdns_uk_domains is defined %}
+{%   for domain in smartdns_uk_domains %}
 	domain-insecure: "{{ domain }}"
 {%   endfor %}
 
@@ -83,9 +92,12 @@ server:
 
 	{{ unbound_config_local_data | trim | indent('\t') }}
 
+	local-zone: "bbc-reporting-api.app." static
+	local-zone: "telemetry.api.bbci.co.uk." static
+
 # The following line includes additional configuration files from the
 # /etc/unbound/unbound.conf.d directory.
-include-toplevel: "/etc/unbound/unbound.conf.d/*.conf"
+#include-toplevel: "/etc/unbound/unbound.conf.d/*.conf"
 
 {% if smartdns_exclusions is defined and unbound_forwarders is defined %}
 {%   for domain in smartdns_exclusions %}
@@ -94,6 +106,8 @@ forward-zone:
 {%     for address in unbound_forwarders %}
 	forward-addr: {{ address }}
 {%     endfor %}
+	forward-no-cache: yes
+#	forward-tls-upstream: yes
 
 {%   endfor %}
 {% endif %}
@@ -104,6 +118,7 @@ forward-zone:
 {%     for address in smartdns_servers %}
 	forward-addr: {{ address }}
 {%     endfor %}
+	forward-no-cache: yes
 
 {%   endfor %}
 {% endif %}
@@ -113,73 +128,80 @@ forward-zone:
 {%   for forwarder in unbound_forwarders %}
 	forward-addr: {{ forwarder }}
 {%   endfor %}
+	forward-no-cache: yes
+#	forward-tls-upstream: yes
 
 {% endif %}
-auth-zone:
-	name: "."
-	zonefile: "/var/lib/unbound/root.zone"
+#auth-zone:
+#	name: "."
+#	zonefile: "/var/lib/unbound/root.zone"
+#
+#	# master: "128.9.28.5" # localroot-w-4
+#	# master: "128.9.63.145" # localroot-e-4
+#	# master: "206.117.5.93" # localroot-lax-4
+#
+#	# Backup servers that allow axfr today:
+#	master: "192.228.79.201" # b-v4.root-servers.net
+#	master: "192.33.4.12"    # c-v4.root-servers.net
+#	master: "199.7.91.13"    # d-v4.root-servers.net
+#	master: "192.5.5.241"    # f-v4.root-servers.net
+#	master: "192.112.36.4"   # g-v4.root-servers.net
+#	master: "193.0.14.129"   # k-v4.root-servers.net
+#	master: "192.0.32.132"   # lax-v4.xfr.dns.icann.org
+#	master: "192.0.47.132"   # xfr-v4.cjr.dns.icann.org
+#
+#	# other options:
+#	fallback-enabled: yes
+#	for-downstream: no
+#	for-upstream: yes
 
-	# master: "128.9.28.5" # localroot-w-4
-	# master: "128.9.63.145" # localroot-e-4
-	# master: "206.117.5.93" # localroot-lax-4
+#auth-zone:
+#	name: "arpa"
+#	zonefile: "/var/lib/unbound/arpa.zone"
+#
+#	# master: "128.9.28.5" # localroot-w-4
+#	# master: "128.9.63.145" # localroot-e-4
+#	# master: "206.117.5.93" # localroot-lax-4
+#
+#	# Backup servers that allow axfr today:
+#	master: "192.228.79.201"       # b-v4.root-servers.net
+#	master: "192.33.4.12"          # c-v4.root-servers.net
+#	master: "199.7.91.13"          # d-v4.root-servers.net
+#	master: "192.5.5.241"          # f-v4.root-servers.net
+#	master: "192.112.36.4"         # g-v4.root-servers.net
+#	master: "193.0.14.129"         # k-v4.root-servers.net
+#	master: "192.0.32.132"         # lax-v4.xfr.dns.icann.org
+#	master: "192.0.47.132"         # xfr-v4.cjr.dns.icann.org
+#
+#	# other options:
+#	fallback-enabled: yes
+#	for-downstream: no
+#	for-upstream: yes
 
-	# Backup servers that allow axfr today:
-	master: "192.228.79.201" # b-v4.root-servers.net
-	master: "192.33.4.12"    # c-v4.root-servers.net
-	master: "199.7.91.13"    # d-v4.root-servers.net
-	master: "192.5.5.241"    # f-v4.root-servers.net
-	master: "192.112.36.4"   # g-v4.root-servers.net
-	master: "193.0.14.129"   # k-v4.root-servers.net
-	master: "192.0.32.132"   # lax-v4.xfr.dns.icann.org
-	master: "192.0.47.132"   # xfr-v4.cjr.dns.icann.org
+#auth-zone:
+#	name: "root-servers.net"
+#	zonefile: "/var/lib/unbound/root-servers.net.zone"
+#
+#	# master: "128.9.28.5" # localroot-w-4
+#	# master: "128.9.63.145" # localroot-e-4
+#	# master: "206.117.5.93" # localroot-lax-4
+#
+#	# Backup servers that allow axfr today:
+#	master: "192.228.79.201"       # b-v4.root-servers.net
+#	master: "192.33.4.12"          # c-v4.root-servers.net
+#	master: "199.7.91.13"          # d-v4.root-servers.net
+#	master: "192.5.5.241"          # f-v4.root-servers.net
+#	master: "192.112.36.4"         # g-v4.root-servers.net
+#	master: "193.0.14.129"         # k-v4.root-servers.net
+#	master: "192.0.32.132"         # lax-v4.xfr.dns.icann.org
+#	master: "192.0.47.132"         # xfr-v4.cjr.dns.icann.org
+#
+#	# other options:
+#	fallback-enabled: yes
+#	for-downstream: no
+#	for-upstream: yes
 
-	# other options:
-	fallback-enabled: yes
-	for-downstream: no
-	for-upstream: yes
-
-auth-zone:
-	name: "arpa"
-	zonefile: "/var/lib/unbound/arpa.zone"
-
-	# master: "128.9.28.5" # localroot-w-4
-	# master: "128.9.63.145" # localroot-e-4
-	# master: "206.117.5.93" # localroot-lax-4
-
-	# Backup servers that allow axfr today:
-	master: "192.228.79.201"       # b-v4.root-servers.net
-	master: "192.33.4.12"          # c-v4.root-servers.net
-	master: "199.7.91.13"          # d-v4.root-servers.net
-	master: "192.5.5.241"          # f-v4.root-servers.net
-	master: "192.112.36.4"         # g-v4.root-servers.net
-	master: "193.0.14.129"         # k-v4.root-servers.net
-	master: "192.0.32.132"         # lax-v4.xfr.dns.icann.org
-	master: "192.0.47.132"         # xfr-v4.cjr.dns.icann.org
-
-	# other options:
-	fallback-enabled: yes
-	for-downstream: no
-	for-upstream: yes
-
-auth-zone:
-	name: "root-servers.net"
-	zonefile: "/var/lib/unbound/root-servers.net.zone"
-
-	# master: "128.9.28.5" # localroot-w-4
-	# master: "128.9.63.145" # localroot-e-4
-	# master: "206.117.5.93" # localroot-lax-4
-
-	# Backup servers that allow axfr today:
-	master: "192.228.79.201"       # b-v4.root-servers.net
-	master: "192.33.4.12"          # c-v4.root-servers.net
-	master: "199.7.91.13"          # d-v4.root-servers.net
-	master: "192.5.5.241"          # f-v4.root-servers.net
-	master: "192.112.36.4"         # g-v4.root-servers.net
-	master: "193.0.14.129"         # k-v4.root-servers.net
-	master: "192.0.32.132"         # lax-v4.xfr.dns.icann.org
-	master: "192.0.47.132"         # xfr-v4.cjr.dns.icann.org
-
-	# other options:
-	fallback-enabled: yes
-	for-downstream: no
-	for-upstream: yes
+rpz:
+	name: "rpz.home.arpa"
+	zonefile: "/var/lib/unbound/rpz.home.arpa.zone"
+	rpz-log: yes

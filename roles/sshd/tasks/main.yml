@@ -9,7 +9,7 @@
     dest: /etc/ssh/sshd_config
     owner: root
     group: root
-    mode: 0444
+    mode: !!str 0444
     validate: sshd -f %s -t
   notify: restart sshd
 

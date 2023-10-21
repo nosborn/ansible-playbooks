@@ -16,7 +16,7 @@
     path: /var/lib/homebridge
     owner: homebridge
     group: homebridge
-    mode: 0700
+    mode: !!str 0700
     state: directory
 
 - name: create configuration
@@ -25,7 +25,7 @@
     dest: /var/lib/homebridge/config.json
     owner: homebridge
     group: homebridge
-    mode: 0400
+    mode: !!str 0400
     validate: "{{ jsonlint_validate_command }}"
   notify: restart homebridge
 
@@ -35,7 +35,7 @@
     dest: /var/lib/homebridge/package.json
     owner: homebridge
     group: homebridge
-    mode: 0400
+    mode: !!str 0400
     validate: "{{ jsonlint_validate_command }}"
   notify: restart homebridge
 
@@ -53,7 +53,7 @@
     dest: /etc/systemd/system/homebridge.service
     owner: root
     group: root
-    mode: 0444
+    mode: !!str 0444
   notify: restart homebridge
 
 - name: enable and start service

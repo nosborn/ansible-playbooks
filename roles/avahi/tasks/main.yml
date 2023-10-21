@@ -9,7 +9,7 @@
     dest: /etc/avahi/avahi-daemon.conf
     owner: root
     group: root
-    mode: 0444
+    mode: !!str 0444
   notify: restart avahi-daemon
   when: false
 

@@ -1,6 +1,7 @@
 # yamllint disable rule:line-length
 ---
-- hosts: all
+- name: Gather facts
+  hosts: all
 
   pre_tasks:
     - name: gather facts from excluded hosts
@@ -13,7 +14,8 @@
       tags:
         - always
 
-- hosts: tombstone
+- name: Configure Tombstone
+  hosts: tombstone
   gather_facts: false
 
   pre_tasks:
@@ -36,7 +38,7 @@
         dest: /etc/timezone
         owner: root
         group: root
-        mode: 0444
+        mode: !!str 0444
       tags:
         - always
 
@@ -54,7 +56,7 @@
         dest: /etc/systemd/network/lan.network
         owner: root
         group: root
-        mode: 0444
+        mode: !!str 0444
       notify: restart networking
       tags:
         - always
@@ -64,9 +66,6 @@
 
   roles:
     - role: chrony
-    - role: grafana
-      tags:
-        - grafana
     - role: grub
       tags:
         - grub
@@ -76,10 +75,10 @@
     - role: imapfilter
       tags:
         - imapfilter
-    # - role: k3s
-    #   tags:
-    #     - k3s
     - role: locale
+    - role: nftables
+      tags:
+        - nftables
     - role: rfkill
     - role: rsyslog
       tags:
@@ -102,13 +101,15 @@
         name: systemd-networkd.service
         state: restarted
 
-- hosts: cloudkey
+- name: Configure CloudKey
+  hosts: cloudkey
   gather_facts: false
 
   roles:
     - role: unifi
 
-- hosts: gateway
+- name: Configure Gateway
+  hosts: gateway
   gather_facts: false
 
   roles:

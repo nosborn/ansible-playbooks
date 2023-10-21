@@ -3,28 +3,36 @@
   ansible.builtin.apt:
     name:
       - curl
-      - jq
+      - dos2unix
     install_recommends: false
 
 - name: install unbound filter scripts
   ansible.builtin.copy:
     src: "{{ unbound_item }}"
-    dest: /usr/local/bin/{{ unbound_item }}
+    dest: /usr/local/sbin/{{ unbound_item }}
     owner: root
     group: root
-    mode: 0550
+    mode: !!str 0555
+    validate: sh -n %s
   loop:
-    - unbound-make-filters.sh
-    - unbound-shrink-filters.pl
+    # - unbound-make-filters.sh
+    - unbound-make-rpz.sh
+    # - unbound-shrink-filters.pl
   loop_control:
     loop_var: unbound_item
   notify: start unbound-filters
 
 - name: make unbound filters
+  become: true
+  become_flags: --set-home
+  become_user: unbound
   ansible.builtin.command:
+    # argv:
+    #   - /usr/local/bin/unbound-make-filters.sh
+    # creates: /etc/unbound/unbound.conf.d/blacklist.conf
     argv:
-      - /usr/local/bin/unbound-make-filters.sh
-    creates: /etc/unbound/unbound.conf.d/blacklist.conf
+      - /usr/local/sbin/unbound-make-rpz.sh
+    creates: /var/lib/unbound/rpz.home.arpa.zone
   notify: restart unbound
 
 - name: install unbound-filters service
@@ -33,7 +41,7 @@
     dest: /etc/systemd/system/{{ unbound_item }}
     owner: root
     group: root
-    mode: 0444
+    mode: !!str 0444
   loop:
     - unbound-filters.service
     - unbound-filters.timer
