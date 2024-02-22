@@ -1,5 +1,0 @@
----
-- name: restart teleport
-  ansible.builtin.systemd:
-    name: teleport.service
-    state: restarted

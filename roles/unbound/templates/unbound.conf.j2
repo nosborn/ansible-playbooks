@@ -1,37 +1,30 @@
 server:
-	verbosity: 1
+	verbosity: 2
 
-	extended-statistics: yes
 	num-threads: 1
 
 {% for interface in unbound_config_interfaces %}
 	interface: {{ interface }}
 {% endfor %}
-
 	outgoing-interface: {{ lan_ipv4_address }}
+	ip-transparent: yes
 
-{% if unbound_config_outgoing_port_avoid | length %}
-{%   for port in unbound_config_outgoing_port_avoid %}
-	outgoing-port-avoid: {{ port }}
-{%   endfor %}
+	#do-ip6: no
 
-{% endif %}
-	ip-freebind: yes
-
-	do-ip6: no
-
-	tls-cert-bundle: /etc/ssl/certs/ca-certificates.crt
+	tls-cert-bundle: "/etc/ssl/cert.pem"
 
 {% for access_control in unbound_config_access_controls %}
 	access-control: {{ access_control }}
 {% endfor %}
 
 	log-queries: yes
+	#log-replies: yes
 	log-tag-queryreply: yes
-	log-servfail: yes
+	#log-servfail: yes
 
 	hide-identity: yes
 	hide-version: yes
+	#hide-trustanchor: yes
 
 	private-address: 0.0.0.0/8
 	private-address: 10.0.0.0/8         # Private-Use
@@ -51,41 +44,38 @@ server:
 	private-address: ::ffff:0:0/96      # IPv4-mapped IPv6 addresses
 	private-domain: "{{ domain_name }}"
 
-#	prefetch: yes
-
 	deny-any: yes
 
-	module-config: "respip validator iterator"
+	#module-config: "respip validator iterator" -- FIXME
+	module-config: "respip iterator"
 
-{% if smartdns_domains is defined %}
-{%   for domain in smartdns_domains %}
-	domain-insecure: "{{ domain }}"
-{%   endfor %}
+	auto-trust-anchor-file: "/var/unbound/db/root.key"
 
-{% endif %}
-{% if smartdns_uk_domains is defined %}
-{%   for domain in smartdns_uk_domains %}
-	domain-insecure: "{{ domain }}"
-{%   endfor %}
+	domain-insecure: "e673.dsce9.akamaiedge.net." # F1TV
+	domain-insecure: "f1accountprod.report-uri.com." # F1TV
+	domain-insecure: "formula1.com." # F1TV
+	domain-insecure: "licensing.bitmovin.com." # F1TV
+	domain-insecure: "watchliveformula1.com." # F1TV
 
-{% endif %}
 	val-log-level: 2
 
-	serve-expired: yes
-	serve-expired-ttl: 86400
-	serve-expired-ttl-reset: yes
-	serve-expired-reply-ttl: 30
-	serve-expired-client-timeout: 1800
+	#serve-expired: yes
+	#serve-expired-ttl: 86400
+	#serve-expired-ttl-reset: yes
+	#serve-expired-reply-ttl: 30
+	#serve-expired-client-timeout: 1800
 
 	# https://support.mozilla.org/en-US/kb/canary-domain-use-application-dnsnet
-	local-zone: "use-application-dns.net." static
+	local-zone: "use-application-dns.net." always_nxdomain
 
-	## https://developer.apple.com/support/prepare-your-network-for-icloud-private-relay
-	#local-zone: "mask.icloud.com." static
-	#local-zone: "mask-h2.icloud.com." static
+	# https://developer.apple.com/support/prepare-your-network-for-icloud-private-relay
+	local-zone: "mask.icloud.com." always_nxdomain
+	local-zone: "mask-h2.icloud.com." always_nxdomain
 
 	# DNS-over-HTTPS
-	local-zone: "doh.dns.apple.com." static
+	local-zone: "doh.dns.apple.com." always_nxdomain
+
+	local-zone: "resolver.arpa." always_nxdomain
 
 	local-zone: "{{ domain_name }}." static
 	local-zone: "local." static
@@ -95,113 +85,150 @@ server:
 	local-zone: "bbc-reporting-api.app." static
 	local-zone: "telemetry.api.bbci.co.uk." static
 
+	local-zone: "dns.google." always_nxdomain
+
 # The following line includes additional configuration files from the
 # /etc/unbound/unbound.conf.d directory.
 #include-toplevel: "/etc/unbound/unbound.conf.d/*.conf"
 
-{% if smartdns_exclusions is defined and unbound_forwarders is defined %}
-{%   for domain in smartdns_exclusions %}
-forward-zone:
-	name: "{{ domain }}."
-{%     for address in unbound_forwarders %}
-	forward-addr: {{ address }}
-{%     endfor %}
-	forward-no-cache: yes
-#	forward-tls-upstream: yes
-
-{%   endfor %}
-{% endif %}
-{% if smartdns_domains is defined %}
-{%   for domain in smartdns_domains %}
-forward-zone:
-	name: "{{ domain }}."
-{%     for address in smartdns_servers %}
-	forward-addr: {{ address }}
-{%     endfor %}
+forward-zone: # F1TV
+	name: "e673.dsce9.akamaiedge.net"
+	forward-addr: 54.251.190.247
+	forward-addr: 54.255.130.140
 	forward-no-cache: yes
 
-{%   endfor %}
-{% endif %}
-{% if unbound_forwarders is defined %}
+forward-zone: # F1TV
+	name: "f1accountprod.report-uri.com"
+	forward-addr: 54.251.190.247
+	forward-addr: 54.255.130.140
+	forward-no-cache: yes
+
+forward-zone: # F1TV
+	name: "f1prodlive.akamaized.net"
+	forward-addr: 54.251.190.247
+	forward-addr: 54.255.130.140
+	forward-no-cache: yes
+
+forward-zone: # F1TV
+	name: "formula1.com"
+	forward-addr: 54.251.190.247
+	forward-addr: 54.255.130.140
+	forward-no-cache: yes
+
+forward-zone:
+	name: "getflix.com"
+	forward-addr: 54.251.190.247
+	forward-no-cache: yes
+
+forward-zone:
+	name: "getflix.com.au"
+	forward-addr: 54.251.190.247
+	forward-no-cache: yes
+
+forward-zone:
+	name: "in-addr.arpa"
+	forward-addr: 1.1.1.1@853#cloudflare-dns.com
+	forward-addr: 1.0.0.1@853#cloudflare-dns.com
+	forward-tls-upstream: yes
+
+forward-zone: # F1TV
+	name: "licensing.bitmovin.com"
+	forward-addr: 54.251.190.247
+	forward-addr: 54.255.130.140
+	forward-no-cache: yes
+
+forward-zone:
+	name: "smartdnsproxy.com"
+	forward-addr: 54.255.130.140
+	forward-no-cache: yes
+
+forward-zone: # F1TV
+	name: "watchliveformula1.com."
+	forward-addr: 54.251.190.247
+	forward-addr: 54.255.130.140
+	forward-no-cache: yes
+
 forward-zone:
 	name: "."
-{%   for forwarder in unbound_forwarders %}
-	forward-addr: {{ forwarder }}
-{%   endfor %}
-	forward-no-cache: yes
-#	forward-tls-upstream: yes
+	forward-addr: 1.1.1.1@853#cloudflare-dns.com
+	forward-addr: 1.0.0.1@853#cloudflare-dns.com
+	# forward-addr: 103.86.96.100@853#dns1.nordvpn.com
+	# forward-addr: 103.86.99.100@853#dns2.nordvpn.com
+	# forward-addr: 2606:4700:4700::1111@853#cloudflare-dns.com
+	# forward-addr: 2606:4700:4700::1001@853#cloudflare-dns.com
+	forward-tls-upstream: yes
 
-{% endif %}
-#auth-zone:
-#	name: "."
-#	zonefile: "/var/lib/unbound/root.zone"
-#
-#	# master: "128.9.28.5" # localroot-w-4
-#	# master: "128.9.63.145" # localroot-e-4
-#	# master: "206.117.5.93" # localroot-lax-4
-#
-#	# Backup servers that allow axfr today:
-#	master: "192.228.79.201" # b-v4.root-servers.net
-#	master: "192.33.4.12"    # c-v4.root-servers.net
-#	master: "199.7.91.13"    # d-v4.root-servers.net
-#	master: "192.5.5.241"    # f-v4.root-servers.net
-#	master: "192.112.36.4"   # g-v4.root-servers.net
-#	master: "193.0.14.129"   # k-v4.root-servers.net
-#	master: "192.0.32.132"   # lax-v4.xfr.dns.icann.org
-#	master: "192.0.47.132"   # xfr-v4.cjr.dns.icann.org
-#
-#	# other options:
-#	fallback-enabled: yes
-#	for-downstream: no
-#	for-upstream: yes
+auth-zone:
+	name: "."
+	zonefile: "/var/unbound/db/root.zone"
 
-#auth-zone:
-#	name: "arpa"
-#	zonefile: "/var/lib/unbound/arpa.zone"
-#
-#	# master: "128.9.28.5" # localroot-w-4
-#	# master: "128.9.63.145" # localroot-e-4
-#	# master: "206.117.5.93" # localroot-lax-4
-#
-#	# Backup servers that allow axfr today:
-#	master: "192.228.79.201"       # b-v4.root-servers.net
-#	master: "192.33.4.12"          # c-v4.root-servers.net
-#	master: "199.7.91.13"          # d-v4.root-servers.net
-#	master: "192.5.5.241"          # f-v4.root-servers.net
-#	master: "192.112.36.4"         # g-v4.root-servers.net
-#	master: "193.0.14.129"         # k-v4.root-servers.net
-#	master: "192.0.32.132"         # lax-v4.xfr.dns.icann.org
-#	master: "192.0.47.132"         # xfr-v4.cjr.dns.icann.org
-#
-#	# other options:
-#	fallback-enabled: yes
-#	for-downstream: no
-#	for-upstream: yes
+	# master: "128.9.28.5" # localroot-w-4
+	# master: "128.9.63.145" # localroot-e-4
+	# master: "206.117.5.93" # localroot-lax-4
 
-#auth-zone:
-#	name: "root-servers.net"
-#	zonefile: "/var/lib/unbound/root-servers.net.zone"
-#
-#	# master: "128.9.28.5" # localroot-w-4
-#	# master: "128.9.63.145" # localroot-e-4
-#	# master: "206.117.5.93" # localroot-lax-4
-#
-#	# Backup servers that allow axfr today:
-#	master: "192.228.79.201"       # b-v4.root-servers.net
-#	master: "192.33.4.12"          # c-v4.root-servers.net
-#	master: "199.7.91.13"          # d-v4.root-servers.net
-#	master: "192.5.5.241"          # f-v4.root-servers.net
-#	master: "192.112.36.4"         # g-v4.root-servers.net
-#	master: "193.0.14.129"         # k-v4.root-servers.net
-#	master: "192.0.32.132"         # lax-v4.xfr.dns.icann.org
-#	master: "192.0.47.132"         # xfr-v4.cjr.dns.icann.org
-#
-#	# other options:
-#	fallback-enabled: yes
-#	for-downstream: no
-#	for-upstream: yes
+	# Backup servers that allow axfr today:
+	master: "192.228.79.201" # b-v4.root-servers.net
+	master: "192.33.4.12"    # c-v4.root-servers.net
+	master: "199.7.91.13"    # d-v4.root-servers.net
+	master: "192.5.5.241"    # f-v4.root-servers.net
+	master: "192.112.36.4"   # g-v4.root-servers.net
+	master: "193.0.14.129"   # k-v4.root-servers.net
+	master: "192.0.32.132"   # lax-v4.xfr.dns.icann.org
+	master: "192.0.47.132"   # xfr-v4.cjr.dns.icann.org
+
+	# other options:
+	fallback-enabled: yes
+	for-downstream: no
+	for-upstream: yes
+
+auth-zone:
+	name: "arpa"
+	zonefile: "/var/unbound/db/arpa.zone"
+
+	# master: "128.9.28.5" # localroot-w-4
+	# master: "128.9.63.145" # localroot-e-4
+	# master: "206.117.5.93" # localroot-lax-4
+
+	# Backup servers that allow axfr today:
+	master: "192.228.79.201"       # b-v4.root-servers.net
+	master: "192.33.4.12"          # c-v4.root-servers.net
+	master: "199.7.91.13"          # d-v4.root-servers.net
+	master: "192.5.5.241"          # f-v4.root-servers.net
+	master: "192.112.36.4"         # g-v4.root-servers.net
+	master: "193.0.14.129"         # k-v4.root-servers.net
+	master: "192.0.32.132"         # lax-v4.xfr.dns.icann.org
+	master: "192.0.47.132"         # xfr-v4.cjr.dns.icann.org
+
+	# other options:
+	fallback-enabled: yes
+	for-downstream: no
+	for-upstream: yes
+
+auth-zone:
+	name: "root-servers.net"
+	zonefile: "/var/unbound/db/root-servers.net.zone"
+
+	# master: "128.9.28.5" # localroot-w-4
+	# master: "128.9.63.145" # localroot-e-4
+	# master: "206.117.5.93" # localroot-lax-4
+
+	# Backup servers that allow axfr today:
+	master: "192.228.79.201"       # b-v4.root-servers.net
+	master: "192.33.4.12"          # c-v4.root-servers.net
+	master: "199.7.91.13"          # d-v4.root-servers.net
+	master: "192.5.5.241"          # f-v4.root-servers.net
+	master: "192.112.36.4"         # g-v4.root-servers.net
+	master: "193.0.14.129"         # k-v4.root-servers.net
+	master: "192.0.32.132"         # lax-v4.xfr.dns.icann.org
+	master: "192.0.47.132"         # xfr-v4.cjr.dns.icann.org
+
+	# other options:
+	fallback-enabled: yes
+	for-downstream: no
+	for-upstream: yes
 
 rpz:
 	name: "rpz.home.arpa"
-	zonefile: "/var/lib/unbound/rpz.home.arpa.zone"
+	url: "https://big.oisd.nl/rpz"
+	zonefile: "/var/unbound/db/rpz.home.arpa.zone"
 	rpz-log: yes

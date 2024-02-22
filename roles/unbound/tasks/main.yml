@@ -1,24 +1,40 @@
 ---
-- name: install unbound
-  ansible.builtin.apt:
-    name: unbound
-    install_recommends: false
+# - name: install unbound
+#   ansible.builtin.apt:
+#     name: unbound
+#     install_recommends: false
+
+# - name: configure unbound
+#   ansible.builtin.template:
+#     src: unbound.conf.d/{{ item }}.j2
+#     dest: /etc/unbound/unbound.conf.d/{{ item }}
+#     owner: root
+#     group: root
+#     mode: !!str 0444
+#   loop:
+#     - channel4.conf
+#     - demand5.conf
+#     - f1tv.conf
+#     - getflix.conf
+#     - iplayer.conf
+#     - itvx.conf
+#     - smartdnsproxy.conf
+#   notify: restart unbound
 
 - name: configure unbound
   ansible.builtin.template:
     src: unbound.conf.j2
-    dest: /etc/unbound/unbound.conf
+    dest: /var/unbound/etc/unbound.conf
     owner: root
-    group: root
+    group: wheel
     mode: !!str 0444
-    validate: unbound-checkconf %s
   notify: restart unbound
 
-- name: set up unbound filters
-  ansible.builtin.import_tasks: filters.yml
+# - name: set up unbound filters
+#   ansible.builtin.import_tasks: filters.yml
 
 - name: enable and start unbound
-  ansible.builtin.systemd:
-    name: unbound.service
+  ansible.builtin.service:
+    name: unbound
     enabled: true
     state: started

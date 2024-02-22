@@ -1,0 +1,33 @@
+---
+- name: install package
+  community.general.openbsd_pkg:
+    name: grafana
+    state: present
+
+- name: configure
+  ansible.builtin.template:
+    src: config.ini.j2
+    dest: /etc/grafana/config.ini
+    owner: root
+    group: _grafana
+    mode: !!str 0440
+  notify: restart grafana
+
+- name: provision
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: /etc/grafana/provisioning/{{ item }}
+    owner: root
+    group: _grafana
+    mode: !!str 0440
+  loop:
+    - datasources/alertmanager.yaml
+    - datasources/loki.yaml
+    - datasources/prometheus.yaml
+  notify: restart grafana
+
+- name: enable and start service
+  ansible.builtin.service:
+    name: grafana
+    enabled: true
+    state: started

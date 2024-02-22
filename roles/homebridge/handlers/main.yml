@@ -1,6 +1,5 @@
 ---
 - name: restart homebridge
-  ansible.builtin.systemd:
-    name: homebridge.service
-    daemon_reload: true
+  ansible.builtin.service:
+    name: homebridge
     state: restarted

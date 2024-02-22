@@ -1,9 +1,0 @@
-# yamllint disable rule:line-length
----
-- name: configure parameters
-  ansible.builtin.lineinfile:
-    path: /etc/default/grub
-    regexp: ^GRUB_CMDLINE_LINUX_DEFAULT=
-    line: GRUB_CMDLINE_LINUX_DEFAULT="{{ grub_cmdline_linux_default | join(' ') }}"
-    mode: !!str 0444
-  notify: grub-mkconfig

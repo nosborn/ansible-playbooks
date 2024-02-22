@@ -1,5 +1,5 @@
 ---
-- name: restart imapfilter
+- name: restart grafana
   ansible.builtin.service:
-    name: imapfilter
+    name: grafana
     state: restarted

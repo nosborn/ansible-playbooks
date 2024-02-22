@@ -1,0 +1,6 @@
+---
+- name: enable and start service
+  ansible.builtin.service:
+    name: apmd
+    enabled: true
+    state: started

@@ -1,7 +1,7 @@
 ---
 - name: restart unbound
-  ansible.builtin.systemd:
-    name: unbound.service
+  ansible.builtin.service:
+    name: unbound
     state: restarted
 
 - name: start unbound-filters

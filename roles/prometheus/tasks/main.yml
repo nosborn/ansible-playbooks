@@ -1,0 +1,38 @@
+---
+- name: install package
+  community.general.openbsd_pkg:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - alertmanager
+    - node_exporter
+    - prometheus
+
+- name: configure alertmanager
+  ansible.builtin.template:
+    src: alertmanager.yml.j2
+    dest: /etc/alertmanager/alertmanager.yml
+    owner: root
+    group: _alertmanager
+    mode: !!str 0440
+  notify: restart alertmanager
+
+- name: configure prometheus
+  ansible.builtin.template:
+    src: prometheus.yml.j2
+    dest: /etc/prometheus/prometheus.yml
+    owner: root
+    group: _prometheus
+    mode: !!str 0440
+    validate: promtool check config %s
+  notify: restart prometheus
+
+- name: enable and start services
+  ansible.builtin.service:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  loop:
+    - alertmanager
+    - node_exporter
+    - prometheus

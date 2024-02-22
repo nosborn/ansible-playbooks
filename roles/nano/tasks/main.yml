@@ -1,7 +1,0 @@
----
-- name: remove nano
-  ansible.builtin.apt:
-    name: nano
-    purge: true
-    autoremove: true
-    state: absent

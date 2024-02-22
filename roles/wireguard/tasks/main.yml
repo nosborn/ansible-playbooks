@@ -1,7 +1,10 @@
 ---
 - name: install package
   ansible.builtin.apt:
-    name: wireguard-tools
+    name:
+      - iptables
+      - wireguard
+    install_recommends: false
 
 - name: configure wireguard
   ansible.builtin.template:
@@ -17,3 +20,20 @@
     name: wg-quick@wg0.service
     enabled: true
     state: started
+
+- name: enable IP forwarding
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: !!str 1
+    sysctl_set: true
+    reload: true
+
+- name: configure clients
+  delegate_to: localhost
+  ansible.builtin.template:
+    src: client.conf.j2
+    dest: "{{ playbook_dir }}/wg-{{ wireguard_item.name }}.conf"
+    mode: !!str 0400
+  loop: "{{ vault_wireguard_peers }}"
+  loop_control:
+    loop_var: wireguard_item

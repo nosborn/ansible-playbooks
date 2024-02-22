@@ -1,0 +1,10 @@
+---
+- name: restart loki
+  ansible.builtin.service:
+    name: loki
+    state: restarted
+
+- name: restart promtail
+  ansible.builtin.service:
+    name: promtail
+    state: restarted

@@ -2,63 +2,68 @@
 ---
 - name: create user
   ansible.builtin.user:
-    name: homebridge
+    name: _homebridge
     comment: Homebridge
     create_home: false
-    home: /var/lib/homebridge
+    home: /var/homebridge
     password_lock: true
-    shell: /usr/sbin/nologin
+    shell: "{{ nologin_shell }}"
     system: true
   register: homebridge_user_result
+  when: false
 
 - name: create directory
   ansible.builtin.file:
-    path: /var/lib/homebridge
-    owner: homebridge
-    group: homebridge
+    path: /var/homebridge
+    owner: _homebridge
+    group: _homebridge
     mode: !!str 0700
     state: directory
+  when: false
 
 - name: create configuration
   ansible.builtin.copy:
     content: "{{ homebridge_config | to_json }}\n"
-    dest: /var/lib/homebridge/config.json
-    owner: homebridge
-    group: homebridge
+    dest: /var/homebridge/config.json
+    owner: _homebridge
+    group: _homebridge
     mode: !!str 0400
-    validate: "{{ jsonlint_validate_command }}"
   notify: restart homebridge
+  when: false
 
 - name: create package configuration
   ansible.builtin.copy:
     src: package.json
-    dest: /var/lib/homebridge/package.json
-    owner: homebridge
-    group: homebridge
+    dest: /var/homebridge/package.json
+    owner: _homebridge
+    group: _homebridge
     mode: !!str 0400
-    validate: "{{ jsonlint_validate_command }}"
   notify: restart homebridge
+  when: false
 
 - name: install packages
-  become_flags: --set-home
+  become: true
+  # become_flags: --set-home
   become_user: homebridge
   community.general.npm:
-    path: /var/lib/homebridge
+    path: /var/homebridge
     ignore_scripts: true
   notify: restart homebridge
+  when: false
 
-- name: install service unit
+- name: install rc file
   ansible.builtin.template:
-    src: homebridge.service.j2
-    dest: /etc/systemd/system/homebridge.service
+    src: homebridge.rc.j2
+    dest: /etc/rc.d/homebridge
     owner: root
-    group: root
-    mode: !!str 0444
+    group: wheel
+    mode: !!str 0555
   notify: restart homebridge
+  when: false
 
 - name: enable and start service
-  ansible.builtin.systemd:
-    name: homebridge.service
-    daemon_reload: true
+  ansible.builtin.service:
+    name: homebridge
     enabled: true
     state: started
+  when: false

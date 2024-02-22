@@ -1,6 +1,0 @@
----
-- name: grub-mkconfig
-  ansible.builtin.command:
-    argv:
-      - grub-mkconfig
-      - --output=/boot/grub/grub.cfg

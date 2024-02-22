@@ -1,8 +1,8 @@
 ---
 - name: install package
-  ansible.builtin.apt:
+  community.general.openbsd_pkg:
     name: imapfilter
-  notify: restart imapfilter
+  # notify: restart imapfilter
 
 - name: create user
   ansible.builtin.user:
@@ -13,6 +13,7 @@
     password_lock: true
     shell: /usr/sbin/nologin
     system: true
+  when: false
 
 - name: create configuration directory
   ansible.builtin.file:
@@ -21,6 +22,7 @@
     group: imapfilter
     mode: !!str 0750
     state: directory
+  when: false
 
 - name: create configuration
   ansible.builtin.copy:
@@ -30,6 +32,7 @@
     group: imapfilter
     mode: !!str 0440
   notify: restart imapfilter
+  when: false
 
 - name: configure service
   ansible.builtin.template:
@@ -39,6 +42,7 @@
     group: root
     mode: !!str 0444
   notify: restart imapfilter
+  when: false
 
 - name: enable and start service
   ansible.builtin.systemd:
@@ -46,3 +50,4 @@
     daemon_reload: true
     enabled: true
     state: started
+  when: false

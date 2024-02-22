@@ -47,6 +47,8 @@ format() {
     sed -e 's/CNAME \.$//' |
     sed -e 's/\.$//' |
     sed -e '/^$/d' |
+    grep -Fvx 'a1.api.bbc.co.uk' |
+    grep -Fvx 'ati-a1.946d001b783803c1.xhst.bbci.co.uk' |
     sort |
     uniq |
     awk '{print $1, "IN CNAME ."}'

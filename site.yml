@@ -19,11 +19,6 @@
   gather_facts: false
 
   pre_tasks:
-    - name: install ACL support
-      ansible.builtin.apt:
-        name: acl
-        install_recommends: false
-
     - name: set time zone
       ansible.builtin.file:
         path: /etc/localtime
@@ -32,74 +27,80 @@
       tags:
         - always
 
-    - name: set time zone
+    # - name: configure hosts file
+    #   ansible.builtin.lineinfile:
+    #     path: /etc/hosts
+    #     regexp: "^127\\.0\\.1\\.1\t"
+    #     line: "{{ lan_ipv4_address }}\ttombstone.{{ domain_name }}\ttombstone"
+    #   tags:
+    #     - always
+
+    - name: configure LAN interface
       ansible.builtin.copy:
-        content: "{{ timezone }}\n"
-        dest: /etc/timezone
+        content: |
+          inet {{ lan_ipv4_address }} 0xffffff00
+          inet6 autoconf
+        dest: /etc/hostname.{{ lan_if }}
         owner: root
-        group: root
-        mode: !!str 0444
+        group: wheel
+        mode: !!str 0440
+      notify: netstart lan_if
       tags:
         - always
-
-    - name: configure hosts file
-      ansible.builtin.lineinfile:
-        path: /etc/hosts
-        regexp: "^127\\.0\\.1\\.1\t"
-        line: "{{ lan_ipv4_address }}\ttombstone.{{ domain_name }}\ttombstone"
-      tags:
-        - always
-
-    - name: configure network interfaces
-      ansible.builtin.template:
-        src: network/lan.network.j2
-        dest: /etc/systemd/network/lan.network
-        owner: root
-        group: root
-        mode: !!str 0444
-      notify: restart networking
-      tags:
-        - always
+      when: false
 
     - name: restart networking now
       ansible.builtin.meta: flush_handlers
 
+    - name: enable forwarding
+      ansible.posix.sysctl:
+        name: "{{ item }}"
+        value: 1
+        sysctl_set: true
+      loop:
+        - net.inet.ip.forwarding
+        - net.inet6.ip6.forwarding
+      tags:
+        - always
+
+    - name: configure kernel
+      ansible.builtin.copy:
+        content: "{{ kernel_configuration }}"
+        dest: /etc/bsd.re-config
+        owner: root
+        group: wheel
+        mode: !!str 0444
+      tags:
+        - always
+
   roles:
-    - role: chrony
-    - role: grub
-      tags:
-        - grub
+    - role: apmd
+    - role: grafana
     - role: homebridge
-      tags:
-        - homebridge
     - role: imapfilter
-      tags:
-        - imapfilter
-    - role: locale
-    - role: nftables
-      tags:
-        - nftables
-    - role: rfkill
-    - role: rsyslog
-      tags:
-        - rsyslog
-    - role: sshd
-    - role: tcpdump
-    # - role: teleport
-    #   tags:
-    #     - teleport
+    - role: loki
+    # - role: ntpd
+    - role: prometheus
+    # - role: rsyslog
+    - role: sndiod
+    # - role: sshd
     - role: unbound
       tags:
         - unbound
-    - role: wireguard
-      tags:
-        - wireguard
+    # - role: wireguard
 
   handlers:
-    - name: restart networking
-      ansible.builtin.systemd:
-        name: systemd-networkd.service
-        state: restarted
+    - name: netstart lan_if
+      ansible.builtin.command:
+        argv:
+          - /etc/netstart
+          - "{{ lan_if }}"
+
+    - name: netstart wireguard_if
+      ansible.builtin.command:
+        argv:
+          - /etc/netstart
+          - "{{ wireguard_if }}"
 
 - name: Configure CloudKey
   hosts: cloudkey

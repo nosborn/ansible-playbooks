@@ -1,5 +1,5 @@
 ---
-- name: install packages
+- name: install package
   community.general.openbsd_pkg:
-    name: node
+    name: gtar--
     state: present

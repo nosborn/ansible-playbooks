@@ -1,28 +1,4 @@
 {
-  "tunnel": {
-    "{{ hostvars.gateway.tunnelbroker_if }}": {
-      "address": [
-        "{{ hostvars.gateway.tunnelbroker_client_ipv6_address }}/64"
-      ],
-      "description": "Tunnelbroker IPv6 Tunnel",
-      "encapsulation": "sit",
-      "firewall": {
-        "in": {
-          "ipv6-name": "WANv6_IN"
-        },
-        "local": {
-          "ipv6-name": "WANv6_LOCAL"
-        },
-        "out": {
-          "ipv6-name": "WANv6_OUT"
-        }
-      },
-      "local-ip": "{{ hostvars.gateway.wan_ipv4_address }}",
-      "multicast": "disable",
-      "remote-ip": "{{ hostvars.gateway.tunnelbroker_server_ipv4_address }}",
-      "ttl": "255"
-    }
-  },
   "protocols": {
     "igmp-proxy": {
       "interface": {
@@ -35,15 +11,6 @@
           "role": "downstream",
           "threshold": "1",
           "alt-subnet": "0.0.0.0/0"
-        }
-      }
-    },
-    "static": {
-      "interface-route6": {
-        "::/0": {
-          "next-hop-interface": {
-            "{{ hostvars.gateway.tunnelbroker_if }}": "''"
-          }
         }
       }
     }
