@@ -1,0 +1,65 @@
+# yamllint disable rule:line-length
+---
+- name: create user
+  ansible.builtin.user:
+    name: _blocky
+    comment: Blocky DNS proxy
+    create_home: false
+    home: /var/blocky
+    password_lock: true
+    shell: "{{ nologin_shell }}"
+    uid: 999
+
+- name: download binary
+  ansible.builtin.unarchive:
+    src: https://github.com/0xERR0R/blocky/releases/download/{{ blocky_version }}/blocky_{{ blocky_version }}_Openbsd_x86_64.tar.gz
+    remote_src: true
+    dest: /usr/local/sbin/
+    include: blocky
+    owner: root
+    group: wheel
+    mode: !!str 0555
+    extra_opts:
+      - --transform=s/.*/&-{{ blocky_version }}/
+    creates: /usr/local/sbin/blocky-{{ blocky_version }}
+  notify: restart blocky
+
+- name: symlink binary
+  ansible.builtin.file:
+    src: blocky-{{ blocky_version }}
+    dest: /usr/local/sbin/blocky
+    state: link
+  notify: restart blocky
+
+- name: create config directory
+  ansible.builtin.file:
+    path: /etc/blocky
+    owner: root
+    group: _blocky
+    mode: !!str 0750
+    state: directory
+
+- name: install config file
+  ansible.builtin.template:
+    src: config.yml.j2
+    dest: /etc/blocky/config.yml
+    owner: root
+    group: _blocky
+    mode: !!str 0440
+    validate: blocky healthcheck --config=%s
+  notify: restart blocky
+
+- name: install rc file
+  ansible.builtin.template:
+    src: blocky.rc.j2
+    dest: /etc/rc.d/blocky
+    owner: root
+    group: wheel
+    mode: !!str 0555
+  notify: restart blocky
+
+- name: enable and start service
+  ansible.builtin.service:
+    name: blocky
+    enabled: true
+    state: started
