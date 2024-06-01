@@ -1,23 +1,37 @@
 ---
-- name: install package
-  ansible.builtin.apt:
-    name:
-      - iptables
-      - wireguard
-    install_recommends: false
+- name: install packages
+  ansible.builtin.package:
+    name: wireguard-tools
+    state: present
+  register: wireguard_result
+  until: wireguard_result is not failed
 
-- name: configure wireguard
+- name: create directory
+  ansible.builtin.file:
+    path: /etc/wireguard
+    owner: root
+    group: root
+    mode: !!str 0755
+    state: directory
+
+- name: configure
   ansible.builtin.template:
-    src: wg0.conf.j2
-    dest: /etc/wireguard/wg0.conf
+    src: interface.conf.j2
+    dest: /etc/wireguard/{{ wireguard_if }}.conf
     owner: root
     group: root
     mode: !!str 0400
   notify: restart wireguard
 
+- name: link service
+  ansible.builtin.file:
+    src: wg-quick
+    dest: /etc/init.d/wg-quick.{{ wireguard_if }}
+    state: link
+
 - name: enable and start service
-  ansible.builtin.systemd:
-    name: wg-quick@wg0.service
+  ansible.builtin.service:
+    name: wg-quick.{{ wireguard_if }}
     enabled: true
     state: started
 
@@ -27,13 +41,13 @@
     value: !!str 1
     sysctl_set: true
     reload: true
-
-- name: configure clients
-  delegate_to: localhost
-  ansible.builtin.template:
-    src: client.conf.j2
-    dest: "{{ playbook_dir }}/wg-{{ wireguard_item.name }}.conf"
-    mode: !!str 0400
-  loop: "{{ vault_wireguard_peers }}"
-  loop_control:
-    loop_var: wireguard_item
+#
+# - name: configure clients
+#   delegate_to: localhost
+#   ansible.builtin.template:
+#     src: client.conf.j2
+#     dest: "{{ playbook_dir }}/wg-{{ wireguard_item.name }}.conf"
+#     mode: !!str 0400
+#   loop: "{{ vault_wireguard_peers }}"
+#   loop_control:
+#     loop_var: wireguard_item

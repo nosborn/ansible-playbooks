@@ -1,0 +1,14 @@
+---
+- name: install package
+  ansible.builtin.package:
+    name: prometheus-node-exporter
+    state: latest
+  register: node_exporter_result
+  until: node_exporter_result is not failed
+  notify: restart node-exporter
+
+- name: enable and start service
+  ansible.builtin.service:
+    name: node-exporter
+    enabled: true
+    state: started

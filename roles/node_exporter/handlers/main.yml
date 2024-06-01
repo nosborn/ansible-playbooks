@@ -1,0 +1,5 @@
+---
+- name: restart node-exporter
+  ansible.builtin.service:
+    name: node-exporter
+    state: restarted

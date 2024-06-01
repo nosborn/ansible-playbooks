@@ -14,18 +14,43 @@
       tags:
         - always
 
-- name: Configure Tombstone
-  hosts: tombstone
+- name: Alpine Linux early configuration
+  hosts:
+    - proxy_gb
+    - proxy_in
+    - tombstone
   gather_facts: false
+  strategy: free
 
   pre_tasks:
-    - name: set time zone
-      ansible.builtin.file:
-        path: /etc/localtime
-        src: /usr/share/zoneinfo/{{ timezone }}
-        state: link
-      tags:
-        - always
+    - name: configure repositories
+      ansible.builtin.copy:
+        content: "{{ apk_repositories }}"
+        dest: /etc/apk/repositories
+        owner: root
+        group: root
+        mode: !!str 0444
+
+    - name: update repositories
+      community.general.apk:
+        update_cache: true
+      changed_when: false
+
+    - name: install prerequisite packages
+      ansible.builtin.package:
+        name:
+          - acl
+        state: latest
+      register: result
+      until: result is not failed
+
+    # - name: set time zone
+    #   ansible.builtin.file:
+    #     path: /etc/localtime
+    #     src: /usr/share/zoneinfo/{{ timezone }}
+    #     state: link
+    #   tags:
+    #     - always
 
     # - name: configure hosts file
     #   ansible.builtin.lineinfile:
@@ -35,75 +60,91 @@
     #   tags:
     #     - always
 
-    - name: configure LAN interface
-      ansible.builtin.copy:
-        content: |
-          inet {{ lan_ipv4_address }} 0xffffff00
-          inet6 autoconf
-        dest: /etc/hostname.{{ lan_if }}
-        owner: root
-        group: wheel
-        mode: !!str 0440
-      notify: netstart lan_if
-      tags:
-        - always
-      when: false
+    # - name: configure LAN interface
+    #   ansible.builtin.copy:
+    #     content: |
+    #       inet {{ lan_ipv4_address }} 0xffffff00
+    #       inet6 autoconf
+    #     dest: /etc/hostname.{{ lan_if }}
+    #     owner: root
+    #     group: wheel
+    #     mode: !!str 0440
+    #   notify: netstart lan_if
+    #   tags:
+    #     - always
+    #   when: false
 
-    - name: restart networking now
-      ansible.builtin.meta: flush_handlers
+    # - name: restart networking now
+    #   ansible.builtin.meta: flush_handlers
 
-    - name: enable forwarding
-      ansible.posix.sysctl:
-        name: "{{ item }}"
-        value: 1
-        sysctl_set: true
-      loop:
-        - net.inet.ip.forwarding
-        - net.inet6.ip6.forwarding
-      tags:
-        - always
+    # - name: enable forwarding
+    #   ansible.posix.sysctl:
+    #     name: "{{ item }}"
+    #     value: 1
+    #     sysctl_set: true
+    #   loop:
+    #     - net.inet.ip.forwarding
+    #     - net.inet6.ip6.forwarding
+    #   tags:
+    #     - always
 
-    - name: configure kernel
-      ansible.builtin.copy:
-        content: "{{ kernel_configuration }}"
-        dest: /etc/bsd.re-config
-        owner: root
-        group: wheel
-        mode: !!str 0444
-      tags:
-        - always
+    # - name: configure kernel
+    #   ansible.builtin.copy:
+    #     content: "{{ kernel_configuration }}"
+    #     dest: /etc/bsd.re-config
+    #     owner: root
+    #     group: wheel
+    #     mode: !!str 0444
+    #   tags:
+    #     - always
+
+    # - name: configure install URL
+    #   ansible.builtin.copy:
+    #     content: |
+    #       https://cloudflare.cdn.openbsd.org/pub/OpenBSD/
+    #     dest: /etc/installurl
+    #     owner: root
+    #     group: wheel
+    #     mode: !!str 0444
 
   roles:
-    - role: apmd
-    - role: blocky
-      tags:
-        - blocky
+    - role: wireguard
+
+- name: Alpine Linux common configuration
+  hosts:
+    - proxy_gb
+    - proxy_in
+    - tombstone
+  gather_facts: false
+  strategy: free
+
+  roles:
+    - role: chrony
+    - role: nginx
+    - role: node_exporter
+    - role: openrc_exporter
+    - role: promtail
+    - role: sshd
+    - role: tcpdump
+    - role: ufw
+    - role: unbound
+    - role: wireguard_exporter
+
+- name: Configure Tombstone
+  hosts: tombstone
+  gather_facts: false
+
+  roles:
+    - role: alertmanager
+    - role: blackbox_exporter
+      when: false
     - role: grafana
     - role: homebridge
     - role: imapfilter
+      when: false
     - role: loki
-    # - role: ntpd
+    - role: microcode
     - role: prometheus
-    # - role: rsyslog
-    - role: sndiod
-    # - role: sshd
-    - role: unbound
-      tags:
-        - unbound
-    # - role: wireguard
-
-  handlers:
-    - name: netstart lan_if
-      ansible.builtin.command:
-        argv:
-          - /etc/netstart
-          - "{{ lan_if }}"
-
-    - name: netstart wireguard_if
-      ansible.builtin.command:
-        argv:
-          - /etc/netstart
-          - "{{ wireguard_if }}"
 
 - name: Configure CloudKey
   hosts: cloudkey

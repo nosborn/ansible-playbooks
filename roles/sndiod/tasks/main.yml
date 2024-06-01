@@ -1,6 +1,0 @@
----
-- name: stop and disable service
-  ansible.builtin.service:
-    name: sndiod
-    enabled: false
-    state: stopped

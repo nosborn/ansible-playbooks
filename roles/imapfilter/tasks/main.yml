@@ -2,6 +2,8 @@
 - name: install package
   community.general.openbsd_pkg:
     name: imapfilter
+  register: imapfilter_result
+  until: imapfilter_result is not failed
   # notify: restart imapfilter
 
 - name: create user

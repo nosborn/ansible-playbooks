@@ -1,0 +1,6 @@
+server {
+	listen {{ ansible_default_ipv4.address }}:443;
+	ssl_preread on;
+	resolver 127.0.0.1;
+	proxy_pass $ssl_preread_server_name:443;
+}

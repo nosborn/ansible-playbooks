@@ -1,7 +1,10 @@
 ---
 - name: install avahi-daemon
-  ansible.builtin.apt:
-    name: avahi-daemon
+  ansible.builtin.package:
+    name: avahi
+    state: latest
+  register: avahi_result
+  until: avahi_result is not failed
 
 - name: configure avahi-daemon
   ansible.builtin.template:
@@ -11,10 +14,9 @@
     group: root
     mode: !!str 0444
   notify: restart avahi-daemon
-  when: false
 
 - name: enable and start avahi-daemon
-  ansible.builtin.systemd:
+  ansible.builtin.service:
     name: avahi-daemon
     enabled: true
     state: started

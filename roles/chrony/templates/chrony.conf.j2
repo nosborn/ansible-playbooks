@@ -1,0 +1,10 @@
+# default config
+
+#pool pool.ntp.org iburst
+initstepslew 10 pool.ntp.org
+driftfile /var/lib/chrony/chrony.drift
+rtcsync
+cmdport 0
+server 1.time.constant.com iburst
+server 2.time.constant.com iburst
+server 3.time.constant.com iburst

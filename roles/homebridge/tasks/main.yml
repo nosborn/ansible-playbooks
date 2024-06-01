@@ -1,65 +1,63 @@
-# yamllint disable rule:line-length
 ---
+- name: create user group
+  ansible.builtin.group:
+    name: homebridge
+    system: true
+
 - name: create user
   ansible.builtin.user:
-    name: _homebridge
+    name: homebridge
     comment: Homebridge
     create_home: false
-    home: /var/homebridge
+    group: homebridge
+    home: /var/lib/homebridge
     password_lock: true
     shell: "{{ nologin_shell }}"
     system: true
-  register: homebridge_user_result
-  when: false
 
 - name: create directory
   ansible.builtin.file:
-    path: /var/homebridge
-    owner: _homebridge
-    group: _homebridge
+    path: /var/lib/homebridge
+    owner: homebridge
+    group: homebridge
     mode: !!str 0700
     state: directory
-  when: false
 
 - name: create configuration
   ansible.builtin.copy:
     content: "{{ homebridge_config | to_json }}\n"
-    dest: /var/homebridge/config.json
-    owner: _homebridge
-    group: _homebridge
+    dest: /var/lib/homebridge/config.json
+    owner: homebridge
+    group: homebridge
     mode: !!str 0400
   notify: restart homebridge
-  when: false
 
 - name: create package configuration
   ansible.builtin.copy:
     src: package.json
-    dest: /var/homebridge/package.json
-    owner: _homebridge
-    group: _homebridge
+    dest: /var/lib/homebridge/package.json
+    owner: homebridge
+    group: homebridge
     mode: !!str 0400
   notify: restart homebridge
-  when: false
 
 - name: install packages
   become: true
-  # become_flags: --set-home
   become_user: homebridge
   community.general.npm:
-    path: /var/homebridge
+    path: /var/lib/homebridge
     ignore_scripts: true
   notify: restart homebridge
-  when: false
 
-- name: install rc file
+- name: install init script
   ansible.builtin.template:
     src: homebridge.rc.j2
-    dest: /etc/rc.d/homebridge
+    dest: /etc/init.d/homebridge
     owner: root
-    group: wheel
+    group: root
     mode: !!str 0555
+    validate: sh -f %s -n
   notify: restart homebridge
-  when: false
 
 - name: enable and start service
   ansible.builtin.service:

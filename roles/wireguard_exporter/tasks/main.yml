@@ -1,0 +1,14 @@
+---
+- name: install package
+  ansible.builtin.package:
+    name: prometheus-wireguard-exporter
+    state: present
+  register: wireguard_exporter_result
+  until: wireguard_exporter_result is not failed
+  notify: restart wireguard-exporter
+
+- name: enable and start service
+  ansible.builtin.service:
+    name: prometheus-wireguard-exporter
+    enabled: true
+    state: started

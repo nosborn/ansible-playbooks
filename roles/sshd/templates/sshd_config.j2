@@ -1,20 +1,25 @@
-# This is the sshd server system-wide configuration file. See sshd_config(5)
-# for more information.
+#	$OpenBSD: sshd_config,v 1.104 2021/07/02 05:11:21 dtucker Exp $
 
-# This sshd was compiled with PATH=/usr/local/bin:/usr/bin:/bin:/usr/games
+# This is the sshd server system-wide configuration file.  See
+# sshd_config(5) for more information.
 
-# The strategy used for options in the default sshd_config shipped with OpenSSH
-# is to specify options with their default value where possible, but leave them
-# commented. Uncommented options override the default value.
+# This sshd was compiled with PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-Include /etc/ssh/sshd_config.d/*.conf
+# The strategy used for options in the default sshd_config shipped with
+# OpenSSH is to specify options with their default value where
+# possible, but leave them commented.  Uncommented options override the
+# default value.
+
+# Include configuration snippets before processing this file to allow the
+# snippets to override directives set in this file.
+#Include /etc/ssh/sshd_config.d/*.conf
 
 #Port 22
 #AddressFamily any
 #ListenAddress 0.0.0.0
 #ListenAddress ::
 
-HostKey /etc/ssh/ssh_host_rsa_key
+#HostKey /etc/ssh/ssh_host_rsa_key
 #HostKey /etc/ssh/ssh_host_ecdsa_key
 HostKey /etc/ssh/ssh_host_ed25519_key
 
@@ -28,14 +33,15 @@ HostKey /etc/ssh/ssh_host_ed25519_key
 # Authentication:
 
 #LoginGraceTime 2m
-#PermitRootLogin prohibit-password
+PermitRootLogin prohibit-password
 #StrictModes yes
 #MaxAuthTries 6
 #MaxSessions 10
 
 #PubkeyAuthentication yes
 
-# Expect .ssh/authorized_keys2 to be disregarded by default in future.
+# The default is to check both .ssh/authorized_keys and .ssh/authorized_keys2
+# but this is overridden so installations will only check .ssh/authorized_keys
 AuthorizedKeysFile .ssh/authorized_keys
 
 #AuthorizedPrincipalsFile none
@@ -55,8 +61,7 @@ AuthorizedKeysFile .ssh/authorized_keys
 PasswordAuthentication no
 #PermitEmptyPasswords no
 
-# Change to yes to enable challenge-response passwords (beware issues with
-# some PAM modules and threads)
+# Change to no to disable s/key passwords
 KbdInteractiveAuthentication no
 
 # Kerberos options
@@ -68,31 +73,27 @@ KbdInteractiveAuthentication no
 # GSSAPI options
 #GSSAPIAuthentication no
 #GSSAPICleanupCredentials yes
-#GSSAPIStrictAcceptorCheck yes
-#GSSAPIKeyExchange no
 
-# Set this to 'yes' to enable PAM authentication, account processing, and
-# session processing. If this is enabled, PAM authentication will be allowed
-# through the KbdInteractiveAuthentication and PasswordAuthentication.
-# Depending on your PAM configuration, PAM authentication via
-# KbdInteractiveAuthentication may bypass the setting of "PermitRootLogin
-# without-password". If you just want the PAM account and session checks to run
-# without PAM authentication, then enable this but set PasswordAuthentication
+# Set this to 'yes' to enable PAM authentication, account processing,
+# and session processing. If this is enabled, PAM authentication will
+# be allowed through the KbdInteractiveAuthentication and
+# PasswordAuthentication.  Depending on your PAM configuration,
+# PAM authentication via KbdInteractiveAuthentication may bypass
+# the setting of "PermitRootLogin prohibit-password".
+# If you just want the PAM account and session checks to run without
+# PAM authentication, then enable this but set PasswordAuthentication
 # and KbdInteractiveAuthentication to 'no'.
-UsePAM yes
+#UsePAM no
 
-{% if sshd_config_allow_users | default([]) | length %}
-AllowUsers {{ sshd_config_allow_users | sort | join(' ') }}
-
-{% endif %}
-AllowAgentForwarding no
+#AllowAgentForwarding yes
+# Feel free to re-enable these if your use case requires them.
 AllowTcpForwarding no
-#GatewayPorts no
-#X11Forwarding no
+GatewayPorts no
+X11Forwarding no
 #X11DisplayOffset 10
 #X11UseLocalhost yes
 #PermitTTY yes
-PrintMotd no
+#PrintMotd yes
 #PrintLastLog yes
 #TCPKeepAlive yes
 #PermitUserEnvironment no
@@ -105,15 +106,16 @@ ClientAliveInterval 20
 #PermitTunnel no
 #ChrootDirectory none
 #VersionAddendum none
-{% if ansible_os_family == 'Debian' %}
-DebianBanner no
-{% endif %}
 
 # no default banner path
 #Banner none
 
-# Allow client to pass locale environment variables
-AcceptEnv LANG LC_*
-
 # override default of no subsystems
-Subsystem sftp /usr/lib/openssh/sftp-server
+Subsystem sftp internal-sftp
+
+# Example of overriding settings on a per-user basis
+#Match User anoncvs
+#	X11Forwarding no
+#	AllowTcpForwarding no
+#	PermitTTY no
+#	ForceCommand cvs server

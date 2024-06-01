@@ -1,0 +1,54 @@
+---
+modules:
+  # grpc:
+  #   grpc:
+  #     preferred_ip_protocol: ip4
+  #     tls: true
+  #   prober: grpc
+  # grpc_plain:
+  #   grpc:
+  #     service: service1
+  #     tls: false
+  #   prober: grpc
+  http_2xx:
+    http:
+      preferred_ip_protocol: ip4
+    prober: http
+  # http_post_2xx:
+  #   http:
+  #     method: POST
+  #   prober: http
+  icmp:
+    icmp:
+      preferred_ip_protocol: ipv4
+    prober: icmp
+  # icmp_ttl5:
+  #   icmp:
+  #     ttl: 5
+  #   prober: icmp
+  #   timeout: 5s
+  # irc_banner:
+  #   prober: tcp
+  #   tcp:
+  #     query_response:
+  #       - send: NICK prober
+  #       - send: USER prober prober prober :prober
+  #       - expect: PING :([^ ]+)
+  #         send: PONG ${1}
+  #       - expect: ^:[^ ]+ 001
+  # pop3s_banner:
+  #   prober: tcp
+  #   tcp:
+  #     query_response:
+  #       - expect: ^+OK
+  #     tls: true
+  #     tls_config:
+  #       insecure_skip_verify: false
+  # ssh_banner:
+  #   prober: tcp
+  #   tcp:
+  #     query_response:
+  #       - expect: ^SSH-2.0-
+  #       - send: SSH-2.0-blackbox-ssh-check
+  # tcp_connect:
+  #   prober: tcp

@@ -1,0 +1,23 @@
+---
+- name: install package
+  ansible.builtin.package:
+    name: alertmanager
+    state: latest
+  register: alertmanager_result
+  until: alertmanager_result is not failed
+  notify: restart alertmanager
+
+- name: configure
+  ansible.builtin.template:
+    src: alertmanager.yml.j2
+    dest: /etc/alertmanager/alertmanager.yml
+    owner: root
+    group: prometheus
+    mode: !!str 0440
+  notify: restart alertmanager
+
+- name: enable and start service
+  ansible.builtin.service:
+    name: alertmanager
+    enabled: true
+    state: started

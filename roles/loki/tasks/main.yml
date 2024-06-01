@@ -1,35 +1,24 @@
 ---
 - name: install packages
-  community.general.openbsd_pkg:
-    name: "{{ item }}"
-    state: present
-  loop:
-    - loki
-    - loki-promtail
+  ansible.builtin.package:
+    name:
+      - loki
+      - loki-logcli
+    state: latest
+  register: loki_result
+  until: loki_result is not failed
 
 - name: configure loki
   ansible.builtin.template:
-    src: loki-config.yaml.j2
-    dest: /etc/loki/loki-config.yaml
+    src: config.yaml.j2
+    dest: /etc/loki/loki-local-config.yaml
     owner: root
-    group: _loki
+    group: grafana # really
     mode: !!str 0440
   notify: restart loki
 
-- name: configure promtail
-  ansible.builtin.template:
-    src: promtail-config.yaml.j2
-    dest: /etc/promtail/promtail-config.yaml
-    owner: root
-    group: _loki
-    mode: !!str 0440
-  notify: restart promtail
-
-- name: enable and start services
+- name: enable and start service
   ansible.builtin.service:
     name: loki
     enabled: true
     state: started
-  loop:
-    - loki
-    - promtail

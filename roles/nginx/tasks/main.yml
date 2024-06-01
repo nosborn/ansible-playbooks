@@ -1,0 +1,26 @@
+---
+- name: install package
+  ansible.builtin.package:
+    name:
+      - nginx
+      - nginx-mod-stream
+    state: present
+  register: nginx_result
+  until: nginx_result is not failed
+
+- name: configure
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: /etc/nginx/{{ item }}
+    owner: root
+    group: root
+    mode: !!str 0444
+  loop:
+    - stream.d/proxy.conf
+  notify: restart nginx
+
+- name: enable and start service
+  ansible.builtin.service:
+    name: nginx
+    enabled: true
+    state: started

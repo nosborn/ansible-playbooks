@@ -5,6 +5,6 @@ PrivateKey = {{ wireguard_item.private_key }}
 
 [Peer]
 AllowedIPs = {{ wireguard_ipv4_address }}/32
-Endpoint = {{ hostvars.gateway.wan_ipv4_address }}:51820
+Endpoint = {{ hostvars.gateway.wan_ipv4_address }}:{{ wireguard_port }}
 PreSharedKey = {{ wireguard_preshared_key }}
 PublicKey = {{ wireguard_public_key }}

@@ -1,0 +1,5 @@
+---
+- name: restart openrc-exporter
+  ansible.builtin.service:
+    name: openrc-exporter
+    state: restarted

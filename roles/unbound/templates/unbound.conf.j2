@@ -6,10 +6,10 @@ server:
 {% for interface in unbound_config_interfaces %}
 	interface: {{ interface }}
 {% endfor %}
-	#outgoing-interface: {{ lan_ipv4_address }}
+	outgoing-interface: {{ lan_ipv4_address }}
 	ip-transparent: yes
 
-	#do-ip6: no
+	do-ip6: no
 
 	tls-cert-bundle: "/etc/ssl/cert.pem"
 
@@ -18,9 +18,9 @@ server:
 {% endfor %}
 
 	log-queries: yes
-	log-replies: yes
+	# log-replies: yes
 	log-tag-queryreply: yes
-	# log-servfail: yes
+	log-servfail: yes
 
 	hide-identity: yes
 	hide-version: yes
@@ -51,13 +51,7 @@ server:
 	#module-config: "validator iterator" -- FIXME
 	module-config: "iterator"
 
-	auto-trust-anchor-file: "/var/unbound/db/root.key"
-
-	# domain-insecure: "e673.dsce9.akamaiedge.net." # F1TV
-	# domain-insecure: "f1accountprod.report-uri.com." # F1TV
-	domain-insecure: "formula1.com." # F1TV
-	domain-insecure: "licensing.bitmovin.com." # F1TV
-	domain-insecure: "watchliveformula1.com." # F1TV
+#	auto-trust-anchor-file: "/var/unbound/db/root.key"
 
 	val-log-level: 2
 
@@ -87,37 +81,26 @@ server:
 	local-zone: "bbc-reporting-api.app." static
 	local-zone: "telemetry.api.bbci.co.uk." static
 
+	domain-insecure: "f1accountprod.report-uri.com" # F1TV
 	local-zone: "f1accountprod.report-uri.com" static
 
 	local-zone: "dns.google." always_nxdomain
 
-# The following line includes additional configuration files from the
-# /etc/unbound/unbound.conf.d directory.
-#include-toplevel: "/etc/unbound/unbound.conf.d/*.conf"
+{% for domain in proxy_gb_domains %}
+	domain-insecure: "{{ domain }}"
+	local-zone: "{{ domain }}" redirect
+	local-data: "{{ domain }} A {{ hostvars.proxy_in.ansible_default_ipv4.address }}"
 
-forward-zone: # F1TV
-	name: "e673.dsce9.akamaiedge.net"
-	forward-addr: 54.251.190.247
-	forward-addr: 54.255.130.140
-	forward-no-cache: yes
+{% endfor %}
+{% for domain in proxy_in_domains %}
+	domain-insecure: "{{ domain }}"
+	local-zone: "{{ domain }}" redirect
+	local-data: "{{ domain }} A {{ hostvars.proxy_in.ansible_default_ipv4.address }}"
 
-#forward-zone: # F1TV
-#	name: "f1accountprod.report-uri.com"
-#	forward-addr: 54.251.190.247
-#	forward-addr: 54.255.130.140
-#	forward-no-cache: yes
-
-forward-zone: # F1TV
-	name: "f1prodlive.akamaized.net"
-	forward-addr: 54.251.190.247
-	forward-addr: 54.255.130.140
-	forward-no-cache: yes
-
-forward-zone: # F1TV
-	name: "formula1.com"
-	forward-addr: 54.251.190.247
-	forward-addr: 54.255.130.140
-	forward-no-cache: yes
+{% endfor %}
+remote-control:
+	control-enable: yes
+	control-interface: /var/run/unbound.sock
 
 forward-zone:
 	name: "getflix.com"
@@ -130,41 +113,14 @@ forward-zone:
 	forward-no-cache: yes
 
 forward-zone:
-	name: "in-addr.arpa"
-	forward-addr: 1.1.1.1@853#cloudflare-dns.com
-	forward-addr: 1.0.0.1@853#cloudflare-dns.com
-	forward-tls-upstream: yes
-
-forward-zone: # F1TV
-	name: "licensing.bitmovin.com"
-	forward-addr: 54.251.190.247
-	forward-addr: 54.255.130.140
-	forward-no-cache: yes
-
-forward-zone:
 	name: "smartdnsproxy.com"
-	forward-addr: 54.255.130.140
-	forward-no-cache: yes
-
-forward-zone: # F1TV
-	name: "watchliveformula1.com."
-	forward-addr: 54.251.190.247
 	forward-addr: 54.255.130.140
 	forward-no-cache: yes
 
 forward-zone:
 	name: "."
-
-	forward-addr: 127.0.0.1@5300
-	forward-tcp-upstream: yes
-
-	# forward-addr: 1.1.1.1@853#cloudflare-dns.com
-	# forward-addr: 1.0.0.1@853#cloudflare-dns.com
-	# # forward-addr: 103.86.96.100@853#dns1.nordvpn.com
-	# # forward-addr: 103.86.99.100@853#dns2.nordvpn.com
-	# # forward-addr: 2606:4700:4700::1111@853#cloudflare-dns.com
-	# # forward-addr: 2606:4700:4700::1001@853#cloudflare-dns.com
-	# forward-tls-upstream: yes
+	forward-addr: 194.242.2.4@853#base.dns.mullvad.net
+	forward-tls-upstream: yes
 
 #auth-zone:
 #	name: "."
@@ -235,8 +191,8 @@ forward-zone:
 #	for-downstream: no
 #	for-upstream: yes
 
-#rpz:
-#	name: "rpz.home.arpa"
-#	url: "https://big.oisd.nl/rpz"
-#	zonefile: "/var/unbound/db/rpz.home.arpa.zone"
-#	rpz-log: yes
+# rpz:
+# 	name: "rpz.home.arpa"
+# 	url: "https://small.oisd.nl/unbound" # "https://big.oisd.nl/unbound"
+# 	zonefile: "/var/unbound/db/rpz.home.arpa.zone"
+# 	rpz-log: yes

@@ -1,0 +1,5 @@
+---
+- name: restart wireguard-exporter
+  ansible.builtin.service:
+    name: prometheus-wireguard-exporter
+    state: restarted

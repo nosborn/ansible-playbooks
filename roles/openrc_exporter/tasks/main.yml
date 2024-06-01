@@ -1,0 +1,14 @@
+---
+- name: install package
+  ansible.builtin.package:
+    name: prometheus-openrc-exporter
+    state: latest
+  register: openrc_exporter_result
+  until: openrc_exporter_result is not failed
+  notify: restart openrc-exporter
+
+- name: enable and start service
+  ansible.builtin.service:
+    name: openrc-exporter
+    enabled: true
+    state: started

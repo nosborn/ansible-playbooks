@@ -11,4 +11,5 @@ ipv4_network: "{{ vault_ipv4_network }}"
 ipv6_network: "{{ vault_ipv6_network }}"
 lan_dns_ipv4_address: "{{ vault_lan_dns_ipv4_address }}"
 lan_ipv4_subnet: "{{ vault_lan_ipv4_subnet }}"
+timezone: "{{ vault_timezone }}"
 unifi_discovery_port: 10001

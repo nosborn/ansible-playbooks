@@ -1,5 +1,0 @@
----
-- name: install package
-  community.general.openbsd_pkg:
-    name: gtar--
-    state: present

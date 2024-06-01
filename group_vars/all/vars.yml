@@ -1,4 +1,6 @@
 ---
 pushover_user_key: "{{ vault_pushover_user_key }}"
 sshd_config_allow_tcp_forwarding: "{{ vault_sshd_config_allow_tcp_forwarding }}"
-timezone: "{{ vault_timezone }}"
+wireguard_ipv4_subnet: "{{ vault_wireguard_ipv4_subnet }}"
+wireguard_port: "{{ vault_wireguard_port }}"
+wireguard_preshared_key: "{{ vault_wireguard_preshared_key }}"

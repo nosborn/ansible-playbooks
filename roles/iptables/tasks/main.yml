@@ -1,0 +1,64 @@
+---
+- name: install package
+  ansible.builtin.package:
+    name: iptables
+    state: present
+  register: iptables_result
+  until: iptables_result is not failed
+
+- name: create rules directory
+  ansible.builtin.file:
+    path: /etc/iptables
+    owner: root
+    group: root
+    mode: !!str 0755
+    state: directory
+
+- name: configure iptables
+  ansible.builtin.copy:
+    content: ""
+    dest: /etc/iptables/rules-save
+    owner: root
+    group: root
+    mode: !!str 0600
+  notify: restart iptables
+
+- name: configure ip6tables
+  ansible.builtin.copy:
+    content: ""
+    dest: /etc/iptables/rules6-save
+    owner: root
+    group: root
+    mode: !!str 0600
+  notify: restart ip6tables
+
+- name: configure iptables service
+  ansible.builtin.lineinfile:
+    path: /etc/conf.d/iptables
+    line: SAVE_ON_STOP="no"
+    regexp: ^SAVE_ON_STOP=
+    owner: root
+    group: root
+    mode: !!str 0444
+    validate: sh -f %s -n
+  notify: restart iptables
+
+- name: configure ip6tables service
+  ansible.builtin.lineinfile:
+    path: /etc/conf.d/ip6tables
+    line: SAVE_ON_STOP="no"
+    regexp: ^SAVE_ON_STOP=
+    owner: root
+    group: root
+    mode: !!str 0444
+    validate: sh -f %s -n
+  notify: restart ip6tables
+
+- name: enable and start services
+  ansible.builtin.service:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  loop:
+    - iptables
+    - ip6tables

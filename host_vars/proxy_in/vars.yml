@@ -1,0 +1,9 @@
+---
+apk_repositories: "{{ vault_apk_repositories }}"
+loki_push_url: "{{ vault_loki_push_url }}"
+unbound_conf_src: "{{ vault_unbound_conf_src }}"
+wireguard_if: "{{ vault_wireguard_if }}"
+wireguard_ipv4_address: "{{ vault_wireguard_ipv4_address }}"
+wireguard_peers: "{{ vault_wireguard_peers }}"
+wireguard_private_key: "{{ vault_wireguard_private_key }}"
+wireguard_public_key: "{{ vault_wireguard_public_key }}"

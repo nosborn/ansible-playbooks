@@ -1,38 +1,24 @@
 ---
 - name: install package
-  community.general.openbsd_pkg:
-    name: "{{ item }}"
-    state: present
-  loop:
-    - alertmanager
-    - node_exporter
-    - prometheus
-
-- name: configure alertmanager
-  ansible.builtin.template:
-    src: alertmanager.yml.j2
-    dest: /etc/alertmanager/alertmanager.yml
-    owner: root
-    group: _alertmanager
-    mode: !!str 0440
-  notify: restart alertmanager
+  ansible.builtin.package:
+    name: prometheus
+    state: latest
+  register: prometheus_result
+  until: prometheus_result is not failed
+  notify: restart prometheus
 
 - name: configure prometheus
   ansible.builtin.template:
     src: prometheus.yml.j2
     dest: /etc/prometheus/prometheus.yml
     owner: root
-    group: _prometheus
+    group: prometheus
     mode: !!str 0440
     validate: promtool check config %s
   notify: restart prometheus
 
-- name: enable and start services
+- name: enable and start service
   ansible.builtin.service:
-    name: "{{ item }}"
+    name: prometheus
     enabled: true
     state: started
-  loop:
-    - alertmanager
-    - node_exporter
-    - prometheus

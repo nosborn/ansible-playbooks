@@ -1,24 +1,28 @@
 ---
 - name: install package
-  community.general.openbsd_pkg:
+  ansible.builtin.package:
     name: grafana
-    state: present
+    state: latest
+  register: grafana_result
+  until: grafana_result is not failed
+  notify: restart grafana
 
 - name: configure
   ansible.builtin.template:
     src: config.ini.j2
     dest: /etc/grafana/config.ini
     owner: root
-    group: _grafana
+    group: grafana
     mode: !!str 0440
   notify: restart grafana
+  when: false # FIXME
 
 - name: provision
   ansible.builtin.template:
     src: "{{ item }}.j2"
-    dest: /etc/grafana/provisioning/{{ item }}
-    owner: root
-    group: _grafana
+    dest: /var/lib/grafana/provisioning/{{ item }}
+    owner: grafana
+    group: grafana
     mode: !!str 0440
   loop:
     - datasources/alertmanager.yaml
