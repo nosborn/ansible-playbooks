@@ -1,0 +1,10 @@
+---
+- name: install package
+  ansible.builtin.package:
+    name:
+      - man-db
+      - man-pages
+      - man-pages-posix
+    state: latest
+  register: man_result
+  until: man_result is not failed

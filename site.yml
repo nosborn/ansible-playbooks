@@ -20,7 +20,6 @@
     - proxy_in
     - tombstone
   gather_facts: false
-  strategy: free
 
   pre_tasks:
     - name: configure repositories
@@ -30,11 +29,15 @@
         owner: root
         group: root
         mode: !!str 0444
+      tags:
+        - always
 
     - name: update repositories
       community.general.apk:
         update_cache: true
       changed_when: false
+      tags:
+        - always
 
     - name: install prerequisite packages
       ansible.builtin.package:
@@ -43,72 +46,16 @@
         state: latest
       register: result
       until: result is not failed
-
-    # - name: set time zone
-    #   ansible.builtin.file:
-    #     path: /etc/localtime
-    #     src: /usr/share/zoneinfo/{{ timezone }}
-    #     state: link
-    #   tags:
-    #     - always
-
-    # - name: configure hosts file
-    #   ansible.builtin.lineinfile:
-    #     path: /etc/hosts
-    #     regexp: "^127\\.0\\.1\\.1\t"
-    #     line: "{{ lan_ipv4_address }}\ttombstone.{{ domain_name }}\ttombstone"
-    #   tags:
-    #     - always
-
-    # - name: configure LAN interface
-    #   ansible.builtin.copy:
-    #     content: |
-    #       inet {{ lan_ipv4_address }} 0xffffff00
-    #       inet6 autoconf
-    #     dest: /etc/hostname.{{ lan_if }}
-    #     owner: root
-    #     group: wheel
-    #     mode: !!str 0440
-    #   notify: netstart lan_if
-    #   tags:
-    #     - always
-    #   when: false
-
-    # - name: restart networking now
-    #   ansible.builtin.meta: flush_handlers
-
-    # - name: enable forwarding
-    #   ansible.posix.sysctl:
-    #     name: "{{ item }}"
-    #     value: 1
-    #     sysctl_set: true
-    #   loop:
-    #     - net.inet.ip.forwarding
-    #     - net.inet6.ip6.forwarding
-    #   tags:
-    #     - always
-
-    # - name: configure kernel
-    #   ansible.builtin.copy:
-    #     content: "{{ kernel_configuration }}"
-    #     dest: /etc/bsd.re-config
-    #     owner: root
-    #     group: wheel
-    #     mode: !!str 0444
-    #   tags:
-    #     - always
-
-    # - name: configure install URL
-    #   ansible.builtin.copy:
-    #     content: |
-    #       https://cloudflare.cdn.openbsd.org/pub/OpenBSD/
-    #     dest: /etc/installurl
-    #     owner: root
-    #     group: wheel
-    #     mode: !!str 0444
+      tags:
+        - always
 
   roles:
+    - role: ufw
+      tags:
+        - always
     - role: wireguard
+      tags:
+        - always
 
 - name: Alpine Linux common configuration
   hosts:
@@ -121,13 +68,16 @@
   roles:
     - role: chrony
     - role: nginx
+      tags:
+        - nginx
     - role: node_exporter
     - role: openrc_exporter
     - role: promtail
     - role: sshd
     - role: tcpdump
-    - role: ufw
     - role: unbound
+      tags:
+        - unbound
     - role: wireguard_exporter
 
 - name: Configure Tombstone
@@ -137,14 +87,16 @@
   roles:
     - role: alertmanager
     - role: blackbox_exporter
-      when: false
+      when: false # FIXME
     - role: grafana
     - role: homebridge
     - role: imapfilter
       when: false
     - role: loki
+    - role: man_pages
     - role: microcode
     - role: prometheus
+    - role: step_ca
 
 - name: Configure CloudKey
   hosts: cloudkey

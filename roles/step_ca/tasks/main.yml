@@ -1,0 +1,42 @@
+---
+- name: install packages
+  ansible.builtin.package:
+    name:
+      - step-certificates
+      - step-cli
+    state: latest
+  register: step_ca_result
+  until: step_ca_result is not failed
+  notify: restart step-ca
+
+- name: store password
+  ansible.builtin.copy:
+    content: "{{ step_ca_password }}"
+    dest: /etc/step-ca/password.txt
+    owner: root
+    group: step-ca
+    mode: !!str 0440
+  notify: restart step-ca
+
+- name: setup
+  ansible.builtin.command:
+    argv:
+      - step
+      - ca
+      - init
+      - --address=:509
+      - --deployment-type=standalone
+      - --dns=tombstone.home.arpa # FIXME
+      - --name=Smallstep
+      - --password-file=/etc/step-ca/password.txt
+      - --provisioner=nick@osborn.io # FIXME
+    creates: /etc/step-ca/config/ca.json
+  environment:
+    STEPPATH: /etc/step-ca
+  notify: restart step-ca
+
+- name: enable and start service
+  ansible.builtin.service:
+    name: step-ca
+    enabled: true
+    state: started

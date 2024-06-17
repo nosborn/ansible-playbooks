@@ -20,4 +20,3 @@
     name: loki-promtail
     enabled: true
     state: started
-  when: false

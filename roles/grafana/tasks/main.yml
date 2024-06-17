@@ -9,13 +9,12 @@
 
 - name: configure
   ansible.builtin.template:
-    src: config.ini.j2
-    dest: /etc/grafana/config.ini
+    src: grafana.ini.j2
+    dest: /etc/grafana.ini
     owner: root
     group: grafana
     mode: !!str 0440
   notify: restart grafana
-  when: false # FIXME
 
 - name: provision
   ansible.builtin.template:
@@ -28,6 +27,17 @@
     - datasources/alertmanager.yaml
     - datasources/loki.yaml
     - datasources/prometheus.yaml
+  notify: restart grafana
+
+- name: configure service
+  ansible.builtin.lineinfile:
+    path: /etc/conf.d/grafana
+    line: cfg:server.http_addr={{ lan_ipv4_address }}
+    regexp: ^cfg:server.http_addr=
+    owner: root
+    group: root
+    mode: !!str 0444
+    validate: sh -f %s -n
   notify: restart grafana
 
 - name: enable and start service

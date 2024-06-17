@@ -1,7 +1,9 @@
 ---
 - name: install package
-  community.general.openbsd_pkg:
+  community.general.apk:
     name: imapfilter
+    repository: https://dl-cdn.alpinelinux.org/alpine/edge/testing
+    state: latest
   register: imapfilter_result
   until: imapfilter_result is not failed
   # notify: restart imapfilter

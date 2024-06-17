@@ -18,7 +18,7 @@ server:
 {% endfor %}
 
 	log-queries: yes
-	# log-replies: yes
+	log-replies: yes
 	log-tag-queryreply: yes
 	log-servfail: yes
 
@@ -89,7 +89,7 @@ server:
 {% for domain in proxy_gb_domains %}
 	domain-insecure: "{{ domain }}"
 	local-zone: "{{ domain }}" redirect
-	local-data: "{{ domain }} A {{ hostvars.proxy_in.ansible_default_ipv4.address }}"
+	local-data: "{{ domain }} A {{ hostvars.proxy_gb.ansible_default_ipv4.address }}"
 
 {% endfor %}
 {% for domain in proxy_in_domains %}
@@ -120,6 +120,8 @@ forward-zone:
 forward-zone:
 	name: "."
 	forward-addr: 194.242.2.4@853#base.dns.mullvad.net
+	# # TEMPORARY:
+	# forward-no-cache: yes
 	forward-tls-upstream: yes
 
 #auth-zone:
