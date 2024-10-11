@@ -1,6 +1,10 @@
+# yamllint disable rule:line-length
 ---
 pushover_user_key: "{{ vault_pushover_user_key }}"
-sshd_config_allow_tcp_forwarding: "{{ vault_sshd_config_allow_tcp_forwarding }}"
-wireguard_ipv4_subnet: "{{ vault_wireguard_ipv4_subnet }}"
+sshd_config_ciphers: "{{ vault_sshd_config_ciphers }}"
+sshd_config_kex_algorithms: "{{ vault_sshd_config_kex_algorithms }}"
+sshd_config_host_key_algorithms: "{{ vault_sshd_config_host_key_algorithms }}"
+sshd_config_macs: "{{ vault_sshd_config_macs }}"
+sshd_config_pubkey_accepted_algorithms: "{{ vault_sshd_config_pubkey_accepted_algorithms }}"
 wireguard_port: "{{ vault_wireguard_port }}"
 wireguard_preshared_key: "{{ vault_wireguard_preshared_key }}"

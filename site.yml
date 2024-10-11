@@ -1,11 +1,10 @@
-# yamllint disable rule:line-length
 ---
 - name: Gather facts
   hosts: all
 
   pre_tasks:
     - name: gather facts from excluded hosts
-      ansible.builtin.setup:
+      ansible.builtin.setup: {}
       delegate_to: "{{ item }}"
       delegate_facts: true
       loop: "{{ groups['all'] }}"
@@ -49,13 +48,33 @@
       tags:
         - always
 
+    - name: configure networking
+      ansible.builtin.copy:
+        content: "{{ network_interfaces }}"
+        dest: /etc/network/interfaces
+        owner: root
+        group: root
+        mode: !!str 0444
+      # notify: restart networking -- FIXME
+
   roles:
+    - role: iptables
+      when: ansible_hostname != 'tombstone'
+      tags:
+        - always
     - role: ufw
       tags:
         - always
     - role: wireguard
+      when: ansible_hostname != 'tombstone'
       tags:
         - always
+
+  # handlers:
+  #   - name: restart networking
+  #     ansible.builtin.service:
+  #       name: networking
+  #       state: restarted
 
 - name: Alpine Linux common configuration
   hosts:
@@ -63,47 +82,75 @@
     - proxy_in
     - tombstone
   gather_facts: false
-  strategy: free
 
   roles:
+    - role: apk_cron
     - role: chrony
-    - role: nginx
-      tags:
-        - nginx
     - role: node_exporter
     - role: openrc_exporter
     - role: promtail
     - role: sshd
+      tags:
+        - sshd
     - role: tcpdump
     - role: unbound
       tags:
         - unbound
-    - role: wireguard_exporter
 
 - name: Configure Tombstone
-  hosts: tombstone
+  hosts:
+    - tombstone
   gather_facts: false
 
   roles:
     - role: alertmanager
     - role: blackbox_exporter
-      when: false # FIXME
+    - role: dns_updater
+      tags:
+        - dns-updater
     - role: grafana
     - role: homebridge
+      tags:
+        - homebridge
     - role: imapfilter
-      when: false
+      tags:
+        - imapfilter
     - role: loki
     - role: man_pages
     - role: microcode
     - role: prometheus
     - role: step_ca
 
-- name: Configure CloudKey
-  hosts: cloudkey
+- name: Configure proxies
+  hosts:
+    - proxy_gb
+    - proxy_in
   gather_facts: false
 
+  pre_tasks:
+    - name: disable cloud-init network configuration
+      ansible.builtin.copy:
+        content: |
+          network: {config: disabled}
+        dest: /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
+        owner: root
+        group: root
+        mode: !!str 0444
+      tags:
+        - always
+
   roles:
-    - role: unifi
+    - role: nginx
+      tags:
+        - nginx
+    - role: wireguard_exporter
+
+# - name: Configure CloudKey
+#   hosts: cloudkey
+#   gather_facts: false
+#
+#   roles:
+#     - role: unifi
 
 - name: Configure Gateway
   hosts: gateway
@@ -111,3 +158,4 @@
 
   roles:
     - role: unifi_gateway
+      when: false

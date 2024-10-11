@@ -1,0 +1,36 @@
+#!/bin/sh
+
+set -eu
+
+current_ip=$(curl -4fsS https://cloudflare.com/cdn-cgi/trace | grep -E '^ip=[0-9]+(\.[0-9]+){3}$' | sed 's/^ip=//')
+dns_ip="$(dig '{{ external_fqdn }}.' A +short)"
+[ "X${current_ip}" = "X${dns_ip}" ] && exit
+
+export AWS_ACCESS_KEY_ID='{{ dns_updater_aws_access_key_id }}'
+export AWS_SECRET_ACCESS_KEY='{{ dns_updater_aws_secret_access_key }}'
+
+change_batch="$(mktemp)"
+trap 'rm -f "${change_batch}"' EXIT
+
+cat >"${change_batch}" <<EOT
+{
+  "Changes" : [
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet":{
+        "Name": "{{ external_fqdn }}.",
+        "Type": "A",
+        "TTL": 60,
+        "ResourceRecords": [
+          {
+            "Value": "${current_ip}"
+          }
+        ]
+      }
+    }
+  ]
+}
+EOT
+
+result="$(aws route53 change-resource-record-sets --change-batch "file://${change_batch}" --hosted-zone-id '{{ dns_updater_hosted_zone_id }}' --output text)"
+aws route53 wait resource-record-sets-changed --id "$(echo "${result}" | awk '{print $2}')"

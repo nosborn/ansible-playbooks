@@ -1,14 +1,14 @@
 server:
 	interface: 127.0.0.1
-	interface: {{ wireguard_ipv4_address }}
 	interface: ::1
 
-	outgoing-port-avoid: {{ wireguard_port }}
+	outgoing-port-avoid: 51820
 
 	ip-transparent: yes
 
+	prefer-ip6: yes
+
 	access-control: 127.0.0.1/32 allow
-	access-control: {{ hostvars.tombstone.wireguard_ipv4_address }}/32 allow
 	access-control: ::1/32 allow
 
 	log-queries: yes

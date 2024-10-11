@@ -16,7 +16,6 @@
     mode: !!str 0444
     validate: chronyd -f %s -p
   notify: restart chronyd
-  when: false
 
 - name: enable and start service
   ansible.builtin.service:

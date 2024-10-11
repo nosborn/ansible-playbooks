@@ -1,0 +1,8 @@
+---
+- name: install packages
+  ansible.builtin.package:
+    name:
+      - apk-cron
+    state: present
+  register: apk_cron_result
+  until: apk_cron_result is not failed

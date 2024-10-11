@@ -1,0 +1,8 @@
+---
+- name: install package
+  ansible.builtin.package:
+    name:
+      - bind-tools
+    state: present
+  register: bind_tools_result
+  until: bind_tools_result is not failed

@@ -1,5 +1,4 @@
 server {
-	listen {{ ansible_default_ipv4.address }}:443;
 	listen {{ wireguard_ipv4_address }}:443;
 	ssl_preread on;
 	resolver 127.0.0.1;

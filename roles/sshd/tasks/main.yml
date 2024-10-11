@@ -1,9 +1,4 @@
 ---
-# - name: install sshd
-#   ansible.builtin.package:
-#     name: openssh
-#     state: present
-
 - name: configure
   ansible.builtin.template:
     src: sshd_config.j2
@@ -12,6 +7,57 @@
     group: root
     mode: !!str 0444
     validate: sshd -f %s -t
+  notify: restart sshd
+
+- name: remove small Diffie-Hellman moduli
+  ansible.builtin.command:
+    argv:
+      - awk
+      - $5 >= 3071
+      - /etc/ssh/moduli
+  register: sshd_result
+  changed_when: false
+
+- name: remove small Diffie-Hellman moduli
+  ansible.builtin.copy:
+    content: "{{ sshd_result.stdout }}"
+    dest: /etc/ssh/moduli
+    owner: root
+    group: root
+    mode: !!str 0444
+  notify: restart sshd
+
+- name: configure sshd service
+  ansible.builtin.lineinfile:
+    path: /etc/conf.d/sshd
+    line: key_types_to_generate="ed25519"
+    regexp: ^#?key_types_to_generate=
+    owner: root
+    group: root
+    mode: !!str 0444
+    validate: sh -f %s -n
+  notify: restart sshd
+
+- name: configure sshd service
+  ansible.builtin.lineinfile:
+    path: /etc/conf.d/sshd
+    line: rsa_bit_size="4096" # just in case
+    regexp: ^#?rsa_bit_size=
+    owner: root
+    group: root
+    mode: !!str 0444
+    validate: sh -f %s -n
+  notify: restart sshd
+
+- name: remove unwanted host keys
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/ssh/ssh_host_ecdsa_key
+    - /etc/ssh/ssh_host_ecdsa_key.pub
+    - /etc/ssh/ssh_host_rsa_key
+    - /etc/ssh/ssh_host_rsa_key.pub
   notify: restart sshd
 
 - name: enable and start service

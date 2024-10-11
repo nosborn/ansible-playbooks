@@ -1,4 +1,14 @@
 ---
+- name: install dependencies
+  community.general.apk:
+    name:
+      - lua5.1-libs
+      - pcre2
+    state: latest
+  register: imapfilter_result
+  until: imapfilter_result is not failed
+  # notify: restart imapfilter
+
 - name: install package
   community.general.apk:
     name: imapfilter
@@ -8,16 +18,21 @@
   until: imapfilter_result is not failed
   # notify: restart imapfilter
 
+- name: create group
+  ansible.builtin.group:
+    name: imapfilter
+    system: true
+
 - name: create user
   ansible.builtin.user:
     name: imapfilter
     comment: IMAP Filter
     create_home: false
-    home: /nonexistent
+    group: imapfilter
+    home: /var/empty
     password_lock: true
-    shell: /usr/sbin/nologin
+    shell: /sbin/nologin
     system: true
-  when: false
 
 - name: create configuration directory
   ansible.builtin.file:
@@ -26,7 +41,6 @@
     group: imapfilter
     mode: !!str 0750
     state: directory
-  when: false
 
 - name: create configuration
   ansible.builtin.copy:
@@ -35,8 +49,7 @@
     owner: root
     group: imapfilter
     mode: !!str 0440
-  notify: restart imapfilter
-  when: false
+  # notify: restart imapfilter
 
 - name: configure service
   ansible.builtin.template:

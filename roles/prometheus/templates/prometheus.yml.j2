@@ -32,8 +32,8 @@ scrape_configs:
         replacement: 127.0.0.1:9115
     static_configs:
       - targets:
-          - http://proxy-gb.osborn.io
-          - http://proxy-in.osborn.io
+          - http://{{ hostvars.proxy_gb.wireguard_ipv4_address }}
+          - http://{{ hostvars.proxy_in.wireguard_ipv4_address }}
           # - https://f1tv.formula1.com/robots.txt
 
   - job_name: icmp

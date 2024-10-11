@@ -64,4 +64,11 @@
     name: homebridge
     enabled: true
     state: started
-  when: false
+
+- name: configure log rotation
+  ansible.builtin.template:
+    src: logrotate.conf.j2
+    dest: /etc/logrotate.d/homebridge
+    owner: root
+    group: root
+    mode: !!str 0444

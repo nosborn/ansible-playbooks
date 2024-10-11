@@ -22,19 +22,32 @@
     owner: root
     group: root
     mode: !!str 0400
-  notify: restart wireguard
+  # notify: restart wireguard -- FIXME: restart interface
 
-- name: link service
-  ansible.builtin.file:
-    src: wg-quick
-    dest: /etc/init.d/wg-quick.{{ wireguard_if }}
-    state: link
-
-- name: enable and start service
+- name: stop and disable service
   ansible.builtin.service:
     name: wg-quick.{{ wireguard_if }}
-    enabled: true
-    state: started
+    enabled: false
+    state: stopped
+
+- name: unlink service
+  ansible.builtin.file:
+    path: /etc/init.d/wg-quick.{{ wireguard_if }}
+    state: absent
+
+- name: load kernel module
+  ansible.builtin.copy:
+    content: |
+      wireguard
+    dest: /etc/modules-load.d/wireguard.conf
+    owner: root
+    group: root
+    mode: !!str 0444
+
+- name: load kernel module
+  community.general.modprobe:
+    name: wireguard
+    state: present
 
 - name: enable IP forwarding
   ansible.posix.sysctl:
@@ -46,14 +59,13 @@
 - name: configure static routes
   ansible.builtin.lineinfile:
     path: /etc/conf.d/staticroute
-    line: staticiproute="{{ hostvars.tombstone.lan_ipv4_subnet }} via {{ hostvars.tombstone.wireguard_ipv4_address }}"
+    line: staticiproute="{{ hostvars.tombstone.lan_ipv4_subnet }} via {{ wireguard_ipv4_address }}"
     regex: ^#?staticiproute=
     owner: root
     group: root
     mode: !!str 0444
     validate: sh -n %s
   notify: restart staticroute
-  when: ansible_hostname != 'tombstone'
 #
 # - name: configure clients
 #   delegate_to: localhost

@@ -15,8 +15,8 @@
     state: directory
 
 - name: configure iptables
-  ansible.builtin.copy:
-    content: ""
+  ansible.builtin.template:
+    src: rules-save.j2
     dest: /etc/iptables/rules-save
     owner: root
     group: root
@@ -24,8 +24,8 @@
   notify: restart iptables
 
 - name: configure ip6tables
-  ansible.builtin.copy:
-    content: ""
+  ansible.builtin.template:
+    src: rules6-save.j2
     dest: /etc/iptables/rules6-save
     owner: root
     group: root

@@ -1,0 +1,50 @@
+*filter
+:INPUT DROP [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+
+# Allow all on loopback.
+[0:0] -A INPUT -i lo -j ACCEPT
+
+# Drop packets with RH0 headers.
+[0:0] -A INPUT -m rt --rt-type 0 -j DROP
+
+# Quickly process packets for which we already have a connection.
+[0:0] -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+
+# Multicast ping replies are part of the OK ICMP codes for INPUT (rfc4890,
+# 4.4.1 and 4.4.2), but don't have an associated connection and are otherwise
+# be marked INVALID, so allow here instead.
+[0:0] -A INPUT -p icmpv6 --icmpv6-type echo-reply -j ACCEPT
+
+# Drop INVALID packets.
+[0:0] -A INPUT -m conntrack --ctstate INVALID -j DROP
+
+# OK ICMP codes for INPUT (rfc4890, 4.4.1 and 4.4.2).
+[0:0] -A INPUT -p icmpv6 --icmpv6-type destination-unreachable -j ACCEPT
+[0:0] -A INPUT -p icmpv6 --icmpv6-type packet-too-big -j ACCEPT
+[0:0] -A INPUT -p icmpv6 --icmpv6-type time-exceeded -j ACCEPT
+[0:0] -A INPUT -p icmpv6 --icmpv6-type parameter-problem -j ACCEPT
+[0:0] -A INPUT -p icmpv6 --icmpv6-type echo-request -j ACCEPT
+[0:0] -A INPUT -p icmpv6 --icmpv6-type router-solicitation -m hl --hl-eq 255 -j ACCEPT
+[0:0] -A INPUT -p icmpv6 --icmpv6-type router-advertisement -m hl --hl-eq 255 -j ACCEPT
+[0:0] -A INPUT -p icmpv6 --icmpv6-type neighbor-solicitation -m hl --hl-eq 255 -j ACCEPT
+[0:0] -A INPUT -p icmpv6 --icmpv6-type neighbor-advertisement -m hl --hl-eq 255 -j ACCEPT
+
+# Allow DHCP client to work.
+[0:0] -A INPUT -p udp -s fe80::/10 --sport 547 -d fe80::/10 --dport 546 -j ACCEPT
+
+{% if ansible_hostname != 'tombstone' %}
+[0:0] -A INPUT -p tcp -m tcp --dport 22 -m state --state NEW -m recent --update --seconds 10 --hitcount 10 --name DEFAULT --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource -j DROP
+[0:0] -A INPUT -p tcp -m tcp --dport 22 -m state --state NEW -m recent --set --name DEFAULT --mask ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff --rsource -j ACCEPT
+{% endif %}
+
+# Don't log noisy services.
+[0:0] -A INPUT -p udp --dport 137 -j DROP
+[0:0] -A INPUT -p udp --dport 138 -j DROP
+[0:0] -A INPUT -p tcp --dport 139 -j DROP
+[0:0] -A INPUT -p tcp --dport 445 -j DROP
+[0:0] -A INPUT -p udp --dport 546 -j DROP
+[0:0] -A INPUT -p udp --dport 547 -j DROP
+
+COMMIT
