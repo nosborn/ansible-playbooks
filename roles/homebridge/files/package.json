@@ -1,7 +1,7 @@
 {
   "description": "This file keeps track of which plugins should be installed.",
   "dependencies": {
-    "homebridge": "1.8.3",
+    "homebridge": "1.8.5",
     "homebridge-unifi-occupancy-sensor": "2.0.1"
   },
   "private": true
