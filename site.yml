@@ -42,6 +42,7 @@
       ansible.builtin.package:
         name:
           - acl
+          - kitty-terminfo
         state: latest
       register: result
       until: result is not failed
@@ -109,6 +110,10 @@
       tags:
         - dns-updater
     - role: grafana
+    - role: headscale
+      tags:
+        - headscale
+      when: false
     - role: homebridge
       tags:
         - homebridge
@@ -120,6 +125,7 @@
     - role: microcode
     - role: prometheus
     - role: step_ca
+      when: false
 
 - name: Configure proxies
   hosts:

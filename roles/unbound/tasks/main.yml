@@ -6,6 +6,10 @@
   register: unbound_result
   until: unbound_result is not failed
 
+- name: set up filters
+  import_tasks: filters.yml
+  when: ansible_hostname == 'tombstone'
+
 - name: configure
   ansible.builtin.template:
     src: "{{ unbound_conf_src }}"

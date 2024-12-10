@@ -32,22 +32,22 @@ AuthorizedKeysFile .ssh/authorized_keys
 #AuthorizedPrincipalsFile none
 #Banner none
 #ChrootDirectory none
-Ciphers {{ sshd_config_ciphers | join(',') }}
+#Ciphers {{ sshd_config_ciphers | join(',') }}
 #ClientAliveCountMax 3
 ClientAliveInterval 20
 #Compression yes
 DisableForwarding yes
 #GatewayPorts no
 HostKey /etc/ssh/ssh_host_ed25519_key
-HostKeyAlgorithms {{ sshd_config_host_key_algorithms | join(',') }}
+#HostKeyAlgorithms {{ sshd_config_host_key_algorithms | join(',') }}
 #HostbasedAuthentication no
 #IgnoreRhosts yes
 #IgnoreUserKnownHosts no
 KbdInteractiveAuthentication no
-KexAlgorithms {{ sshd_config_kex_algorithms | join(',') }}
+KexAlgorithms -diffie-hellman-group14-sha256,ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521
 LoginGraceTime 1m
 #LogLevel INFO
-MACs {{ sshd_config_macs | join(',') }}
+MACs -hmac-sha1,hmac-sha1-etm@openssh.com,hmac-sha2-256,hmac-sha2-512,umac-64@openssh.com,umac-64-etm@openssh.com,umac-128@openssh.com
 MaxAuthTries 3
 #MaxSessions 10
 #MaxStartups 10:30:100
@@ -60,7 +60,7 @@ PermitRootLogin prohibit-password
 #PidFile /run/sshd.pid
 #PrintLastLog yes
 PrintMotd no
-PubkeyAcceptedAlgorithms {{ sshd_config_pubkey_accepted_algorithms | sort | join(',') }}
+#PubkeyAcceptedAlgorithms {{ sshd_config_pubkey_accepted_algorithms | sort | join(',') }}
 #PubkeyAuthentication yes
 #RekeyLimit default none
 #StrictModes yes

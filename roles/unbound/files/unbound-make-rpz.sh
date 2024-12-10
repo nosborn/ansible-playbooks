@@ -17,6 +17,8 @@ fetch_trackers() {
 }
 
 fetch_advertising() {
+  curl -fLsS https://raw.githubusercontent.com/jerryn70/GoodbyeAds/master/Extension/GoodbyeAds-YouTube-AdBlock.txt
+  curl -fLsS https://raw.githubusercontent.com/jerryn70/GoodbyeAds/master/Hosts/GoodbyeAds.txt
   curl -fLsS https://small.oisd.nl/rpz
   curl -fLsS https://v.firebog.net/hosts/AdguardDNS.txt
 }
@@ -47,6 +49,8 @@ format() {
     sed -e 's/CNAME \.$//' |
     sed -e 's/\.$//' |
     sed -e '/^$/d' |
+    grep -Fv '.agent.ap1.datadoghq.com' |
+    grep -Fv '.agent.datadoghq.com' |
     grep -Fvx 'a1.api.bbc.co.uk' |
     grep -Fvx 'ati-a1.946d001b783803c1.xhst.bbci.co.uk' |
     sort |
@@ -65,7 +69,8 @@ EOT
   fetch | dos2unix | format
 } >"${zone}"
 
-if ! cmp -s "${zone}" /var/lib/unbound/rpz.home.arpa.zone; then
-  cp -f "${zone}" /var/lib/unbound/rpz.home.arpa.zone
-  unbound-control reload || :
+if ! cmp -s "${zone}" /etc/unbound/rpz.home.arpa.zone; then
+  cp -f "${zone}" /etc/unbound/rpz.home.arpa.zone
+  chmod +r /etc/unbound/rpz.home.arpa.zone
+  rc-service --quiet unbound reload || :
 fi
