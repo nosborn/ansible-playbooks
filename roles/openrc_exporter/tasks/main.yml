@@ -2,7 +2,7 @@
 - name: install package
   ansible.builtin.package:
     name: prometheus-openrc-exporter
-    state: latest
+    state: present
   register: openrc_exporter_result
   until: openrc_exporter_result is not failed
   notify: restart openrc-exporter

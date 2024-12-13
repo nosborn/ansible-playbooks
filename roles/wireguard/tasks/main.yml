@@ -2,7 +2,9 @@
 ---
 - name: install packages
   ansible.builtin.package:
-    name: wireguard-tools
+    name:
+      - wireguard-tools
+      - wireguard-tools-doc
     state: present
   register: wireguard_result
   until: wireguard_result is not failed
@@ -59,7 +61,7 @@
 - name: configure static routes
   ansible.builtin.lineinfile:
     path: /etc/conf.d/staticroute
-    line: staticiproute="{{ hostvars.tombstone.lan_ipv4_subnet }} via {{ wireguard_ipv4_address }}"
+    line: staticiproute="{{ hostvars.tombstone.lan_ipv4_address }}/32 via {{ wireguard_ipv4_address }}"
     regex: ^#?staticiproute=
     owner: root
     group: root

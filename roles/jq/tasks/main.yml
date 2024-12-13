@@ -1,0 +1,9 @@
+---
+- name: install packages
+  ansible.builtin.package:
+    name:
+      - jq
+      - jq-doc
+    state: present
+  register: jq_result
+  until: jq_result is not failed

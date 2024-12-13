@@ -1,5 +1,5 @@
 ---
-- name: restart headscale
+- name: restart alloy
   ansible.builtin.service:
-    name: headscale
+    name: alloy
     state: restarted

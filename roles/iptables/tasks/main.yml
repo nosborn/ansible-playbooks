@@ -1,7 +1,9 @@
 ---
 - name: install package
   ansible.builtin.package:
-    name: iptables
+    name:
+      - iptables
+      - iptables-doc
     state: present
   register: iptables_result
   until: iptables_result is not failed

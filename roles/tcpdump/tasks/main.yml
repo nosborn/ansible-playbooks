@@ -1,7 +1,9 @@
 ---
 - name: install package
   ansible.builtin.package:
-    name: tcpdump
+    name:
+      - tcpdump
+      - tcpdump-doc
     state: present
   register: tcpdump_result
   until: tcpdump_result is not failed

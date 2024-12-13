@@ -1,5 +1,5 @@
 ---
-- name: restart promtail
+- name: restart staticroute
   ansible.builtin.service:
-    name: loki-promtail
+    name: staticroute
     state: restarted

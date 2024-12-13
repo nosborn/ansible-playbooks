@@ -1,0 +1,46 @@
+---
+- name: install package
+  community.general.apk:
+    name: alloy
+    repository: https://{{ apk_mirror_name }}/alpine/edge/community
+    state: latest
+  register: alloy_result
+  until: alloy_result is not failed
+  notify: restart alloy
+
+- name: configuration directory
+  ansible.builtin.file:
+    path: /etc/alloy
+    owner: root
+    group: root
+    mode: !!str 0755
+    state: directory
+
+- name: configure
+  ansible.builtin.template:
+    src: config.alloy.j2
+    dest: /etc/alloy/config.alloy
+    owner: root
+    group: alloy
+    mode: !!str 0440
+  notify: restart alloy
+
+- name: service arguments
+  ansible.builtin.lineinfile:
+    path: /etc/conf.d/alloy
+    regex: command_args=
+    line: command_args="run --disable-reporting /etc/alloy/config.alloy"
+  notify: restart alloy
+
+- name: service user
+  ansible.builtin.lineinfile:
+    path: /etc/conf.d/alloy
+    regex: command_user=
+    line: command_user="root"
+  notify: restart alloy
+
+- name: enable and start service
+  ansible.builtin.service:
+    name: alloy
+    enabled: true
+    state: started

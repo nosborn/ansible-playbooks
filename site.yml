@@ -42,8 +42,9 @@
       ansible.builtin.package:
         name:
           - acl
+          - acl-doc
           - kitty-terminfo
-        state: latest
+        state: present
       register: result
       until: result is not failed
       tags:
@@ -85,11 +86,15 @@
   gather_facts: false
 
   roles:
+    - role: alloy
+      tags:
+        - alloy
     - role: apk_cron
     - role: chrony
+    - role: logrotate
     - role: node_exporter
     - role: openrc_exporter
-    - role: promtail
+    - role: opensmtpd
     - role: sshd
       tags:
         - sshd
@@ -110,10 +115,6 @@
       tags:
         - dns-updater
     - role: grafana
-    - role: headscale
-      tags:
-        - headscale
-      when: false
     - role: homebridge
       tags:
         - homebridge

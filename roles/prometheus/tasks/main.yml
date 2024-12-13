@@ -2,7 +2,7 @@
 - name: install package
   ansible.builtin.package:
     name: prometheus
-    state: latest
+    state: present
   register: prometheus_result
   until: prometheus_result is not failed
   notify: restart prometheus

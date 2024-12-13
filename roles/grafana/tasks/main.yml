@@ -2,7 +2,7 @@
 - name: install package
   ansible.builtin.package:
     name: grafana
-    state: latest
+    state: present
   register: grafana_result
   until: grafana_result is not failed
   notify: restart grafana

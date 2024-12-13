@@ -3,3 +3,4 @@ dependencies:
   - role: aws_cli
   - role: bind_tools
   - role: curl
+  - role: jq

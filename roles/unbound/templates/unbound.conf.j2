@@ -88,17 +88,17 @@ server:
 
 	# Local blocks.
 	local-zone: "app-analytics-services.com." always_nxdomain
+	local-zone: "ar.prd.content.itv.com." always_nxdomain # ITVX ads
 	local-zone: "europe-west1-itv-ds-prd.cloudfunctions.net." always_nxdomain # ITVX ads
 	local-zone: "flyctl-metrics.fly.dev." always_nxdomain
 	local-zone: "itv-ads.aimatch.com." always_nxdomain
 	local-zone: "telemetry-in.battle.net." always_nxdomain
+	local-zone: "tom.itv.com." always_nxdomain # ITVX ads
 	local-zone: "tpsc-video.doubleverify.com." always_nxdomain # ITVX ads
 
 	# ITV -- not sure about these
-	#local-zone: "ar.prd.content.itv.com." always_nxdomain
 	##local-zone: "promoted.hubsvc.itv.com." always_nxdomain
 	#local-zone: "recommendations.prd.user.itv.com." always_nxdomain
-	##local-zone: "tom.itv.com." always_nxdomain
 
 	# adobetm.com
 	#local-zone: "assets.adobedtm.com." always_nxdomain
@@ -238,6 +238,9 @@ server:
 	#local-zone: "error-tracking.reddit.com." always_nxdomain
 	#local-zone: "w3-reporting.reddit.com." always_nxdomain
 	#local-zone: "w3-reporting-nel.reddit.com." always_nxdomain
+
+	# sony.com
+	local-zone: "ack.me.sony.com." always_nxdomain
 
 	# taboola.com
 	#local-zone: "beacon.bidder.taboola.com." always_nxdomain
@@ -473,15 +476,15 @@ server:
 	#local-zone: "config.samsungads.com." always_nxdomain
 
 {% for domain in proxy_gb_domains %}
-	#domain-insecure: "{{ domain }}"
-	#local-zone: "{{ domain }}" redirect
-	#local-data: "{{ domain }} A {{ hostvars.proxy_gb.wireguard_ipv4_address }}"
+	domain-insecure: "{{ domain }}"
+	local-zone: "{{ domain }}" redirect
+	local-data: "{{ domain }} A {{ hostvars.proxy_gb.wireguard_ipv4_address }}"
 
 {% endfor %}
 {% for domain in proxy_in_domains %}
-	#domain-insecure: "{{ domain }}"
-	#local-zone: "{{ domain }}" redirect
-	#local-data: "{{ domain }} A {{ hostvars.proxy_in.wireguard_ipv4_address }}"
+	domain-insecure: "{{ domain }}"
+	local-zone: "{{ domain }}" redirect
+	local-data: "{{ domain }} A {{ hostvars.proxy_in.wireguard_ipv4_address }}"
 
 {% endfor %}
 remote-control:
@@ -505,7 +508,6 @@ forward-zone:
 
 forward-zone:
 	name: "."
-
 {% for forwarder in unbound_forwarders %}
 	forward-addr: "{{ forwarder }}"
 {% endfor %}
@@ -582,7 +584,7 @@ forward-zone:
 #	for-downstream: no
 #	for-upstream: yes
 
-#rpz:
-#	name: "rpz.home.arpa"
-#	zonefile: "/etc/unbound/rpz.home.arpa.zone"
-#	rpz-log: yes
+rpz:
+	name: "rpz.home.arpa"
+	zonefile: "/etc/unbound/rpz.home.arpa.zone"
+	rpz-log: yes
