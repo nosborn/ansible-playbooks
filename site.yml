@@ -42,8 +42,9 @@
       ansible.builtin.package:
         name:
           - acl
+          - acl-doc
           - kitty-terminfo
-        state: latest
+        state: present
       register: result
       until: result is not failed
       tags:
@@ -110,10 +111,6 @@
       tags:
         - dns-updater
     - role: grafana
-    - role: headscale
-      tags:
-        - headscale
-      when: false
     - role: homebridge
       tags:
         - homebridge

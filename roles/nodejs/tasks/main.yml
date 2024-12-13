@@ -3,7 +3,9 @@
   ansible.builtin.package:
     name:
       - nodejs
+      - nodejs-doc
       - npm
-    state: latest
+      - npm-doc
+    state: present
   register: nodejs_result
   until: nodejs_result is not failed

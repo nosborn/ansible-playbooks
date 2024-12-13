@@ -2,7 +2,7 @@
 - name: install package
   ansible.builtin.package:
     name: alertmanager
-    state: latest
+    state: present
   register: alertmanager_result
   until: alertmanager_result is not failed
   notify: restart alertmanager

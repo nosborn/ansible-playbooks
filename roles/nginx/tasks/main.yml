@@ -3,6 +3,7 @@
   ansible.builtin.package:
     name:
       - nginx
+      - nginx-doc
       - nginx-mod-stream
     state: present
   register: nginx_result

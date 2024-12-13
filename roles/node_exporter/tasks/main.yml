@@ -2,7 +2,7 @@
 - name: install package
   ansible.builtin.package:
     name: prometheus-node-exporter
-    state: latest
+    state: present
   register: node_exporter_result
   until: node_exporter_result is not failed
   notify: restart node-exporter

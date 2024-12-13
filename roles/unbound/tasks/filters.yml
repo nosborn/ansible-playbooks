@@ -5,7 +5,9 @@
 
 - name: install dependencies
   ansible.builtin.package:
-    name: dos2unix
+    name:
+      - dos2unix
+      - dos2unix-doc
     state: present
   register: unbound_result
   until: unbound_result is not failed
@@ -24,57 +26,14 @@
     argv:
       - /usr/local/bin/unbound-make-rpz.sh
     creates: /etc/unbound/rpz.home.arpa.zone
-#
-# - name: install unbound filter scripts
-#   ansible.builtin.copy:
-#     src: "{{ unbound_item }}"
-#     dest: /usr/local/sbin/{{ unbound_item }}
-#     owner: root
-#     group: root
-#     mode: !!str 0555
-#     validate: sh -n %s
-#   loop:
-#     # - unbound-make-filters.sh
-#     - unbound-make-rpz.sh
-#     # - unbound-shrink-filters.pl
-#   loop_control:
-#     loop_var: unbound_item
-#   notify: start unbound-filters
-#
-# - name: make unbound filters
-#   become: true
-#   become_flags: --set-home
-#   become_user: unbound
-#   ansible.builtin.command:
-#     # argv:
-#     #   - /usr/local/bin/unbound-make-filters.sh
-#     # creates: /etc/unbound/unbound.conf.d/blacklist.conf
-#     argv:
-#       - /usr/local/sbin/unbound-make-rpz.sh
-#     creates: /var/lib/unbound/rpz.home.arpa.zone
-#   notify: restart unbound
-#
-# - name: install unbound-filters service
-#   ansible.builtin.copy:
-#     src: "{{ unbound_item }}"
-#     dest: /etc/systemd/system/{{ unbound_item }}
-#     owner: root
-#     group: root
-#     mode: !!str 0444
-#   loop:
-#     - unbound-filters.service
-#     - unbound-filters.timer
-#   loop_control:
-#     loop_var: unbound_item
-#
-# - name: enable unbound-filters service
-#   ansible.builtin.systemd:
-#     name: unbound-filters.service
-#     enabled: true
-#
-# - name: enable and start unbound-filters timer
-#   ansible.builtin.systemd:
-#     name: unbound-filters.timer
-#     daemon_reload: true
-#     enabled: true
-#     state: started
+
+- name: install cron jobs
+  ansible.builtin.copy:
+    content: |
+      #!/bin/sh
+      exec /usr/local/bin/unbound-make-rpz.sh
+    dest: /etc/periodic/daily/unbound-make-rpz
+    owner: root
+    group: root
+    mode: !!str 0555
+    validate: /bin/sh -n %s

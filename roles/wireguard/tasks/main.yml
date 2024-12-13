@@ -2,7 +2,9 @@
 ---
 - name: install packages
   ansible.builtin.package:
-    name: wireguard-tools
+    name:
+      - wireguard-tools
+      - wireguard-tools-doc
     state: present
   register: wireguard_result
   until: wireguard_result is not failed

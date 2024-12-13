@@ -2,7 +2,7 @@
 - name: install package
   ansible.builtin.package:
     name: loki-promtail
-    state: latest
+    state: present
   register: promtail_result
   until: promtail_result is not failed
 

@@ -1,8 +1,10 @@
 ---
 - name: install package
   ansible.builtin.package:
-    name: chrony
-    state: latest
+    name:
+      - chrony
+      - chrony-doc
+    state: present
   register: chrony_result
   until: chrony_result is not failed
   notify: restart chronyd

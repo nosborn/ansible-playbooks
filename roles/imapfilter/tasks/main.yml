@@ -4,7 +4,7 @@
     name:
       - lua5.1-libs
       - pcre2
-    state: latest
+    state: present
   register: imapfilter_result
   until: imapfilter_result is not failed
   # notify: restart imapfilter
@@ -13,7 +13,7 @@
   community.general.apk:
     name: imapfilter
     repository: https://dl-cdn.alpinelinux.org/alpine/edge/testing
-    state: latest
+    state: present
   register: imapfilter_result
   until: imapfilter_result is not failed
   # notify: restart imapfilter

@@ -1,7 +1,9 @@
 ---
 - name: install package
   ansible.builtin.package:
-    name: unbound
+    name:
+      - unbound
+      - unbound-doc
     state: present
   register: unbound_result
   until: unbound_result is not failed

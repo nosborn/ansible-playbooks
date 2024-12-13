@@ -4,7 +4,8 @@
     name:
       - step-certificates
       - step-cli
-    state: latest
+      - step-doc
+    state: present
   register: step_ca_result
   until: step_ca_result is not failed
   notify: restart step-ca
