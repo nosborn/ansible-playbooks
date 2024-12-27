@@ -1,5 +1,5 @@
 ---
-- name: restart opensmtpd
+- name: restart alloy
   ansible.builtin.service:
-    name: opensmtpd
+    name: alloy
     state: restarted

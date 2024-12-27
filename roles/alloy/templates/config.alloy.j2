@@ -1,0 +1,34 @@
+logging {
+	format = "logfmt"
+	level  = "debug"
+}
+
+local.file_match "main" {
+	path_targets = [
+		{
+			"__path__" = "/var/log/*.log",
+		},
+		{
+			"__path__" = "/var/log/*/*.log",
+		},
+		{
+			"__path__" = "/var/log/messages",
+		},
+	]
+}
+
+loki.source.file "main" {
+	targets = local.file_match.main.targets
+
+	forward_to = [
+		loki.write.main.receiver,
+	]
+}
+
+loki.write "main" {
+	endpoint {
+		url = "{{ loki_push_url }}"
+	}
+}
+
+// vim: ft=river

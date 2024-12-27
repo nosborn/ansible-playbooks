@@ -1,5 +1,5 @@
 ---
-- name: restart opensmtpd
+- name: restart staticroute
   ansible.builtin.service:
-    name: opensmtpd
+    name: staticroute
     state: restarted

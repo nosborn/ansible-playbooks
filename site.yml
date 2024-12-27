@@ -86,11 +86,16 @@
   gather_facts: false
 
   roles:
+    - role: alloy
+      tags:
+        - alloy
     - role: apk_cron
     - role: chrony
     - role: node_exporter
     - role: openrc_exporter
+    - role: opensmtpd
     - role: promtail
+      when: false
     - role: sshd
       tags:
         - sshd

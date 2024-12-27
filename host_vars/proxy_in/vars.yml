@@ -1,4 +1,5 @@
 ---
+apk_mirror_name: "{{ vault_apk_mirror_name }}"
 apk_repositories: "{{ vault_apk_repositories }}"
 chrony_config_initstepslew: "{{ vault_chrony_config_initstepslew }}"
 chrony_config_servers: "{{ vault_chrony_config_servers }}"

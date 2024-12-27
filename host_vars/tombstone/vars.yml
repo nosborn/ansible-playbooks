@@ -1,11 +1,14 @@
 # yamllint disable rule:line-length
 ---
+apk_mirror_name: "{{ vault_apk_mirror_name }}"
 apk_repositories: "{{ vault_apk_repositories }}"
 chrony_config_initstepslew: "{{ vault_chrony_config_initstepslew }}"
 chrony_config_servers: "{{ vault_chrony_config_servers }}"
 dns_updater_aws_access_key_id: "{{ vault_dns_updater_aws_access_key_id }}"
 dns_updater_aws_secret_access_key: "{{ vault_dns_updater_aws_secret_access_key }}"
 dns_updater_hosted_zone_id: "{{ vault_dns_updater_hosted_zone_id }}"
+dns_updater_unifi_password: "{{ vault_dns_updater_unifi_password }}"
+dns_updater_unifi_username: "{{ vault_dns_updater_unifi_username }}"
 external_domain: "{{ vault_external_domain }}"
 external_fqdn: "{{ vault_external_fqdn }}"
 gateway: "{{ vault_gateway }}"
