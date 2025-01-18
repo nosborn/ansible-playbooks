@@ -239,6 +239,9 @@ server:
 	#local-zone: "w3-reporting.reddit.com." always_nxdomain
 	#local-zone: "w3-reporting-nel.reddit.com." always_nxdomain
 
+	# sony.com
+	local-zone: "ack.me.sony.com." always_nxdomain
+
 	# taboola.com
 	#local-zone: "beacon.bidder.taboola.com." always_nxdomain
 	#local-zone: "cdn.taboola.com." always_nxdomain
@@ -505,7 +508,6 @@ forward-zone:
 
 forward-zone:
 	name: "."
-
 {% for forwarder in unbound_forwarders %}
 	forward-addr: "{{ forwarder }}"
 {% endfor %}

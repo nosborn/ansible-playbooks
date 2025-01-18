@@ -91,6 +91,7 @@
         - alloy
     - role: apk_cron
     - role: chrony
+    - role: logrotate
     - role: node_exporter
     - role: openrc_exporter
     - role: opensmtpd
