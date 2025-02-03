@@ -2,7 +2,7 @@
 - name: install package
   community.general.apk:
     name: alloy
-    repository: https://{{ apk_mirror_name }}/alpine/edge/testing
+    repository: https://{{ apk_mirror_name }}/alpine/edge/community
     state: latest
   register: alloy_result
   until: alloy_result is not failed
