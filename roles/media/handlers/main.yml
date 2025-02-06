@@ -1,0 +1,6 @@
+---
+- name: restart media-disk
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+    name: "{{ media_disk_unit_name }}"
+    state: restarted

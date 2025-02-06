@@ -1,0 +1,4 @@
+---
+media_disk_unit_name: var-lib-media.mount
+media_group: media
+media_path: /var/lib/media

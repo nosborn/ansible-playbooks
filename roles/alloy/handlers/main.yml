@@ -1,5 +1,5 @@
 ---
 - name: restart alloy
-  ansible.builtin.service:
-    name: alloy
+  ansible.builtin.systemd_service:
+    name: alloy.service
     state: restarted

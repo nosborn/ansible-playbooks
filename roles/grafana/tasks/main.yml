@@ -1,47 +1,60 @@
+# yamllint disable rule:line-length
 ---
+# - ansible.builtin.get_url:
+#     url: https://apt.grafana.com/gpg.key
+#     dest: /etc/apt/keyrings/grafana.asc
+#     owner: root
+#     group: root
+#     mode: !!str 0444
+
+- ansible.builtin.apt_repository:
+    repo: deb [arch=amd64 signed-by=/etc/apt/keyrings/grafana.asc] https://apt.grafana.com stable main
+    filename: grafana
+    mode: !!str 0444
+    state: present
+    update_cache: true
+
 - name: install package
-  ansible.builtin.package:
+  ansible.builtin.apt:
     name: grafana
     state: present
   register: grafana_result
   until: grafana_result is not failed
-  notify: restart grafana
+  notify: restart grafana-server
 
 - name: configure
   ansible.builtin.template:
     src: grafana.ini.j2
-    dest: /etc/grafana.ini
+    dest: /etc/grafana/grafana.ini
     owner: root
     group: grafana
     mode: !!str 0440
-  notify: restart grafana
+  notify: restart grafana-server
 
 - name: provision
   ansible.builtin.template:
     src: "{{ item }}.j2"
-    dest: /var/lib/grafana/provisioning/{{ item }}
-    owner: grafana
+    dest: /etc/grafana/provisioning/{{ item }}
+    owner: root
     group: grafana
     mode: !!str 0440
   loop:
-    - datasources/alertmanager.yaml
+    # - datasources/alertmanager.yaml
     - datasources/loki.yaml
     - datasources/prometheus.yaml
-  notify: restart grafana
-
-- name: configure service
-  ansible.builtin.lineinfile:
-    path: /etc/conf.d/grafana
-    line: cfg:server.http_addr={{ lan_ipv4_address }}
-    regexp: ^cfg:server.http_addr=
-    owner: root
-    group: root
-    mode: !!str 0444
-    validate: sh -f %s -n
-  notify: restart grafana
+  notify: restart grafana-server
 
 - name: enable and start service
-  ansible.builtin.service:
-    name: grafana
+  ansible.builtin.systemd_service:
+    name: grafana-server.service
     enabled: true
     state: started
+
+- include_role:
+    name: unbound
+    tasks_from: fragment.yml
+  vars:
+    content: |
+      server:
+        local-data: "grafana.{{ domain_name }} CNAME {{ ansible_fqdn }}."
+    dest: local-data-grafana.conf

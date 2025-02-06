@@ -1,0 +1,107 @@
+# yamllint disable rule:line-length
+---
+- name: install dependencies
+  ansible.builtin.apt:
+    name:
+      - sqlite3
+    state: present
+
+- ansible.builtin.uri:
+    url: https://api.github.com/repos/Lidarr/Lidarr/releases/latest
+    headers:
+      Accept: application/vnd.github+json
+    return_content: true
+    body_format: json
+  register: lidarr_result
+
+- name: set version fact
+  ansible.builtin.set_fact:
+    lidarr_version: "{{ lidarr_result.json.name }}"
+
+- ansible.builtin.file:
+    path: /opt/lidarr/{{ lidarr_version }}
+    owner: root
+    group: root
+    mode: !!str 0755
+    state: directory
+
+- ansible.builtin.unarchive:
+    src: "{{ lidarr_result.json.assets | selectattr('name', 'search', '.linux-core-x64.tar.gz') | map(attribute='browser_download_url') | first }}"
+    remote_src: true
+    dest: /opt/lidarr/{{ lidarr_version }}
+    owner: root
+    group: root
+    extra_opts:
+      - --strip-components=1
+    creates: /opt/lidarr/{{ lidarr_version }}/Lidarr
+  notify: restart lidarr
+
+- name: create group
+  ansible.builtin.group:
+    name: lidarr
+    system: true
+
+- name: create user
+  ansible.builtin.user:
+    comment: Lidarr Daemon
+    createhome: false
+    group: lidarr
+    groups:
+      - "{{ media_group }}"
+    home: "{{ lidarr_home }}" # created by systemd
+    name: lidarr
+    password_lock: true
+    shell: "{{ nologin_shell }}"
+    system: true
+
+- name: create service
+  ansible.builtin.template:
+    src: lidarr.service.j2
+    dest: /etc/systemd/system/lidarr.service
+    owner: root
+    group: root
+    mode: !!str 0444
+    validate: systemd-analyze verify %s
+  notify: restart lidarr
+
+- name: enable and start service
+  ansible.builtin.systemd_service:
+    name: lidarr.service
+    daemon_reload: true
+    enabled: true
+    state: started
+
+- ansible.builtin.wait_for:
+    path: "{{ lidarr_home }}/config.xml"
+
+- name: configure
+  community.general.xml:
+    path: "{{ lidarr_home }}/config.xml"
+    xpath: /Config/{{ item.key }}
+    value: "{{ item.value | string }}"
+  loop: "{{ config | ansible.builtin.dict2items }}"
+  vars:
+    config:
+      AnalyticsEnabled: !!str False
+      ApiKey: "{{ lidarr_api_key }}"
+      BindAddress: 127.0.0.1
+      LaunchBrowser: !!str False
+      LogLevel: info
+      UpdateAutomatically: !!str False
+  notify: restart lidarr
+
+- include_role:
+    name: nginx
+    tasks_from: site.yml
+  vars:
+    src: site.conf.j2
+    dest: lidarr
+
+- include_role:
+    name: unbound
+    tasks_from: fragment.yml
+  vars:
+    content: |
+      server:
+        local-data: "lidarr.{{ domain_name }} CNAME {{ ansible_fqdn }}."
+    dest: local-data-lidarr.conf

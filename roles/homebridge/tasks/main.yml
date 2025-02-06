@@ -10,14 +10,14 @@
     comment: Homebridge
     create_home: false
     group: homebridge
-    home: /var/lib/homebridge
+    home: "{{ homebridge_home }}"
     password_lock: true
     shell: "{{ nologin_shell }}"
     system: true
 
 - name: create directory
   ansible.builtin.file:
-    path: /var/lib/homebridge
+    path: "{{ homebridge_home }}"
     owner: homebridge
     group: homebridge
     mode: !!str 0700
@@ -26,7 +26,7 @@
 - name: create configuration
   ansible.builtin.copy:
     content: "{{ homebridge_config | to_json }}\n"
-    dest: /var/lib/homebridge/config.json
+    dest: "{{ homebridge_home }}/config.json"
     owner: homebridge
     group: homebridge
     mode: !!str 0400
@@ -35,7 +35,7 @@
 - name: create package configuration
   ansible.builtin.copy:
     src: package.json
-    dest: /var/lib/homebridge/package.json
+    dest: "{{ homebridge_home }}/package.json"
     owner: homebridge
     group: homebridge
     mode: !!str 0400
@@ -45,30 +45,23 @@
   become: true
   become_user: homebridge
   community.general.npm:
-    path: /var/lib/homebridge
+    path: "{{ homebridge_home }}"
     ignore_scripts: true
   notify: restart homebridge
 
-- name: install init script
+- name: install service
   ansible.builtin.template:
-    src: homebridge.rc.j2
-    dest: /etc/init.d/homebridge
-    owner: root
-    group: root
-    mode: !!str 0555
-    validate: sh -f %s -n
-  notify: restart homebridge
-
-- name: enable and start service
-  ansible.builtin.service:
-    name: homebridge
-    enabled: true
-    state: started
-
-- name: configure log rotation
-  ansible.builtin.template:
-    src: logrotate.conf.j2
-    dest: /etc/logrotate.d/homebridge
+    src: homebridge.service.j2
+    dest: /etc/systemd/system/homebridge.service
     owner: root
     group: root
     mode: !!str 0444
+    validate: systemd-analyze verify %s
+  notify: restart homebridge
+
+- name: enable and start service
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+    name: homebridge.service
+    enabled: true
+    state: started

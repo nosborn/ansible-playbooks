@@ -13,151 +13,208 @@
       tags:
         - always
 
-- name: Alpine Linux early configuration
-  hosts:
-    - proxy_gb
-    - proxy_in
-    - tombstone
-  gather_facts: false
-
-  pre_tasks:
-    - name: configure repositories
-      ansible.builtin.copy:
-        content: "{{ apk_repositories }}"
-        dest: /etc/apk/repositories
-        owner: root
-        group: root
-        mode: !!str 0444
-      tags:
-        - always
-
-    - name: update repositories
-      community.general.apk:
-        update_cache: true
-      changed_when: false
-      tags:
-        - always
-
-    - name: install prerequisite packages
-      ansible.builtin.package:
-        name:
-          - acl
-          - acl-doc
-          - kitty-terminfo
-        state: present
-      register: result
-      until: result is not failed
-      tags:
-        - always
-
-    - name: configure networking
-      ansible.builtin.copy:
-        content: "{{ network_interfaces }}"
-        dest: /etc/network/interfaces
-        owner: root
-        group: root
-        mode: !!str 0444
-      # notify: restart networking -- FIXME
-
-  roles:
-    - role: iptables
-      when: ansible_hostname != 'tombstone'
-      tags:
-        - always
-    - role: ufw
-      tags:
-        - always
-    - role: wireguard
-      when: ansible_hostname != 'tombstone'
-      tags:
-        - always
-
-  # handlers:
-  #   - name: restart networking
-  #     ansible.builtin.service:
-  #       name: networking
-  #       state: restarted
-
-- name: Alpine Linux common configuration
-  hosts:
-    - proxy_gb
-    - proxy_in
-    - tombstone
-  gather_facts: false
-
-  roles:
-    - role: alloy
-      tags:
-        - alloy
-    - role: apk_cron
-    - role: chrony
-    - role: logrotate
-    - role: node_exporter
-    - role: openrc_exporter
-    - role: opensmtpd
-    - role: sshd
-      tags:
-        - sshd
-    - role: tcpdump
-    - role: unbound
-      tags:
-        - unbound
-
 - name: Configure Tombstone
   hosts:
     - tombstone
   gather_facts: false
 
-  roles:
-    - role: alertmanager
-    - role: blackbox_exporter
-    - role: dns_updater
-      tags:
-        - dns-updater
-    - role: grafana
-    - role: homebridge
-      tags:
-        - homebridge
-    - role: imapfilter
-      tags:
-        - imapfilter
-    - role: loki
-    - role: man_pages
-    - role: microcode
-    - role: prometheus
-    - role: step_ca
-      when: false
-
-- name: Configure proxies
-  hosts:
-    - proxy_gb
-    - proxy_in
-  gather_facts: false
-
   pre_tasks:
-    - name: disable cloud-init network configuration
+    - name: configure LAN network
       ansible.builtin.copy:
         content: |
-          network: {config: disabled}
-        dest: /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
+          [Match]
+          Name={{ lan_if }}
+
+          [Network]
+          Address={{ lan_ipv4_address }}/24
+          Gateway={{ lan_ipv4_subnet | ansible.utils.nthhost(1) }}
+          DNS={{ lan_ipv4_subnet | ansible.utils.nthhost(1) }}
+          ;IPv6AcceptRA=true
+          IPv6PrivacyExtensions=yes
+
+          ;[IPv6AcceptRA]
+          ;Token=prefixstable
+        dest: /etc/systemd/network/20-lan.network
         owner: root
         group: root
         mode: !!str 0444
       tags:
         - always
+      notify: reboot
+
+    - name: configure WireGuard device
+      ansible.builtin.copy:
+        content: |
+          [NetDev]
+          Kind=wireguard
+          Name=wg0
+
+          [WireGuard]
+          ListenPort={{ wg0_listen_port }}
+          PrivateKey={{ wg0_interface_private_key }}
+
+          [WireGuardPeer]
+          {% for allowed_ips in wg0_peer_allowed_ips %}
+          AllowedIPs={{ allowed_ips }}
+          {% endfor %}
+          Endpoint={{ wg0_peer_endpoint }}
+          PersistentKeepalive=25
+          PublicKey={{ wg0_peer_public_key }}
+        dest: /etc/systemd/network/99-wg0.netdev
+        owner: root
+        group: systemd-network
+        mode: !!str 0440
+      tags:
+        - always
+      notify: reboot
+
+    - name: configure WireGuard VPN
+      ansible.builtin.copy:
+        content: |
+          [Match]
+          Name=wg0
+
+          [Network]
+          Address={{ wg0_interface_address }}
+          ;DNS={{ wg0_interface_dns }}
+
+          [Route]
+          Destination={{ wg0_route_destination }}
+          Gateway={{ wg0_interface_address | ansible.utils.ipaddr('address') }}
+        dest: /etc/systemd/network/99-wg0.network
+        owner: root
+        group: root
+        mode: !!str 0444
+      tags:
+        - always
+      notify: reboot
+
+    - name: enable systemd-networkd
+      ansible.builtin.systemd_service:
+        name: systemd-networkd.service
+        enabled: true
+      tags:
+        - always
+      notify: reboot
+
+    - name: remove interfaces file
+      ansible.builtin.file:
+        path: /etc/network/interfaces
+        state: absent
+      notify: reboot
+
+    - name: configure kernel
+      ansible.builtin.lineinfile:
+        path: /etc/default/grub
+        regex: ^GRUB_CMDLINE_LINUX_DEFAULT=
+        line: GRUB_CMDLINE_LINUX_DEFAULT="quiet mitigations=off"
+      notify:
+        - run update-grub
+        - reboot
+
+    - ansible.builtin.meta: flush_handlers
+      tags:
+        - always
+
+    - name: refresh network facts
+      ansible.builtin.setup:
+        gather_subset:
+          - network
+      tags:
+        - always
+
+    - name: install prerequisite packages
+      ansible.builtin.apt:
+        name:
+          - acl
+          - attr
+      tags:
+        - always
+
+    - name: remove conflicting packages
+      ansible.builtin.apt:
+        autoremove: true
+        name:
+          - ufw
+        purge: true
+        state: absent
+      tags:
+        - always
 
   roles:
-    - role: nginx
+    - role: alertmanager
+      when: false
+    - role: alloy
       tags:
-        - nginx
-    - role: wireguard_exporter
+        - alloy
+    - role: bazarr
+      tags:
+        - bazarr
+      when: false # has issues with Python 3.13
+    - role: calibre
+    - role: calibre_web
+    - role: chrony
+      when: false
+    - role: dns_updater
+    - role: grafana
+    - role: homebridge
+    - role: imapfilter
+    - role: lidarr
+    - role: loki
+      tags:
+        - loki
+    - role: opensmtpd
+      when: false
+    - role: plexmediaserver
+    - role: prometheus
+    - role: prowlarr
+    - role: qbittorrent
+      tags:
+        - qbittorrent
+    - role: radarr
+    - role: readarr
+    - role: restic
+    - role: samba
+    - role: sabnzbd
+    - role: sonarr
+    - role: sshd
+    - role: unattended_upgrades
+    - role: unbound
+      tags:
+        - unbound
 
-# - name: Configure CloudKey
-#   hosts: cloudkey
-#   gather_facts: false
-#
-#   roles:
-#     - role: unifi
+  tasks:
+    - name: install additional packages
+      ansible.builtin.apt:
+        name:
+          - curl
+          - jq
+          - linux-cpupower
+          - lsof
+          - man-db
+          - rfkill
+          - tcpdump
+          - wireguard-tools
+      tags:
+        - always
+
+    - name: remove unwanted packages
+      ansible.builtin.apt:
+        autoremove: true
+        name:
+          - nano
+        purge: true
+        state: absent
+      tags:
+        - always
+
+  handlers:
+    - name: reboot
+      ansible.builtin.reboot: {}
+
+    - name: update-grub # noqa no-changed-when
+      ansible.builtin.command:
+        cmd: update-grub
 
 - name: Configure Gateway
   hosts: gateway

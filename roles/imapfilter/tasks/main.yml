@@ -1,38 +1,8 @@
 ---
-- name: install dependencies
-  community.general.apk:
-    name:
-      - lua5.1-libs
-      - pcre2
-    state: present
-  register: imapfilter_result
-  until: imapfilter_result is not failed
-  # notify: restart imapfilter
-
 - name: install package
-  community.general.apk:
+  ansible.builtin.apt:
     name: imapfilter
-    repository: https://dl-cdn.alpinelinux.org/alpine/edge/testing
     state: present
-  register: imapfilter_result
-  until: imapfilter_result is not failed
-  # notify: restart imapfilter
-
-- name: create group
-  ansible.builtin.group:
-    name: imapfilter
-    system: true
-
-- name: create user
-  ansible.builtin.user:
-    name: imapfilter
-    comment: IMAP Filter
-    create_home: false
-    group: imapfilter
-    home: /var/empty
-    password_lock: true
-    shell: /sbin/nologin
-    system: true
 
 - name: create configuration directory
   ansible.builtin.file:
@@ -41,6 +11,7 @@
     group: imapfilter
     mode: !!str 0750
     state: directory
+  when: false
 
 - name: create configuration
   ansible.builtin.copy:
@@ -50,6 +21,7 @@
     group: imapfilter
     mode: !!str 0440
   # notify: restart imapfilter
+  when: false
 
 - name: configure service
   ansible.builtin.template:
@@ -58,11 +30,12 @@
     owner: root
     group: root
     mode: !!str 0444
+    validate: systemd-analyze verify %s
   notify: restart imapfilter
   when: false
 
 - name: enable and start service
-  ansible.builtin.systemd:
+  ansible.builtin.systemd_service:
     name: imapfilter.service
     daemon_reload: true
     enabled: true

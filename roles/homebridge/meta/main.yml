@@ -1,5 +1,4 @@
 ---
 dependencies:
   - role: avahi
-  - role: logrotate
   - role: nodejs

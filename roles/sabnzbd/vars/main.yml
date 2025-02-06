@@ -1,0 +1,3 @@
+---
+sabnzbd_home: /var/lib/sabnzbd
+sabnzbd_port: 8080

@@ -1,27 +1,31 @@
 ---
 - name: install package
-  ansible.builtin.package:
+  ansible.builtin.apt:
     name:
-      - nginx
-      - nginx-doc
-      - nginx-mod-stream
+      - nginx-light
     state: present
   register: nginx_result
   until: nginx_result is not failed
 
-- name: configure
-  ansible.builtin.template:
-    src: "{{ item }}.j2"
-    dest: /etc/nginx/{{ item }}
+- ansible.builtin.file:
+    path: /etc/nginx/{{ item }}
+    state: absent
+  loop:
+    - modules-enabled/50-mod-http-echo.conf
+    - sites-enabled/default
+  notify: reload nginx
+
+- ansible.builtin.template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
     owner: root
     group: root
     mode: !!str 0444
-  loop:
-    - stream.d/proxy.conf
-  notify: restart nginx
+    validate: nginx -c %s -t
+  notify: reload nginx
 
 - name: enable and start service
-  ansible.builtin.service:
-    name: nginx
+  ansible.builtin.systemd_service:
+    name: nginx.service
     enabled: true
     state: started

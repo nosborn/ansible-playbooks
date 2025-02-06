@@ -20,6 +20,6 @@ if ! grep -s '^deny-interfaces={{ wan_if }}$' /etc/avahi/avahi-daemon.conf; then
   restart=1
 fi
 
-if [ ${restart} -ne 0 ]; then
+if [ "${restart}" -ne 0 ]; then
   service avahi-daemon restart
 fi

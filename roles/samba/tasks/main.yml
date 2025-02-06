@@ -1,0 +1,33 @@
+---
+- name: install package
+  ansible.builtin.apt:
+    name: samba
+    state: present
+  register: samba_result
+  until: samba_result is not failed
+
+- name: configure
+  ansible.builtin.template:
+    src: smb.conf.j2
+    dest: /etc/samba/smb.conf
+    owner: root
+    group: root
+    mode: !!str 0444
+    validate: testparm %s
+  notify: restart samba
+
+- name: enable and start services
+  ansible.builtin.systemd_service:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  loop:
+    - nmbd.service
+    - smbd.service
+
+- ansible.builtin.import_role:
+    name: avahi
+    tasks_from: service.yml
+  vars:
+    src: samba.service.j2
+    dest: samba.service

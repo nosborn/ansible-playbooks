@@ -1,9 +1,0 @@
----
-- name: install packages
-  ansible.builtin.package:
-    name:
-      - aws-cli
-      - aws-cli-doc
-    state: present
-  register: aws_cli_result
-  until: aws_cli_result is not failed

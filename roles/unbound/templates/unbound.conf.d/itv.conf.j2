@@ -1,0 +1,14 @@
+server:
+	local-zone: "ads.itv.com." always_nxdomain
+	local-zone: "ar.prd.content.itv.com." always_nxdomain
+	local-zone: "conviva.com." always_nxdomain
+	local-zone: "cpt.itv.com." always_nxdomain
+	local-zone: "recommendations.prd.user.itv.com." always_nxdomain
+	local-zone: "tom.itv.com." always_nxdomain
+
+forward-zone:
+        name: "itv.com."
+{% for forwarder in unbound_forwarders_controld %}
+        forward-addr: "{{ forwarder }}"
+{% endfor %}
+        forward-tls-upstream: yes

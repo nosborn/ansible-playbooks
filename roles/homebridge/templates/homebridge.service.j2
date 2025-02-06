@@ -1,0 +1,25 @@
+[Unit]
+After=network.target
+Description=HomeKit support for the impatient.
+
+[Service]
+ExecStart={{ homebridge_home }}/node_modules/.bin/homebridge -Q -T -U {{ homebridge_home }}
+LockPersonality=yes
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectClock=yes
+ProtectControlGroups=yes
+ProtectHome=tmpfs
+ProtectHostname=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+RemoveIPC=yes
+Restart=always
+RestrictRealtime=yes
+User=homebridge
+WorkingDirectory={{ homebridge_home }}
+
+[Install]
+WantedBy=sysinit.target
+
+# vim: ft=systemd.jinja2

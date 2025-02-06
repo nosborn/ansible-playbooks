@@ -1,13 +1,13 @@
 ---
 - name: install package
-  ansible.builtin.package:
+  ansible.builtin.apt:
     name: prometheus
+    install_recommends: false # don't want node-exporter
     state: present
   register: prometheus_result
   until: prometheus_result is not failed
-  notify: restart prometheus
 
-- name: configure prometheus
+- name: configure
   ansible.builtin.template:
     src: prometheus.yml.j2
     dest: /etc/prometheus/prometheus.yml
@@ -17,8 +17,19 @@
     validate: promtool check config %s
   notify: restart prometheus
 
+- name: configure service
+  ansible.builtin.lineinfile:
+    path: /etc/default/prometheus
+    regex: ^ARGS=
+    line: ARGS="--web.enable-remote-write-receiver"
+    owner: root
+    group: root
+    mode: !!str 0444
+    validate: sh -n %s
+  notify: restart prometheus
+
 - name: enable and start service
-  ansible.builtin.service:
-    name: prometheus
+  ansible.builtin.systemd_service:
+    name: prometheus.service
     enabled: true
     state: started

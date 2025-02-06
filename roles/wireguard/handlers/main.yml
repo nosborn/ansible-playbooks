@@ -1,5 +1,0 @@
----
-- name: restart staticroute
-  ansible.builtin.service:
-    name: staticroute
-    state: restarted

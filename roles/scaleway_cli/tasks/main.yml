@@ -1,0 +1,34 @@
+# yamllint disable rule:line-length
+---
+- name: fetch releases
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/scaleway/scaleway-cli/releases/latest
+    headers:
+      Accept: application/vnd.github+json
+    return_content: true
+    body_format: json
+  register: scaleway_cli_result
+
+- name: set URL facts
+  ansible.builtin.set_fact:
+    scaleway_cli_asset_url: "{{ scaleway_cli_result.json.assets | selectattr('name', 'search', '_linux_amd64') | map(attribute='browser_download_url') | first }}"
+    scaleway_cli_checksum_url: "{{ scaleway_cli_result.json.assets | selectattr('name', 'eq', 'SHA256SUMS') | map(attribute='browser_download_url') | first }}"
+
+- name: fetch checksums
+  ansible.builtin.uri:
+    url: "{{ scaleway_cli_checksum_url }}"
+    return_content: true
+  register: scaleway_cli_result
+
+- name: set checksum fact
+  ansible.builtin.set_fact:
+    scaleway_cli_checksum: "{{ scaleway_cli_result.content | split('\n') | select('search', '_linux_amd64') | first | split(' ') | first }}"
+
+- name: install binary
+  ansible.builtin.get_url:
+    url: "{{ scaleway_cli_asset_url }}"
+    checksum: sha256:{{ scaleway_cli_checksum }}
+    dest: /usr/local/bin/scw
+    owner: root
+    group: root
+    mode: !!str 0555

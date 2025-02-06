@@ -1,29 +1,31 @@
 ---
 - name: install package
-  ansible.builtin.package:
+  ansible.builtin.apt:
     name:
+      - ca-certificates
       - unbound
-      - unbound-doc
     state: present
   register: unbound_result
   until: unbound_result is not failed
 
-- name: set up filters
-  import_tasks: filters.yml
-  when: ansible_hostname == 'tombstone'
-
 - name: configure
   ansible.builtin.template:
-    src: "{{ unbound_conf_src }}"
-    dest: /etc/unbound/unbound.conf
+    src: "{{ item }}.j2"
+    dest: /etc/unbound/{{ item }}
     owner: root
     group: root
     mode: !!str 0444
-    validate: unbound-checkconf %s
+  loop:
+    - unbound.conf
+    - unbound.conf.d/bbc-iplayer.conf
+    - unbound.conf.d/channel4.conf
+    - unbound.conf.d/formula1.conf
+    - unbound.conf.d/itv.conf
+    - unbound.conf.d/my5.conf
   notify: restart unbound
 
 - name: enable and start unbound
-  ansible.builtin.service:
-    name: unbound
+  ansible.builtin.systemd_service:
+    name: unbound.service
     enabled: true
     state: started

@@ -1,7 +1,0 @@
----
-- name: install packages
-  ansible.builtin.package:
-    name: logrotate
-    state: present
-  register: logrotate_result
-  until: logrotate_result is not failed

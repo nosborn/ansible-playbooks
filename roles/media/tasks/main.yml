@@ -1,0 +1,36 @@
+---
+- name: create group
+  ansible.builtin.group:
+    name: "{{ media_group }}"
+    system: true
+  register: media_result
+
+- name: set version fact
+  ansible.builtin.set_fact:
+    media_gid: "{{ media_result.gid }}"
+
+- name: create mount unit
+  ansible.builtin.template:
+    src: "{{ media_disk_unit_name }}.j2"
+    dest: /etc/systemd/system/{{ media_disk_unit_name }}
+    owner: root
+    group: root
+    mode: !!str 0444
+    validate: systemd-analyze verify %s
+  notify: restart media-disk
+
+- name: enable and start mount
+  ansible.builtin.systemd_service:
+    name: "{{ media_disk_unit_name }}"
+    daemon_reload: true
+    enabled: true
+    state: started
+
+- ansible.builtin.meta: flush_handlers
+
+- ansible.builtin.file:
+    path: "{{ media_path }}"
+    owner: root
+    group: "{{ media_group }}"
+    mode: !!str 2775
+    state: directory

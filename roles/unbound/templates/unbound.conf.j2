@@ -1,3 +1,5 @@
+include-toplevel: "/etc/unbound/unbound.conf.d/*.conf"
+
 server:
 	verbosity: 1
 
@@ -6,25 +8,22 @@ server:
 {% for interface in unbound_config_interfaces %}
 	interface: {{ interface }}
 {% endfor %}
-	# outgoing-interface: {{ lan_ipv4_address }}
-	ip-transparent: yes
+
+	outgoing-port-avoid: {{ wg0_listen_port }}
+
+	# ip-transparent: yes
 
 	prefer-ip6: yes
 
-	tls-cert-bundle: "/etc/ssl/cert.pem"
+	tls-cert-bundle: "/etc/ssl/certs/ca-certificates.crt"
 
 {% for access_control in unbound_config_access_controls %}
 	access-control: {{ access_control }}
 {% endfor %}
 
-	log-queries: yes
-	log-replies: yes
+	#log-queries: yes
+	#log-replies: yes
 	log-tag-queryreply: yes
-	log-servfail: yes
-
-	hide-identity: yes
-	hide-version: yes
-	#hide-trustanchor: yes
 
 	private-address: 0.0.0.0/8
 	private-address: 10.0.0.0/8         # Private-Use
@@ -44,13 +43,12 @@ server:
 	private-address: ::ffff:0:0/96      # IPv4-mapped IPv6 addresses
 	private-domain: "{{ domain_name }}"
 
-	do-not-query-localhost: no
-
 	deny-any: yes
 
 	module-config: "respip validator iterator"
 
-#	auto-trust-anchor-file: "/var/unbound/db/root.key"
+	#trust-anchor-file: "/usr/share/dnssec-root/trusted-key.key"
+	#auto-trust-anchor-file: "/var/lib/unbound/root.key"
 
 	val-log-level: 2
 
@@ -78,441 +76,13 @@ server:
 
 	{{ unbound_config_local_data | trim | indent('\t') }}
 
-	#local-zone: "bbc-reporting-api.app." static
-	#local-zone: "telemetry.api.bbci.co.uk." static
-
-	#domain-insecure: "f1accountprod.report-uri.com" # F1TV
-	#local-zone: "f1accountprod.report-uri.com" static
-
-	#local-zone: "dns.google." always_nxdomain
-
-	# Local blocks.
-	local-zone: "app-analytics-services.com." always_nxdomain
-	local-zone: "ar.prd.content.itv.com." always_nxdomain # ITVX ads
-	local-zone: "europe-west1-itv-ds-prd.cloudfunctions.net." always_nxdomain # ITVX ads
-	local-zone: "flyctl-metrics.fly.dev." always_nxdomain
-	local-zone: "itv-ads.aimatch.com." always_nxdomain
-	local-zone: "telemetry-in.battle.net." always_nxdomain
-	local-zone: "tom.itv.com." always_nxdomain # ITVX ads
-	local-zone: "tpsc-video.doubleverify.com." always_nxdomain # ITVX ads
-
-	# ITV -- not sure about these
-	##local-zone: "promoted.hubsvc.itv.com." always_nxdomain
-	#local-zone: "recommendations.prd.user.itv.com." always_nxdomain
-
-	# adobetm.com
-	#local-zone: "assets.adobedtm.com." always_nxdomain
-
-	# aimatch.com
-	#local-zone: "content.aimatch.com." always_nxdomain
-
-	# amazon-adsystem.com
-	#local-zone: "aax-fe.amazon-adsystem.com." always_nxdomain
-	#local-zone: "c.amazon-adsystem.com." always_nxdomain
-	#local-zone: "s.amazon-adsystem.com." always_nxdomain
-
-	# app-analytics-services.com
-	#local-zone: "app-analytics-services.com." always_nxdomain
-
-	# app-measurement.com
-	#local-zone: "app-measurement.com." always_nxdomain
-
-	# apple.com
-	#local-zone: "api-adservices.apple.com." always_nxdomain
-	#local-zone: "iadsdk.apple.com." always_nxdomain
-	#local-zone: "metrics.icloud.com." always_nxdomain
-	#local-zone: "securemetrics.icloud.com." always_nxdomain
-	#local-zone: "stocks-analytics-events.apple.com." always_nxdomain
-	#local-zone: "weather-analytics-events.apple.com." always_nxdomain
-	#local-zone: "xp.apple.com." always_nxdomain
-
-	# braze.com
-	#local-zone: "sdk.iad-03.braze.com." always_nxdomain
-
-	# bugsnag.com
-	#local-zone: "notify.bugsnag.com." always_nxdomain
-	#local-zone: "sessions.bugsnag.com." always_nxdomain
-
-	# cloudflareinsights.com
-	#local-zone: "static.cloudflareinsights.com." always_nxdomain
-
-	# cloudfunctions.net
-	#local-zone: "europe-west1-itv-ds-prd.cloudfunctions.net." always_nxdomain
-
-	# crashlytics.com
-	#local-zone: "firebase-settings.crashlytics.com." always_nxdomain
-
-	# doubleclick.net
-	#local-zone: "cm.g.doubleclick.net." always_nxdomain
-	#local-zone: "googleads.g.doubleclick.net." always_nxdomain
-	#local-zone: "securepubads.g.doubleclick.net." always_nxdomain
-	#local-zone: "static.doubleclick.net." always_nxdomain
-	#local-zone: "stats.g.doubleclick.net." always_nxdomain
-
-	# doubleverify.com
-	#local-zone: "pub.doubleverify.com." always_nxdomain
-
-	# emltrk.com
-	#local-zone: "emltrk.com." always_nxdomain
-
-	# facebook.com
-	#local-zone: "connect.facebook.com." always_nxdomain
-
-	# fullstory.com
-	#local-zone: "edge.fullstory.com." always_nxdomain
-	#local-zone: "mr.fullstory.com." always_nxdomain
-
-	# google.ca
-	#local-zone: "adservice.google.ca." always_nxdomain
-
-	# google.com
-	#local-zone: "adservice.google.com." always_nxdomain
-	#local-zone: "fundingchoicesmessages.google.com." always_nxdomain
-
-	# google-analytics.com
-	#local-zone: "www.google-analytics.com." always_nxdomain
-
-	# googleapis.com
-	#local-zone: "firebaseinstallations.googleapis.com." always_nxdomain
-	#local-zone: "firebaselogging-pa.googleapis.com." always_nxdomain
-	#local-zone: "imasdk.googleapis.com." always_nxdomain
-	#local-zone: "ogads-pa.googleapis.com." always_nxdomain
-
-	# googleoptimize.com
-	#local-zone: "www.googleoptimize.com." always_nxdomain
-
-	# googlepagesyndication.com
-	#local-zone: "pagead2.googlesyndication.com." always_nxdomain
-	#local-zone: "tpc.googlesyndication.com." always_nxdomain
-
-	# googletagmanager.com
-	#local-zone: "www.googletagmanager.com." always_nxdomain
-
-	# googletagservices.com
-	#local-zone: "www.googletagservices.com." always_nxdomain
-
-	# guardianapis.com
-	#local-zone: "contributions.guardianapis.com." always_nxdomain
-
-	# guardianapps.co.uk
-	#local-zone: "api.nextgen.guardianapps.co.uk." always_nxdomain
-
-	# linkedin.com
-	#local-zone: "lan.sdk.linkedin.com." always_nxdomain
-	#local-zone: "merchantpool1.linkedin.com." always_nxdomain
-	#local-zone: "mid4.linkedin.com." always_nxdomain
-	#local-zone: "platform.linkedin.com." always_nxdomain
-
-	# live.com
-	#local-zone: "fpt.live.com." always_nxdomain
-
-	# marriot.com
-	#local-zone: "smetrics.marriott.com." always_nxdomain
-
-	# maxroll.gg
-	#local-zone: "analytics.maxroll.gg." always_nxdomain
-
-	# microsoft.com
-	#local-zone: "events.data.microsoft.com." always_nxdomain
-	#local-zone: "fpt.microsoft.com." always_nxdomain
-
-	# mixpanel.com
-	#local-zone: "api.mixpanel.com." always_nxdomain
-
-	# moengage.com
-	#local-zone: "sdk-01.moengage.com." always_nxdomain
-
-	# mparticle.com
-	#local-zone: "config2.mparticle.com." always_nxdomain
-	#local-zone: "identity.mparticle.com." always_nxdomain
-
-	# msn.com
-	#local-zone: "srtb.msn.com." always_nxdomain
-
-	# omtrdc.net
-	#local-zone: "dbs.sc.omtrdc.net." always_nxdomain
-	#local-zone: "dbs.tt.omtrdc.net." always_nxdomain
-
-	# reddit.com
-	#local-zone: "alb.reddit.com." always_nxdomain
-	#local-zone: "error-tracking.reddit.com." always_nxdomain
-	#local-zone: "w3-reporting.reddit.com." always_nxdomain
-	#local-zone: "w3-reporting-nel.reddit.com." always_nxdomain
-
-	# sony.com
-	local-zone: "ack.me.sony.com." always_nxdomain
-
-	# taboola.com
-	#local-zone: "beacon.bidder.taboola.com." always_nxdomain
-	#local-zone: "cdn.taboola.com." always_nxdomain
-	#local-zone: "display.bidder.taboola.com." always_nxdomain
-
-	# theguardian.com
-	#local-zone: "ophan.theguardian.com." always_nxdomain
-
-	# tiktok.com
-	#local-zone: "analytics.tiktok.com." always_nxdomain
-
-	# tinypass.com
-	#local-zone: "buy.tinypass.com." always_nxdomain
-	#local-zone: "dashboard.tinypass.com." always_nxdomain
-
-	# whatsapp.net
-	#local-zone: "dit.whatsapp.net." always_nxdomain
-
-	# Ads & Trackers
-	#local-zone: "agent.ap1.datadoghq.com." always_nxdomain
-	#local-zone: "agent.datadoghq.com." always_nxdomain
-	#
-	#local-zone: "api.us-west-2.aiv-delivery.net." always_nxdomain
-	#local-zone: "api3.siftscience.com." always_nxdomain
-	#local-zone: "cadmus2.script.ac." always_nxdomain
-	#local-zone: "cookie-cdn.cookiepro.com." always_nxdomain
-	#
-	#local-zone: "4dc2aa82bc5e.cdn4.forter.com." always_nxdomain
-	#local-zone: "a.et.nytimes.com." always_nxdomain
-	#local-zone: "a.hit-360.com." always_nxdomain
-	#local-zone: "a.klaviyo.com." always_nxdomain
-	#local-zone: "a.teads.tv." always_nxdomain
-	#local-zone: "ad-delivery.net." always_nxdomain
-	#local-zone: "ad.letmeads.com." always_nxdomain
-	#local-zone: "ad.planbplus.co.kr." always_nxdomain
-	#local-zone: "ads.pubmatic.com." always_nxdomain
-	#local-zone: "ads.yieldmo.com." always_nxdomain
-	#local-zone: "adserver.adtech.advertising.com." always_nxdomain
-	#local-zone: "affiliazioniads.snai.it." always_nxdomain
-	#local-zone: "analytics-ingress-global.bitmovin.com." always_nxdomain
-	#local-zone: "analytics.developer.riotgames.com." always_nxdomain
-	#local-zone: "api.apptentive.com." always_nxdomain
-	#local-zone: "api.erabu.sony.tv." always_nxdomain
-	#local-zone: "api.leanplum.com." always_nxdomain
-	#local-zone: "api.permutive.com." always_nxdomain
-	#local-zone: "api.qualaroo.com." always_nxdomain
-	#local-zone: "api.us-west-2.aiv-delivery.net." always_nxdomain
-	#local-zone: "api.useinsider.com." always_nxdomain
-	#local-zone: "api2.branch.io." always_nxdomain
-	#local-zone: "api3.branch.io." always_nxdomain
-	#local-zone: "app-50375c312cac221b.mobileapi.usebutton.com." always_nxdomain
-	#local-zone: "apps.rokt.com." always_nxdomain
-	#local-zone: "bat.bing.com." always_nxdomain
-	#local-zone: "beacons-handoff.gcp.gvt2.com." always_nxdomain
-	#local-zone: "beacons.gcp.gvt2.com." always_nxdomain
-	#local-zone: "beacons.gvt2.com." always_nxdomain
-	#local-zone: "bf08412nhq.bf.dynatrace.com." always_domain
-	#local-zone: "bidder.criteo.com." always_nxdomain
-	#local-zone: "browser-intake-datadoghq.com." always_nxdomain
-	#local-zone: "browser.sentry-cdn.com." always_nxdomain
-	#local-zone: "btloader.com." always_nxdomain
-	#local-zone: "c.arstechnica.com." always_nxdomain
-	#local-zone: "cache.consentframework.com." always_nxdomain
-	#local-zone: "cdn.brandmetrics.com." always_nxdomain
-	#local-zone: "cdn.glassboxcdn.com." always_nxdomain
-	#local-zone: "cdn.mediavoice.com." always_nxdomain
-	#local-zone: "cdn.optimizely.com." always_nxdomain
-	#local-zone: "cdn.optoutadvertising.com." always_nxdomain
-	#local-zone: "cdn.pushowl.com." always_nxdomain
-	#local-zone: "cdn.watchingthat.net." always_nxdomain
-	#local-zone: "cdn4.buysellads.net." always_nxdomain
-	#local-zone: "channel4.adalyser.com." always_nxdomain
-	#local-zone: "chimpstatic.com." always_nxdomain
-	#local-zone: "choices.consentframework.com." always_nxdomain
-	#local-zone: "clanker-events.squarespace.com." always_nxdomain
-	#local-zone: "click.hotlog.ru." always_nxdomain
-	#local-zone: "click.mail.carousell.com." always_nxdomain
-	#local-zone: "client-telemetry.hingeprod.net." always_nxdomain
-	#local-zone: "collector-1054.tvsquared.com." always_nxdomain
-	#local-zone: "collector.brandmetrics.com." always_nxdomain
-	#local-zone: "collector.github.com." always_nxdomain
-	#local-zone: "config.emb-api.com." always_nxdomain
-	#local-zone: "content.hotjar.io." always_nxdomain
-	#local-zone: "ctrk.klclick.com." always_nxdomain
-	#local-zone: "d2wy8f7a9ursnm.cloudfront.net." always_nxdomain
-	#local-zone: "d3lqotgbn3npr.cloudfront.net." always_nxdomain
-	#local-zone: "dahl.api.appboy.eu." always_nxdomain
-	#local-zone: "delivery.adrecover.com." always_nxdomain
-	#local-zone: "deploy.mopinion.com." always_nxdomain
-	#local-zone: "device.maxmind.com." always_nxdomain
-	#local-zone: "elb.the-ozone-project.com." always_domain
-	#local-zone: "etahub.com." always_nxdomain
-	#local-zone: "events.flagship.io." always_nxdomain
-	#local-zone: "events.launchdarkly.com." always_nxdomain
-	#local-zone: "events.split.io." always_nxdomain
-	#local-zone: "extreme-ip-lookup.com." always_nxdomain
-	#local-zone: "fastlane.rubiconproject.com." always_nxdomain
-	#local-zone: "featuregates.org." always_nxdomain
-	#local-zone: "fls-na.amazon.com." always_nxdomain
-	#local-zone: "gcdn.2mdn.net." always_nxdomain
-	#local-zone: "geo.yahoo.com." always_nxdomain
-	#local-zone: "go.mnaspm.com." always_nxdomain
-	#local-zone: "go.xlivrdr.com." always_nxdomain
-	#local-zone: "h.online-metrix.net." always_nxdomain
-	#local-zone: "hbopenbid.pubmatic.com." always_nxdomain
-	#local-zone: "hbx.media.net." always_nxdomain
-	#local-zone: "hilton.cdn-v3.conductrics.net." always_nxdomain
-	#local-zone: "hitcounter.ru." always_nxdomain
-	#local-zone: "htlb.casalemedia.com." always_nxdomain
-	#local-zone: "hw-cdn2.adtng.com." always_nxdomain
-	#local-zone: "i.clean.gg." always_nxdomain
-	#local-zone: "ib.adnxs.com." always_nxdomain
-	#local-zone: "ictbpduz.emltrk.com." always_nxdomain
-	#local-zone: "incoming.telemetry.mozilla.org." always_nxdomain
-	#local-zone: "intake-analytics.wikimedia.org." always_nxdomain
-	#local-zone: "js-agent.newrelic.com." always_nxdomain
-	#local-zone: "js-eu1.hs-analytics.net." always_nxdomain
-	#local-zone: "js-eu1.hs-banner.com." always_nxdomain
-	#local-zone: "js-eu1.hs-scripts.com." always_nxdomain
-	#local-zone: "js.datadome.co." always_nxdomain
-	#local-zone: "js.hs-banner.com." always_nxdomain
-	#local-zone: "js.hs-scripts.com." always_nxdomain
-	#local-zone: "js.hscollectedforms.net." always_nxdomain
-	#local-zone: "js.hubspot.com." always_nxdomain
-	#local-zone: "launches.appsflyer.com." always_nxdomain
-	#local-zone: "lexicon.33across.com." always_nxdomain
-	#local-zone: "log.cookieyes.com." always_nxdomain
-	#local-zone: "logx.optimizely.com." always_nxdomain
-	#local-zone: "match.sharethrough.com." always_nxdomain
-	#local-zone: "mcb.aiproxies.com." always_nxdomain
-	#local-zone: "media.trafficjunky.net." always_nxdomain
-	#local-zone: "media2.tatlerasia.com." always_nxdomain
-	#local-zone: "metrics-logger.spot.im." always_nxdomain
-	#local-zone: "metrics.theworlds50best.com." always_nxdomain
-	#local-zone: "mobile-collector.newrelic.com." always_nxdomain
-	#local-zone: "mobile-data.onetrust.io." always_nxdomain
-	#local-zone: "mon.tiktokv.com." always_nxdomain
-	#local-zone: "monorail-edge.shopifysvc.com." always_nxdomain
-	#local-zone: "mp.imgur.com." always_nxdomain
-	#local-zone: "noa.yahoo.com." always_nxdomain
-	#local-zone: "opus.analytics.yahoo.com." always_nxdomain
-	#local-zone: "p.imgur.com." always_nxdomain
-	#local-zone: "p.typekit.net." always_nxdomain
-	#local-zone: "panorama.wixapps.net." always_nxdomain
-	#local-zone: "pay4results24.eu." always_nxdomain
-	#local-zone: "phar.gu-web.net." always_nxdomain
-	#local-zone: "ping.chartbeat.net." always_nxdomain
-	#local-zone: "ping.hashnode.com." always_nxdomain
-	#local-zone: "pixel.rubiconproject.com." always_nxdomain
-	#local-zone: "pixel.wp.com." always_nxdomain
-	#local-zone: "plausible.io." always_nxdomain
-	#local-zone: "prd.jwpltx.com." always_nxdomain
-	#local-zone: "prebid.media.net." always_nxdomain
-	#local-zone: "prg.smartadserver.com." always_nxdomain
-	#local-zone: "prod.us-west-2.tcx-beacon.docs.aws.dev." always_nxdomain
-	#local-zone: "radar.cedexis.com." always_nxdomain
-	#local-zone: "rtb.openx.net." always_nxdomain
-	#local-zone: "rumcdn.geoedge.be." always_nxdomain
-	#local-zone: "s.nitropay.com." always_nxdomain
-	#local-zone: "satgt.grafana.com." always_nxdomain
-	#local-zone: "script.4dex.io." always_nxdomain
-	#local-zone: "script.crazyegg.com." always_nxdomain
-	#local-zone: "scripts.simpleanalyticscdn.com." always_nxdomain
-	#local-zone: "scripts.webcontentassessor.com." always_nxdomain
-	#local-zone: "serve.tercept.com." always_nxdomain
-	#local-zone: "sin-col.eum-appdynamics.com." always_nxdomain
-	#local-zone: "smetrics.ansible.com." always_nxdomain
-	#local-zone: "snap.licdn.com." always_nxdomain
-	#local-zone: "sp.yelp.com." always_nxdomain
-	#local-zone: "static-tracking.klaviyo.com." always_nxdomain
-	#local-zone: "static.addtoany.com." always_nxdomain
-	#local-zone: "static.ads-twitter.com." always_nxdomain
-	#local-zone: "static.adsafeprotected.com." always_nxdomain
-	#local-zone: "stats.wp.com." always_nxdomain
-	#local-zone: "syndicatedsearch.goog." always_nxdomain
-	#local-zone: "telemetry-in.battle.net." always_nxdomain
-	#local-zone: "tlx.3lift.com." always_nxdomain
-	#local-zone: "tr.vitals.co." always_nxdomain
-	#local-zone: "udc.yahoo.com." always_nxdomain
-	#local-zone: "uid.mediacorp.sg." always_nxdomain
-	#local-zone: "uk-script.dotmetrics.net." always_nxdomain
-	#local-zone: "usage.trackjs.com." always_nxdomain
-	#local-zone: "usasync01.admantx.com." always_nxdomain
-	#local-zone: "utimg.ru." always_nxdomain
-	#local-zone: "vitals.vercel-insights.com." always_nxdomain
-	#local-zone: "widgets.outbrain.com." always_nxdomain
-	#local-zone: "wnsrvbjmeprtfrnfx.ay.delivery." always_nxdomain
-	#local-zone: "www.clarity.ms." always_nxdomain
-	#local-zone: "www.datadoghq-browser-agent.com." always_nxdomain
-	#local-zone: "www.installads.net." always_nxdomain
-	#local-zone: "x.clearbitjs.com." always_nxdomain
-	#local-zone: "yelp-privacy.my.onetrust.com." always_nxdomain
-
-	# BBC iPlayer
-	#local-zone: "mybbc-analytics.files.bbci.co.uk." always_nxdomain
-
-	# Channel 4
-	#local-zone: "ads.channel4.com." always_nxdomain
-	#local-zone: "cdn.http.anno.channel4.com." always_nxdomain
-	#local-zone: "cdn.ss.anno.channel4.com." always_nxdomain
-	#local-zone: "channel4.com.112.2o7.net." always_nxdomain
-	#local-zone: "channel4.com.sc.omtrdc.net." always_nxdomain
-	#local-zone: "channel4.com.ssl.sc.omtrdc.net." always_nxdomain
-	#local-zone: "ic.channel4.com." always_nxdomain
-	#local-zone: "monitor.channel4.com." always_nxdomain
-	#local-zone: "sexperienceuk.channel4.com." always_nxdomain
-	#local-zone: "webstat.channel4.com." always_nxdomain
-	#local-zone: "webstats.channel4.com." always_nxdomain
-
-	# IoT Telemetry
-	#local-zone: "bravia-cfgdst-ore-pro.bda.ndmdhs.com." always_nxdomain
-	#local-zone: "s0.2mdn.net." always_nxdomain
-
-	# Netflix
-	#local-zone: "customerevents.netflix.com." always_nxdomain
-	#local-zone: "ichnaea.netflix.com." always_nxdomain
-	#local-zone: "logs.netflix.com." always_nxdomain
-	#local-zone: "nrdp.nccp.netflix.com." always_nxdomain
-
-	# Sony Bravia
-	#local-zone: "ad8641f3cff742de893d919add74c2bb.ssm1.internet.sony.tv." always_nxdomain
-	#local-zone: "ad8641f3cff742de893d919add74c2bb.ssm2.internet.sony.tv." always_nxdomain
-	#local-zone: "api-mf1.meta.ndmdhs.com." always_nxdomain
-	#local-zone: "b02.black.ndmdhs.com." always_nxdomain
-	#local-zone: "bravia.dl.playstation.net." always_nxdomain
-	#local-zone: "call.me.sel.sony.com." always_nxdomain
-	#local-zone: "flingo.tv." always_nxdomain
-	#local-zone: "sonybivstatic-a.akamaihd.net." always_nxdomain
-	#local-zone: "ssm1.internet.sony.tv." always_nxdomain
-
-	# Other
-	#local-zone: "config.samsungads.com." always_nxdomain
-
-{% for domain in proxy_gb_domains %}
-	domain-insecure: "{{ domain }}"
-	local-zone: "{{ domain }}" redirect
-	local-data: "{{ domain }} A {{ hostvars.proxy_gb.wireguard_ipv4_address }}"
-
-{% endfor %}
-{% for domain in proxy_in_domains %}
-	domain-insecure: "{{ domain }}"
-	local-zone: "{{ domain }}" redirect
-	local-data: "{{ domain }} A {{ hostvars.proxy_in.wireguard_ipv4_address }}"
-
-{% endfor %}
-remote-control:
-	control-enable: yes
-	control-interface: /var/run/unbound.sock
-
-forward-zone:
-	name: "getflix.com"
-	forward-addr: 54.251.190.247
-	forward-no-cache: yes
-
-forward-zone:
-	name: "getflix.com.au"
-	forward-addr: 54.251.190.247
-	forward-no-cache: yes
-
-forward-zone:
-	name: "smartdnsproxy.com"
-	forward-addr: 54.255.130.140
-	forward-no-cache: yes
+	ede: yes
 
 forward-zone:
 	name: "."
 {% for forwarder in unbound_forwarders %}
 	forward-addr: "{{ forwarder }}"
 {% endfor %}
-	# TEMPORARY:
-	forward-no-cache: yes
 	forward-tls-upstream: yes
 
 #auth-zone:
@@ -541,7 +111,7 @@ forward-zone:
 #auth-zone:
 #	name: "arpa"
 #	zonefile: "/var/unbound/db/arpa.zone"
-
+#
 #	# master: "128.9.28.5" # localroot-w-4
 #	# master: "128.9.63.145" # localroot-e-4
 #	# master: "206.117.5.93" # localroot-lax-4
@@ -584,7 +154,42 @@ forward-zone:
 #	for-downstream: no
 #	for-upstream: yes
 
-rpz:
-	name: "rpz.home.arpa"
-	zonefile: "/etc/unbound/rpz.home.arpa.zone"
+#rpz: # applied in the configured order
+#	name: "rpz.home.arpa"
+#	zonefile: "/etc/unbound/rpz.home.arpa.zone"
+#	rpz-log: yes
+
+rpz: # applied in the configured order
+	name: rpz.pro.hagezi
+	zonefile: /var/lib/unbound/rpz.pro.hagezi.zone
+	url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/rpz/pro.txt
 	rpz-log: yes
+	rpz-log-name: pro
+
+rpz: # applied in the configured order
+	name: rpz.tif.hagezi
+	zonefile: /var/lib/unbound/rpz.tif.hagezi.zone
+	url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/rpz/tif.txt
+	rpz-log: yes
+	rpz-log-name: tif
+
+rpz: # applied in the configured order
+	name: rpz.dyndns.hagezi
+	zonefile: /var/lib/unbound/rpz.dyndns.hagezi.zone
+	url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/rpz/dyndns.txt
+	rpz-log: yes
+	rpz-log-name: dyndns
+
+rpz: # applied in the configured order
+	name: rpz.hoster.hagezi
+	zonefile: /var/lib/unbound/rpz.hoster.hagezi.zone
+	url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/rpz/hoster.txt
+	rpz-log: yes
+	rpz-log-name: hoster
+
+rpz: # applied in the configured order
+	name: rpz.spam-tlds.hagezi
+	zonefile: /var/lib/unbound/rpz.spam-tlds.hagezi.zone
+	url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/rpz/spam-tlds-rpz.txt
+	rpz-log: yes
+	rpz-log-name: spam-tld

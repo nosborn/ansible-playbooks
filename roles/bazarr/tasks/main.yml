@@ -1,0 +1,128 @@
+# yamllint disable rule:line-length
+---
+- name: install dependencies
+  ansible.builtin.apt:
+    name:
+      # - 7zip
+      - libxml2-dev
+      - libxslt1-dev
+      - python3-dev
+      - python3-pip
+      - python3-setuptools
+      - python3-virtualenv
+      # - unrar
+      # - unzip
+    state: present
+
+- ansible.builtin.uri:
+    url: https://api.github.com/repos/morpheus65535/bazarr/releases/latest
+    headers:
+      Accept: application/vnd.github+json
+    return_content: true
+    body_format: json
+  register: bazarr_result
+
+- name: set version fact
+  ansible.builtin.set_fact:
+    bazarr_version: "{{ bazarr_result.json.tag_name | ansible.builtin.regex_replace('^v', '') }}"
+
+- ansible.builtin.file:
+    path: /opt/bazarr/{{ bazarr_version }}
+    owner: root
+    group: root
+    mode: !!str 0755
+    state: directory
+
+- ansible.builtin.unarchive:
+    src: "{{ bazarr_result.json.assets | selectattr('name', 'search', 'bazarr.zip') | map(attribute='browser_download_url') | first }}"
+    remote_src: true
+    dest: /opt/bazarr/{{ bazarr_version }}
+    owner: root
+    group: root
+    creates: /opt/bazarr/{{ bazarr_version }}/requirements.txt
+  notify: restart bazarr
+
+- ansible.builtin.pip:
+    chdir: /opt/bazarr/{{ bazarr_version }}
+    requirements: requirements.txt
+    virtualenv: venv
+  notify: restart bazarr
+
+- name: create group
+  ansible.builtin.group:
+    name: bazarr
+    system: true
+
+- name: create user
+  ansible.builtin.user:
+    comment: Bazarr Daemon
+    createhome: false
+    group: bazarr
+    groups:
+      - "{{ media_group }}"
+    home: "{{ bazarr_home }}" # created by systemd
+    name: bazarr
+    password_lock: true
+    shell: "{{ nologin_shell }}"
+    system: true
+
+- name: create service
+  ansible.builtin.template:
+    src: bazarr.service.j2
+    dest: /etc/systemd/system/bazarr.service
+    owner: root
+    group: root
+    mode: !!str 0444
+    validate: systemd-analyze verify %s
+  notify: restart bazarr
+
+- name: enable and start service
+  ansible.builtin.systemd_service:
+    name: bazarr.service
+    daemon_reload: true
+    enabled: true
+    state: started
+
+- ansible.builtin.wait_for:
+    path: "{{ bazarr_home }}/config.xml"
+
+# - ansible.builtin.lineinfile:
+#     path: /var/lib/bazarr/config.xml
+#     regex: <AnalyticsEnabled>
+#     line: "  <AnalyticsEnabled>False</AnalyticsEnabled>"
+#     insertbefore: </Config>
+#   notify: restart bazarr
+#
+# - ansible.builtin.lineinfile:
+#     path: /var/lib/bazarr/config.xml
+#     regex: <BindAddress>
+#     line: "  <BindAddress>127.0.0.1</BindAddress>"
+#   notify: restart bazarr
+#
+# - ansible.builtin.lineinfile:
+#     path: /var/lib/bazarr/config.xml
+#     regex: <LogLevel>
+#     line: "  <LogLevel>info</LogLevel>"
+#   notify: restart bazarr
+#
+# # - ansible.builtin.lineinfile:
+# #     path: /var/lib/bazarr/config.xml
+# #     regex: <UpdateMechanism>
+# #     line: "  <UpdateMechanism>External</UpdateMechanism>"
+# #   notify: restart bazarr
+
+- include_role:
+    name: nginx
+    tasks_from: site.yml
+  vars:
+    src: site.conf.j2
+    dest: bazarr
+
+- include_role:
+    name: unbound
+    tasks_from: fragment.yml
+  vars:
+    content: |
+      server:
+        local-data: "bazarr.{{ domain_name }} CNAME {{ ansible_fqdn }}."
+    dest: local-data-bazarr.conf

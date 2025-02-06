@@ -1,0 +1,38 @@
+[Unit]
+After=network.target {{ media_disk_unit_name }}
+Description=Sonarr Daemon
+Requires={{ media_disk_unit_name }}
+
+[Service]
+ExecStart=/opt/sonarr/{{ sonarr_version }}/Sonarr -data={{ sonarr_home }} -nobrowser
+Group=sonarr
+KillMode=process
+LockPersonality=yes
+NoNewPrivileges=yes
+PrivateDevices=yes
+PrivateTmp=yes
+ProtectClock=yes
+ProtectControlGroups=yes
+ProtectHome=tmpfs
+ProtectHostname=yes
+ProtectKernelLogs=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+ProtectSystem=strict
+ReadWritePaths={{ media_path }}
+RemoveIPC=yes
+Restart=on-failure
+RestrictRealtime=yes
+StateDirectory=sonarr
+StateDirectoryMode=0750
+SupplementaryGroups={{ media_group }}
+TimeoutStopSec=20
+Type=simple
+UMask=002
+User=sonarr
+WorkingDirectory={{ sonarr_home }}
+
+[Install]
+WantedBy=multi-user.target
+
+# vim: ft=systemd.jinja2

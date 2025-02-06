@@ -1,0 +1,71 @@
+# yamllint disable rule:line-length
+---
+- name: install package
+  ansible.builtin.apt:
+    name: calibre
+    install_recommends: false
+
+- name: create group
+  ansible.builtin.group:
+    name: calibre
+    system: true
+
+- name: create user
+  ansible.builtin.user:
+    comment: Calibre Server
+    createhome: false
+    group: calibre
+    groups:
+      - "{{ media_group }}"
+    home: "{{ calibre_home }}"
+    name: calibre
+    password_lock: true
+    shell: "{{ nologin_shell }}"
+    system: true
+
+- ansible.builtin.file:
+    path: "{{ media_path }}/Books"
+    owner: root
+    group: media
+    mode: !!str 2775
+    state: directory
+
+- name: initialise library
+  become: true
+  become_user: calibre
+  ansible.builtin.command:
+    cmd: umask 002 && calibredb list --library-path={{ media_path }}/Books
+    creates: "{{ media_path }}/Books/metadata.db"
+
+- name: create service
+  ansible.builtin.template:
+    src: calibre.service.j2
+    dest: /etc/systemd/system/calibre.service
+    owner: root
+    group: root
+    mode: !!str 0444
+    validate: systemd-analyze verify %s
+  notify: restart calibre
+
+- name: enable and start service
+  ansible.builtin.service:
+    name: calibre
+    daemon_reload: true
+    enabled: true
+    state: started
+
+- ansible.builtin.import_role:
+    name: nginx
+    tasks_from: site.yml
+  vars:
+    src: site.conf.j2
+    dest: calibre
+
+- include_role:
+    name: unbound
+    tasks_from: fragment.yml
+  vars:
+    content: |
+      server:
+        local-data: "calibre.{{ domain_name }} CNAME {{ ansible_fqdn }}."
+    dest: local-data-calibre.conf

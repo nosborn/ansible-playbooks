@@ -1,0 +1,32 @@
+# yamllint disable rule:line-length
+---
+- ansible.builtin.uri:
+    url: https://api.github.com/repos/pgaskin/kepubify/releases/latest
+    headers:
+      Accept: application/vnd.github+json
+    return_content: true
+    body_format: json
+  register: kepubify_result
+
+- name: set version fact
+  ansible.builtin.set_fact:
+    kepubify_version: "{{ kepubify_result.json.tag_name | ansible.builtin.regex_replace('^v', '') }}"
+
+- ansible.builtin.file:
+    path: /opt/kepubify
+    owner: root
+    group: root
+    mode: !!str 0755
+    state: directory
+
+- ansible.builtin.get_url:
+    url: "{{ kepubify_result.json.assets | selectattr('name', 'eq', 'kepubify-linux-64bit') | map(attribute='browser_download_url') | first }}"
+    dest: /opt/kepubify/kepubify-{{ kepubify_version }}
+    owner: root
+    group: root
+    mode: !!str 0555
+
+- ansible.builtin.file:
+    src: kepubify-{{ kepubify_version }}
+    dest: /opt/kepubify/kepubify
+    state: link

@@ -1,0 +1,105 @@
+# yamllint disable rule:line-length
+---
+- name: install dependencies
+  ansible.builtin.apt:
+    name:
+      - sqlite3
+    state: present
+
+- ansible.builtin.uri:
+    url: https://api.github.com/repos/Prowlarr/Prowlarr/releases/latest
+    headers:
+      Accept: application/vnd.github+json
+    return_content: true
+    body_format: json
+  register: prowlarr_result
+
+- name: set version fact
+  ansible.builtin.set_fact:
+    prowlarr_version: "{{ prowlarr_result.json.tag_name | ansible.builtin.regex_replace('^v', '') }}"
+
+- ansible.builtin.file:
+    path: /opt/prowlarr/{{ prowlarr_version }}
+    owner: root
+    group: root
+    mode: !!str 0755
+    state: directory
+
+- ansible.builtin.unarchive:
+    src: "{{ prowlarr_result.json.assets | selectattr('name', 'search', '.linux-core-x64.tar.gz') | map(attribute='browser_download_url') | first }}"
+    remote_src: true
+    dest: /opt/prowlarr/{{ prowlarr_version }}
+    owner: root
+    group: root
+    extra_opts:
+      - --strip-components=1
+    creates: /opt/prowlarr/{{ prowlarr_version }}/Prowlarr
+  notify: restart prowlarr
+
+- name: create group
+  ansible.builtin.group:
+    name: prowlarr
+    system: true
+
+- name: create user
+  ansible.builtin.user:
+    comment: Prowlarr Daemon
+    createhome: false
+    group: prowlarr
+    home: "{{ prowlarr_home }}" # created by systemd
+    name: prowlarr
+    password_lock: true
+    shell: "{{ nologin_shell }}"
+    system: true
+
+- name: create service
+  ansible.builtin.template:
+    src: prowlarr.service.j2
+    dest: /etc/systemd/system/prowlarr.service
+    owner: root
+    group: root
+    mode: !!str 0444
+    validate: systemd-analyze verify %s
+  notify: restart prowlarr
+
+- name: enable and start service
+  ansible.builtin.systemd_service:
+    name: prowlarr.service
+    daemon_reload: true
+    enabled: true
+    state: started
+
+- ansible.builtin.wait_for:
+    path: "{{ prowlarr_home }}/config.xml"
+
+- name: configure
+  community.general.xml:
+    path: "{{ prowlarr_home }}/config.xml"
+    xpath: /Config/{{ item.key }}
+    value: "{{ item.value | string }}"
+  loop: "{{ config | ansible.builtin.dict2items }}"
+  vars:
+    config:
+      AnalyticsEnabled: !!str False
+      ApiKey: "{{ prowlarr_api_key }}"
+      BindAddress: 127.0.0.1
+      LaunchBrowser: !!str False
+      LogLevel: info
+      UpdateAutomatically: !!str False
+  notify: restart prowlarr
+
+- include_role:
+    name: nginx
+    tasks_from: site.yml
+  vars:
+    src: site.conf.j2
+    dest: prowlarr
+
+- include_role:
+    name: unbound
+    tasks_from: fragment.yml
+  vars:
+    content: |
+      server:
+        local-data: "prowlarr.{{ domain_name }} CNAME {{ ansible_fqdn }}."
+    dest: local-data-prowlarr.conf

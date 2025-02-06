@@ -1,0 +1,3 @@
+---
+readarr_home: /var/lib/readarr
+readarr_port: 8787

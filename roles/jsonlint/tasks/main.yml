@@ -1,5 +1,0 @@
----
-- name: install jsonlint
-  ansible.builtin.apt:
-    name: "{{ jsonlint_package_name }}"
-    install_recommends: false

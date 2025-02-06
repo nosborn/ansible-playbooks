@@ -1,9 +1,0 @@
----
-- name: install packages
-  ansible.builtin.package:
-    name:
-      - curl
-      - curl-doc
-    state: present
-  register: curl_result
-  until: curl_result is not failed

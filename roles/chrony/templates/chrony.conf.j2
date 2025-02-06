@@ -1,7 +1,0 @@
-cmdport 0
-driftfile /var/lib/chrony/chrony.drift
-initstepslew {{ chrony_config_initstepslew }}
-rtcsync
-{% for server in chrony_config_servers %}
-server {{ server }}
-{% endfor %}

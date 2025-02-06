@@ -1,0 +1,3 @@
+---
+radarr_home: /var/lib/radarr
+radarr_port: 7878

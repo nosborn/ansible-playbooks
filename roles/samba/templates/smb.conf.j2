@@ -1,0 +1,55 @@
+[global]
+	bind interfaces only = yes
+	client max protocol = default
+	client min protocol = SMB2_02
+	dns proxy = no
+	fruit:aapl = yes
+	fruit:copyfile = no
+	fruit:model = MacSamba
+	fruit:nfs_aces = no
+	hosts allow = 127.0.0.1 ::1 {{ lan_ipv4_subnet }} EXCEPT {{ gateway }}
+	interfaces = lo {{ lan_if }}
+	log file = /var/log/samba/%m.log
+	map to guest = bad user
+	max log size = 50
+	multicast dns register = no
+	obey pam restrictions = yes
+	; pam password change = yes
+	server max protocol = SMB3
+	server min protocol = SMB2_02
+	server role = standalone server
+	server string = Samba Server
+	; unix password sync = yes
+	workgroup = WORKGROUP
+
+; [homes]
+; 	browseable = no
+; 	comment = Home Directories
+; 	create mask = 0700
+; 	directory mask = 0700
+; 	read only = yes
+; 	valid users = %S
+
+[media]
+	available = yes
+	browseable = yes
+	comment = Media
+	guest ok = yes
+	path = /var/lib/media
+	; valid users = nick
+	; vfs objects = catia fruit streams_xattr
+	writable = no
+
+[timemachine]
+	available = yes
+	browseable = yes
+	comment = Time Machine Backup
+	fruit:time machine = yes
+	fruit:time machine max size = 300G
+	guest ok = no
+	path = /media/timemachine
+	valid users = nick
+	vfs objects = catia fruit streams_xattr
+	writable = yes
+
+; vim: ft=dosini.jinja2 sw=2 ts=2

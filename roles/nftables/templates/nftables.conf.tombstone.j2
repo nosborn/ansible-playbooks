@@ -1,0 +1,26 @@
+#!/usr/sbin/nft -f
+# vim: ft=nftables.jinja2
+
+flush ruleset
+
+table inet filter {
+	chain input {
+		type filter hook input priority filter;
+	}
+	chain forward {
+		type filter hook forward priority filter;
+	}
+	chain output {
+		type filter hook output priority filter;
+	}
+}
+
+table inet nat {
+	chain prerouting {
+		type nat hook prerouting priority dstnat;
+	}
+	chain postrouting {
+		type nat hook postrouting priority srcnat;
+		oifname "wg0" masquerade
+	}
+}

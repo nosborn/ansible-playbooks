@@ -1,7 +1,7 @@
 ---
 - name: install avahi-daemon
-  ansible.builtin.package:
-    name: avahi
+  ansible.builtin.apt:
+    name: avahi-daemon
     state: present
   register: avahi_result
   until: avahi_result is not failed
@@ -16,7 +16,7 @@
   notify: restart avahi-daemon
 
 - name: enable and start avahi-daemon
-  ansible.builtin.service:
-    name: avahi-daemon
+  ansible.builtin.systemd_service:
+    name: avahi-daemon.service
     enabled: true
     state: started

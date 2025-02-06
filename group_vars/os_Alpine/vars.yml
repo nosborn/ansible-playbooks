@@ -1,4 +1,0 @@
----
-ansible_become_flags: -s /bin/sh
-ansible_become_method: su
-nologin_shell: /sbin/nologin

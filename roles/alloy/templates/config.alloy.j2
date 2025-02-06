@@ -1,28 +1,43 @@
 logging {
-	format = "logfmt"
-	level  = "debug"
+	level = "warn"
 }
 
-local.file_match "main" {
-	path_targets = [
-		{
-			"__path__" = "/var/log/*.log",
-		},
-		{
-			"__path__" = "/var/log/*/*.log",
-		},
-		{
-			"__path__" = "/var/log/messages",
-		},
+loki.relabel "journal" {
+	forward_to = []
+
+	rule {
+		target_label = "unit"
+
+		source_labels = [
+			"__journal__systemd_unit",
+		]
+	}
+}
+
+loki.source.journal "main" {
+	relabel_rules = loki.relabel.journal.rules
+
+	forward_to = [
+		loki.process.journal.receiver,
 	]
+
+	labels = {
+		component = "loki.source.journal",
+	}
 }
 
-loki.source.file "main" {
-	targets = local.file_match.main.targets
-
+loki.process "journal" {
 	forward_to = [
 		loki.write.main.receiver,
 	]
+
+	stage.match {
+		selector = "{unit=~\"^(lidarr|prowlarr|radarr|readarr|sonarr)\\\\.service\"}"
+
+		stage.multiline {
+			firstline = "^\\S"
+		}
+	}
 }
 
 loki.write "main" {
@@ -31,4 +46,49 @@ loki.write "main" {
 	}
 }
 
-// vim: ft=river
+prometheus.exporter.blackbox "main" {
+	config = "{ modules: { icmp: { prober: icmp } } }"
+
+	target {
+		name    = "diablo3"
+		address = "103.4.115.248" // Diablo III - Australia
+		module  = "icmp"
+	}
+
+	target {
+		name    = "diablo4"
+		address = "34.116.85.89" // Diablo IV - Australia
+		module  = "icmp"
+	}
+}
+
+prometheus.exporter.self "main" { }
+
+prometheus.exporter.unix "main" {
+	disable_collectors = [
+		"mdadm",
+		"runit",
+		"supervisord",
+		"tapestats",
+	]
+}
+
+prometheus.scrape "main" {
+	targets = array.concat(
+		prometheus.exporter.blackbox.main.targets,
+		prometheus.exporter.self.main.targets,
+		prometheus.exporter.unix.main.targets,
+	)
+
+	forward_to = [
+		prometheus.remote_write.main.receiver,
+	]
+}
+
+prometheus.remote_write "main" {
+	endpoint {
+		url = "http://localhost:9090/api/v1/write"
+	}
+}
+
+// vim: ft=river.jinja2

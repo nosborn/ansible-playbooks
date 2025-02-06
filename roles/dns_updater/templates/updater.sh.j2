@@ -2,75 +2,26 @@
 
 set -eu
 
-export AWS_ACCESS_KEY_ID='{{ dns_updater_aws_access_key_id }}'
-export AWS_SECRET_ACCESS_KEY='{{ dns_updater_aws_secret_access_key }}'
+export SCW_ACCESS_KEY='{{ dns_updater_scw_access_key }}'
+export SCW_DEFAULT_ORGANIZATION_ID='{{ scw_organization_id }}'
+export SCW_SECRET_KEY='{{ dns_updater_scw_secret_key }}'
 
 current_ip="$(curl -4fsS https://cloudflare.com/cdn-cgi/trace | grep -E '^ip=[0-9]+(\.[0-9]+){3}$' | sed 's/^ip=//')"
 dns_ip="$(dig '{{ external_fqdn }}.' A +short)"
 
-if [ "X${current_ip}" != "X${dns_ip}" ]; then
-  change_batch="$(mktemp)"
-  cat >"${change_batch}" <<EOT
-{
-  "Changes" : [
-    {
-      "Action": "UPSERT",
-      "ResourceRecordSet":{
-        "Name": "{{ external_fqdn }}.",
-        "Type": "A",
-        "TTL": 60,
-        "ResourceRecords": [
-          {
-            "Value": "${current_ip}"
-          }
-        ]
-      }
-    }
-  ]
-}
-EOT
-
-  result="$(aws route53 change-resource-record-sets --change-batch "file://${change_batch}" --hosted-zone-id '{{ dns_updater_hosted_zone_id }}' --output text)"
-  aws route53 wait resource-record-sets-changed --id "$(echo "${result}" | awk '{print $2}')"
-
-  rm -f "${change_batch}"
-  unset change_batch result
+if [ "${current_ip}" != "${dns_ip}" ]; then
+  scw dns record set '{{ external_domain }}' name=tombstone ttl=60 type=A "values.0=${current_ip}" >/dev/null
 fi
 
 unset current_ip dns_ip
 
 cookies="$(mktemp)"
-curl -k -X POST --data '{"username":"{{ dns_updater_unifi_username }}","password":"{{ dns_updater_unifi_password }}"}' --header 'Content-Type: application/json' -c "${cookies}" https://unifi.home.arpa:443/api/auth/login
-current_ip="$(curl -fksS -b "${cookies}" https://unifi.{{ domain_name }}/proxy/network/api/s/default/rest/networkconf | jq -r '.data[]|select(.wan_networkgroup=="WAN").wan_ipv6')"
+curl -fksS -X POST --data '{"username":"{{ dns_updater_unifi_username }}","password":"{{ dns_updater_unifi_password }}"}' --header 'Content-Type: application/json' -c "${cookies}" -o /dev/null https://unifi.home.arpa:443/api/auth/login
+current_ip="$(curl -fksS -b "${cookies}" 'https://unifi.{{ domain_name }}/proxy/network/api/s/default/rest/networkconf' | jq -r '.data[]|select(.wan_networkgroup=="WAN").wan_ipv6')"
 dns_ip="$(dig '{{ external_fqdn }}.' AAAA +short)"
 
-if [ "X${current_ip}" != "X${dns_ip}" ]; then
-  change_batch="$(mktemp)"
-  cat >"${change_batch}" <<EOT
-{
-  "Changes" : [
-    {
-      "Action": "UPSERT",
-      "ResourceRecordSet":{
-        "Name": "{{ external_fqdn }}.",
-        "Type": "AAAA",
-        "TTL": 60,
-        "ResourceRecords": [
-          {
-            "Value": "${current_ip}"
-          }
-        ]
-      }
-    }
-  ]
-}
-EOT
-
-  result="$(aws route53 change-resource-record-sets --change-batch "file://${change_batch}" --hosted-zone-id '{{ dns_updater_hosted_zone_id }}' --output text)"
-  aws route53 wait resource-record-sets-changed --id "$(echo "${result}" | awk '{print $2}')"
-
-  rm -f "${change_batch}"
-  unset change_batch result
+if [ "${current_ip}" != "${dns_ip}" ]; then
+  scw dns record set '{{ external_domain }}' name=tombstone ttl=60 type=AAAA "values.0=${current_ip}" >/dev/null
 fi
 
 rm -f "${cookies}"

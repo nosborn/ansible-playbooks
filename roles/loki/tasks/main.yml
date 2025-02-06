@@ -1,24 +1,46 @@
+# yamllint disable rule:line-length
 ---
+# - ansible.builtin.get_url:
+#     url: https://apt.grafana.com/gpg.key
+#     dest: /etc/apt/keyrings/grafana.asc
+#     owner: root
+#     group: root
+#     mode: !!str 0444
+
+- ansible.builtin.apt_repository:
+    repo: deb [arch=amd64 signed-by=/etc/apt/keyrings/grafana.asc] https://apt.grafana.com stable main
+    filename: grafana
+    mode: !!str 0444
+    state: present
+    update_cache: true
+
 - name: install packages
-  ansible.builtin.package:
+  ansible.builtin.apt:
     name:
+      - logcli
       - loki
-      - loki-logcli
-    state: latest
+    state: present
   register: loki_result
   until: loki_result is not failed
 
 - name: configure loki
   ansible.builtin.template:
-    src: config.yaml.j2
-    dest: /etc/loki/loki-local-config.yaml
+    src: config.yml.j2
+    dest: /etc/loki/config.yml
     owner: root
-    group: grafana # really
-    mode: !!str 0440
+    group: root
+    mode: !!str 0444
   notify: restart loki
 
+- ansible.builtin.file:
+    path: /var/lib/loki
+    owner: loki
+    group: root
+    mode: !!str 0750
+    state: directory
+
 - name: enable and start service
-  ansible.builtin.service:
-    name: loki
+  ansible.builtin.systemd:
+    name: loki.service
     enabled: true
     state: started

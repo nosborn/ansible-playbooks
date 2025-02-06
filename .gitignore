@@ -1,3 +1,4 @@
+*.mobileconfig
 .envrc
 .vault_password
 backup/

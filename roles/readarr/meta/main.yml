@@ -1,0 +1,5 @@
+---
+dependencies:
+  - role: calibre
+  - role: media
+  - role: nginx

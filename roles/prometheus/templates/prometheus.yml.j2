@@ -6,73 +6,15 @@ alerting:
             - localhost:9093
 
 scrape_configs:
-  - job_name: blackbox_exporter
-    static_configs:
-      - targets:
-          - 127.0.0.1:9115
-
   - job_name: grafana
     static_configs:
       - targets:
           - localhost:3000
 
-  - job_name: http_2xx
-    metrics_path: /probe
-    params:
-      module:
-        - http_2xx
-    relabel_configs:
-      - source_labels:
-          - __address__
-        target_label: __param_target
-      - source_labels:
-          - __param_target
-        target_label: instance
-      - target_label: __address__
-        replacement: 127.0.0.1:9115
-    static_configs:
-      - targets:
-          - http://{{ hostvars.proxy_gb.wireguard_ipv4_address }}
-          - http://{{ hostvars.proxy_in.wireguard_ipv4_address }}
-          # - https://f1tv.formula1.com/robots.txt
-
-  - job_name: icmp
-    params:
-      module:
-        - icmp
-    relabel_configs:
-      - source_labels:
-          - __address__
-        target_label: __param_target
-      - source_labels:
-          - __param_target
-        target_label: instance
-      - target_label: __address__
-        replacement: 127.0.0.1:9115
-    static_configs:
-      - targets:
-          - "{{ hostvars.proxy_gb.wireguard_ipv4_address }}"
-          - "{{ hostvars.proxy_in.wireguard_ipv4_address }}"
-          - 103.4.115.248 # Diablo III - Australia
-          - 34.116.85.89 # Diablo IV - Australia
-
   - job_name: loki
     static_configs:
       - targets:
           - localhost:3100
-
-  - job_name: node
-    static_configs:
-      - targets:
-          - "{{ hostvars.proxy_gb.wireguard_ipv4_address }}:9100"
-          - "{{ hostvars.proxy_in.wireguard_ipv4_address }}:9100"
-          - localhost:9100
-
-  - job_name: openrc
-    static_configs:
-      - targets:
-          - "{{ hostvars.proxy_gb.wireguard_ipv4_address }}:9816"
-          - "{{ hostvars.proxy_in.wireguard_ipv4_address }}:9816"
 
   - job_name: prometheus
     scrape_interval: 5s
@@ -80,9 +22,3 @@ scrape_configs:
     static_configs:
       - targets:
           - localhost:9090
-
-  - job_name: wireguard
-    static_configs:
-      - targets:
-          - "{{ hostvars.proxy_gb.wireguard_ipv4_address }}:9586"
-          - "{{ hostvars.proxy_in.wireguard_ipv4_address }}:9586"

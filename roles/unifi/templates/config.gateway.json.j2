@@ -2,15 +2,15 @@
   "protocols": {
     "igmp-proxy": {
       "interface": {
-        "{{ hostvars.gateway.lan_if }}": {
-          "role": "upstream",
-          "threshold": "1",
-          "alt-subnet": "0.0.0.0/0"
-        },
         "{{ hostvars.gateway.iot_if }}": {
+          "alt-subnet": "0.0.0.0/0",
           "role": "downstream",
-          "threshold": "1",
-          "alt-subnet": "0.0.0.0/0"
+          "threshold": "1"
+        },
+        "{{ hostvars.gateway.lan_if }}": {
+          "alt-subnet": "0.0.0.0/0",
+          "role": "upstream",
+          "threshold": "1"
         }
       }
     }

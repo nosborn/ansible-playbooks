@@ -64,7 +64,7 @@ PrintMotd no
 #PubkeyAuthentication yes
 #RekeyLimit default none
 #StrictModes yes
-Subsystem sftp internal-sftp
+Subsystem sftp /usr/lib/openssh/sftp-server -f AUTHPRIV -l INFO
 #SyslogFacility AUTH
 TCPKeepAlive no
 #UseDNS no

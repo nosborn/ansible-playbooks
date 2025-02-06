@@ -1,0 +1,88 @@
+# yamllint disable rule:line-length
+---
+- name: create group
+  ansible.builtin.group:
+    name: qbittorrent
+    system: true
+
+- name: create user
+  ansible.builtin.user:
+    comment: qBittorrent
+    createhome: false
+    group: qbittorrent
+    groups:
+      - "{{ media_group }}"
+    home: "{{ qbittorrent_home }}"
+    name: qbittorrent
+    password_lock: true
+    shell: "{{ nologin_shell }}"
+    system: true
+
+- name: create home directory
+  ansible.builtin.file:
+    name: "{{ qbittorrent_home }}"
+    owner: qbittorrent
+    group: qbittorrent
+    mode: !!str 0750
+    state: directory
+
+# - name: create wireguard directory
+#   ansible.builtin.file:
+#     name: "{{ qbittorrent_home }}/config/wireguard"
+#     owner: qbittorrent
+#     group: qbittorrent
+#     mode: !!str 2775
+#     state: directory
+
+# - name: configure Wireguard
+#   ansible.builtin.copy:
+#     content: "{{ qbittorrent_config_wireguard }}"
+#     dest: "{{ qbittorrent_home }}/config/wireguard/wg0.conf"
+#     owner: qbittorrent
+#     group: qbittorrent
+#     mode: !!str 0600
+
+- ansible.builtin.file:
+    path: /etc/systemd/system/qbittorrent-nox@qbittorrent.service.d
+    owner: root
+    group: root
+    mode: !!str 0755
+    state: directory
+
+- ansible.builtin.copy:
+    content: |
+      [Service]
+      Environment=QBT_CONFIRM_LEGAL_NOTICE=1
+      Environment=QBT_WEBUI_PORT={{ qbittorrent_port }}
+      ReadWriteDirectories={{ media_path }}
+      SupplementaryGroups={{ media_group }}
+      UMask=002
+      WorkingDirectory={{ qbittorrent_home }}
+    dest: /etc/systemd/system/qbittorrent-nox@qbittorrent.service.d/overrides.conf
+    owner: root
+    group: root
+    mode: !!str 0444
+  notify: restart qbittorrent
+
+- name: enable and start the service
+  ansible.builtin.systemd_service:
+    name: qbittorrent-nox@qbittorrent.service
+    daemon_reload: true
+    enabled: true
+    state: started
+
+- include_role:
+    name: nginx
+    tasks_from: site.yml
+  vars:
+    src: site.conf.j2
+    dest: qbittorrent
+
+- include_role:
+    name: unbound
+    tasks_from: fragment.yml
+  vars:
+    content: |
+      server:
+        local-data: "qbittorrent.{{ domain_name }} CNAME {{ ansible_fqdn }}."
+    dest: local-data-qbittorrent.conf

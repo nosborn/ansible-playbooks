@@ -1,2 +1,0 @@
----
-jsonlint_validate_command: "{{ jsonlint_command }} %s"

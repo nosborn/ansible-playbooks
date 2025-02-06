@@ -1,20 +1,26 @@
+# yamllint disable rule:line-length
 ---
+# - ansible.builtin.get_url:
+#     url: https://apt.grafana.com/gpg.key
+#     dest: /etc/apt/keyrings/grafana.asc
+#     owner: root
+#     group: root
+#     mode: !!str 0444
+
+- ansible.builtin.apt_repository:
+    repo: deb [arch=amd64 signed-by=/etc/apt/keyrings/grafana.asc] https://apt.grafana.com stable main
+    filename: grafana
+    mode: !!str 0444
+    state: present
+    update_cache: true
+
 - name: install package
-  community.general.apk:
+  ansible.builtin.apt:
     name: alloy
-    repository: https://{{ apk_mirror_name }}/alpine/edge/community
-    state: latest
+    state: present
   register: alloy_result
   until: alloy_result is not failed
   notify: restart alloy
-
-- name: configuration directory
-  ansible.builtin.file:
-    path: /etc/alloy
-    owner: root
-    group: root
-    mode: !!str 0755
-    state: directory
 
 - name: configure
   ansible.builtin.template:
@@ -23,24 +29,11 @@
     owner: root
     group: alloy
     mode: !!str 0440
-  notify: restart alloy
-
-- name: service arguments
-  ansible.builtin.lineinfile:
-    path: /etc/conf.d/alloy
-    regex: command_args=
-    line: command_args="run --disable-reporting /etc/alloy/config.alloy"
-  notify: restart alloy
-
-- name: service user
-  ansible.builtin.lineinfile:
-    path: /etc/conf.d/alloy
-    regex: command_user=
-    line: command_user="root"
+    validate: alloy fmt --test %s
   notify: restart alloy
 
 - name: enable and start service
-  ansible.builtin.service:
-    name: alloy
+  ansible.builtin.systemd_service:
+    name: alloy.service
     enabled: true
     state: started

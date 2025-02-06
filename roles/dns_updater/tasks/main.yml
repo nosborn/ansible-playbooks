@@ -1,8 +1,16 @@
 ---
+- name: install dependencies
+  ansible.builtin.package:
+    name:
+      - curl
+      - dnsutils
+      - jq
+    state: present
+
 - name: install cron job
   ansible.builtin.template:
     src: updater.sh.j2
-    dest: /etc/periodic/15min/dns-updater
+    dest: /etc/cron.hourly/dns-updater
     owner: root
     group: root
     mode: !!str 0500

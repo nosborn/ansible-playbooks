@@ -1,11 +1,6 @@
 ---
 - name: install packages
-  ansible.builtin.package:
+  ansible.builtin.apt:
     name:
       - nodejs
-      - nodejs-doc
       - npm
-      - npm-doc
-    state: present
-  register: nodejs_result
-  until: nodejs_result is not failed

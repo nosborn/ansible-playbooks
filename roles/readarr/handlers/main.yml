@@ -1,0 +1,6 @@
+---
+- name: restart readarr
+  ansible.builtin.systemd_service:
+    name: readarr.service
+    daemon_reload: true
+    state: restarted

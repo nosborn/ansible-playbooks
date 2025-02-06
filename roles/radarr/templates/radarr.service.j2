@@ -1,0 +1,38 @@
+[Unit]
+After=network.target {{ media_disk_unit_name }}
+Description=Radarr Daemon
+Requires={{ media_disk_unit_name }}
+
+[Service]
+ExecStart=/opt/radarr/{{ radarr_version }}/Radarr -data={{ radarr_home }} -nobrowser
+Group=radarr
+KillMode=process
+LockPersonality=yes
+NoNewPrivileges=yes
+PrivateDevices=yes
+PrivateTmp=yes
+ProtectClock=yes
+ProtectControlGroups=yes
+ProtectHome=tmpfs
+ProtectHostname=yes
+ProtectKernelLogs=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+ProtectSystem=strict
+ReadWritePaths={{ media_path }}
+RemoveIPC=yes
+Restart=on-failure
+RestrictRealtime=yes
+StateDirectory=radarr
+StateDirectoryMode=0750
+SupplementaryGroups={{ media_group }}
+TimeoutStopSec=20
+Type=simple
+UMask=002
+User=radarr
+WorkingDirectory={{ radarr_home }}
+
+[Install]
+WantedBy=multi-user.target
+
+# vim: ft=systemd.jinja2

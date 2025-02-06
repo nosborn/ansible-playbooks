@@ -1,5 +1,5 @@
 ---
-- name: restart grafana
-  ansible.builtin.service:
-    name: grafana
+- name: restart grafana-server
+  ansible.builtin.systemd_service:
+    name: grafana-server.service
     state: restarted
