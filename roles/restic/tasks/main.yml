@@ -1,4 +1,58 @@
 ---
-- name: install package
+- name: install packages
   ansible.builtin.apt:
+    name:
+      - backblaze-b2
+      - restic
+
+- name: create group
+  ansible.builtin.group:
     name: restic
+    system: true
+
+- name: create user
+  ansible.builtin.user:
+    createhome: false
+    group: restic
+    home: /var/lib/restic # created by systemd
+    name: restic
+    password_lock: true
+    shell: "{{ nologin_shell }}"
+    system: true
+
+- ansible.builtin.file:
+    path: /etc/restic
+    owner: root
+    group: restic
+    mode: !!str 0750
+    state: directory
+
+- name: configure exclusions
+  ansible.builtin.copy:
+    content: |
+      .DS_Store
+      /media/media/**/Plex Versions/
+      /media/media/Downloads/
+      lost+found/
+    dest: /etc/restic/exclude
+    owner: root
+    group: restic
+    mode: !!str 0440
+
+- ansible.builtin.copy:
+    content: "{{ restic_password }}\n"
+    dest: /etc/restic/password
+    owner: root
+    group: restic
+    mode: !!str 0440
+
+- name: install backup script
+  ansible.builtin.template:
+    src: backup.sh.j2
+    dest: /usr/local/sbin/restic-backup.sh
+    owner: root
+    group: restic
+    mode: !!str 0550
+    validate: sh -n %s
+
+# TODO: systemd units

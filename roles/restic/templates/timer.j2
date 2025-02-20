@@ -1,0 +1,9 @@
+[Unit]
+Requires=restic.service
+
+[Timer]
+OnCalendar=*-*-* *:*:00
+Unit=restic.service
+
+[Install]
+WantedBy=timers.target

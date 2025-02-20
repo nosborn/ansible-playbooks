@@ -26,6 +26,9 @@
 
 - ansible.builtin.copy:
     content: |
+      [Unit]
+      Requires={{ media_mount_unit_name }}
+
       [Service]
       RuntimeDirectory=plexmediaserver
       SupplementaryGroups={{ media_group }}

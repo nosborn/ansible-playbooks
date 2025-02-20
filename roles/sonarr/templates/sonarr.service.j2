@@ -1,7 +1,7 @@
 [Unit]
-After=network.target {{ media_disk_unit_name }}
+After=network.target {{ media_mount_unit_name }}
 Description=Sonarr Daemon
-Requires={{ media_disk_unit_name }}
+Requires={{ media_mount_unit_name }}
 
 [Service]
 ExecStart=/opt/sonarr/{{ sonarr_version }}/Sonarr -data={{ sonarr_home }} -nobrowser

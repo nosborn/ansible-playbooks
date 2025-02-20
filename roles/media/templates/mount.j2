@@ -1,0 +1,10 @@
+[Mount]
+What=/dev/disk/by-partuuid/{{ media_partition_uuid }}
+Where={{ media_path }}
+Type=ext4
+Options=defaults,errors=remount-ro,nodev,noexec
+
+[Install]
+WantedBy=multi-user.target
+
+# vim: ft=systemd.jinja2

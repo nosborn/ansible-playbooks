@@ -1,7 +1,9 @@
 ---
 - name: install avahi-daemon
   ansible.builtin.apt:
-    name: avahi-daemon
+    name:
+      - avahi-daemon
+      - avahi-utils
     state: present
   register: avahi_result
   until: avahi_result is not failed

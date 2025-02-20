@@ -1,7 +1,7 @@
 [Unit]
-After=network.target {{ media_disk_unit_name }}
+After=network.target {{ media_mount_unit_name }}
 Description=SABnzbd Daemon
-Requires={{ media_disk_unit_name }}
+Requires={{ media_mount_unit_name }}
 
 [Service]
 ExecStart=/opt/sabnzbd/{{ sabnzbd_version }}/venv/bin/python3 /opt/sabnzbd/{{ sabnzbd_version }}/SABnzbd.py --browser=0 --config-file={{ sabnzbd_home }}/config.ini --disable-file-log --server=127.0.0.1:{{ sabnzbd_port }}

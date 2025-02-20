@@ -1,0 +1,22 @@
+#!/bin/sh
+
+set -o errexit
+set -o nounset
+
+export B2_ACCOUNT_ID='{{ restic_b2_account_id }}'
+export B2_ACCOUNT_KEY='{{ restic_b2_account_key }}'
+export RESTIC_COMPRESSION=off
+export RESTIC_PASSWORD_FILE=/etc/restic/password
+export RESTIC_REPOSITORY='{{ restic_repository }}'
+
+bucket="$(echo "${RESTIC_REPOSITORY}" | cut -d: -f2)"
+path="$(echo "${RESTIC_REPOSITORY}" | cut -d: -f3)"
+readonly bucket path
+
+backblaze-b2 ls "b2://${bucket}" | grep -Fqx "${path}/" || {
+  restic init --repository-version=2
+}
+
+restic backup \
+  --cache-dir=/var/cache/restic --exclude-caches --exclude-file=/etc/restic/exclude --one-file-system --skip-if-unchanged \
+  '{{ media_path }}' '{{ timemachine_path }}'

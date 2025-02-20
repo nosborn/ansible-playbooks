@@ -3,4 +3,5 @@
 .vault_password
 backup/
 ca/
+ca-2/
 wg-*.conf

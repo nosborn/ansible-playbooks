@@ -1,6 +1,6 @@
 ---
-- name: reload media mount
+- name: reload timemachine mount
   ansible.builtin.systemd_service:
     daemon_reload: true
-    name: "{{ media_mount_unit_name }}"
+    name: "{{ timemachine_mount_unit_name }}"
     state: reloaded

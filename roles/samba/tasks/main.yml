@@ -3,8 +3,6 @@
   ansible.builtin.apt:
     name: samba
     state: present
-  register: samba_result
-  until: samba_result is not failed
 
 - name: configure
   ansible.builtin.template:
@@ -24,10 +22,3 @@
   loop:
     - nmbd.service
     - smbd.service
-
-- ansible.builtin.import_role:
-    name: avahi
-    tasks_from: service.yml
-  vars:
-    src: samba.service.j2
-    dest: samba.service

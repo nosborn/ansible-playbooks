@@ -1,0 +1,14 @@
+[Unit]
+Wants=restic.timer
+
+[Service]
+CacheDirectory=restic
+Capabilities=CAP_DAC_READ_SEARCH
+ExecStart=/usr/local/sbin/restic-backup.sh
+Group=restic
+StateDirectory=restic
+Type=oneshot
+User=restic
+
+[Install]
+WantedBy=multi-user.target

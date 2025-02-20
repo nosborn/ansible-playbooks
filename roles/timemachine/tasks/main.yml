@@ -1,0 +1,32 @@
+---
+- name: create group
+  ansible.builtin.group:
+    name: "{{ timemachine_group }}"
+    system: true
+  register: timemachine_result
+
+- name: create mount unit
+  ansible.builtin.template:
+    src: mount.j2
+    dest: /etc/systemd/system/{{ timemachine_mount_unit_name }}
+    owner: root
+    group: root
+    mode: !!str 0444
+  notify: reload timemachine mount
+
+- name: enable and start mount
+  ansible.builtin.systemd_service:
+    name: "{{ timemachine_mount_unit_name }}"
+    daemon_reload: true
+    enabled: true
+    state: started
+
+- name: mount now
+  ansible.builtin.meta: flush_handlers
+
+- ansible.builtin.file:
+    path: "{{ timemachine_path }}"
+    owner: root
+    group: "{{ timemachine_group }}"
+    mode: !!str 0770
+    state: directory

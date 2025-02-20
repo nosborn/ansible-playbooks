@@ -1,7 +1,7 @@
 [Unit]
-After=network.target {{ media_disk_unit_name }}
+After=network.target {{ media_mount_unit_name }}
 Description=Calibre Server
-Requires={{ media_disk_unit_name }}
+Requires={{ media_mount_unit_name }}
 
 [Service]
 ExecStart=/usr/bin/calibre-server --disable-use-bonjour --enable-local-write --listen-on=127.0.0.1 --port={{ calibre_port }} --trusted-ips=127.0.0.1 {{ media_path }}/Books

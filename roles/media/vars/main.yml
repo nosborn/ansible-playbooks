@@ -1,4 +1,4 @@
 ---
-media_disk_unit_name: var-lib-media.mount
 media_group: media
-media_path: /var/lib/media
+media_mount_unit_name: "{{ media_path[1:] | replace('/', '-') }}.mount"
+media_path: /media/media

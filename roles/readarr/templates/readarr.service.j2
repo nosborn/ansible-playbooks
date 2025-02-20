@@ -1,7 +1,7 @@
 [Unit]
-After=calibre.service network.target {{ media_disk_unit_name }}
+After=calibre.service network.target {{ media_mount_unit_name }}
 Description=Readarr Daemon
-Requires={{ media_disk_unit_name }}
+Requires={{ media_mount_unit_name }}
 Wants=calibre.service
 
 [Service]

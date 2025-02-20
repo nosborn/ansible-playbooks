@@ -1,0 +1,5 @@
+# yamllint disable rule:line-length
+---
+timemachine_group: timemachine
+timemachine_mount_unit_name: "{{ timemachine_path[1:] | replace('/', '-') }}.mount"
+timemachine_path: /media/timemachine

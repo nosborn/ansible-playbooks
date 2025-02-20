@@ -1,7 +1,7 @@
 [Unit]
-After=network.target {{ media_disk_unit_name }}
+After=network.target {{ media_mount_unit_name }}
 Description=Prowlarr Daemon
-Requires={{ media_disk_unit_name }}
+Requires={{ media_mount_unit_name }}
 
 [Service]
 ExecStart=/opt/prowlarr/{{ prowlarr_version }}/Prowlarr -data={{ prowlarr_home }} -nobrowser

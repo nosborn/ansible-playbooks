@@ -143,6 +143,8 @@
 
   roles:
     - role: alertmanager
+      tags:
+        - alertmanager
       when: false
     - role: alloy
       tags:
@@ -152,33 +154,69 @@
         - bazarr
       when: false # has issues with Python 3.13
     - role: calibre
+      tags:
+        - calibre
     - role: calibre_web
-    - role: chrony
-      when: false
+      tags:
+        - calibre-web
     - role: dns_updater
+      tags:
+        - dns-updater
     - role: grafana
+      tags:
+        - grafana
     - role: homebridge
+      tags:
+        - homebridge
     - role: imapfilter
+      tags:
+        - imapfilter
     - role: lidarr
+      tags:
+        - lidarr
     - role: loki
       tags:
         - loki
     - role: opensmtpd
+      tags:
+        - opensmtpd
       when: false
     - role: plexmediaserver
+      tags:
+        - plexmediaserver
     - role: prometheus
+      tags:
+        - prometheus
     - role: prowlarr
+      tags:
+        - prowlarr
     - role: qbittorrent
       tags:
         - qbittorrent
     - role: radarr
+      tags:
+        - radarr
     - role: readarr
+      tags:
+        - readarr
     - role: restic
+      tags:
+        - restic
     - role: samba
+      tags:
+        - samba
     - role: sabnzbd
+      tags:
+        - sabnzbd
     - role: sonarr
+      tags:
+        - sonarr
     - role: sshd
+      tags:
+        - sshd
     - role: unattended_upgrades
+      tags:
+        unattended-upgrades
     - role: unbound
       tags:
         - unbound
@@ -222,4 +260,6 @@
 
   roles:
     - role: unifi_gateway
+      tags:
+        - unifi-gateway
       when: false
