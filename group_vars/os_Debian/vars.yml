@@ -1,4 +1,5 @@
 ---
 ansible_become_flags: -s /bin/sh
 ansible_become_method: su
+lego_path: /etc/lego
 nologin_shell: /usr/sbin/nologin

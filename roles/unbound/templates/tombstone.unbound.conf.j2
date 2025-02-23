@@ -1,0 +1,117 @@
+include-toplevel: /etc/unbound/unbound.conf.d/*.conf
+
+server:
+	verbosity: 1
+
+	num-threads: 1
+
+	interface: 127.0.0.1
+	interface: {{ lan_ipv4_address }}
+	interface: ::1
+	interface: {{ lan_ipv6_address }}
+
+	prefer-ip6: yes
+
+	tls-cert-bundle: /etc/ssl/certs/ca-certificates.crt
+
+	access-control: 0.0.0.0/0 refuse
+	access-control: 127.0.0.0/8 allow
+	access-control: {{ lan_ipv4_subnet }} allow
+	access-control: ::0/0 deny
+	access-control: ::1 allow
+	access-control: {{ lan_ipv6_subnet }} allow
+
+	# log-queries: yes
+	log-replies: yes
+	# log-tag-queryreply: yes
+
+	private-address: 0.0.0.0/8
+	private-address: 10.0.0.0/8         # Private-Use
+	private-address: 100.64.0.0/10      # Shared Address Space
+	private-address: 127.0.0.0/8        # Loopback
+	private-address: 169.254.0.0/16     # Link Local
+	private-address: 172.16.0.0/12      # Private-Use
+	private-address: 192.0.2.0/24       # Documentation (TEST-NET-1)
+	private-address: 192.168.0.0/16     # Private-Use
+	private-address: 198.18.0.0/15      # Benchmarking
+	private-address: 198.51.100.0/24    # Documentation (TEST-NET-2)
+	private-address: 203.0.113.0/24     # Documentation (TEST-NET-3)
+	private-address: 240.0.0.0/4        # Reserved
+	private-address: 255.255.255.255/32 # Limited Broadcast
+	private-address: fd00::/8
+	private-address: fe80::/10
+	private-address: ::ffff:0:0/96      # IPv4-mapped IPv6 addresses
+	private-domain: local
+
+	deny-any: yes
+
+	module-config: "respip validator iterator"
+
+	#trust-anchor-file: "/usr/share/dnssec-root/trusted-key.key"
+	#auto-trust-anchor-file: "/var/lib/unbound/root.key"
+
+	domain-insecure: "local"
+
+	domain-insecure: "c5appletv.2cnt.net"
+	domain-insecure: "ch5.sc.omtrdc.net"
+	domain-insecure: "verify.controld.com"
+
+{% if unbound_null_zones | length %}
+{%   for zone in unbound_null_zones | sort | unique %}
+	domain-insecure: "{{ zone }}"
+{%   endfor %}
+
+{% endif %}
+{% if unbound_proxy_in_zones | length %}
+{%   for zone in unbound_proxy_in_zones | sort | unique %}
+	domain-insecure: "{{ zone }}"
+{%   endfor %}
+
+{% endif %}
+	val-log-level: 2
+
+	#serve-expired: yes
+	#serve-expired-ttl: 86400
+	#serve-expired-ttl-reset: yes
+	#serve-expired-reply-ttl: 30
+	#serve-expired-client-timeout: 1800
+
+	# https://support.mozilla.org/en-US/kb/canary-domain-use-application-dnsnet
+	local-zone: "use-application-dns.net." always_nxdomain
+
+	# https://developer.apple.com/support/prepare-your-network-for-icloud-private-relay
+	local-zone: "mask.icloud.com." always_nxdomain
+	local-zone: "mask-h2.icloud.com." always_nxdomain
+
+	# DNS-over-HTTPS
+	local-zone: "doh.dns.apple.com." always_nxdomain
+
+	local-zone: "ipv4only.arpa." always_nxdomain
+	local-zone: "resolver.arpa." always_nxdomain
+
+{% if unbound_null_zones | length %}
+{%   for zone in unbound_null_zones | sort | unique %}
+	local-zone: "{{ zone }}." always_null
+{%   endfor %}
+
+{% endif %}
+{% if unbound_proxy_in_zones | length %}
+{%   for zone in unbound_proxy_in_zones | sort | unique %}
+	local-zone: "{{ zone }}." redirect
+	local-data: "{{ zone }}. A {{ hostvars['proxy-in'].ansible_default_ipv4.address }}"
+	local-data: "{{ zone }}. AAAA {{ hostvars['proxy-in'].ansible_default_ipv6.address }}"
+{%   endfor %}
+
+{% endif %}
+	ede: yes
+
+forward-zone:
+	name: "local."
+	forward-addr: "{{ lan_ipv4_subnet | ansible.utils.nthhost(1) }}"
+
+forward-zone:
+	name: "."
+{% for forwarder in unbound_forwarders %}
+	forward-addr: "{{ forwarder }}"
+{% endfor %}
+	forward-tls-upstream: yes

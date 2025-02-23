@@ -1,0 +1,59 @@
+#Port 22
+#AddressFamily any
+ListenAddress {{ ansible_default_ipv4.address }}
+#ListenAddress {{ ansible_default_ipv6.address }} -- FIXME
+
+AcceptEnv LANG
+AcceptEnv LC_*
+AllowAgentForwarding no
+AllowStreamLocalForwarding no
+AllowTcpForwarding no
+AllowUsers {{ sshd_config_allow_users | sort | join(' ') }}
+AuthenticationMethods publickey
+AuthorizedKeysFile .ssh/authorized_keys
+#Banner none
+#ChrootDirectory none
+ClientAliveCountMax 3
+ClientAliveInterval 20
+#Compression yes
+DebianBanner no
+DisableForwarding yes
+#GatewayPorts no
+HostKey /etc/ssh/ssh_host_ed25519_key
+#HostbasedAuthentication no
+#IgnoreRhosts yes
+#IgnoreUserKnownHosts no
+KbdInteractiveAuthentication no
+LoginGraceTime 1m
+LogLevel VERBOSE
+MaxAuthTries 3
+#MaxSessions 10
+#MaxStartups 10:30:100
+PasswordAuthentication no
+#PermitEmptyPasswords no
+PermitRootLogin no
+#PermitTTY yes
+#PermitTunnel no
+PermitUserEnvironment no
+PermitUserRC no
+#PidFile /run/sshd.pid
+#PrintLastLog yes
+PrintMotd no
+#PubkeyAuthentication yes
+#RekeyLimit default none
+#StrictModes yes
+Subsystem sftp internal-sftp -f AUTHPRIV -l INFO
+#SyslogFacility AUTH
+TCPKeepAlive no
+#UseDNS no
+UsePAM no
+VersionAddendum none
+#X11Forwarding no
+
+Match Address {{ hostvars.gateway.ansible_default_ipv4.address }}
+	PermitRootLogin prohibit-password
+
+Match Address {{ hostvars.tombstone.lan_ipv6_subnet }}
+	PermitRootLogin prohibit-password
+
+# vim: ft=sshdconfig.jinja2

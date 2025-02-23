@@ -1,2 +1,4 @@
-**/vault.yml diff=ansible-vault linguist-generated merge=binary
 .ansible-lint linguist-language=yaml
+group_vars/*/vault.yml diff=ansible-vault linguist-generated merge=binary
+host_vars/*/vault.yml diff=ansible-vault linguist-generated merge=binary
+roles/*/vars/vault.yml diff=ansible-vault linguist-generated merge=binary

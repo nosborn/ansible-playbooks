@@ -1,27 +1,20 @@
 ---
-- name: install package
+- name: install packages
   ansible.builtin.apt:
     name:
       - ca-certificates
       - unbound
+      - unbound-anchor
     state: present
-  register: unbound_result
-  until: unbound_result is not failed
 
 - name: configure
   ansible.builtin.template:
-    src: "{{ item }}.j2"
-    dest: /etc/unbound/{{ item }}
+    src: "{{ ansible_hostname }}.unbound.conf.j2"
+    dest: /etc/unbound/unbound.conf
     owner: root
     group: root
     mode: !!str 0444
-  loop:
-    - unbound.conf
-    - unbound.conf.d/bbc-iplayer.conf
-    - unbound.conf.d/channel4.conf
-    - unbound.conf.d/formula1.conf
-    - unbound.conf.d/itv.conf
-    - unbound.conf.d/my5.conf
+    validate: unbound-checkconf %s
   notify: restart unbound
 
 - name: enable and start unbound
@@ -29,3 +22,6 @@
     name: unbound.service
     enabled: true
     state: started
+
+- name: flush handlers
+  ansible.builtin.meta: flush_handlers

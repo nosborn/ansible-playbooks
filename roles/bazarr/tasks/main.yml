@@ -110,19 +110,3 @@
 # #     regex: <UpdateMechanism>
 # #     line: "  <UpdateMechanism>External</UpdateMechanism>"
 # #   notify: restart bazarr
-
-- include_role:
-    name: nginx
-    tasks_from: site.yml
-  vars:
-    src: site.conf.j2
-    dest: bazarr
-
-- include_role:
-    name: unbound
-    tasks_from: fragment.yml
-  vars:
-    content: |
-      server:
-        local-data: "bazarr.{{ domain_name }} CNAME {{ ansible_fqdn }}."
-    dest: local-data-bazarr.conf

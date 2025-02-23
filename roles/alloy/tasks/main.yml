@@ -1,11 +1,11 @@
 # yamllint disable rule:line-length
 ---
-# - ansible.builtin.get_url:
-#     url: https://apt.grafana.com/gpg.key
-#     dest: /etc/apt/keyrings/grafana.asc
-#     owner: root
-#     group: root
-#     mode: !!str 0444
+- ansible.builtin.get_url:
+    url: https://apt.grafana.com/gpg.key
+    dest: /etc/apt/keyrings/grafana.asc
+    owner: root
+    group: root
+    mode: !!str 0444
 
 - ansible.builtin.apt_repository:
     repo: deb [arch=amd64 signed-by=/etc/apt/keyrings/grafana.asc] https://apt.grafana.com stable main
@@ -17,14 +17,29 @@
 - name: install package
   ansible.builtin.apt:
     name: alloy
-    state: present
   register: alloy_result
-  until: alloy_result is not failed
+
+- ansible.builtin.file:
+    path: /etc/systemd/system/alloy.service.d
+    owner: root
+    group: root
+    mode: !!str 0755
+    state: directory
+
+- name: configure service
+  ansible.builtin.copy:
+    content: |
+      [Service]
+      AmbientCapabilities=CAP_NET_BIND_SERVICE
+    dest: /etc/systemd/system/alloy.service.d/overrides.conf
+    owner: root
+    group: root
+    mode: !!str 0444
   notify: restart alloy
 
 - name: configure
   ansible.builtin.template:
-    src: config.alloy.j2
+    src: "{{ ansible_hostname }}.config.alloy.j2"
     dest: /etc/alloy/config.alloy
     owner: root
     group: alloy
@@ -35,5 +50,6 @@
 - name: enable and start service
   ansible.builtin.systemd_service:
     name: alloy.service
+    daemon_reload: true
     enabled: true
     state: started

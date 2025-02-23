@@ -1,0 +1,157 @@
+user www-data;
+worker_processes auto;
+pid /run/nginx.pid;
+error_log /var/log/nginx/error.log;
+# include /etc/nginx/modules-enabled/*.conf;
+
+events {
+	worker_connections 768;
+}
+
+http {
+	sendfile on;
+	tcp_nopush on;
+	types_hash_max_size 2048;
+	server_tokens off;
+
+	# server_names_hash_bucket_size 64;
+	# server_name_in_redirect off;
+
+	include /etc/nginx/mime.types;
+	default_type application/octet-stream;
+
+	ssl_ecdh_curve X25519:prime256v1:secp384r1;
+	ssl_prefer_server_ciphers on;
+	ssl_protocols TLSv1.3;
+	ssl_session_tickets off;
+
+	access_log /var/log/nginx/access.log;
+
+	deny {{ hostvars.gateway.lan_ipv4_address }};
+	allow {{ lan_ipv4_subnet }};
+	allow {{ lan_ipv6_subnet }};
+	deny all;
+
+	# include /etc/nginx/conf.d/*.conf;
+	# include /etc/nginx/sites-enabled/*;
+
+	server {
+		listen 80;
+		listen [::]:80;
+		server_name tombstone.local;
+
+		location = /bazarr {
+			return 301 http://$host:{{ bazarr_port }};
+		}
+
+		location = /calibre {
+			return 301 http://$host:{{ calibre_port }};
+		}
+
+		location = /calibre-web {
+			return 301 http://$host:{{ calibre_web_port }};
+		}
+
+		location = /grafana {
+			return 301 http://$host:{{ grafana_port }};
+		}
+
+		location = /lidarr {
+			return 301 http://$host:{{ lidarr_port }}/;
+		}
+
+		location = /plexmediaserver {
+			return 301 http://$host:{{ plexmediaserver_port }};
+		}
+
+		location = /prowlarr {
+			return 301 http://$host:{{ prowlarr_port }}/;
+		}
+
+		location = /qbittorrent {
+			return 301 http://$host:{{ qbittorrent_port }}/;
+		}
+
+		location = /radarr {
+			return 301 http://$host:{{ radarr_port }}/;
+		}
+
+		location = /readarr {
+			return 301 http://$host:{{ readarr_port }}/;
+		}
+
+		location = /sabnzbd {
+			return 301 http://$host:{{ sabnzbd_port }}/;
+		}
+
+		location = /sonarr {
+			return 301 http://$host:{{ sonarr_port }}/;
+		}
+
+		location / {
+			return 404;
+		}
+	}
+
+	server {
+		listen 80 default_server;
+		listen [::]:80 default_server;
+		server_name _;
+
+		location / {
+			return 404;
+		}
+	}
+
+	server { # TODO: TLS
+		listen {{ lan_ipv4_address }}:3100 ssl;
+		server_name {{ external_fqdn }};
+		keepalive_timeout 70;
+
+		ssl_certificate {{ lego_path }}/certificates/{{ external_fqdn }}.crt;
+		ssl_certificate_key {{ lego_path }}/certificates/{{ external_fqdn }}.key;
+
+		allow "{{ hostvars['proxy-in'].ansible_default_ipv4.address }}/32";
+		deny all;
+
+		location = /loki/api/v1/push {
+			# limit except POST {
+			# 	deny all;
+			# }
+
+			proxy_http_version 1.1;
+			proxy_pass http://localhost:3100;
+		}
+
+		location / {
+			return 404;
+		}
+	}
+
+	server { # TODO: TLS
+		listen {{ lan_ipv4_address }}:9090 ssl;
+		server_name {{ external_fqdn }};
+		keepalive_timeout 70;
+
+		ssl_certificate {{ lego_path }}/certificates/{{ external_fqdn }}.crt;
+		ssl_certificate_key {{ lego_path }}/certificates/{{ external_fqdn }}.key;
+
+		allow "{{ hostvars['proxy-in'].ansible_default_ipv4.address }}/32";
+		deny all;
+
+		location = /api/v1/write {
+			# limit except POST {
+			# 	deny all;
+			# }
+
+			proxy_http_version 1.1;
+			proxy_pass http://localhost:9090;
+		}
+
+		location / {
+			return 404;
+		}
+	}
+}
+
+# vim: ft=nginx.jinja2

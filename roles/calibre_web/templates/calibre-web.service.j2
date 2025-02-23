@@ -5,7 +5,7 @@ Requires={{ media_mount_unit_name }}
 Wants=calibre.service
 
 [Service]
-ExecStart=/opt/calibre-web/venv/bin/cps -i 127.0.0.1 -l
+ExecStart=/opt/calibre-web/venv/bin/cps -l
 Group=calibre-web
 KillMode=process
 LockPersonality=yes

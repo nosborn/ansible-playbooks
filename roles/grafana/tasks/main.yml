@@ -49,12 +49,3 @@
     name: grafana-server.service
     enabled: true
     state: started
-
-- include_role:
-    name: unbound
-    tasks_from: fragment.yml
-  vars:
-    content: |
-      server:
-        local-data: "grafana.{{ domain_name }} CNAME {{ ansible_fqdn }}."
-    dest: local-data-grafana.conf

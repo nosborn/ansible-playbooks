@@ -1,0 +1,4 @@
+---
+dependencies:
+  - role: lego
+    when: lego_domains is defined

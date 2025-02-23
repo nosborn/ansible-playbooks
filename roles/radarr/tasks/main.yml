@@ -84,24 +84,9 @@
     config:
       AnalyticsEnabled: !!str False
       ApiKey: "{{ radarr_api_key }}"
-      BindAddress: 127.0.0.1
+      AuthenticationRequired: DisabledForLocalAddresses
+      BindAddress: "*"
       LaunchBrowser: !!str False
       LogLevel: info
       UpdateAutomatically: !!str False
   notify: restart radarr
-
-- include_role:
-    name: nginx
-    tasks_from: site.yml
-  vars:
-    src: site.conf.j2
-    dest: radarr
-
-- include_role:
-    name: unbound
-    tasks_from: fragment.yml
-  vars:
-    content: |
-      server:
-        local-data: "radarr.{{ domain_name }} CNAME {{ ansible_fqdn }}."
-    dest: local-data-radarr.conf

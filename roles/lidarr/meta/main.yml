@@ -1,4 +1,3 @@
 ---
 dependencies:
   - role: media
-  - role: nginx

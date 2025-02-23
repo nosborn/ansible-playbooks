@@ -2,4 +2,3 @@
 dependencies:
   - role: media
   - role: nftables
-  - role: nginx

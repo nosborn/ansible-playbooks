@@ -3,4 +3,3 @@ dependencies:
   - role: calibre
   - role: kepubify
   - role: media
-  - role: nginx

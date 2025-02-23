@@ -11,7 +11,7 @@
     owner: root
     group: root
     mode: !!str 0444
-    validate: testparm %s
+    validate: testparm --suppress-prompt %s
   notify: restart samba
 
 - name: enable and start services
@@ -22,3 +22,6 @@
   loop:
     - nmbd.service
     - smbd.service
+
+- name: flush handlers
+  ansible.builtin.meta: flush_handlers

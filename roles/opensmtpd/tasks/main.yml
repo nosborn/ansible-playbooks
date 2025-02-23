@@ -1,27 +1,22 @@
 ---
 - name: install package
-  ansible.builtin.package:
-    name:
-      - opensmtpd
-      - opensmtpd-doc
-    state: present
-  register: opensmtpd_result
-  until: opensmtpd_result is not failed
+  ansible.builtin.apt:
+    name: opensmtpd
+    install_recommends: false
 
 - name: configure aliases
   ansible.builtin.copy:
     content: "{{ opensmtpd_aliases }}\n"
-    dest: /etc/smtpd/aliases
+    dest: /etc/aliases
     owner: root
     group: root
     mode: !!str 0444
   notify: restart opensmtpd
-  when: false
 
 - name: configure smtpd
   ansible.builtin.template:
     src: smtpd.conf.j2
-    dest: /etc/smtpd/smtpd.conf
+    dest: /etc/smtpd.conf
     owner: root
     group: root
     mode: !!str 0440
@@ -30,8 +25,7 @@
   when: false
 
 - name: enable and start service
-  ansible.builtin.service:
-    name: opensmtpd
+  ansible.builtin.systemd_service:
+    name: opensmtpd.service
     enabled: true
     state: started
-  when: false

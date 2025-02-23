@@ -85,19 +85,3 @@
     daemon_reload: true
     enabled: true
     state: started
-
-- include_role:
-    name: nginx
-    tasks_from: site.yml
-  vars:
-    src: site.conf.j2
-    dest: sabnzbd
-
-- include_role:
-    name: unbound
-    tasks_from: fragment.yml
-  vars:
-    content: |
-      server:
-        local-data: "sabnzbd.{{ domain_name }} CNAME {{ ansible_fqdn }}."
-    dest: local-data-sabnzbd.conf

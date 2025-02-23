@@ -1,6 +1,0 @@
----
-ownca_certificate: "{{ vault_ownca_certificate }}"
-ownca_common_name: "{{ vault_ownca_common_name }}"
-ownca_country_name: "{{ vault_ownca_country_name }}"
-ownca_dir: "{{ playbook_dir }}/.ownca"
-ownca_private_key: "{{ vault_ownca_private_key }}"

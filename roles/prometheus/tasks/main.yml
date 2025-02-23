@@ -1,3 +1,4 @@
+# yamllint disable rule:line-length
 ---
 - name: install package
   ansible.builtin.apt:
@@ -21,7 +22,7 @@
   ansible.builtin.lineinfile:
     path: /etc/default/prometheus
     regex: ^ARGS=
-    line: ARGS="--web.enable-remote-write-receiver"
+    line: ARGS="--web.enable-remote-write-receiver --web.listen-address=127.0.0.1:9090"
     owner: root
     group: root
     mode: !!str 0444

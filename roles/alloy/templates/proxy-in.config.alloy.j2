@@ -31,34 +31,34 @@ loki.process "journal" {
 		loki.write.main.receiver,
 	]
 
-	stage.match {
-		selector = "{unit=~\"^(lidarr|prowlarr|radarr|readarr|sonarr)\\\\.service\"}"
-
-		stage.multiline {
-			firstline = "^\\S"
-		}
-	}
+	// stage.match {
+	// 	selector = "{unit=\"unbound.service\"}"
+	//
+	// 	stage.regex {
+	// 		expression = "(?:info|query|reply): (?P<client_address>\\S+?) (?P<query_name>\\S+?)\\. (?P<query_type>\\S+?) (?P<query_class>\\S+?)(:? (?P<rcode>\\S+?) (?P<time_to_resolve>\\S+?) (?P<cached>\\d) (?P<response_size>\\d+))?$"
+	// 	}
+	//
+	// 	stage.labels {
+	// 		values = {
+	// 			cached         = "",
+	// 			client_address = "",
+	// 			query_class    = "",
+	// 			query_name     = "",
+	// 			query_type     = "",
+	// 			rcode          = "",
+	// 			response_size  = "",
+	// 		}
+	// 	}
+	// }
 }
 
 loki.write "main" {
+	external_labels = {
+		hostname = "{{ ansible_hostname }}",
+	}
+
 	endpoint {
-		url = "{{ loki_push_url }}"
-	}
-}
-
-prometheus.exporter.blackbox "main" {
-	config = "{ modules: { icmp: { prober: icmp } } }"
-
-	target {
-		name    = "diablo3"
-		address = "103.4.115.248" // Diablo III - Australia
-		module  = "icmp"
-	}
-
-	target {
-		name    = "diablo4"
-		address = "34.116.85.89" // Diablo IV - Australia
-		module  = "icmp"
+		url = "https://{{ hostvars.tombstone.external_fqdn }}:3100/loki/api/v1/push"
 	}
 }
 
@@ -75,7 +75,6 @@ prometheus.exporter.unix "main" {
 
 prometheus.scrape "main" {
 	targets = array.concat(
-		prometheus.exporter.blackbox.main.targets,
 		prometheus.exporter.self.main.targets,
 		prometheus.exporter.unix.main.targets,
 	)
@@ -86,8 +85,12 @@ prometheus.scrape "main" {
 }
 
 prometheus.remote_write "main" {
+	external_labels = {
+		hostname = "{{ ansible_hostname }}",
+	}
+
 	endpoint {
-		url = "http://localhost:9090/api/v1/write"
+		url = "https://{{ hostvars.tombstone.external_fqdn }}:9090/api/v1/write"
 	}
 }
 

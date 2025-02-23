@@ -1,0 +1,66 @@
+# yamllint disable rule:line-length
+---
+- name: remove package
+  ansible.builtin.apt:
+    name: lego
+    state: absent
+
+- ansible.builtin.uri:
+    url: https://api.github.com/repos/go-acme/lego/releases/latest
+    headers:
+      Accept: application/vnd.github+json
+    return_content: true
+    body_format: json
+  register: lego_result
+
+- name: set version fact
+  ansible.builtin.set_fact:
+    lego_version: "{{ lego_result.json.tag_name | ansible.builtin.regex_replace('^v', '') }}"
+
+- ansible.builtin.file:
+    path: /opt/lego/{{ lego_version }}
+    owner: root
+    group: root
+    mode: !!str 0755
+    state: directory
+
+- ansible.builtin.unarchive:
+    src: "{{ lego_result.json.assets | selectattr('name', 'search', '_linux_amd64.tar.gz') | map(attribute='browser_download_url') | first }}"
+    remote_src: true
+    dest: /opt/lego/{{ lego_version }}
+    owner: root
+    group: root
+    creates: /opt/lego/{{ lego_version }}/lego
+
+- ansible.builtin.command:
+    argv:
+      - /opt/lego/{{ lego_version }}/lego
+      - --accept-tos
+      - --dns=scaleway
+      - --domains={{ external_fqdn }}
+      - --email={{ lego_email }}
+      - --path={{ lego_path }}
+      - run
+    creates: "{{ lego_path }}/{{ external_fqdn }}.crt"
+  environment:
+    SCALEWAY_API_TOKEN: "{{ lego_scaleway_api_token }}"
+
+# TODO: renew certificate
+
+#- ansible.builtin.copy:
+#    content: |
+#      #!/bin/sh
+
+#      SCALEWAY_API_TOKEN: "{{ lego_scaleway_api_token }}" \
+#      /opt/lego/{{ lego_version }}/lego \
+#        --dns=scaleway \
+#        --domains={{ external_fqdn }} \
+#        --path={{ lego_path }} \
+#        renew
+#      # --renew-hook
+#    dest: /etc/cron.daily/lego-renew
+#    owner: root
+#    group: root
+#    mode: !!str 0500
+#  environment:
+#    SCALEWAY_API_TOKEN: "{{ lego_scaleway_api_token }}"

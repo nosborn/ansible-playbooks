@@ -4,7 +4,7 @@ Description=Calibre Server
 Requires={{ media_mount_unit_name }}
 
 [Service]
-ExecStart=/usr/bin/calibre-server --disable-use-bonjour --enable-local-write --listen-on=127.0.0.1 --port={{ calibre_port }} --trusted-ips=127.0.0.1 {{ media_path }}/Books
+ExecStart=/usr/bin/calibre-server --disable-use-bonjour --enable-local-write --port={{ calibre_port }} --trusted-ips=127.0.0.1,{{ lan_ipv4_subnet }},::1,{{ lan_ipv6_subnet }} {{ media_path }}/Books
 Group=calibre
 KillMode=process
 LockPersonality=yes
