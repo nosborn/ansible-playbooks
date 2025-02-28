@@ -1,8 +1,5 @@
 # yamllint disable rule:line-length
 ---
 pushover_user_key: "{{ vault_pushover_user_key }}"
-sshd_config_ciphers: "{{ vault_sshd_config_ciphers }}"
-sshd_config_kex_algorithms: "{{ vault_sshd_config_kex_algorithms }}"
 sshd_config_host_key_algorithms: "{{ vault_sshd_config_host_key_algorithms }}"
-sshd_config_macs: "{{ vault_sshd_config_macs }}"
 sshd_config_pubkey_accepted_algorithms: "{{ vault_sshd_config_pubkey_accepted_algorithms }}"

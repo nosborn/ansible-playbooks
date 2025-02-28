@@ -1,4 +1,3 @@
-# yamllint disable rule:line-length
 ---
 sshd_config_allow_users: "{{ vault_sshd_config_allow_users }}"
 unbound_forwarders: "{{ vault_unbound_forwarders }}"

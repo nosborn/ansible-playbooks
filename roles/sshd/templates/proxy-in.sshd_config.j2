@@ -1,7 +1,7 @@
 #Port 22
 #AddressFamily any
 ListenAddress {{ ansible_default_ipv4.address }}
-#ListenAddress {{ ansible_default_ipv6.address }} -- FIXME
+ListenAddress :: # FIXME: {{ ansible_default_ipv6.address }}
 
 AcceptEnv LANG
 AcceptEnv LC_*
@@ -20,6 +20,7 @@ DebianBanner no
 DisableForwarding yes
 #GatewayPorts no
 HostKey /etc/ssh/ssh_host_ed25519_key
+HostKeyAlgorithms {{ sshd_config_host_key_algorithms | join(',') }}
 #HostbasedAuthentication no
 #IgnoreRhosts yes
 #IgnoreUserKnownHosts no
@@ -39,6 +40,7 @@ PermitUserRC no
 #PidFile /run/sshd.pid
 #PrintLastLog yes
 PrintMotd no
+PubkeyAcceptedAlgorithms {{ sshd_config_pubkey_accepted_algorithms | join(',') }}
 #PubkeyAuthentication yes
 #RekeyLimit default none
 #StrictModes yes

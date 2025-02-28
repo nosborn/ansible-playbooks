@@ -1,4 +1,3 @@
-# yamllint disable rule:line-length
 ---
 dns_updater_scw_access_key: "{{ vault_dns_updater_scw_access_key }}"
 dns_updater_scw_secret_key: "{{ vault_dns_updater_scw_secret_key }}"
