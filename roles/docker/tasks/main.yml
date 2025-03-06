@@ -1,0 +1,38 @@
+---
+- when:
+    - ansible_system_vendor == 'Synology'
+  block:
+    - ansible.builtin.command:
+        argv:
+          - /usr/syno/bin/synopkg
+          - list
+          - --name
+      register: docker_result
+      changed_when: false
+
+    - name: install packages
+      ansible.builtin.command:
+        argv:
+          - /usr/syno/bin/synopkg
+          - install_from_server
+          - ContainerManager
+      changed_when: true
+      when: "'ContainerManager' not in docker_result.stdout_lines"
+
+- when:
+    - ansible_system_vendor != 'Synology'
+  block:
+    - name: install package
+      ansible.builtin.apt:
+        name: docker.io
+
+    - name: enable and start service
+      ansible.builtin.systemd_service:
+        name: docker.service
+        enabled: true
+        state: started
+
+- name: refresh network facts
+  ansible.builtin.setup:
+    gather_subset:
+      - network

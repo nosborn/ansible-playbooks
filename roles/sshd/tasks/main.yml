@@ -1,13 +1,15 @@
 ---
 - name: remove unwanted host keys
   ansible.builtin.file:
-    path: "{{ item }}"
+    path: "{{ sshd_item }}"
     state: absent
   loop:
     - /etc/ssh/ssh_host_ecdsa_key
     - /etc/ssh/ssh_host_ecdsa_key.pub
     - /etc/ssh/ssh_host_rsa_key
     - /etc/ssh/ssh_host_rsa_key.pub
+  loop_control:
+    loop_var: sshd_item
   notify: restart sshd
 
 - name: remove small Diffie-Hellman moduli

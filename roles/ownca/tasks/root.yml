@@ -1,0 +1,56 @@
+# yamllint disable rule:line-length
+---
+- name: create root private key
+  community.crypto.openssl_privatekey:
+    path: "{{ ownca_dir }}/root.key"
+    type: ECC
+    curve: secp256r1
+    passphrase: "{{ ownca_root_privatekey_passphrase }}"
+    mode: !!str 0400
+
+- name: create root CSR
+  community.crypto.openssl_csr_pipe:
+    basic_constraints:
+      - CA:TRUE
+    basic_constraints_critical: true
+    common_name: "{{ ownca_common_name }}"
+    country_name: "{{ ownca_country_name }}"
+    create_subject_key_identifier: true
+    key_usage:
+      - keyCertSign
+    key_usage_critical: true
+    privatekey_passphrase: "{{ ownca_root_privatekey_passphrase }}"
+    privatekey_path: "{{ ownca_dir }}/root.key"
+    use_common_name_for_san: false
+  changed_when: false
+  register: ownca_root_csr
+
+- name: check whether root certificate exists
+  ansible.builtin.stat:
+    path: "{{ ownca_dir }}/root.crt"
+  register: ownca_root_certificate_exists
+
+- name: read existing root certificate
+  ansible.builtin.slurp:
+    src: "{{ ownca_dir }}/root.crt"
+  when: ownca_root_certificate_exists.stat.exists
+  register: ownca_root_certificate
+
+- name: create root certificate
+  community.crypto.x509_certificate_pipe:
+    content: "{{ (ownca_root_certificate.content | b64decode) if ownca_root_certificate_exists.stat.exists else omit }}"
+    csr_content: "{{ ownca_root_csr.csr }}"
+    privatekey_passphrase: "{{ ownca_root_privatekey_passphrase }}"
+    privatekey_path: "{{ ownca_dir }}/root.key"
+    provider: selfsigned
+  register: ownca_root_certificate
+
+- name: save root certificate
+  ansible.builtin.copy:
+    content: "{{ ownca_root_certificate.certificate }}"
+    dest: "{{ ownca_dir }}/root.crt"
+    mode: !!str 0444
+  when: ownca_root_certificate is changed # noqa: no-handler
+
+- ansible.builtin.set_fact:
+    ownca_root_certificate: "{{ lookup('ansible.builtin.file', ownca_dir~'/root.crt') }}"

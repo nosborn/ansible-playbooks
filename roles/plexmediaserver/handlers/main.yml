@@ -1,6 +1,0 @@
----
-- name: restart plexmediaserver
-  ansible.builtin.systemd_service:
-    name: plexmediaserver.service
-    daemon_reload: true
-    state: restarted

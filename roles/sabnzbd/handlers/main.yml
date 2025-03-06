@@ -1,6 +1,0 @@
----
-- name: restart sabnzbd
-  ansible.builtin.systemd_service:
-    name: sabnzbd.service
-    daemon_reload: true
-    state: restarted

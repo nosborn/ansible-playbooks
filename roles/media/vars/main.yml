@@ -1,4 +1,3 @@
+# yamllint disable rule:line-length
 ---
-media_group: media
 media_mount_unit_name: "{{ media_path[1:] | replace('/', '-') }}.mount"
-media_path: /media/media

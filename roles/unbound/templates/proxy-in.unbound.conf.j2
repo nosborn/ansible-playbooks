@@ -39,19 +39,24 @@ server:
 	private-address: ::ffff:0:0/96      # IPv4-mapped IPv6 addresses
 
 	deny-any: yes
-
-	#module-config: "respip validator iterator"
-
 	#trust-anchor-file: "/usr/share/dnssec-root/trusted-key.key"
 	#auto-trust-anchor-file: "/var/lib/unbound/root.key"
 
+{% if unbound_null_zones | length %}
+{%   for zone in unbound_null_zones | sort | unique %}
+        domain-insecure: "{{ zone }}"
+{%   endfor %}
+
+{% endif %}
 	val-log-level: 2
 
-	#serve-expired: yes
-	#serve-expired-ttl: 86400
-	#serve-expired-ttl-reset: yes
-	#serve-expired-reply-ttl: 30
-	#serve-expired-client-timeout: 1800
+{% if unbound_null_zones | length %}
+{%   for zone in unbound_null_zones | sort | unique %}
+        local-zone: "{{ zone }}." always_null
+{%   endfor %}
+
+{% endif %}
+	ede: yes
 
 forward-zone:
 	name: "."

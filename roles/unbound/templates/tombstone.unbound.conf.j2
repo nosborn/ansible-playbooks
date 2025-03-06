@@ -10,6 +10,8 @@ server:
 	interface: ::1
 	interface: {{ lan_ipv6_address }}
 
+	# ip-transparent: yes
+
 	prefer-ip6: yes
 
 	tls-cert-bundle: /etc/ssl/certs/ca-certificates.crt
@@ -22,7 +24,7 @@ server:
 	access-control: {{ lan_ipv6_subnet }} allow
 
 	# log-queries: yes
-	log-replies: yes
+	# log-replies: yes
 	# log-tag-queryreply: yes
 
 	private-address: 0.0.0.0/8
@@ -42,19 +44,17 @@ server:
 	private-address: fe80::/10
 	private-address: ::ffff:0:0/96      # IPv4-mapped IPv6 addresses
 	private-domain: local
+	private-domain: {{ domain_name }}
 
 	deny-any: yes
 
 	module-config: "respip validator iterator"
 
-	#trust-anchor-file: "/usr/share/dnssec-root/trusted-key.key"
-	#auto-trust-anchor-file: "/var/lib/unbound/root.key"
+	# trust-anchor-file: "/usr/share/dnssec-root/trusted-key.key"
+	# auto-trust-anchor-file: "/var/lib/unbound/root.key"
 
 	domain-insecure: "local"
-
-	domain-insecure: "c5appletv.2cnt.net"
-	domain-insecure: "ch5.sc.omtrdc.net"
-	domain-insecure: "verify.controld.com"
+	domain-insecure: "{{ domain_name }}"
 
 {% if unbound_null_zones | length %}
 {%   for zone in unbound_null_zones | sort | unique %}
@@ -69,12 +69,13 @@ server:
 
 {% endif %}
 	val-log-level: 2
+	val-permissive-mode: yes # Danger, Will Robinson! Danger!
 
-	#serve-expired: yes
-	#serve-expired-ttl: 86400
-	#serve-expired-ttl-reset: yes
-	#serve-expired-reply-ttl: 30
-	#serve-expired-client-timeout: 1800
+	# serve-expired: yes
+	# serve-expired-ttl: 86400
+	# serve-expired-ttl-reset: yes
+	# serve-expired-reply-ttl: 30
+	# serve-expired-client-timeout: 1800
 
 	# https://support.mozilla.org/en-US/kb/canary-domain-use-application-dnsnet
 	local-zone: "use-application-dns.net." always_nxdomain
@@ -89,6 +90,11 @@ server:
 	local-zone: "ipv4only.arpa." always_nxdomain
 	local-zone: "resolver.arpa." always_nxdomain
 
+	local-zone: "{{ domain_name }}." typetransparent
+	local-zone: "local." typetransparent
+
+	{{ unbound_config_local_data | indent(width=8) }}
+
 {% if unbound_null_zones | length %}
 {%   for zone in unbound_null_zones | sort | unique %}
 	local-zone: "{{ zone }}." always_null
@@ -99,11 +105,15 @@ server:
 {%   for zone in unbound_proxy_in_zones | sort | unique %}
 	local-zone: "{{ zone }}." redirect
 	local-data: "{{ zone }}. A {{ hostvars['proxy-in'].ansible_default_ipv4.address }}"
-	local-data: "{{ zone }}. AAAA {{ hostvars['proxy-in'].ansible_default_ipv6.address }}"
 {%   endfor %}
 
 {% endif %}
 	ede: yes
+	# ede-serve-expired: yes
+
+forward-zone:
+	name: "{{ domain_name }}."
+	forward-addr: "{{ lan_ipv4_subnet | ansible.utils.nthhost(1) }}"
 
 forward-zone:
 	name: "local."
@@ -115,3 +125,10 @@ forward-zone:
 	forward-addr: "{{ forwarder }}"
 {% endfor %}
 	forward-tls-upstream: yes
+	forward-no-cache: yes
+
+rpz:
+	name: tif.hagezi.
+	url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/rpz/tif.medium.txt
+	zonefile: /var/lib/unbound/rpz.tif.hagezi.zone
+	rpz-log: yes

@@ -1,1 +1,18 @@
+# yamllint disable rule:line-length
 ---
+# calibre_custom_user: "{{ vault_calibre_custom_user }}"
+# calibre_password: "{{ vault_calibre_password }}"
+media_gid: "{{ vault_media_gid }}"
+media_path: /volume1/Media
+media_uid: "{{ vault_media_uid }}"
+nzbget_add_password: "{{ vault_nzbget_add_password }}"
+nzbget_add_username: "{{ vault_nzbget_add_username }}"
+nzbget_control_password: "{{ vault_nzbget_control_password }}"
+nzbget_control_username: "{{ vault_nzbget_control_username }}"
+nzbget_news_servers: "{{ vault_nzbget_news_servers }}"
+nzbget_restricted_password: "{{ vault_nzbget_restricted_password }}"
+nzbget_restricted_username: "{{ vault_nzbget_restricted_username }}"
+qbittorrent_network_proxy_ip: "{{ vault_qbittorrent_network_proxy_ip }}"
+qbittorrent_network_proxy_port: "{{ vault_qbittorrent_network_proxy_port }}"
+qbittorrent_network_proxy_type: "{{ vault_qbittorrent_network_proxy_type }}"
+watchtower_http_api_token: "{{ vault_watchtower_http_api_token }}"

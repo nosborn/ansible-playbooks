@@ -1,0 +1,56 @@
+# yamllint disable rule:line-length
+---
+- name: create wildcard private key
+  community.crypto.openssl_privatekey:
+    path: "{{ ownca_dir }}/wildcard.key"
+    type: ECC
+    curve: secp256r1
+    mode: !!str 0400
+
+- name: create wildcard CSR
+  community.crypto.openssl_csr_pipe:
+    country_name: "{{ ownca_country_name }}"
+    extended_key_usage:
+      - serverAuth # https://support.apple.com/en-us/103769
+    extended_key_usage_critical: true
+    key_usage:
+      - digitalSignature
+    key_usage_critical: true
+    privatekey_path: "{{ ownca_dir }}/wildcard.key"
+    subject_alt_name:
+      - DNS:*,{{ domain_name }}
+  changed_when: false
+  register: ownca_wildcard_csr
+
+- name: check whether wildcard certificate exists
+  ansible.builtin.stat:
+    path: "{{ ownca_dir }}/wildcard.crt"
+  register: ownca_wildcard_certificate_file
+
+- name: read existing wildcard certificate
+  ansible.builtin.slurp:
+    src: "{{ ownca_dir }}/wildcard.crt"
+  when: ownca_wildcard_certificate_file.stat.exists
+  register: ownca_wildcard_certificate
+
+- name: sign wildcard certificate
+  community.crypto.x509_certificate_pipe:
+    content: "{{ (ownca_wildcard_certificate.content | b64decode) if ownca_wildcard_certificate_file.stat.exists else omit }}"
+    csr_content: "{{ ownca_wildcard_csr.csr }}"
+    ownca_path: "{{ ownca_dir }}/root.crt"
+    ownca_privatekey_path: "{{ ownca_dir }}/root.key"
+    ownca_privatekey_passphrase: "{{ ownca_root_privatekey_passphrase }}"
+    ownca_not_after: +825d # https://support.apple.com/en-us/103769
+    provider: ownca
+  register: ownca_wildcard_certificate
+
+- name: save wildcard certificate
+  ansible.builtin.copy:
+    content: "{{ ownca_wildcard_certificate.certificate }}"
+    dest: "{{ ownca_dir }}/wildcard.crt"
+    mode: !!str 0444
+  when: ownca_wildcard_certificate is changed # noqa: no-handler
+
+- ansible.builtin.set_fact:
+    ownca_wildcard_certificate: "{{ lookup('ansible.builtin.file', ownca_dir~'/wildcard.crt') }}"
+    ownca_wildcard_privatekey: "{{ lookup('ansible.builtin.file', ownca_dir~'/wildcard.key') }}"

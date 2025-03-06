@@ -1,27 +1,11 @@
 # yamllint disable rule:line-length
 ---
-# - ansible.builtin.get_url:
-#     url: https://apt.grafana.com/gpg.key
-#     dest: /etc/apt/keyrings/grafana.asc
-#     owner: root
-#     group: root
-#     mode: !!str 0444
-
-- ansible.builtin.apt_repository:
-    repo: deb [arch=amd64 signed-by=/etc/apt/keyrings/grafana.asc] https://apt.grafana.com stable main
-    filename: grafana
-    mode: !!str 0444
-    state: present
-    update_cache: true
-
 - name: install packages
   ansible.builtin.apt:
     name:
       - logcli
       - loki
-    state: present
-  register: loki_result
-  until: loki_result is not failed
+    update_cache: true
 
 - name: configure loki
   ansible.builtin.template:

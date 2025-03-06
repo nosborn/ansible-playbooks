@@ -1,92 +1,116 @@
 # yamllint disable rule:line-length
 ---
-- name: install dependencies
-  ansible.builtin.apt:
-    name:
-      - sqlite3
-    state: present
+- when: ansible_system_vendor == 'Synology'
+  block:
+    - ansible.builtin.file:
+        path: "{{ media_path }}/{{ radarr_item }}"
+        state: directory
+      loop:
+        - media/movies
+        - torrents/complete/movies
+        - usenet/complete/movies
+      loop_control:
+        loop_var: radarr_item
 
-- ansible.builtin.uri:
-    url: https://api.github.com/repos/Radarr/Radarr/releases/latest
-    headers:
-      Accept: application/vnd.github+json
-    return_content: true
-    body_format: json
-  register: radarr_result
+    - name: create radarr config volume
+      community.docker.docker_volume:
+        name: radarr-config
 
-- name: set version fact
-  ansible.builtin.set_fact:
-    radarr_version: "{{ radarr_result.json.tag_name | ansible.builtin.regex_replace('^v', '') }}"
+    - name: get radarr config volume info
+      community.docker.docker_volume:
+        name: radarr-config
+      register: radarr_volume
 
-- ansible.builtin.file:
-    path: /opt/radarr/{{ radarr_version }}
-    owner: root
-    group: root
-    mode: !!str 0755
-    state: directory
+    - name: set radarr volume permissions
+      ansible.builtin.file:
+        path: "{{ radarr_volume.volume.Mountpoint }}"
+        owner: "{{ media_uid }}"
+        group: "{{ media_gid }}"
+        mode: !!str 0750
+        state: directory
 
-- ansible.builtin.unarchive:
-    src: "{{ radarr_result.json.assets | selectattr('name', 'search', '.linux-core-x64.tar.gz') | map(attribute='browser_download_url') | first }}"
-    remote_src: true
-    dest: /opt/radarr/{{ radarr_version }}
-    owner: root
-    group: root
-    extra_opts:
-      - --strip-components=1
-    creates: /opt/radarr/{{ radarr_version }}/Radarr
-  notify: restart radarr
+    - name: create radarr container
+      community.docker.docker_container:
+        cap_drop:
+          - ALL
+        command:
+          - -data=/config
+          - -nobrowser
+        comparisons:
+          "*": strict
+        env:
+          TZ: "{{ timezone }}"
+        etc_hosts:
+          host.docker.internal: host-gateway
+        healthcheck:
+          test:
+            - CMD
+            - /usr/bin/curl
+            - -fsS
+            - http://localhost:7878/ping
+        image: ghcr.io/nosborn/radarr:latest
+        labels:
+          traefik.docker.network: media
+          traefik.enable: !!str true
+          traefik.http.routers.radarr.rule: Host(`radarr.{{ domain_name }}`)
+          traefik.http.routers.radarr.observability.metrics: !!str true
+          traefik.http.services.radarr.loadbalancer.server.port: !!str 7878
+        mounts:
+          - source: radarr-config
+            target: /config
+          - source: "{{ media_path }}"
+            target: /data
+            type: bind
+        name: radarr
+        networks:
+          - name: media
+        pull: always
+        read_only: true
+        restart_policy: unless-stopped
+        security_opts:
+          - no-new-privileges=true
+        ulimits:
+          - core:0:0
+        user: "{{ media_uid }}:{{ media_gid }}"
 
-- name: create group
-  ansible.builtin.group:
-    name: radarr
-    system: true
+    - name: configure radarr
+      community.general.xml:
+        path: "{{ radarr_volume.volume.Mountpoint }}/config.xml"
+        xpath: /Config/{{ radarr_item.key }}
+        value: "{{ radarr_item.value | string }}"
+      loop: "{{ config | ansible.builtin.dict2items }}"
+      loop_control:
+        loop_var: radarr_item
+      vars:
+        config:
+          AnalyticsEnabled: !!str False
+          # AuthenticationRequired: DisabledForLocalAddresses
+          LaunchBrowser: !!str False
+          LogDbEnabled: !!str False
+          LogLevel: info
+          UpdateAutomatically: !!str False
+      register: radarr_result
 
-- name: create user
-  ansible.builtin.user:
-    comment: Radarr Daemon
-    createhome: false
-    group: radarr
-    groups:
-      - "{{ media_group }}"
-    home: "{{ radarr_home }}" # created by systemd
-    name: radarr
-    password_lock: true
-    shell: "{{ nologin_shell }}"
-    system: true
+    - name: restart radarr container
+      community.docker.docker_container:
+        comparisons:
+          "*": ignore
+        name: radarr
+        restart: "{{ radarr_result is changed }}"
 
-- name: create service
-  ansible.builtin.template:
-    src: radarr.service.j2
-    dest: /etc/systemd/system/radarr.service
-    owner: root
-    group: root
-    mode: !!str 0444
-    validate: systemd-analyze verify %s
-  notify: restart radarr
+    - name: remove radarr logs database
+      ansible.builtin.file:
+        path: "{{ radarr_volume.volume.Mountpoint }}/{{ radarr_item }}"
+        state: absent
+      loop:
+        - logs.db
+        - logs.db-shm
+        - logs.db-wal
+      loop_control:
+        loop_var: radarr_item
 
-- name: enable and start service
-  ansible.builtin.systemd_service:
-    name: radarr.service
-    daemon_reload: true
-    enabled: true
-    state: started
-
-- ansible.builtin.wait_for:
-    path: "{{ radarr_home }}/config.xml"
-
-- name: configure
-  community.general.xml:
-    path: "{{ radarr_home }}/config.xml"
-    xpath: /Config/{{ item.key }}
-    value: "{{ item.value | string }}"
-  loop: "{{ config | ansible.builtin.dict2items }}"
-  vars:
-    config:
-      AnalyticsEnabled: !!str False
-      ApiKey: "{{ radarr_api_key }}"
-      AuthenticationRequired: DisabledForLocalAddresses
-      BindAddress: "*"
-      LaunchBrowser: !!str False
-      LogLevel: info
-      UpdateAutomatically: !!str False
-  notify: restart radarr
+    - ansible.builtin.include_role:
+        name: media
+        tasks_from: site.yml
+      vars:
+        media_name: radarr

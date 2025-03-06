@@ -1,0 +1,20 @@
+---
+- name: install package
+  ansible.builtin.apt:
+    name: chrony
+    state: present
+
+- name: configure chrony
+  ansible.builtin.template:
+    src: chrony.conf.j2
+    dest: /etc/chrony/chrony.conf
+    owner: root
+    group: root
+    mode: !!str 0444
+  notify: restart chrony
+
+- name: enable and start service
+  ansible.builtin.systemd_service:
+    name: chrony.service
+    enabled: true
+    state: started

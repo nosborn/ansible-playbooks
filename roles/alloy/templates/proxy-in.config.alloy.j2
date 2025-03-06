@@ -2,6 +2,38 @@ logging {
 	level = "warn"
 }
 
+loki.source.file "main" {
+	forward_to = [
+		loki.process.file.receiver,
+	]
+
+	targets = [
+		{"__path__" = "/var/log/nginx/access.log"},
+		{"__path__" = "/var/log/nginx/stream.log"},
+	]
+}
+
+loki.process "file" {
+	forward_to = [
+		loki.write.main.receiver,
+	]
+
+	stage.match {
+		selector = "{filename=\"/var/log/nginx/stream.log\"}"
+
+		stage.logfmt {
+			mapping = {
+				msec = "",
+			}
+		}
+
+		stage.timestamp {
+			format = "Unix"
+			source = "msec"
+		}
+	}
+}
+
 loki.relabel "journal" {
 	forward_to = []
 
@@ -66,10 +98,17 @@ prometheus.exporter.self "main" { }
 
 prometheus.exporter.unix "main" {
 	disable_collectors = [
+		"bonding",
+		"btrfs",
+		"fibrechannel",
+		"infiniband",
 		"mdadm",
+		"nfs",
+		"nfsd",
 		"runit",
-		"supervisord",
 		"tapestats",
+		"xfs",
+		"zfs",
 	]
 }
 

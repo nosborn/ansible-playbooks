@@ -1,7 +1,7 @@
 #Port 22
-#AddressFamily any
+AddressFamily inet
 ListenAddress {{ ansible_default_ipv4.address }}
-ListenAddress :: # FIXME: {{ ansible_default_ipv6.address }}
+#ListenAddress ::
 
 AcceptEnv LANG
 AcceptEnv LC_*

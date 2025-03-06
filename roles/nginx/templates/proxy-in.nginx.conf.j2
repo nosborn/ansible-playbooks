@@ -11,21 +11,27 @@ events {
 }
 
 stream {
-	log_format main '$remote_addr [$time_local] '
-		'$protocol $status $bytes_sent $bytes_received '
-		'$session_time "$upstream_addr" '
-		'"$upstream_bytes_sent" "$upstream_bytes_received" "$upstream_connect_time"';
-	access_log /var/log/nginx/access.log main;
+	log_format main
+		'bytes_received=$bytes_received '
+		'bytes_sent=$bytes_sent '
+		'msec=$msec '
+		'protocol=$protocol '
+		'remote_addr=$remote_addr '
+		'session_time=$session_time '
+		'status=$status '
+		'upstream_addr=$upstream_addr '
+		'upstream_bytes_received=$upstream_bytes_received '
+		'upstream_connect_time=$upstream_connect_time '
+		'uptream_bytes_sent=$upstream_bytes_sent';
+	access_log /var/log/nginx/stream.log main;
 
 	resolver 127.0.0.1;
 
 	server {
 		listen {{ ansible_default_ipv4.address }}:443;
-		listen {{ ansible_default_ipv6.address | ansible.utils.ipwrap }}:443;
 		ssl_preread on;
 
 		allow {{ hostvars.gateway.ansible_default_ipv4.address }};
-		allow {{ hostvars.tombstone.lan_ipv6_subnet }};
 		deny all;
 
 		proxy_pass $ssl_preread_server_name:443;

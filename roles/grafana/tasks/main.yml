@@ -1,25 +1,9 @@
 # yamllint disable rule:line-length
 ---
-# - ansible.builtin.get_url:
-#     url: https://apt.grafana.com/gpg.key
-#     dest: /etc/apt/keyrings/grafana.asc
-#     owner: root
-#     group: root
-#     mode: !!str 0444
-
-- ansible.builtin.apt_repository:
-    repo: deb [arch=amd64 signed-by=/etc/apt/keyrings/grafana.asc] https://apt.grafana.com stable main
-    filename: grafana
-    mode: !!str 0444
-    state: present
-    update_cache: true
-
 - name: install package
   ansible.builtin.apt:
     name: grafana
-    state: present
-  register: grafana_result
-  until: grafana_result is not failed
+    update_cache: true
   notify: restart grafana-server
 
 - name: configure
@@ -33,8 +17,8 @@
 
 - name: provision
   ansible.builtin.template:
-    src: "{{ item }}.j2"
-    dest: /etc/grafana/provisioning/{{ item }}
+    src: "{{ grafana_item }}.j2"
+    dest: /etc/grafana/provisioning/{{ grafana_item }}
     owner: root
     group: grafana
     mode: !!str 0440
@@ -42,6 +26,8 @@
     # - datasources/alertmanager.yaml
     - datasources/loki.yaml
     - datasources/prometheus.yaml
+  loop_control:
+    loop_var: grafana_item
   notify: restart grafana-server
 
 - name: enable and start service
@@ -49,3 +35,21 @@
     name: grafana-server.service
     enabled: true
     state: started
+
+- ansible.builtin.include_role:
+    name: nginx
+    tasks_from: site.yml
+  vars:
+    nginx_src: grafana-redirect.j2
+    nginx_dest: grafana-redirect
+  when: false
+
+- ansible.builtin.include_role:
+    name: unbound
+    tasks_from: fragment.yml
+  vars:
+    unbound_content: |
+      server:
+        local-data: "grafana.{{ domain_name }}. CNAME tombstone.{{ domain_name }}."
+    unbound_dest: local-data-grafana.conf
+  when: false

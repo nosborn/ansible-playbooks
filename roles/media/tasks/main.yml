@@ -1,35 +1,87 @@
+# yamllint disable rule:line-length
 ---
-- name: create group
-  ansible.builtin.group:
-    name: "{{ media_group }}"
-    system: true
-  register: media_result
+- when:
+    - ansible_system_vendor == 'Synology'
+  block:
+    - name: create network
+      community.docker.docker_network:
+        name: media
 
-- name: set version fact
-  ansible.builtin.set_fact:
-    media_gid: "{{ media_result.gid }}"
+    - name: get network info
+      community.docker.docker_network_info:
+        name: media
+      register: media_result
 
-- name: create mount unit
-  ansible.builtin.template:
-    src: mount.j2
-    dest: /etc/systemd/system/{{ media_mount_unit_name }}
-    owner: root
-    group: root
-    mode: !!str 0444
-  notify: reload media mount
+    - name: set network fact
+      ansible.builtin.set_fact:
+        media_network_subnet: "{{ media_result.network.IPAM.Config[0].Subnet }}"
 
-- name: enable and start mount
-  ansible.builtin.systemd_service:
-    name: "{{ media_mount_unit_name }}"
-    daemon_reload: true
-    enabled: true
-    state: started
+    - name: create share
+      ansible.builtin.command:
+        argv:
+          - /usr/syno/sbin/synoshare
+          - --add
+          - Media
+          - Media Library
+          - "{{ media_path }}"
+          - "" # na
+          - "" # rw
+          - "" # ro
+          - 1 # browseable
+          - 0 # adv_privilege
+        creates: "{{ media_path }}"
 
-- ansible.builtin.meta: flush_handlers
+    - name: get videodriver group info
+      ansible.builtin.command:
+        argv:
+          - /usr/syno/sbin/synogroup
+          - --get
+          - videodriver
+      register: media_result
+      changed_when: false
 
-- ansible.builtin.file:
-    path: "{{ media_path }}"
-    owner: root
-    group: "{{ media_group }}"
-    mode: !!str 2775
-    state: directory
+    - name: set videodriver GID fact
+      ansible.builtin.set_fact:
+        videodriver_gid: "{{ media_result.stdout_lines | select('regex', '^Group ID:') | map('ansible.builtin.regex_replace', '.+\\[(\\d+)\\]$', '\\1') | first }}"
+
+- when:
+    - ansible_system_vendor != 'Synology'
+  block:
+    - ansible.builtin.apt:
+        name: cifs-utils
+
+    - ansible.builtin.copy:
+        content: |
+          username={{ media_mount_username }}
+          password={{ media_mount_password }}
+        dest: /etc/media.credentials
+        owner: root
+        group: root
+        mode: !!str 0400
+      notify: reload media mount
+
+    - ansible.builtin.copy:
+        content: |
+          [Mount]
+          What=//diskstation.{{ domain_name }}/Media
+          Where={{ media_path }}
+          Type=smb3
+          Options=credentials=/etc/media.credentials,uid={{ media_uid }},forceuid,gid={{ media_gid }},forcegid,port=445,ro
+
+          [Install]
+          WantedBy=multi-user.target
+        dest: /etc/systemd/system/{{ media_mount_unit_name }}
+        owner: root
+        group: root
+        mode: !!str 0444
+      notify: reload media mount
+
+    - name: enable and start mount
+      ansible.builtin.systemd_service:
+        name: "{{ media_mount_unit_name }}"
+        daemon_reload: true
+        enabled: true
+        state: started
+
+    - name: mount now
+      ansible.builtin.meta: flush_handlers

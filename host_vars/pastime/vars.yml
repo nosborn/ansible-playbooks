@@ -1,0 +1,9 @@
+---
+ansible_password: "{{ lookup('env', 'PASTIME_PASSWORD') }}"
+ansible_port: 5985
+ansible_user: "{{ vault_ansible_user }}"
+ansible_winrm_message_encryption: always
+ansible_winrm_scheme: http
+ansible_winrm_transport: ntlm
+k3s_config: "{{ vault_k3s_config }}"
+k3s_exec: agent

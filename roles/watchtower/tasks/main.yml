@@ -1,0 +1,32 @@
+---
+- name: create container
+  community.docker.docker_container:
+    comparisons:
+      "*": strict
+    cap_drop:
+      - ALL
+    # capabilities:
+    #   - CAP_CHOWN
+    env:
+      NO_COLOR: !!str true
+      TZ: "{{ timezone }}"
+      WATCHTOWER_CLEANUP: !!str true
+      WATCHTOWER_HTTP_API_METRICS: !!str true
+      WATCHTOWER_HTTP_API_TOKEN: "{{ watchtower_http_api_token }}"
+      WATCHTOWER_LOG_FORMAT: json
+      WATCHTOWER_MONITOR_ONLY: !!str true # TODO: remove this
+      WATCHTOWER_NO_STARTUP_MESSAGE: !!str true
+      # WATCHTOWER_SCHEDULE: TODO
+    healthcheck:
+      test:
+        - CMD
+        - /watchtower
+        - --health-check
+    image: containrrr/watchtower
+    mounts:
+      - source: /run/docker.sock
+        target: /var/run/docker.sock
+        type: bind
+    name: watchtower
+    read_only: true
+    restart_policy: unless-stopped

@@ -1,90 +1,101 @@
 # yamllint disable rule:line-length
 ---
-- name: install dependencies
-  ansible.builtin.apt:
-    name:
-      - sqlite3
-    state: present
+- when: ansible_system_vendor == 'Synology'
+  block:
+    - name: create prowlarr config volume
+      community.docker.docker_volume:
+        name: prowlarr-config
 
-- ansible.builtin.uri:
-    url: https://api.github.com/repos/Prowlarr/Prowlarr/releases/latest
-    headers:
-      Accept: application/vnd.github+json
-    return_content: true
-    body_format: json
-  register: prowlarr_result
+    - name: get prowlarr config volume info
+      community.docker.docker_volume:
+        name: prowlarr-config
+      register: prowlarr_volume
 
-- name: set version fact
-  ansible.builtin.set_fact:
-    prowlarr_version: "{{ prowlarr_result.json.tag_name | ansible.builtin.regex_replace('^v', '') }}"
+    - name: set prowlarr volume permissions
+      ansible.builtin.file:
+        path: "{{ prowlarr_volume.volume.Mountpoint }}"
+        owner: "{{ media_uid }}"
+        group: "{{ media_gid }}"
+        mode: !!str 0750
+        state: directory
 
-- ansible.builtin.file:
-    path: /opt/prowlarr/{{ prowlarr_version }}
-    owner: root
-    group: root
-    mode: !!str 0755
-    state: directory
+    - name: create prowlarr container
+      community.docker.docker_container:
+        cap_drop:
+          - ALL
+        command:
+          - -data=/config
+          - -nobrowser
+        comparisons:
+          "*": strict
+        env:
+          TZ: "{{ timezone }}"
+        healthcheck:
+          test:
+            - CMD
+            - /usr/bin/curl
+            - -fsS
+            - http://localhost:9696/ping
+        image: ghcr.io/nosborn/prowlarr:latest
+        labels:
+          traefik.docker.network: media
+          traefik.enable: !!str true
+          traefik.http.routers.prowlarr.rule: Host(`prowlarr.{{ domain_name }}`)
+          traefik.http.routers.prowlarr.observability.metrics: !!str true
+          traefik.http.services.prowlarr.loadbalancer.server.port: !!str 9696
+        mounts:
+          - source: prowlarr-config
+            target: /config
+        name: prowlarr
+        networks:
+          - name: media
+        pull: always
+        read_only: true
+        restart_policy: unless-stopped
+        security_opts:
+          - no-new-privileges=true
+        ulimits:
+          - core:0:0
+        user: "{{ media_uid }}:{{ media_gid }}"
 
-- ansible.builtin.unarchive:
-    src: "{{ prowlarr_result.json.assets | selectattr('name', 'search', '.linux-core-x64.tar.gz') | map(attribute='browser_download_url') | first }}"
-    remote_src: true
-    dest: /opt/prowlarr/{{ prowlarr_version }}
-    owner: root
-    group: root
-    extra_opts:
-      - --strip-components=1
-    creates: /opt/prowlarr/{{ prowlarr_version }}/Prowlarr
-  notify: restart prowlarr
+    - name: configure prowlarr
+      community.general.xml:
+        path: "{{ prowlarr_volume.volume.Mountpoint }}/config.xml"
+        xpath: /Config/{{ prowlarr_item.key }}
+        value: "{{ prowlarr_item.value | string }}"
+      loop: "{{ config | ansible.builtin.dict2items }}"
+      loop_control:
+        loop_var: prowlarr_item
+      vars:
+        config:
+          AnalyticsEnabled: !!str False
+          # AuthenticationRequired: DisabledForLocalAddresses
+          LaunchBrowser: !!str False
+          LogDbEnabled: !!str False
+          LogLevel: info
+          UpdateAutomatically: !!str False
+      register: prowlarr_result
 
-- name: create group
-  ansible.builtin.group:
-    name: prowlarr
-    system: true
+    - name: restart prowlarr container
+      community.docker.docker_container:
+        comparisons:
+          "*": ignore
+        name: prowlarr
+        restart: "{{ prowlarr_result is changed }}"
 
-- name: create user
-  ansible.builtin.user:
-    comment: Prowlarr Daemon
-    createhome: false
-    group: prowlarr
-    home: "{{ prowlarr_home }}" # created by systemd
-    name: prowlarr
-    password_lock: true
-    shell: "{{ nologin_shell }}"
-    system: true
+    - name: remove prowlarr logs database
+      ansible.builtin.file:
+        path: "{{ prowlarr_volume.volume.Mountpoint }}/{{ prowlarr_item }}"
+        state: absent
+      loop:
+        - logs.db
+        - logs.db-shm
+        - logs.db-wal
+      loop_control:
+        loop_var: prowlarr_item
 
-- name: create service
-  ansible.builtin.template:
-    src: prowlarr.service.j2
-    dest: /etc/systemd/system/prowlarr.service
-    owner: root
-    group: root
-    mode: !!str 0444
-    validate: systemd-analyze verify %s
-  notify: restart prowlarr
-
-- name: enable and start service
-  ansible.builtin.systemd_service:
-    name: prowlarr.service
-    daemon_reload: true
-    enabled: true
-    state: started
-
-- ansible.builtin.wait_for:
-    path: "{{ prowlarr_home }}/config.xml"
-
-- name: configure
-  community.general.xml:
-    path: "{{ prowlarr_home }}/config.xml"
-    xpath: /Config/{{ item.key }}
-    value: "{{ item.value | string }}"
-  loop: "{{ config | ansible.builtin.dict2items }}"
-  vars:
-    config:
-      AnalyticsEnabled: !!str False
-      ApiKey: "{{ prowlarr_api_key }}"
-      AuthenticationRequired: DisabledForLocalAddresses
-      BindAddress: "*"
-      LaunchBrowser: !!str False
-      LogLevel: info
-      UpdateAutomatically: !!str False
-  notify: restart prowlarr
+    - ansible.builtin.include_role:
+        name: media
+        tasks_from: site.yml
+      vars:
+        media_name: prowlarr

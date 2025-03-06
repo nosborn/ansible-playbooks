@@ -1,0 +1,167 @@
+logging {
+	level = "warn"
+}
+
+discovery.docker "main" {
+	host             = "unix:///run/docker.sock"
+	refresh_interval = "10s"
+}
+
+loki.source.docker "main" {
+	host    = "unix:///run/docker.sock"
+	targets = discovery.docker.main.targets
+
+	forward_to = [
+		loki.process.docker.receiver,
+	]
+
+	labels = {
+		component = "loki.source.docker",
+	}
+}
+
+loki.process "docker" {
+	forward_to = [
+		loki.write.main.receiver,
+	]
+
+	stage.docker { }
+}
+
+loki.relabel "journal" {
+	forward_to = []
+
+	rule {
+		target_label = "unit"
+
+		source_labels = [
+			"__journal__systemd_unit",
+		]
+	}
+}
+
+loki.source.journal "main" {
+	relabel_rules = loki.relabel.journal.rules
+
+	forward_to = [
+		loki.process.journal.receiver,
+	]
+
+	labels = {
+		component = "loki.source.journal",
+	}
+}
+
+loki.process "journal" {
+	forward_to = [
+		loki.write.main.receiver,
+	]
+
+	stage.match {
+		selector = "{unit=~\"^(lidarr|prowlarr|radarr|readarr|sonarr)\\\\.service\"}"
+
+		stage.multiline {
+			firstline = "^\\S"
+		}
+	}
+
+	// stage.match {
+	// 	selector = "{unit=\"unbound.service\"}"
+	//
+	// 	stage.regex {
+	// 		expression = "(?:info|query|reply): (?P<client_address>\\S+?) (?P<query_name>\\S+?)\\. (?P<query_type>\\S+?) (?P<query_class>\\S+?)(:? (?P<rcode>\\S+?) (?P<time_to_resolve>\\S+?) (?P<cached>\\d) (?P<response_size>\\d+))?$"
+	// 	}
+	//
+	// 	stage.labels {
+	// 		values = {
+	// 			cached         = "",
+	// 			client_address = "",
+	// 			query_class    = "",
+	// 			query_name     = "",
+	// 			query_type     = "",
+	// 			rcode          = "",
+	// 			response_size  = "",
+	// 		}
+	// 	}
+	// }
+}
+
+loki.write "main" {
+	external_labels = {
+		hostname = "{{ ansible_hostname }}",
+	}
+
+	endpoint {
+		url = "https://{{ hostvars.tombstone.lan_ipv4_address }}:3100/loki/api/v1/push"
+
+		tls_config {
+			insecure_skip_verify = true
+		}
+	}
+}
+
+// prometheus.exporter.blackbox "main" {
+// 	config = "{ modules: { icmp: { prober: icmp } } }"
+//
+// 	target {
+// 		name    = "diablo3"
+// 		address = "103.4.115.248" // Diablo III - Australia
+// 		module  = "icmp"
+// 	}
+//
+// 	target {
+// 		name    = "diablo4"
+// 		address = "34.116.85.89" // Diablo IV - Australia
+// 		module  = "icmp"
+// 	}
+//
+// 	target {
+// 		name    = "proxy-in"
+// 		address = "{{ hostvars['proxy-in'].ansible_default_ipv4.address }}"
+// 		module  = "icmp"
+// 	}
+// }
+
+prometheus.exporter.self "main" { }
+
+prometheus.exporter.unix "main" {
+	disable_collectors = [
+		"bonding",
+		"fibrechannel",
+		"infiniband",
+		"mdadm",
+		"nfs",
+		"nfsd",
+		"runit",
+		"tapestats",
+		"xfs",
+		"zfs",
+	]
+}
+
+prometheus.scrape "main" {
+	targets = array.concat(
+		prometheus.exporter.self.main.targets,
+		prometheus.exporter.unix.main.targets,
+	)
+
+	forward_to = [
+		prometheus.remote_write.main.receiver,
+	]
+}
+
+prometheus.remote_write "main" {
+	external_labels = {
+		hostname = "{{ ansible_hostname }}",
+	}
+
+	endpoint {
+		url = "https://{{ hostvars.tombstone.lan_ipv4_address }}:9090/api/v1/write"
+
+		tls_config {
+			insecure_skip_verify = true
+		}
+	}
+}
+
+// vim: ft=river.jinja2

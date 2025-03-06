@@ -1,0 +1,460 @@
+# PATHS
+
+MainDir=/data/usenet
+DestDir=${MainDir}/complete
+InterDir=${MainDir}/incomplete
+NzbDir=${MainDir}/nzb
+QueueDir=${MainDir}/queue
+TempDir=${MainDir}/tmp
+WebDir=${AppDir}/webui
+ScriptDir=${AppDir}/scripts
+LockFile=${MainDir}/nzbget.lock
+LogFile=/config/logs/nzbget.log
+ConfigTemplate=${WebDir}/nzbget.conf.template
+RequiredDir=
+CertStore=/etc/ssl/certs/ca-certificate.crt
+
+# NEWS-SERVERS
+
+{% for server in nzbget_news_servers %}
+Server{{ loop.index }}.Active=yes
+Server{{ loop.index }}.Name={{ server.name | default('') }}
+Server{{ loop.index }}.Level={{ server.level | default(0) }}
+Server{{ loop.index }}.Optional={{ server.optional | default('no') }}
+Server{{ loop.index }}.Group={{ server.group | default(0) }}
+Server{{ loop.index }}.Host={{ server.host }}
+Server{{ loop.index }}.Port=563
+Server{{ loop.index }}.Username={{ server.username }}
+Server{{ loop.index }}.Password={{ server.password }}
+Server{{ loop.index }}.JoinGroup=no
+Server{{ loop.index }}.Encryption=yes
+Server{{ loop.index }}.Cipher={{ server.cipher | default('') }}
+Server{{ loop.index }}.Connections={{ server.connections | default(4) }}
+Server{{ loop.index }}.Retention={{ server.retention | default(0) }}
+Server{{ loop.index }}.IpVersion={{ server.ip_version | default('auto') }}
+Server{{ loop.index }}.Notes=
+{% endfor %}
+
+# SECURITY
+
+ControlIP=0.0.0.0
+ControlPort=6789
+ControlUsername={{ nzbget_control_username }}
+ControlPassword={{ nzbget_control_password }}
+RestrictedUsername={{ nzbget_restricted_username }}
+RestrictedPassword={{ nzbget_restricted_password }}
+AddUsername={{ nzbget_add_username }}
+AddPassword={{ nzbget_add_password }}
+FormAuth=no
+SecureControl=no
+SecurePort=6791
+SecureCert=
+SecureKey=
+AuthorizedIP=
+CertCheck=no
+UpdateCheck=none
+DaemonUsername=root
+UMask=7022
+
+# CATEGORIES                                                             ###
+
+Category1.Name=books
+Category1.DestDir=${DestDir}/books
+Category1.Unpack=yes
+Category1.Extensions=HashRenamer.py
+Category1.Aliases=
+
+Category2.Name=movies
+Category2.DestDir=${DestDir}/movies
+Category2.Unpack=yes
+Category2.Extensions=HashRenamer.py
+Category2.Aliases=
+
+Category3.Name=music
+Category3.DestDir=${DestDir}/music
+Category3.Unpack=yes
+Category3.Extensions=HashRenamer.py
+Category3.Aliases=
+
+Category4.Name=tv
+Category4.DestDir=${DestDir}/tv
+Category4.Unpack=yes
+Category4.Extensions=HashRenamer.py
+Category4.Aliases=tv
+
+# RSS FEEDS
+
+# Name of RSS Feed.
+#
+# The name is used in UI and for logging. It can be any string.
+#Feed1.Name=my feed
+
+# Address (URL) of RSS Feed.
+#
+# Example: https://myindexer.com/api?apikey=3544646bfd1c535a9654645609800901&t=search&q=game.
+#Feed1.URL=
+
+# Filter rules for items.
+#
+# Use filter to ignore unwanted items in the feed. In its simplest version
+# the filter is a space separated list of words which must be present in
+# the item title.
+#
+# Example: linux debian dvd.
+#
+# MORE INFO:
+# NOTE: This is a short documentation, for more information visit
+# http://nzbget.net/rss.
+#
+# Feed filter consists of rules - one rule per line. Each rule defines
+# a search string and a command, which must be performed if the search
+# string matches. There are five kinds of rule-commands: Accept,
+# Reject, Require, Options, Comment.
+#
+# NOTE: Since options in the configuration file can not span multiple
+# lines, the lines (rules) must be separated with %-character (percent).
+#
+# Definition of a rule:
+#  [A:|A(options):|R:|Q:|O(options):|#] search-string
+#
+#  A - declares Accept-rule. Rules are accept-rules by default, the
+#      "A:" can be omitted. If the feed item matches to the rule the
+#      item is considered good and no further rules are checked.
+#  R - declares Reject-rule. If the feed item matches to the rule the
+#      item is considered bad and no further rules are checked.
+#  Q - declares Require-rule. If the feed item DOES NOT match to the rule
+#      the item is considered bad and no further rules are checked.
+#  O - declares Options-rule. If the feed item matches to the rule the
+#      options declared in the rule are set for the item. The item is
+#      neither accepted nor rejected via this rule but can be accepted
+#      later by one of Accept-rules. In this case the item will have its
+#      options already set (unless the Accept-rule overrides them).
+#  # - lines starting with # are considered comments and are ignored. You
+#      can use comments to explain complex rules or to temporary disable
+#      rules for debugging.
+#
+# Options allow to set properties on nzb-file. It's a comma-separated
+# list of property names with their values.
+#
+# Definition of an option:
+#  name:value
+#
+# Options can be defined using long option names or short names:
+#  category (cat, c)    - set category name, value is a string;
+#  pause (p)            - add nzb in paused or unpaused state, possible
+#                         values are: yes (y), no (n);
+#  priority (pr, r)     - set priority, value is a signed integer number;
+#  priority+ (pr+, r+)  - increase priority, value is a signed integer number;
+#  dupescore (ds, s)    - set duplicate score, value is a signed integer number;
+#  dupescore+ (ds+, s+) - increase duplicate score, value is a signed integer number;
+#  dupekey (dk, k)      - set duplicate key, value is a string;
+#  dupekey+ (dk+, k+)   - add to duplicate key, value is a string;
+#  dupemode (dm, m)     - set duplicate check mode, possible values
+#                         are: score (s), all (a), force (f);
+#  rageid				- generate duplicate key using this rageid
+#                         (integer number) and season/episode numbers;
+#  series				- generate duplicate key using series identifier
+#                         (any unique string) and season/episode numbers.
+#
+# Examples of option definitions:
+#  Accept(category:my series, pause:yes, priority:100): my show 1080p;
+#  Options(c:my series, p:y, r:100): 1080p;
+#  Options(s:1000): 1080p;
+#  Options(k+:1080p): 1080p;
+#  Options(dupemode:force): BluRay.
+#
+# Rule-options override values set in feed-options.
+#
+# The search-string is similar to used in search engines. It consists of
+# search terms separated with spaces. Every term is checked for a feed
+# item and if they all succeed the rule is considered matching.
+#
+# Definition of a term:
+#  [+|-][field:][command]param
+#
+#  +       - declares a positive term. Terms are positive by default,
+#            the "+" can be omitted;
+#  -       - declares a negative term. If the term succeeds the feed
+#            item is ignored;
+#  field   - field to which apply the term. If not specified
+#            the default field "title" is used;
+#  command - a special character defining how to interpret the
+#            parameter (followed after the command):
+#            @  - search for string "param". This is default command,
+#                 the "@" can be omitted;
+#            $  - "param" defines a regular expression (using POSIX Extended
+#                 Regular Expressions syntax);
+#            =  - equal;
+#            <  - less than;
+#            <= - equal or less than;
+#            >  - greater than;
+#            >= - equal or greater than;
+#  param   - parameter for command.
+#
+# Commands @ and $ are for use with text fields (title, filename, category,
+# link, description, dupekey). Commands =, <, <=, > and >= are for use
+# with numeric fields (size, age, imdbid, rageid, season, episode, priority,
+# dupescore).
+#
+# Only fields title, filename and age are always present. The availability of
+# other fields depend on rss feed provider.
+#
+# Any newznab attribute (encoded as "newznab:attr" in the RSS feed) can
+# be used as search field with prefix "attr-", for example "attr-genre".
+#
+# Text search (Command @) supports wildcard characters * (matches
+# any number of any characters), ? (matches any one character)
+# and # (matches one digit).
+# Text search is by default performed against words (word-search mode): the
+# field content is separated into words and then each word is checked
+# against pattern. If the search pattern starts and ends with * (star)
+# the search is performed against the whole field content
+# (substring-search mode). If the search pattern contains word separator
+# characters (except * and ?) the search is performed on the whole
+# field (the word-search would be obviously never successful in this
+# case). Word separators are: !\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~.
+#
+# Field "size" can have suffixes "K" or "KB" for kilobytes, "M" or "MB"
+# for megabytes and "G" or "GB" for gigabytes. Field "age" can have
+# suffixes "m" for minutes, "h" for hours and "d" for days. If suffix
+# is not specified default is days.
+#
+# Examples (the trailing ; or . is not part of filter):
+# 1) A: s01* -category:anime;
+# 2) my show WEB-DL;
+# 3) *my?show* WEB-DL size:<1.8GB age:>2h;
+# 4) R: size:>9GB;
+# 5) Q: HDTV.
+#
+# NOTE: This is a short documentation, for more information visit
+# http://nzbget.net/rss.
+#Feed1.Filter=
+
+# How often to check for new items (minutes).
+#
+# Value "0" disables the automatic check of this feed.
+#Feed1.Interval=15
+
+# Treat all items on first fetch as backlog (yes, no).
+#
+#  yes - when the feed is fetched for the very first time (or after
+#        changing of URL or filter) all existing items are ignored (marked
+#        as backlog). The items found on subsequent fetches are processed;
+#  no  - all items are processed even on first fetch (or after
+#        changing of URL or filter).
+#Feed1.Backlog=yes
+
+# Add nzb-files as paused (yes, no).
+#Feed1.PauseNzb=no
+
+# Category for added nzb-files.
+#
+# NOTE: Feed providers may include category name within response when nzb-file
+# is downloaded. If you want to use the providers category leave the option empty.
+#Feed1.Category=
+
+# Priority for added nzb-files (number).
+#
+# Priority can be any integer value. The web-interface however operates
+# with only six predefined priorities: -100 (very low priority), -50
+# (low priority), 0 (normal priority, default), 50 (high priority),
+# 100 (very high priority) and 900 (force priority). Downloads with
+# priorities equal to or greater than 900 are downloaded and
+# post-processed even if the program is in paused state (force mode).
+#Feed1.Priority=0
+
+# List of rss feed extension scripts to execute for rss content.
+#
+# The scripts in the list must be separated with commas or semicolons. All
+# scripts must be stored in directory set by option <ScriptDir> and
+# paths relative to <ScriptDir> must be entered here.
+#
+# NOTE: For developer documentation visit http://nzbget.net/extension-scripts.
+#Feed1.Extensions=
+
+
+# INCOMING NZBS
+
+AppendCategoryDir=yes
+NzbDirInterval=5
+NzbDirFileAge=60
+DupeCheck=yes
+
+# DOWNLOAD QUEUE
+
+FlushQueue=yes
+ContinuePartial=yes
+PropagationDelay=0
+ArticleCache=100
+DirectWrite=yes
+WriteBuffer=1024
+FileNaming=auto
+ReorderFiles=yes
+PostStrategy=balanced
+DiskSpace=250
+NzbCleanupDisk=yes
+KeepHistory=30
+FeedHistory=7
+SkipWrite=no
+RawArticle=no
+
+# CONNECTION
+
+ArticleRetries=3
+ArticleInterval=10
+ArticleTimeout=60
+UrlRetries=3
+UrlInterval=10
+UrlTimeout=60
+RemoteTimeout=90
+DownloadRate=0
+UrlConnections=4
+UrlForce=yes
+MonthlyQuota=0
+QuotaStartDay=1
+DailyQuota=0
+
+# LOGGING
+
+WriteLog=rotate
+RotateLog=3
+ErrorTarget=both
+WarningTarget=both
+InfoTarget=both
+DetailTarget=none
+DebugTarget=none
+LogBuffer=1000
+NzbLog=yes
+CrashTrace=yes
+CrashDump=no
+TimeCorrection=0
+
+# DISPLAY (TERMINAL)
+
+OutputMode=loggable
+CursesNzbName=yes
+CursesGroup=no
+CursesTime=no
+UpdateInterval=200
+
+# SCHEDULER
+
+# Time to execute the command (HH:MM).
+#
+# Multiple comma-separated values are accepted.
+# An asterisk placed in the hours location will run task every hour (e. g. "*:00").
+# An asterisk without minutes will run task at program startup (e. g. "*").
+#
+# Examples: "08:00", "00:00,06:00,12:00,18:00", "*:00", "*,*:00,*:30".
+#
+# NOTE: Also see option <TimeCorrection>.
+#Task1.Time=08:00
+
+# Week days to execute the command (1-7).
+#
+# Comma separated list of week days numbers.
+# 1 is Monday.
+# Character '-' may be used to define ranges.
+#
+# Examples: "1-7", "1-5", "5,6", "1-5, 7".
+#Task1.WeekDays=1-7
+
+# Command to be executed (PauseDownload, UnpauseDownload, PausePostProcess,
+# UnpausePostProcess, PauseScan, UnpauseScan, DownloadRate, Script, Process,
+# ActivateServer, DeactivateServer, FetchFeed).
+#
+# Possible commands:
+#   PauseDownload      - pause download;
+#   UnpauseDownload    - resume download;
+#   PausePostProcess   - pause post-processing;
+#   UnpausePostProcess - resume post-processing;
+#   PauseScan          - pause scan of incoming nzb-directory;
+#   UnpauseScan        - resume scan of incoming nzb-directory;
+#   DownloadRate       - set download rate limit;
+#   Script             - execute one or multiple scheduler scripts. The scripts
+#                        must be written specially for NZBGet;
+#   Process            - execute an external (any) program;
+#   ActivateServer     - activate news-server;
+#   DeactivateServer   - deactivate news-server;
+#   FetchFeed          - fetch RSS feed.
+#
+# On start the program checks all tasks and determines current state
+# for download-pause, scan-pause, download-rate and active servers.
+#Task1.Command=PauseDownload
+
+# Parameters for the command if needed.
+#
+# Some scheduler commands require additional parameters:
+#  DownloadRate     - download rate limit to be set (kilobytes/sec).
+#                     Example: 1000.
+#                     NOTE: use value "0" to disable download limit (unlimited speed).
+#  Script           - list of scheduler scripts to execute. The scripts in the
+#                     list must be separated with commas or semicolons. All
+#                     scripts must be stored in directory set by option
+#                     <ScriptDir> and paths relative to <ScriptDir> must be
+#                     entered here. For developer documentation visit
+#                     http://nzbget.net/extension-scripts;
+#  Process          - path to the program to execute and its parameters.
+#                     Example: /home/user/fetch.sh.
+#                     If filename or any parameter contains spaces it
+#                     must be surrounded with single quotation
+#                     marks. If filename/parameter contains single quotation marks,
+#                     each of them must be replaced (escaped) with two single quotation
+#                     marks and the resulting filename/parameter must be
+#                     surrounded with single quotation marks.
+#                     Example: '/home/user/download/my scripts/task process.sh' 'world''s fun'.
+#                     In this example one parameter (world's fun) is passed
+#                     to the script (task process.sh).
+#  ActivateServer   - comma separated list of news server ids or server names.
+#                     Example: 1,3.
+#                     Example: my news server 1, my news server 2.
+#                     NOTE: server names should not have commas.
+#  DeactivateServer - see ActivateServer.
+#  FetchFeed        - comma separated list of RSS feed ids or feed names.
+#                     Example: 1,3.
+#                     Example: bookmarks feed, another feed.
+#                     NOTE: feed names should not have commas.
+#                     NOTE: use feed id "0" to fetch all feeds.
+#Task1.Param=
+
+#Task2.Time=20:00
+#Task2.WeekDays=1-7
+#Task2.Command=UnpauseDownload
+#Task2.Param=
+
+# CHECK AND REPAIR
+
+CrcCheck=yes
+ParCheck=auto
+ParRepair=yes
+ParScan=extended
+ParQuick=yes
+ParBuffer=100
+ParThreads=0
+ParIgnoreExt=.sfv, .nzb, .nfo
+ParRename=yes
+RarRename=yes
+DirectRename=yes
+HealthCheck=park
+ParTimeLimit=0
+ParPauseQueue=yes
+
+# UNPACK
+
+Unpack=yes
+DirectUnpack=yes
+UnpackPauseQueue=yes
+UnpackCleanupDisk=yes
+UnrarCmd=nice /app/unrar
+SevenZipCmd=nice /app/7z
+ExtCleanupDisk=.par2, .sfv
+UnpackIgnoreExt=.cbr
+UnpackPassFile=
+
+# EXTENSION SCRIPTS
+
+Extensions=
+ScriptOrder=
+ScriptPauseQueue=no
+ShellOverride=
+EventInterval=0

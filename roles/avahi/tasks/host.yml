@@ -1,0 +1,6 @@
+---
+- ansible.builtin.lineinfile:
+    path: /etc/avahi/hosts
+    line: "{{ avahi_line }}"
+    state: "{{ avahi_state | default('present') }}"
+  notify: reload avahi-daemon

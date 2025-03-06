@@ -1,55 +1,93 @@
-# yamllint disable rule:line-length
 ---
-- name: install package
-  ansible.builtin.apt:
-    name: calibre
-    install_recommends: false
+- when: ansible_system_vendor == 'Synology'
+  block:
+    - ansible.builtin.file:
+        path: "{{ media_path }}/{{ calibre_item }}"
+        owner: "{{ media_uid }}"
+        group: "{{ media_gid }}"
+        mode: !!str 0700
+        state: directory
+      loop:
+        - media
+        - media/books
+        - torrents/
+        - torrents/complete
+        - torrents/complete/books
+        - usenet/
+        - usenet/complete
+        - usenet/complete/books
+      loop_control:
+        loop_var: calibre_item
 
-- name: create group
-  ansible.builtin.group:
-    name: calibre
-    system: true
+    - name: create calibre config volume
+      community.docker.docker_volume:
+        name: calibre-config
 
-- name: create user
-  ansible.builtin.user:
-    comment: Calibre Server
-    createhome: false
-    group: calibre
-    groups:
-      - "{{ media_group }}"
-    home: "{{ calibre_home }}"
-    name: calibre
-    password_lock: true
-    shell: "{{ nologin_shell }}"
-    system: true
+    - name: get config calibre volume info
+      community.docker.docker_volume:
+        name: calibre-config
+      register: calibre_volume
 
-- ansible.builtin.file:
-    path: "{{ media_path }}/Books"
-    owner: root
-    group: media
-    mode: !!str 2775
-    state: directory
+    - name: set calibre volume permissions
+      ansible.builtin.file:
+        path: "{{ calibre_volume.volume.Mountpoint }}"
+        owner: "{{ media_uid }}"
+        group: "{{ media_gid }}"
+        mode: !!str 0750
+        state: directory
 
-- name: initialise library
-  become: true
-  become_user: calibre
-  ansible.builtin.command:
-    cmd: umask 002 && calibredb list --library-path={{ media_path }}/Books
-    creates: "{{ media_path }}/Books/metadata.db"
+    - name: create calibre container
+      community.docker.docker_container:
+        cap_drop:
+          - ALL
+        command:
+          - --disable-use-bonjour
+          - --enable-auth
+          - --enable-local-write
+          - --listen-on=0.0.0.0
+          - --log=/dev/stderr
+          - --port=8080
+          - /data/media/books
+        comparisons:
+          "*": strict
+        env:
+          CALIBRE_CACHE_DIRECTORY: /config/.cache
+          CALIBRE_CONFIG_DIRECTORY: /config
+          CALIBRE_TEMP_DIR: /config/tmp
+          TZ: "{{ timezone }}"
+        healthcheck:
+          test:
+            - CMD
+            - /usr/bin/curl
+            - -fsS
+            - http://localhost:8080/robots.txt
+        image: ghcr.io/nosborn/calibre:latest
+        labels:
+          traefik.docker.network: media
+          traefik.enable: !!str true
+          traefik.http.routers.calibre.rule: Host(`calibre.{{ domain_name }}`)
+          traefik.http.routers.calibre.observability.metrics: !!str true
+          traefik.http.services.calibre.loadbalancer.server.port: !!str 8080
+        mounts:
+          - source: calibre-config
+            target: /config
+          - source: "{{ media_path }}"
+            target: /data
+            type: bind
+        name: calibre
+        networks:
+          - name: media
+        pull: always
+        read_only: true
+        restart_policy: unless-stopped
+        security_opts:
+          - no-new-privileges=true
+        ulimits:
+          - core:0:0
+        user: "{{ media_uid }}:{{ media_gid }}"
 
-- name: create service
-  ansible.builtin.template:
-    src: calibre.service.j2
-    dest: /etc/systemd/system/calibre.service
-    owner: root
-    group: root
-    mode: !!str 0444
-    validate: systemd-analyze verify %s
-  notify: restart calibre
-
-- name: enable and start service
-  ansible.builtin.service:
-    name: calibre
-    daemon_reload: true
-    enabled: true
-    state: started
+    - ansible.builtin.include_role:
+        name: media
+        tasks_from: site.yml
+      vars:
+        media_name: calibre

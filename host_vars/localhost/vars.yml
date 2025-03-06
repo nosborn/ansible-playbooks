@@ -1,0 +1,5 @@
+---
+ownca_common_name: "{{ vault_ownca_common_name }}"
+ownca_country_name: "{{ vault_ownca_country_name }}"
+ownca_mobileconfig: "{{ vault_ownca_mobileconfig }}"
+ownca_root_privatekey_passphrase: "{{ vault_ownca_root_privatekey_passphrase }}"

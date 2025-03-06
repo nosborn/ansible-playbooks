@@ -2,6 +2,31 @@ logging {
 	level = "warn"
 }
 
+// discovery.docker "main" {
+// 	host = "unix:///run/docker.sock"
+// }
+//
+// loki.source.docker "main" {
+// 	host    = "unix:///run/docker.sock"
+// 	targets = discovery.docker.main.targets
+//
+// 	forward_to = [
+// 		loki.process.docker.receiver,
+// 	]
+//
+// 	labels = {
+// 		component = "loki.source.docker",
+// 	}
+// }
+//
+// loki.process "docker" {
+// 	forward_to = [
+// 		loki.write.main.receiver,
+// 	]
+//
+// 	stage.docker { }
+// }
+
 loki.relabel "journal" {
 	forward_to = []
 
@@ -136,10 +161,17 @@ prometheus.exporter.self "main" { }
 
 prometheus.exporter.unix "main" {
 	disable_collectors = [
+		"bonding",
+		"btrfs",
+		"fibrechannel",
+		"infiniband",
 		"mdadm",
+		"nfs",
+		"nfsd",
 		"runit",
-		"supervisord",
 		"tapestats",
+		"xfs",
+		"zfs",
 	]
 }
 

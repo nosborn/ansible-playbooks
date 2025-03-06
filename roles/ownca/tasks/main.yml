@@ -1,0 +1,13 @@
+# yamllint disable rule:line-length
+---
+- name: create CA directory
+  ansible.builtin.file:
+    path: "{{ ownca_dir }}"
+    mode: !!str 0700
+    state: directory
+
+- ansible.builtin.include_tasks:
+    file: root.yml
+
+- ansible.builtin.include_tasks:
+    file: wildcard.yml

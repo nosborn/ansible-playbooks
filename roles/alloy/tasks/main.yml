@@ -1,55 +1,131 @@
-# yamllint disable rule:line-length
 ---
-- ansible.builtin.get_url:
-    url: https://apt.grafana.com/gpg.key
-    dest: /etc/apt/keyrings/grafana.asc
-    owner: root
-    group: root
-    mode: !!str 0444
+- when:
+    - ansible_system_vendor == 'Synology'
+  block:
+    - name: create config volume
+      community.docker.docker_volume:
+        name: alloy-config
 
-- ansible.builtin.apt_repository:
-    repo: deb [arch=amd64 signed-by=/etc/apt/keyrings/grafana.asc] https://apt.grafana.com stable main
-    filename: grafana
-    mode: !!str 0444
-    state: present
-    update_cache: true
+    - name: get config volume info
+      community.docker.docker_volume_info:
+        name: alloy-config
+      register: alloy_result
 
-- name: install package
-  ansible.builtin.apt:
-    name: alloy
-  register: alloy_result
+    - name: configure
+      ansible.builtin.template:
+        src: "{{ ansible_hostname }}.config.alloy.j2"
+        dest: "{{ alloy_result.volume.Mountpoint }}/config.alloy"
+        owner: root
+        group: 473 # `alloy`
+        mode: !!str 0440
+      register: alloy_config_result
 
-- ansible.builtin.file:
-    path: /etc/systemd/system/alloy.service.d
-    owner: root
-    group: root
-    mode: !!str 0755
-    state: directory
+    - name: create data volume
+      community.docker.docker_volume:
+        name: alloy-data
 
-- name: configure service
-  ansible.builtin.copy:
-    content: |
-      [Service]
-      AmbientCapabilities=CAP_NET_BIND_SERVICE
-    dest: /etc/systemd/system/alloy.service.d/overrides.conf
-    owner: root
-    group: root
-    mode: !!str 0444
-  notify: restart alloy
+    - name: create container
+      community.docker.docker_container:
+        comparisons:
+          "*": strict
+        # cap_drop:
+        #   - ALL
+        # capabilities:
+        #   - CAP_CHOWN
+        command:
+          - run
+          - --disable-reporting
+          - --server.http.disable-support-bundle
+          - --server.http.listen-addr=0.0.0.0:12345
+          - --storage.path=/var/lib/alloy/data
+          - /config/config.alloy
+        env:
+          HOSTNAME: "{{ ansible_hostname }}"
+        groups:
+          - 19 # `log`
+          - 473 # `alloy`
+        # healthcheck:
+        #   test:
+        #     - CMD
+        #     - /usr/bin/curl
+        #     - -fsS
+        #     - http://localhost:12345/-/healthy
+        image: grafana/alloy:latest
+        mounts:
+          - read_only: true
+            source: alloy-config
+            target: /config
+          - source: /run/docker.sock
+            target: /run/docker.sock
+            type: bind
+          - source: alloy-data
+            target: /var/lib/alloy/data
+          - read_only: true
+            source: /var/log
+            target: /var/log
+            type: bind
+        name: alloy
+        networks:
+          - name: bridge
+          - name: media
+        published_ports:
+          - "{{ ansible_default_ipv4.address }}:12345:12345"
+        read_only: true
+        restart: "{{ alloy_config_result is changed }}"
+        restart_policy: unless-stopped
+        security_opts:
+          - no-new-privileges=true
 
-- name: configure
-  ansible.builtin.template:
-    src: "{{ ansible_hostname }}.config.alloy.j2"
-    dest: /etc/alloy/config.alloy
-    owner: root
-    group: alloy
-    mode: !!str 0440
-    validate: alloy fmt --test %s
-  notify: restart alloy
+- when:
+    - ansible_system_vendor != 'Synology'
+  block:
+    - name: install package
+      ansible.builtin.apt:
+        name: alloy
+        update_cache: true
 
-- name: enable and start service
-  ansible.builtin.systemd_service:
-    name: alloy.service
-    daemon_reload: true
-    enabled: true
-    state: started
+    - name: configure service
+      ansible.builtin.lineinfile:
+        path: /etc/default/alloy
+        regex: ^CUSTOM_ARGS=
+        line: CUSTOM_ARGS="--disable-reporting"
+        owner: root
+        group: root
+        mode: !!str 0444
+        validate: sh -n %s
+      notify: restart alloy
+
+    - ansible.builtin.file:
+        path: /etc/systemd/system/alloy.service.d
+        owner: root
+        group: root
+        mode: !!str 0755
+        state: directory
+
+    - name: configure service
+      ansible.builtin.copy:
+        content: |
+          [Service]
+          AmbientCapabilities=CAP_NET_BIND_SERVICE
+        dest: /etc/systemd/system/alloy.service.d/overrides.conf
+        owner: root
+        group: root
+        mode: !!str 0444
+      notify: restart alloy
+
+    - name: configure
+      ansible.builtin.template:
+        src: "{{ ansible_hostname }}.config.alloy.j2"
+        dest: /etc/alloy/config.alloy
+        owner: root
+        group: alloy
+        mode: !!str 0440
+        validate: alloy fmt --test %s
+      notify: restart alloy
+
+    - name: enable and start service
+      ansible.builtin.systemd_service:
+        name: alloy.service
+        daemon_reload: true
+        enabled: true
+        state: started

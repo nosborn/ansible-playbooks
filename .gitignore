@@ -1,3 +1,5 @@
+*.mobileconfig
 .ansible/
 .envrc
+.ownca/
 .vault_password

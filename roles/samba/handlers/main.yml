@@ -6,3 +6,8 @@
   loop:
     - nmbd.service
     - smbd.service
+
+- name: restart wsdd
+  ansible.builtin.systemd_service:
+    name: wsdd.service
+    state: restarted

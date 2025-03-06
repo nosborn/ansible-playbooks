@@ -1,72 +1,109 @@
 # yamllint disable rule:line-length
 ---
-- name: create group
-  ansible.builtin.group:
-    name: qbittorrent
-    system: true
+- when: ansible_system_vendor == 'Synology'
+  block:
+    - ansible.builtin.file:
+        path: "{{ media_path }}/{{ qbittorrent_item }}"
+        owner: "{{ media_uid }}"
+        group: "{{ media_gid }}"
+        mode: !!str 0700
+        state: directory
+      loop:
+        - torrents
+        - torrents/complete
+        - torrents/complete/books
+        - torrents/complete/movies
+        - torrents/complete/music
+        - torrents/complete/tv
+        - torrents/incomplete
+      loop_control:
+        loop_var: qbittorrent_item
 
-- name: create user
-  ansible.builtin.user:
-    comment: qBittorrent
-    createhome: false
-    group: qbittorrent
-    groups:
-      - "{{ media_group }}"
-    home: "{{ qbittorrent_home }}"
-    name: qbittorrent
-    password_lock: true
-    shell: "{{ nologin_shell }}"
-    system: true
+    - name: create qbittorrent config volume
+      community.docker.docker_volume:
+        name: qbittorrent-config
 
-- name: create home directory
-  ansible.builtin.file:
-    name: "{{ qbittorrent_home }}"
-    owner: qbittorrent
-    group: qbittorrent
-    mode: !!str 0750
-    state: directory
+    - name: get qbittorrent config volume info
+      community.docker.docker_volume:
+        name: qbittorrent-config
+      register: qbittorrent_volume
 
-# - name: create wireguard directory
-#   ansible.builtin.file:
-#     name: "{{ qbittorrent_home }}/config/wireguard"
-#     owner: qbittorrent
-#     group: qbittorrent
-#     mode: !!str 2775
-#     state: directory
+    - name: set qbittorrent config volume permissions
+      ansible.builtin.file:
+        path: "{{ qbittorrent_volume.volume.Mountpoint }}"
+        owner: "{{ media_uid }}"
+        group: "{{ media_gid }}"
+        mode: !!str 0750
+        state: directory
 
-# - name: configure Wireguard
-#   ansible.builtin.copy:
-#     content: "{{ qbittorrent_config_wireguard }}"
-#     dest: "{{ qbittorrent_home }}/config/wireguard/wg0.conf"
-#     owner: qbittorrent
-#     group: qbittorrent
-#     mode: !!str 0600
+    - ansible.builtin.file:
+        path: "{{ qbittorrent_volume.volume.Mountpoint }}/qBittorrent"
+        owner: "{{ media_uid }}"
+        group: "{{ media_gid }}"
+        mode: !!str 0700
+        state: directory
 
-- ansible.builtin.file:
-    path: /etc/systemd/system/qbittorrent-nox@qbittorrent.service.d
-    owner: root
-    group: root
-    mode: !!str 0755
-    state: directory
+    - name: configure qbittorrent
+      ansible.builtin.template:
+        src: "{{ qbittorrent_item }}.j2"
+        dest: "{{ qbittorrent_volume.volume.Mountpoint }}/qBittorrent/{{ qbittorrent_item }}"
+        owner: "{{ media_uid }}"
+        group: "{{ media_gid }}"
+        mode: !!str 0666 # FIXME
+      register: qbittorrent_config
+      loop:
+        - categories.json
+        - qBittorrent.conf
+      loop_control:
+        loop_var: qbittorrent_item
 
-- ansible.builtin.copy:
-    content: |
-      [Service]
-      Environment=QBT_CONFIRM_LEGAL_NOTICE=1
-      Environment=QBT_WEBUI_PORT={{ qbittorrent_port }}
-      ReadWriteDirectories={{ media_path }}
-      SupplementaryGroups={{ media_group }}
-      UMask=002
-      WorkingDirectory={{ qbittorrent_home }}
-    dest: /etc/systemd/system/qbittorrent-nox@qbittorrent.service.d/overrides.conf
-    owner: root
-    group: root
-    mode: !!str 0444
-  notify: restart qbittorrent
+    - name: create qbittorrent container
+      community.docker.docker_container:
+        cap_drop:
+          - ALL
+        comparisons:
+          "*": strict
+        env:
+          TZ: "{{ timezone }}"
+        healthcheck:
+          {}
+          # test:
+          #   - CMD
+          #   - /usr/bin/curl
+          #   - -fsS
+          #   - "--header=Content-Type: application/json"
+          #   - http://$USERNAME:$PASSWORD@localhost:8080/api/v2/app/version
+        image: ghcr.io/nosborn/qbittorrent:latest
+        labels:
+          traefik.docker.network: media
+          traefik.enable: !!str true
+          traefik.http.routers.qbittorrent.rule: Host(`qbittorrent.{{ domain_name }}`)
+          traefik.http.routers.qbittorrent.observability.metrics: !!str true
+          traefik.http.services.qbittorrent.loadbalancer.server.port: !!str 8080
+        mounts:
+          - source: qbittorrent-config
+            target: /config
+          - source: "{{ media_path }}"
+            target: /data
+            type: bind
+        name: qbittorrent
+        networks:
+          - name: media
+        published_ports:
+          - "{{ ansible_default_ipv4.address }}:6881:6881"
+          - "{{ ansible_default_ipv4.address }}:6881/udp:6881/udp"
+        pull: always
+        read_only: true
+        restart: "{{ qbittorrent_config is changed }}"
+        restart_policy: unless-stopped
+        security_opts:
+          - no-new-privileges=true
+        ulimits:
+          - core:0:0
+        user: "{{ media_uid }}:{{ media_gid }}"
 
-- name: enable and start the service
-  ansible.builtin.systemd_service:
-    name: qbittorrent-nox@qbittorrent.service
-    daemon_reload: true
-    enabled: true
-    state: started
+    - ansible.builtin.include_role:
+        name: media
+        tasks_from: site.yml
+      vars:
+        media_name: qbittorrent

@@ -1,0 +1,90 @@
+# yamllint disable rule:line-length
+---
+- when: ansible_system_vendor == 'Synology'
+  block:
+    - ansible.builtin.file:
+        path: "{{ media_path }}/{{ nzbget_item }}"
+        owner: "{{ media_uid }}"
+        group: "{{ media_gid }}"
+        mode: !!str 0700
+        state: directory
+      loop:
+        - usenet
+        - usenet/complete
+        - usenet/complete/books
+        - usenet/complete/movies
+        - usenet/complete/music
+        - usenet/complete/tv
+        - usenet/incomplete
+        - usenet/nzb
+        - usenet/queue
+        - usenet/tmp
+      loop_control:
+        loop_var: nzbget_item
+
+    - name: create nzbget config volume
+      community.docker.docker_volume:
+        name: nzbget-config
+
+    - name: get nzbget config volume info
+      community.docker.docker_volume:
+        name: nzbget-config
+      register: nzbget_volume
+
+    - name: configure nzbget
+      ansible.builtin.template:
+        src: nzbget.conf.j2
+        dest: "{{ nzbget_volume.volume.Mountpoint }}/nzbget.conf"
+        owner: root
+        group: "{{ media_gid }}"
+        mode: !!str 0440
+      register: nzbget_config
+
+    - name: create nzbget container
+      community.docker.docker_container:
+        cap_drop:
+          - ALL
+        comparisons:
+          "*": strict
+        env:
+          TZ: "{{ timezone }}"
+        healthcheck:
+          {}
+          # test:
+          #   - CMD
+          #   - /usr/bin/curl
+          #   - -fsS
+          #   - --data={"method":"version"}
+          #   - "--header=Content-Type: application/json"
+          #   - http://{{ nzbget_add_username }}:{{ nzbget_add_password }}@localhost:6789/jsonrpc
+        image: ghcr.io/nosborn/nzbget:latest
+        labels:
+          traefik.docker.network: media
+          traefik.enable: !!str true
+          traefik.http.routers.nzbget.rule: Host(`nzbget.{{ domain_name }}`)
+          traefik.http.routers.nzbget.observability.metrics: !!str true
+          traefik.http.services.nzbget.loadbalancer.server.port: !!str 6789
+        mounts:
+          - source: nzbget-config
+            target: /config
+          - source: "{{ media_path }}"
+            target: /data
+            type: bind
+        name: nzbget
+        networks:
+          - name: media
+        pull: always
+        read_only: true
+        restart: "{{ nzbget_config is changed }}"
+        restart_policy: unless-stopped
+        security_opts:
+          - no-new-privileges=true
+        ulimits:
+          - core:0:0
+        user: "{{ media_uid }}:{{ media_gid }}"
+
+    - ansible.builtin.include_role:
+        name: media
+        tasks_from: site.yml
+      vars:
+        media_name: nzbget

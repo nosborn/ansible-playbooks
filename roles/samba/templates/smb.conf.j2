@@ -1,20 +1,20 @@
 [global]
 	bind interfaces only = yes
-	dns proxy = no
-	fruit:delete_empty_adfiles = yes
-	fruit:metadata = stream
-	fruit:model = MacSamba
-	fruit:nfs_aces = no
-	fruit:posix_rename = yes
-	fruit:veto_appledouble = no
-	fruit:wipe_intentionally_left_blank_rfork = yes
+;	dns proxy = no
+;	fruit:delete_empty_adfiles = yes
+;	fruit:metadata = stream
+;	fruit:model = MacSamba
+;	fruit:nfs_aces = no
+;	fruit:posix_rename = yes
+;	fruit:veto_appledouble = no
+;	fruit:wipe_intentionally_left_blank_rfork = yes
 	interfaces = lo {{ lan_if }}
 	log file = /var/log/samba/%m.log
 	max log size = 50
 	obey pam restrictions = yes
 	pam password change = yes
 	security = user
-	server min protocol = SMB3
+;	server min protocol = SMB3
 	unix password sync = yes
 	vfs objects = catia fruit streams_xattr
 
@@ -22,22 +22,28 @@
 ;	mdns name = {{ ansible_hostname | capitalize }}
 ;	hosts allow = 127.0.0.1 ::1 {{ lan_ipv4_subnet }} EXCEPT {{ gateway }}
 
-; ??
-;	map to guest = bad user
-;	server role = standalone server
-	server string = Samba Server
-
-[TimeMachine]
+[Media]
 	available = yes
 	browseable = yes
-	fruit:time machine = yes
-	fruit:time machine max size = 916G
+	guest ok = no
 	hide files = /lost+found/
-	path = {{ timemachine_path }}
+	path = {{ media_path }}
 	read only = no
 	writable = yes
-	guest ok = no
-;	valid users = {{ timemachine_valid_users | join(' ') }}
-	veto files = /.DS_Store/
+;	valid users = @users
+;	veto files = /.DS_Store/
+
+;[TimeMachine]
+;	available = yes
+;	browseable = yes
+;	fruit:time machine = yes
+;	fruit:time machine max size = 916G
+;	hide files = /lost+found/
+;	path = {{ timemachine_path }}
+;	read only = no
+;	writable = yes
+;	guest ok = no
+;;	valid users = {{ timemachine_valid_users | join(' ') }}
+;	veto files = /.DS_Store/
 
 ; vim: ft=dosini.jinja2 sw=2 ts=2

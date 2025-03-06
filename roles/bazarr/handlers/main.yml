@@ -1,6 +1,0 @@
----
-- name: restart bazarr
-  ansible.builtin.systemd_service:
-    name: bazarr.service
-    daemon_reload: true
-    state: restarted

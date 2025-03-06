@@ -1,9 +1,9 @@
 ---
 - name: configure service
   ansible.builtin.template:
-    src: "{{ src }}"
-    dest: /etc/avahi/services/{{ dest }}
+    src: "{{ avahi_src }}"
+    dest: /etc/avahi/services/{{ avahi_dest }}
     owner: root
     group: root
     mode: !!str 0444
-  notify: restart avahi-daemon
+  notify: reload avahi-daemon

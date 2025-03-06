@@ -1,0 +1,86 @@
+# yamllint disable rule:line-length
+---
+- when: ansible_system_vendor == 'Synology'
+  block:
+    - ansible.builtin.file:
+        path: "{{ media_path }}/.transcode_cache"
+        owner: "{{ media_uid }}"
+        group: "{{ media_gid }}"
+        mode: !!str 0700
+        state: directory
+
+    - name: create tdarr volumes
+      community.docker.docker_volume:
+        name: tdarr-{{ tdarr_item }}
+      loop:
+        - configs
+        - server
+      loop_control:
+        loop_var: tdarr_item
+
+    - name: create tdarr container
+      community.docker.docker_container:
+        comparisons:
+          "*": strict
+        cap_drop:
+          - ALL
+        capabilities:
+          - CAP_CHOWN
+          - CAP_SETGID
+          - CAP_SETUID
+        devices:
+          - /dev/dri:/dev/dri
+        env:
+          PGID: "{{ media_gid }}"
+          PUID: "{{ media_uid }}"
+          TZ: "{{ timezone }}"
+          ffmpegVersion: !!str 7
+          inContainer: !!str true
+          internalNode: !!str true
+          nodeName: "{{ ansible_hostname }}"
+          serverIP: 0.0.0.0
+          serverPort: !!str 8266
+          webUIPort: !!str 8265
+        groups:
+          - "{{ videodriver_gid }}"
+        # healthcheck:
+        #   test:
+        #     - CMD
+        #     - /usr/bin/curl
+        #     - -fsS
+        #     - http://localhost:7878/ping
+        image: ghcr.io/haveagitgat/tdarr:latest
+        labels:
+          traefik.docker.network: media
+          traefik.enable: !!str true
+          traefik.http.routers.tdarr.rule: Host(`tdarr.{{ domain_name }}`)
+          traefik.http.routers.tdarr.observability.metrics: !!str true
+          traefik.http.services.tdarr.loadbalancer.server.port: !!str 8265
+        mounts:
+          - source: "{{ media_path }}/.transcode_cache"
+            target: /.transcode_cache
+            type: bind
+          - source: "{{ media_path }}/Shows"
+            target: /Shows
+            type: bind
+          - source: tdarr-configs
+            target: /app/configs
+          - source: tdarr-server
+            target: /app/server
+          - source: "{{ media_path }}"
+            target: /data
+            type: bind
+        name: tdarr
+        published_ports:
+          - "{{ ansible_default_ipv4.address }}:8266:8266"
+        restart_policy: unless-stopped
+        security_opts:
+          - no-new-privileges=true
+        ulimits:
+          - core:0:0
+
+    - ansible.builtin.include_role:
+        name: media
+        tasks_from: site.yml
+      vars:
+        media_name: tdarr

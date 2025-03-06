@@ -23,6 +23,15 @@
       tags:
         - always
 
+- name: Set up OwnCA
+  hosts: localhost
+  gather_facts: false
+
+  roles:
+    - name: ownca
+      tags:
+        - always
+
 - name: Configure Gateway
   hosts: gateway
   gather_facts: false
@@ -87,6 +96,7 @@
       tags:
         - always
       notify: reboot
+      when: false
 
     - name: configure WireGuard VPN
       ansible.builtin.copy:
@@ -108,6 +118,7 @@
       tags:
         - always
       notify: reboot
+      when: false
 
     - name: enable systemd-networkd
       ansible.builtin.systemd_service:
@@ -140,7 +151,8 @@
         name:
           - acl
           - attr
-          - cryptsetup
+          - gpg
+          - python3-lxml
       tags:
         - always
 
@@ -162,16 +174,9 @@
     - role: alloy
       tags:
         - alloy
-    - role: bazarr
+    - role: chrony
       tags:
-        - bazarr
-      when: false # has issues with Python 3.13
-    - role: calibre
-      tags:
-        - calibre
-    - role: calibre_web
-      tags:
-        - calibre-web
+        - chrony
     - role: dns_updater
       tags:
         - dns-updater
@@ -184,51 +189,34 @@
     - role: imapfilter
       tags:
         - imapfilter
+      when: false
     - role: lego
       tags:
         - lego
-    - role: lidarr
-      tags:
-        - lidarr
+      when: false
     - role: loki
       tags:
         - loki
+    - role: media
+      tags:
+        - media
+      when: false
     - role: nginx
       tags:
         - nginx
     - role: opensmtpd
       tags:
         - opensmtpd
-    - role: plexmediaserver
-      tags:
-        - plexmediaserver
     - role: prometheus
       tags:
         - prometheus
-    - role: prowlarr
-      tags:
-        - prowlarr
-    - role: qbittorrent
-      tags:
-        - qbittorrent
-    - role: radarr
-      tags:
-        - radarr
-    - role: readarr
-      tags:
-        - readarr
     - role: restic
       tags:
         - restic
+      when: false
     - role: samba
       tags:
         - samba
-    - role: sabnzbd
-      tags:
-        - sabnzbd
-    - role: sonarr
-      tags:
-        - sonarr
     - role: sshd
       tags:
         - sshd
@@ -251,9 +239,9 @@
           - net-tools
           - rfkill
           - tcpdump
-          - wireguard-tools
       tags:
         - always
+      when: false
 
     - name: remove unwanted packages
       ansible.builtin.apt:
@@ -299,6 +287,16 @@
       tags:
         - always
 
+    - ansible.builtin.shell:
+        cmd: ip -f inet6 -o addr show dev {{ ansible_default_ipv6.interface }} scope global mngtmpaddr | awk '{print $4}' | cut -d/ -f1
+      changed_when: false
+      register: result
+      when: false
+
+    - ansible.builtin.set_fact:
+        wan_ipv6_address: "{{ result.stdout | trim }}"
+      when: false
+
     - name: install prerequisite packages
       ansible.builtin.apt:
         name:
@@ -353,3 +351,79 @@
   handlers:
     - name: reboot
       ansible.builtin.reboot: {}
+
+- name: Configure DiskStation
+  hosts: diskstation
+  gather_facts: false
+
+  pre_tasks:
+    - name: install pip
+      ansible.builtin.command:
+        argv:
+          - "{{ ansible_python.executable }}"
+          - -mensurepip
+        creates: "{{ ansible_python.executable | dirname }}/pip{{ ansible_python.version.major }}"
+      tags:
+        - always
+
+    - name: install lxml
+      ansible.builtin.pip:
+        name: lxml
+      tags:
+        - always
+
+  roles:
+    - role: alloy
+      tags:
+        - alloy
+    - role: calibre
+      tags:
+        - calibre
+    - role: calibre_web
+      tags:
+        - calibre-web
+      when: false # TODO
+    - role: emby
+      tags:
+        - emby
+    - role: jellyseerr
+      tags:
+        - jellyseerr
+    - role: nzbget
+      tags:
+        - nzbget
+    - role: prowlarr
+      tags:
+        - prowlarr
+    - role: qbittorrent
+      tags:
+        - qbittorrent
+    - role: radarr
+      tags:
+        - radarr
+    - role: readarr
+      tags:
+        - readarr
+    - role: sonarr
+      tags:
+        - sonarr
+    - role: traefik
+      tags:
+        - traefik
+    - role: watchtower
+      tags:
+        - watchtower
+
+# - name: Configure Pastime
+#   hosts: pastime
+#   gather_facts: false
+
+#   # tasks:
+#   #   - ansible.windows.win_optional_feature:
+#   #       name:
+#   #         - Microsoft-Windows-Subsystem-Linux
+#   #         - VirtualMachinePlatform
+#   #     register: result
+
+#   #   - ansible.windows.win_reboot: {}
+#   #     when: result.reboot_required
