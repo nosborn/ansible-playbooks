@@ -35,6 +35,17 @@
     mode: !!str 0444
   notify: restart unbound
 
+- ansible.builtin.copy:
+    content: |
+      RESOLVCONF=false
+      ROOT_TRUST_ANCHOR_UPDATE=false
+    dest: /etc/default/unbound
+    owner: root
+    group: root
+    mode: !!str 0444
+    validate: sh -n %s
+  notify: restart unbound
+
 - name: enable and start unbound
   ansible.builtin.systemd_service:
     name: unbound.service
