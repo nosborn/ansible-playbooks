@@ -1,18 +1,29 @@
 ---
-- name: upload private key
-  ansible.builtin.copy:
-    content: "{{ tls_private_key }}"
-    dest: "{{ unifi_core_privatekey_path }}"
-    owner: root
-    group: root
-    mode: !!str 0400
-  notify: restart unifi-core
-
 - name: upload certificate
   ansible.builtin.copy:
-    content: "{{ tls_certificate }}"
-    dest: "{{ unifi_core_certificate_path }}"
+    content: "{{ unifi_core_certificate }}"
+    dest: /data/unifi-core/config/local.crt
     owner: root
     group: root
     mode: !!str 0444
-  notify: restart unifi-core
+  notify: reload nginx
+
+- name: upload private key
+  ansible.builtin.copy:
+    content: "{{ unifi_core_privatekey }}"
+    dest: /data/unifi-core/config/local.key
+    owner: root
+    group: root
+    mode: !!str 0400
+  notify: reload nginx
+
+- name: activate certificate
+  ansible.builtin.copy:
+    content: |
+      ssl_certificate     /data/unifi-core/config/local.crt;
+      ssl_certificate_key /data/unifi-core/config/local.key;
+    dest: /data/unifi-core/config/http/local-certs.conf
+    owner: root
+    group: root
+    mode: !!str 0444
+  notify: reload nginx

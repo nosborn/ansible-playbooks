@@ -22,6 +22,7 @@
     owner: root
     group: grafana
     mode: !!str 0440
+    validate: yamllint --strict %s
   loop:
     # - datasources/alertmanager.yaml
     - datasources/loki.yaml

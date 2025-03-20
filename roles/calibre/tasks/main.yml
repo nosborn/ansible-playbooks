@@ -1,93 +1,46 @@
 ---
-- when: ansible_system_vendor == 'Synology'
-  block:
-    - ansible.builtin.file:
-        path: "{{ media_path }}/{{ calibre_item }}"
-        owner: "{{ media_uid }}"
-        group: "{{ media_gid }}"
-        mode: !!str 0700
-        state: directory
-      loop:
-        - media
-        - media/books
-        - torrents/
-        - torrents/complete
-        - torrents/complete/books
-        - usenet/
-        - usenet/complete
-        - usenet/complete/books
-      loop_control:
-        loop_var: calibre_item
+- name: create config directory
+  ansible.builtin.file:
+    path: /var/lib/calibre
+    owner: "{{ media_owner }}"
+    group: "{{ media_group }}"
+    mode: !!str 0750
+    state: directory
 
-    - name: create calibre config volume
-      community.docker.docker_volume:
-        name: calibre-config
+- ansible.builtin.file:
+    path: "{{ media_path }}/{{ calibre_item }}"
+    owner: "{{ media_owner }}"
+    group: "{{ media_group }}"
+    mode: !!str 0750
+    state: directory
+  loop:
+    - media
+    - media/books
+    - torrents/
+    - torrents/complete
+    - torrents/complete/books
+    - usenet/
+    - usenet/complete
+    - usenet/complete/books
+  loop_control:
+    loop_var: calibre_item
 
-    - name: get config calibre volume info
-      community.docker.docker_volume:
-        name: calibre-config
-      register: calibre_volume
+- ansible.builtin.include_role:
+    name: k3s
+    tasks_from: namespace.yml
+  vars:
+    k3s_name: media
 
-    - name: set calibre volume permissions
-      ansible.builtin.file:
-        path: "{{ calibre_volume.volume.Mountpoint }}"
-        owner: "{{ media_uid }}"
-        group: "{{ media_gid }}"
-        mode: !!str 0750
-        state: directory
+- ansible.builtin.template:
+    src: manifest.yaml.j2
+    dest: /var/lib/rancher/k3s/server/manifests/calibre.yaml
+    owner: root
+    group: root
+    mode: !!str 0400
+    validate: yamllint --strict %s
 
-    - name: create calibre container
-      community.docker.docker_container:
-        cap_drop:
-          - ALL
-        command:
-          - --disable-use-bonjour
-          - --enable-auth
-          - --enable-local-write
-          - --listen-on=0.0.0.0
-          - --log=/dev/stderr
-          - --port=8080
-          - /data/media/books
-        comparisons:
-          "*": strict
-        env:
-          CALIBRE_CACHE_DIRECTORY: /config/.cache
-          CALIBRE_CONFIG_DIRECTORY: /config
-          CALIBRE_TEMP_DIR: /config/tmp
-          TZ: "{{ timezone }}"
-        healthcheck:
-          test:
-            - CMD
-            - /usr/bin/curl
-            - -fsS
-            - http://localhost:8080/robots.txt
-        image: ghcr.io/nosborn/calibre:latest
-        labels:
-          traefik.docker.network: media
-          traefik.enable: !!str true
-          traefik.http.routers.calibre.rule: Host(`calibre.{{ domain_name }}`)
-          traefik.http.routers.calibre.observability.metrics: !!str true
-          traefik.http.services.calibre.loadbalancer.server.port: !!str 8080
-        mounts:
-          - source: calibre-config
-            target: /config
-          - source: "{{ media_path }}"
-            target: /data
-            type: bind
-        name: calibre
-        networks:
-          - name: media
-        pull: always
-        read_only: true
-        restart_policy: unless-stopped
-        security_opts:
-          - no-new-privileges=true
-        ulimits:
-          - core:0:0
-        user: "{{ media_uid }}:{{ media_gid }}"
-
-    - ansible.builtin.include_role:
-        name: media
-        tasks_from: site.yml
-      vars:
-        media_name: calibre
+- ansible.builtin.include_role:
+    name: media
+    tasks_from: site.yml
+  vars:
+    media_name: calibre

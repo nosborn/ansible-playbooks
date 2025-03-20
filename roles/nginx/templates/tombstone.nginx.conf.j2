@@ -36,16 +36,31 @@ http {
 	include /etc/nginx/sites-enabled/*;
 
 	server {
-		listen 80 default_server;
+		listen {{ lan_ipv4_address }}:80 default_server;
 		listen [::]:80 default_server;
-		server_name _;
+		server_name *.{{ domain_name }};
+
+		location / {
+			return 301 https://$host$request_uri;
+		}
+	}
+
+	server {
+		listen {{ lan_ipv4_address }}:443 ssl;
+		server_name *.{{ domain_name }};
+
+		ssl_certificate /etc/nginx/wildcard.pem;
+		ssl_certificate_key /etc/nginx/wildcard.key;
+
+		allow {{ ansible_default_ipv4.network }}/{{ ansible_default_ipv4.prefix }};
+		deny all;
 
 		location / {
 			return 404;
 		}
 	}
 
-	server { # TODO: TLS
+	server {
 		listen {{ lan_ipv4_address }}:3100 ssl;
 		server_name {{ external_fqdn }};
 		keepalive_timeout 70;

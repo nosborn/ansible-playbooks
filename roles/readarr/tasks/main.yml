@@ -1,115 +1,82 @@
 # yamllint disable rule:line-length
 ---
-- when: ansible_system_vendor == 'Synology'
-  block:
-    - ansible.builtin.file:
-        path: "{{ media_path }}/{{ readarr_item }}"
-        state: directory
-      loop:
-        - media/books
-        - torrents/complete/books
-        - usenet/complete/books
-      loop_control:
-        loop_var: readarr_item
+- name: create config directory
+  ansible.builtin.file:
+    path: /var/lib/readarr
+    owner: "{{ media_owner }}"
+    group: "{{ media_group }}"
+    mode: !!str 0750
+    state: directory
 
-    - name: create readarr config volume
-      community.docker.docker_volume:
-        name: readarr-config
+- ansible.builtin.file:
+    path: "{{ media_path }}/{{ readarr_item }}"
+    owner: "{{ media_owner }}"
+    group: "{{ media_group }}"
+    mode: !!str 0750
+    state: directory
+  loop:
+    - media/books
+    - torrents/complete/books
+    - usenet/complete/books
+  loop_control:
+    loop_var: readarr_item
 
-    - name: get readarr config volume info
-      community.docker.docker_volume_info:
-        name: readarr-config
-      register: readarr_volume
+- ansible.builtin.include_role:
+    name: k3s
+    tasks_from: namespace.yml
+  vars:
+    k3s_name: media
 
-    - name: set readarr config volume permissions
-      ansible.builtin.file:
-        path: "{{ readarr_volume.volume.Mountpoint }}"
-        owner: "{{ media_uid }}"
-        group: "{{ media_gid }}"
-        mode: !!str 0755
-        state: directory
+- ansible.builtin.template:
+    src: manifest.yaml.j2
+    dest: /var/lib/rancher/k3s/server/manifests/readarr.yaml
+    owner: root
+    group: root
+    mode: !!str 0400
+    validate: yamllint --strict %s
 
-    - name: create readarr container
-      community.docker.docker_container:
-        cap_drop:
-          - ALL
-        command:
-          - -data=/config
-          - -nobrowser
-        comparisons:
-          "*": strict
-        env:
-          TZ: "{{ timezone }}"
-        healthcheck:
-          test:
-            - CMD
-            - /usr/bin/curl
-            - -fsS
-            - http://localhost:8787/ping
-        image: ghcr.io/nosborn/readarr:latest
-        labels:
-          traefik.docker.network: media
-          traefik.enable: !!str true
-          traefik.http.routers.readarr.rule: Host(`readarr.{{ domain_name }}`)
-          traefik.http.routers.readarr.observability.metrics: !!str true
-          traefik.http.services.readarr.loadbalancer.server.port: !!str 8787
-        mounts:
-          - source: readarr-config
-            target: /config
-          - source: "{{ media_path }}"
-            target: /data
-            type: bind
-        name: readarr
-        networks:
-          - name: media
-        pull: always
-        read_only: true
-        restart_policy: unless-stopped
-        security_opts:
-          - no-new-privileges=true
-        ulimits:
-          - core:0:0
-        user: "{{ media_uid }}:{{ media_gid }}"
+- ansible.builtin.wait_for:
+    path: /var/lib/readarr/config.xml
 
-    - name: configure readarr
-      community.general.xml:
-        path: "{{ readarr_volume.volume.Mountpoint }}/config.xml"
-        xpath: /Config/{{ readarr_item.key }}
-        value: "{{ readarr_item.value | string }}"
-      loop: "{{ config | ansible.builtin.dict2items }}"
-      loop_control:
-        loop_var: readarr_item
-      vars:
-        config:
-          AnalyticsEnabled: !!str False
-          # AuthenticationRequired: DisabledForLocalAddresses
-          LaunchBrowser: !!str False
-          # LogDbEnabled: !!str False
-          LogLevel: info
-          UpdateAutomatically: !!str False
-      register: readarr_result
+- name: configure
+  community.general.xml:
+    path: /var/lib/readarr/config.xml
+    xpath: /Config/{{ readarr_item.key }}
+    value: "{{ readarr_item.value | string }}"
+  loop: "{{ config | ansible.builtin.dict2items }}"
+  loop_control:
+    loop_var: readarr_item
+  vars:
+    config:
+      AnalyticsEnabled: !!str False
+      # AuthenticationRequired: DisabledForLocalAddresses
+      LaunchBrowser: !!str False
+      # LogDbEnabled: !!str False
+      LogLevel: info
+      UpdateAutomatically: !!str False
+  register: readarr_result
 
-    - name: restart readarr container
-      community.docker.docker_container:
-        comparisons:
-          "*": ignore
-        name: readarr
-        restart: "{{ readarr_result is changed }}"
+# - name: restart container
+#   community.docker.docker_container:
+#     comparisons:
+#       "*": ignore
+#     name: readarr
+#     restart: "{{ readarr_result is changed }}"
 
-    - name: remove readarr logs database
-      ansible.builtin.file:
-        path: "{{ readarr_volume.volume.Mountpoint }}/{{ readarr_item }}"
-        state: absent
-      loop:
-        - logs.db
-        - logs.db-shm
-        - logs.db-wal
-      loop_control:
-        loop_var: readarr_item
-      when: false
+- name: remove readarr logs database
+  ansible.builtin.file:
+    path: /var/lib/readarr/{{ readarr_item }}
+    state: absent
+  loop:
+    - logs.db
+    - logs.db-shm
+    - logs.db-wal
+  loop_control:
+    loop_var: readarr_item
+  when: false
 
-    - ansible.builtin.include_role:
-        name: media
-        tasks_from: site.yml
-      vars:
-        media_name: readarr
+- ansible.builtin.include_role:
+    name: media
+    tasks_from: site.yml
+  vars:
+    media_name: readarr

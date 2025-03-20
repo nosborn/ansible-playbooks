@@ -1,3 +1,0 @@
----
-unifi_core_certificate_path: /data/unifi-core/config/unifi-core.crt
-unifi_core_privatekey_path: /data/unifi-core/config/unifi-core.key

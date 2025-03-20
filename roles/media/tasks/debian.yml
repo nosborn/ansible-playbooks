@@ -1,0 +1,54 @@
+---
+- name: create group
+  ansible.builtin.group:
+    name: media
+    system: true
+
+- ansible.builtin.getent:
+    database: passwd
+    key: "{{ media_owner }}"
+
+- ansible.builtin.getent:
+    database: group
+    key: "{{ media_group }}"
+
+- ansible.builtin.set_fact:
+    media_gid: "{{ ansible_facts.getent_group[media_group][1] }}"
+    media_uid: "{{ ansible_facts.getent_passwd[media_owner][1] }}"
+
+- ansible.builtin.copy:
+    content: |
+      [Mount]
+      What=PARTUUID={{ media_partition_uuid }}
+      Where={{ media_path }}
+      Type=ext4
+      Options=defaults,nodev,noexec,nosuid
+
+      [Install]
+      WantedBy=multi-user.target
+    dest: /etc/systemd/system/{{ media_mount_unit_name }}
+    owner: root
+    group: root
+    mode: !!str 0444
+    validate: systemd-analyze verify %s
+  notify: reload media mount
+
+- name: enable and start mount
+  ansible.builtin.systemd_service:
+    name: "{{ media_mount_unit_name }}"
+    daemon_reload: true
+    enabled: true
+    state: started
+
+- name: mount now
+  ansible.builtin.meta: flush_handlers
+
+- ansible.builtin.file:
+    path: "{{ media_path }}"
+    owner: root
+    group: media
+    mode: !!str 2770
+    state: directory
+
+- ansible.builtin.apt:
+    name: mediainfo

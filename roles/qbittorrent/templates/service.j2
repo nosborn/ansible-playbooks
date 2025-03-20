@@ -1,0 +1,38 @@
+[Unit]
+After=local-fs.target network-online.target nss-lookup.target
+Wants=network-online.target
+
+[Service]
+; AmbientCapabilities=
+; CapabilityBoundingSet=
+Environment=LANG=en_GB.UTF-8
+Environment=TZ={{ timezone }}
+ExecStart=/usr/bin/qbittorrent-nox
+LimitCORE=0:0
+LockPersonality=yes
+; MemoryDenyWriteExecute=yes
+NoNewPrivileges=yes
+PrivateIPC=yes
+PrivateTmp=yes
+ProtectClock=yes
+ProtectHome=yes
+ProtectHostname=yes
+ProtectKernelLogs=yes
+ProtectKernelModules=yes
+; ProtectProc=
+ProtectSystem=strict
+; TODO: ReadWritePaths={{ media_path }}/torrents /var/lib/radarr
+ReadWritePaths={{ media_path }} /var/lib/qbittorrent
+RemoveIPC=yes
+Restart=on-failure
+RestrictRealtime=yes
+TimeoutStopSec=1800
+Type=simple
+UMask=0007
+User=qbittorrent
+WorkingDirectory=/var/lib/qbittorrent
+
+[Install]
+WantedBy=multi-user.target
+
+; vim: ft=systemd.jinja2

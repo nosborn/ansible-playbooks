@@ -1,4 +1,11 @@
 ---
+- name: pull image
+  community.docker.docker_image:
+    name: containrrr/watchtower:latest
+    pull:
+      platform: amd64
+    source: pull
+
 - name: create container
   community.docker.docker_container:
     comparisons:
@@ -22,11 +29,10 @@
         - CMD
         - /watchtower
         - --health-check
-    image: containrrr/watchtower
+    image: containrrr/watchtower:latest
     mounts:
       - source: /run/docker.sock
         target: /var/run/docker.sock
         type: bind
     name: watchtower
-    read_only: true
     restart_policy: unless-stopped

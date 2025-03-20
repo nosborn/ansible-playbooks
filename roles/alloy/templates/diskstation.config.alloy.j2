@@ -28,6 +28,51 @@ loki.process "docker" {
 	stage.docker { }
 }
 
+local.file_match "plex" {
+	path_targets = [
+		{__path__ = "/volume1/PlexMediaServer/AppData/Plex Media Server/Logs/*.log"},
+		{__path__ = "/volume1/PlexMediaServer/AppData/Plex Media Server/Logs/PMS Plugin Logs/*.log"},
+	]
+}
+
+loki.source.file "plex" {
+	targets = local.file_match.plex.targets
+
+	forward_to = [
+		loki.process.plex.receiver,
+	]
+}
+
+loki.process "plex" {
+	forward_to = [
+		loki.write.main.receiver,
+	]
+
+	stage.labels {
+		values = {
+			service_name = "plex",
+		}
+	}
+
+	stage.multiline {
+		firstline = "^\\s+"
+	}
+
+	stage.regex {
+		expression = "^(?P<__ts>\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2},\\d{3}) (?P<message>.+)$"
+	}
+
+	stage.timestamp {
+		format   = "2006-01-02 15:04:05.999"
+		source   = "__ts"
+		location = "{{ timezone }}"
+	}
+
+	stage.output {
+		source = "message"
+	}
+}
+
 loki.relabel "journal" {
 	forward_to = []
 

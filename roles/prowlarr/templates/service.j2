@@ -1,0 +1,35 @@
+[Unit]
+After=network-online.target
+
+[Service]
+; AmbientCapabilities=
+; CapabilityBoundingSet=
+Environment=LANG=en_GB.UTF-8
+Environment=TZ={{ timezone }}
+ExecStart=/opt/prowlarr/{{ prowlarr_version }}/Prowlarr -data=/var/lib/prowlarr -nobrowser
+LimitCORE=0:0
+LockPersonality=yes
+; MemoryDenyWriteExecute=yes
+NoNewPrivileges=yes
+PrivateIPC=yes
+PrivateTmp=yes
+ProtectClock=yes
+ProtectHome=yes
+ProtectHostname=yes
+ProtectKernelLogs=yes
+ProtectKernelModules=yes
+; ProtectProc=
+ProtectSystem=strict
+ReadWritePaths=/var/lib/prowlarr
+RemoveIPC=yes
+Restart=on-failure
+RestrictRealtime=yes
+Type=simple
+UMask=0007
+User=prowlarr
+WorkingDirectory=/var/lib/prowlarr
+
+[Install]
+WantedBy=multi-user.target
+
+; vim: ft=systemd.jinja2

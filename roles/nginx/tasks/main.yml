@@ -16,6 +16,25 @@
     loop_var: nginx_item
   notify: restart nginx
 
+- ansible.builtin.copy:
+    content: |
+      {{ hostvars.localhost.ownca_wildcard_privatekey }}
+    dest: /etc/nginx/wildcard.key
+    owner: root
+    group: www-data
+    mode: !!str 0440
+  notify: restart nginx
+
+- ansible.builtin.copy:
+    content: |
+      {{ hostvars.localhost.ownca_wildcard_certificate }}
+      {{ hostvars.localhost.ownca_root_certificate }}
+    dest: /etc/nginx/wildcard.pem
+    owner: root
+    group: root
+    mode: !!str 0444
+  notify: restart nginx
+
 - name: configure
   ansible.builtin.template:
     src: "{{ ansible_hostname }}.nginx.conf.j2"

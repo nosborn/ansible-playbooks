@@ -1,54 +1,124 @@
 # yamllint disable rule:line-length
 ---
-- name: create config volume
-  community.docker.docker_volume:
-    volume_name: bazarr-config
+- name: install dependencies
+  ansible.builtin.apt:
+    name:
+      - ffmpeg
+      - unzip
 
-- name: create container
-  community.docker.docker_container:
-    cap_drop:
-      - AUDIT_WRITE
-      - DAC_OVERRIDE
-      - FOWNER
-      - FSETID
-      - MKNOD
-      - NET_BIND_SERVICE
-      - NET_RAW
-      - SETFCAP
-      - SETPCAP
-      - SYS_CHROOT
-    cleanup: true
-    comparisons:
-      "*": strict
-    env:
-      # DOCKER_MODS: ghcr.io/themepark-dev/theme.park:bazarr
-      GUID: !!str 100 # FIXME
-      PUID: !!str 1000 # FIXME
-      # TP_THEME: nord
-      TZ: "{{ timezone }}"
-    groups:
-      - "{{ media_gid }}"
-    image: lscr.io/linuxserver/bazarr:latest
-    links:
-      - radarr:radarr
-      - sonarr:sonarr
-    mounts:
-      - source: bazarr-config
-        target: /config
-      - source: "{{ media_path }}"
-        target: /data
-        type: bind
+- name: fetch release info
+  delegate_to: localhost
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/morpheus65535/bazarr/releases/latest
+    headers:
+      Accept: application/vnd.github+json
+    return_content: true
+    body_format: json
+  register: bazarr_release
+
+- name: set version fact
+  ansible.builtin.set_fact:
+    bazarr_version: "{{ bazarr_release.json.tag_name | regex_replace('^v', '') }}"
+
+- ansible.builtin.file:
+    path: "{{ bazarr_item }}"
+    owner: root
+    group: root
+    mode: !!str 0755
+    state: directory
+  loop:
+    - /opt/bazarr
+    - /opt/bazarr/{{ bazarr_version }}
+  loop_control:
+    loop_var: bazarr_item
+
+- ansible.builtin.unarchive:
+    src: "{{ bazarr_release.json.assets | selectattr('name', 'equalto', 'bazarr.zip') | map(attribute='browser_download_url') | first }}"
+    remote_src: true
+    dest: /opt/bazarr/{{ bazarr_version }}
+    exclude: Bazarr.Update
+    owner: root
+    group: root
+    creates: /opt/bazarr/{{ bazarr_version }}/bazarr.py
+  notify: restart bazarr
+
+- ansible.builtin.pip:
+    chdir: /opt/bazarr/{{ bazarr_version }}
+    requirements: requirements.txt
+    virtualenv: venv
+  notify: restart bazarr
+
+- name: create user
+  ansible.builtin.user:
     name: bazarr
-    published_ports:
-      - "{{ lan_ipv4_address }}:{{ bazarr_port }}:{{ bazarr_port }}"
-    restart_policy: unless-stopped
+    comment: Bazarr
+    create_home: false
+    groups:
+      - media
+    home: /var/lib/bazarr
+    shell: "{{ nologin_shell }}"
+    system: true
 
-- ansible.builtin.import_role:
-    name: unbound
-    tasks_from: fragment.yml
+- name: creare config directory
+  ansible.builtin.file:
+    name: "{{ bazarr_item }}"
+    owner: root
+    group: bazarr
+    mode: !!str 2770
+    state: directory
+  loop:
+    - /var/lib/bazarr
+    - /var/lib/bazarr/config
+  loop_control:
+    loop_var: bazarr_item
+
+- name: configure
+  ansible.builtin.template:
+    src: config.yaml.j2
+    dest: /var/lib/bazarr/config/config.yaml
+    owner: "{{ media_owner }}"
+    group: "{{ media_group }}"
+    mode: !!str 0440
+    validate: yamllint --strict %s
+  register: bazarr_config
+  when: false # FIXME
+
+- name: create media directories
+  ansible.builtin.file:
+    path: "{{ media_path }}/{{ bazarr_item }}"
+    owner: "{{ media_owner }}"
+    group: "{{ media_group }}"
+    mode: !!str 0750
+    state: directory
+  loop:
+    - backups
+    - backups/bazarr
+    - media/movies
+    - media/tv
+  loop_control:
+    loop_var: bazarr_item
+
+- name: create service unit
+  ansible.builtin.template:
+    src: service.j2
+    dest: /etc/systemd/system/bazarr.service
+    owner: root
+    group: root
+    mode: !!str 0444
+    validate: systemd-analyze verify %s
+  notify: restart bazarr
+
+- name: enable and start service
+  ansible.builtin.systemd_service:
+    name: bazarr.service
+    daemon_reload: true
+    enabled: true
+    state: started
+
+- name: publish service
+  ansible.builtin.include_role:
+    name: media
+    tasks_from: site.yml
   vars:
-    unbound_content: |
-      server:
-        local-data: "bazarr.local. CNAME tombstone.local."
-    unbound_dest: local-data-bazarr.conf
-  when: false
+    media_name: bazarr
+    media_port: "{{ bazarr_port }}"

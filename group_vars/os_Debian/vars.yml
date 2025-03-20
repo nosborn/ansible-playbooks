@@ -2,4 +2,5 @@
 ansible_become_flags: -s /bin/sh
 ansible_become_method: su
 lego_path: /etc/lego
+nginx_sites_enabled_path: /etc/nginx/sites-enabled
 nologin_shell: /usr/sbin/nologin

@@ -12,6 +12,7 @@
     owner: root
     group: root
     mode: !!str 0444
+    validate: systemd-analyze verify %s
   notify: reload timemachine mount
 
 - name: enable and start mount

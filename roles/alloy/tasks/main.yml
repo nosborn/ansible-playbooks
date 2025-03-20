@@ -2,27 +2,33 @@
 - when:
     - ansible_system_vendor == 'Synology'
   block:
-    - name: create config volume
-      community.docker.docker_volume:
-        name: alloy-config
-
-    - name: get config volume info
-      community.docker.docker_volume_info:
-        name: alloy-config
-      register: alloy_result
+    - name: create configuration directory
+      ansible.builtin.file:
+        path: /usr/local/etc/alloy
+        owner: root
+        group: root
+        mode: !!str 0750
+        state: directory
 
     - name: configure
       ansible.builtin.template:
         src: "{{ ansible_hostname }}.config.alloy.j2"
-        dest: "{{ alloy_result.volume.Mountpoint }}/config.alloy"
+        dest: /usr/local/etc/alloy/config.alloy
         owner: root
-        group: 473 # `alloy`
+        group: root
         mode: !!str 0440
       register: alloy_config_result
 
     - name: create data volume
       community.docker.docker_volume:
         name: alloy-data
+
+    - name: pull image
+      community.docker.docker_image:
+        name: grafana/alloy:latest
+        pull:
+          platform: amd64
+        source: pull
 
     - name: create container
       community.docker.docker_container:
@@ -38,12 +44,10 @@
           - --server.http.disable-support-bundle
           - --server.http.listen-addr=0.0.0.0:12345
           - --storage.path=/var/lib/alloy/data
-          - /config/config.alloy
+          - /etc/alloy/config.alloy
         env:
           HOSTNAME: "{{ ansible_hostname }}"
-        groups:
-          - 19 # `log`
-          - 473 # `alloy`
+        groups: []
         # healthcheck:
         #   test:
         #     - CMD
@@ -51,10 +55,12 @@
         #     - -fsS
         #     - http://localhost:12345/-/healthy
         image: grafana/alloy:latest
+        labels: {}
         mounts:
           - read_only: true
-            source: alloy-config
-            target: /config
+            source: /usr/local/etc/alloy/config.alloy
+            target: /etc/alloy/config.alloy
+            type: bind
           - source: /run/docker.sock
             target: /run/docker.sock
             type: bind
@@ -63,6 +69,10 @@
           - read_only: true
             source: /var/log
             target: /var/log
+            type: bind
+          - read_only: true
+            source: /volume1/PlexMediaServer/AppData/Plex Media Server/Logs
+            target: /volume1/PlexMediaServer/AppData/Plex Media Server/Logs
             type: bind
         name: alloy
         networks:
@@ -75,6 +85,7 @@
         restart_policy: unless-stopped
         security_opts:
           - no-new-privileges=true
+        user: 0:0
 
 - when:
     - ansible_system_vendor != 'Synology'
@@ -83,6 +94,16 @@
       ansible.builtin.apt:
         name: alloy
         update_cache: true
+
+    - name: configure
+      ansible.builtin.template:
+        src: "{{ ansible_hostname }}.config.alloy.j2"
+        dest: /etc/alloy/config.alloy
+        owner: root
+        group: alloy
+        mode: !!str 0440
+        validate: alloy fmt --test %s
+      notify: restart alloy
 
     - name: configure service
       ansible.builtin.lineinfile:
@@ -111,16 +132,6 @@
         owner: root
         group: root
         mode: !!str 0444
-      notify: restart alloy
-
-    - name: configure
-      ansible.builtin.template:
-        src: "{{ ansible_hostname }}.config.alloy.j2"
-        dest: /etc/alloy/config.alloy
-        owner: root
-        group: alloy
-        mode: !!str 0440
-        validate: alloy fmt --test %s
       notify: restart alloy
 
     - name: enable and start service

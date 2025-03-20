@@ -1,0 +1,18 @@
+---
+- block:
+    - community.windows.win_credential:
+        name: diskstation
+        type: generic_password
+        username: "{{ media_mount_username }}"
+        secret: "{{ media_mount_password }}"
+
+    - community.windows.win_mapped_drive:
+        letter: "{{ media_drive_letter }}"
+        path: \\DISKSTATION\Media
+        username: "{{ media_mount_username }}"
+        password: "{{ media_mount_password }}"
+  vars:
+    ansible_become: true # required for access to credential store
+    ansible_become_method: runas
+    ansible_become_pass: "{{ ansible_password }}"
+    ansible_become_user: "{{ ansible_user }}"

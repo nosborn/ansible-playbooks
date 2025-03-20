@@ -19,6 +19,8 @@ server:
 	log-replies: yes
 	# log-tag-queryreply: yes
 
+	root-hints: /usr/share/dns/root.hints
+
 	private-address: 0.0.0.0/8
 	private-address: 10.0.0.0/8         # Private-Use
 	private-address: 100.64.0.0/10      # Shared Address Space
@@ -37,8 +39,8 @@ server:
 	private-address: ::ffff:0:0/96      # IPv4-mapped IPv6 addresses
 
 	deny-any: yes
+
 	trust-anchor-file: /usr/share/dns/root.key
-	#auto-trust-anchor-file: "/var/lib/unbound/root.key"
 
 {% if unbound_null_zones | length %}
 {%   for zone in unbound_null_zones | sort | unique %}

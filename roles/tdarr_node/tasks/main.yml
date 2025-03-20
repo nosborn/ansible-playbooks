@@ -1,0 +1,8 @@
+---
+- when: ansible_system == 'Linux'
+  block:
+    - ansible.builtin.import_tasks: linux.yml
+
+- when: ansible_os_family == 'Windows'
+  block:
+    - ansible.builtin.import_tasks: windows.yml

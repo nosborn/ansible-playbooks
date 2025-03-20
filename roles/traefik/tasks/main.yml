@@ -15,6 +15,13 @@
   loop_control:
     loop_var: traefik_item
 
+- name: pull image
+  community.docker.docker_image:
+    name: traefik:v3
+    pull:
+      platform: amd64
+    source: pull
+
 - name: create container
   community.docker.docker_container:
     comparisons:
@@ -51,8 +58,8 @@
       - name: bridge
       - name: media
     published_ports:
-      - 127.0.0.1:3000:3000
-      - 127.0.0.1:8080:8080
+      - 127.0.0.1:{{ traefik_published_port_web }}:3000
+      - 127.0.0.1:{{ traefik_published_port_dashboard }}:8080
     read_only: true
     restart_policy: unless-stopped
 

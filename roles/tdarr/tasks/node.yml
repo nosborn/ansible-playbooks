@@ -1,0 +1,45 @@
+# yamllint disable rule:line-length
+---
+- ansible.builtin.file:
+    path: /var/lib/tdarr/Tdarr_Node
+    owner: root
+    group: root
+    mode: !!str 0755
+    state: directory
+
+- name: install node
+  ansible.builtin.unarchive:
+    src: "{{ tdarr_node_src }}"
+    remote_src: true
+    dest: /var/lib/tdarr/Tdarr_Node
+    owner: root
+    group: root
+    creates: /var/lib/tdarr/Tdarr_Node/Tdarr_Node
+  notify: restart tdarr-node
+
+- name: configure node
+  ansible.builtin.template:
+    src: Tdarr_Node_Config.j2 # TODO: trim trailing LF
+    dest: /var/lib/tdarr/configs/Tdarr_Node_Config.json
+    owner: tdarr
+    group: tdarr
+    mode: !!str 0600
+    validate: jsonlint --strict %s
+  notify: restart tdarr-node
+
+- name: create node service unit
+  ansible.builtin.template:
+    src: tdarr-node.service.j2
+    dest: /etc/systemd/system/tdarr-node.service
+    owner: root
+    group: root
+    mode: !!str 0444
+    validate: systemd-analyze verify %s
+  notify: restart tdarr-node
+
+- name: enable and start node
+  ansible.builtin.systemd_service:
+    name: tdarr-node.service
+    daemon_reload: true
+    enabled: true
+    state: started

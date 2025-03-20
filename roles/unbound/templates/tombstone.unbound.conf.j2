@@ -1,4 +1,4 @@
-include-toplevel: /etc/unbound/unbound.conf.d/*.conf
+include-toplevel: /etc/unbound/unbound.conf.d/local-data-*.conf
 
 server:
 	verbosity: 1
@@ -27,6 +27,8 @@ server:
 	# log-replies: yes
 	# log-tag-queryreply: yes
 
+	root-hints: /usr/share/dns/root.hints
+
 	private-address: 0.0.0.0/8
 	private-address: 10.0.0.0/8         # Private-Use
 	private-address: 100.64.0.0/10      # Shared Address Space
@@ -49,9 +51,7 @@ server:
 	deny-any: yes
 
 	module-config: "respip validator iterator"
-
-	# trust-anchor-file: "/usr/share/dnssec-root/trusted-key.key"
-	# auto-trust-anchor-file: "/var/lib/unbound/root.key"
+	trust-anchor-file: /usr/share/dns/root.key
 
 	domain-insecure: "local"
 	domain-insecure: "{{ domain_name }}"
@@ -110,6 +110,10 @@ server:
 {% endif %}
 	ede: yes
 	# ede-serve-expired: yes
+
+remote-control:
+	control-enable: yes
+	control-interface: /run/unbound.ctl
 
 forward-zone:
 	name: "{{ domain_name }}."

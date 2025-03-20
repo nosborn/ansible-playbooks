@@ -1,0 +1,36 @@
+[Unit]
+After=local-fs.target network.target
+
+[Service]
+; AmbientCapabilities=
+; CapabilityBoundingSet=
+Environment=LANG=en_GB.UTF-8
+Environment=TZ={{ timezone }}
+ExecStart=/opt/sonarr/{{ sonarr_version }}/Sonarr -data=/var/lib/sonarr -nobrowser
+LimitCORE=0:0
+LockPersonality=yes
+; MemoryDenyWriteExecute=yes
+NoNewPrivileges=yes
+PrivateIPC=yes
+PrivateTmp=yes
+ProtectClock=yes
+ProtectHome=yes
+ProtectHostname=yes
+ProtectKernelLogs=yes
+ProtectKernelModules=yes
+; ProtectProc=
+ProtectSystem=strict
+; TODO: ReadWritePaths={{ media_path }}/backups/sonarr {{ media_path }}/media/tv {{ media_path }}/torrents/complete/tv {{ media_path }}/usenet/complete/tv /var/lib/sonarr
+ReadWritePaths={{ media_path }} /var/lib/sonarr
+RemoveIPC=yes
+Restart=on-failure
+RestrictRealtime=yes
+Type=simple
+UMask=0007
+User=sonarr
+WorkingDirectory=/var/lib/sonarr
+
+[Install]
+WantedBy=multi-user.target
+
+; vim: ft=systemd.jinja2

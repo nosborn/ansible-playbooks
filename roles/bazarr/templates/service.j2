@@ -1,0 +1,36 @@
+[Unit]
+After=local-fs.target network.target
+
+[Service]
+; AmbientCapabilities=
+; CapabilityBoundingSet=
+Environment=LANG=en_GB.UTF-8
+Environment=TZ={{ timezone }}
+ExecStart=/opt/bazarr/{{ bazarr_version }}/venv/bin/python3 /opt/bazarr/{{ bazarr_version }}/bazarr.py --config=/var/lib/bazarr
+LimitCORE=0:0
+LockPersonality=yes
+; MemoryDenyWriteExecute=yes
+NoNewPrivileges=yes
+PrivateIPC=yes
+PrivateTmp=yes
+ProtectClock=yes
+ProtectHome=yes
+ProtectHostname=yes
+ProtectKernelLogs=yes
+ProtectKernelModules=yes
+; ProtectProc=
+ProtectSystem=strict
+; TODO: ReadWritePaths={{ media_path }}/backups/bazarr {{ media_path }}/media/movies {{ media_path }}/media/tv /var/lib/bazarr
+ReadWritePaths={{ media_path }} /var/lib/bazarr
+RemoveIPC=yes
+Restart=on-failure
+RestrictRealtime=yes
+Type=simple
+UMask=0007
+User=bazarr
+WorkingDirectory=/var/lib/bazarr
+
+[Install]
+WantedBy=multi-user.target
+
+; vim: ft=systemd.jinja2

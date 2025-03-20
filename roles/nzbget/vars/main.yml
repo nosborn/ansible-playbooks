@@ -1,0 +1,3 @@
+---
+nzbget_control_port: 6789
+nzbget_secure_port: 6791

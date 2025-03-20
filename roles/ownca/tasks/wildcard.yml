@@ -9,6 +9,7 @@
 
 - name: create wildcard CSR
   community.crypto.openssl_csr_pipe:
+    common_name: "*.{{ domain_name }}"
     country_name: "{{ ownca_country_name }}"
     extended_key_usage:
       - serverAuth # https://support.apple.com/en-us/103769
@@ -18,7 +19,7 @@
     key_usage_critical: true
     privatekey_path: "{{ ownca_dir }}/wildcard.key"
     subject_alt_name:
-      - DNS:*,{{ domain_name }}
+      - DNS:*.{{ domain_name }}
   changed_when: false
   register: ownca_wildcard_csr
 

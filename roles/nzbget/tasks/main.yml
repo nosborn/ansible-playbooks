@@ -1,90 +1,115 @@
 # yamllint disable rule:line-length
 ---
-- when: ansible_system_vendor == 'Synology'
-  block:
-    - ansible.builtin.file:
-        path: "{{ media_path }}/{{ nzbget_item }}"
-        owner: "{{ media_uid }}"
-        group: "{{ media_gid }}"
-        mode: !!str 0700
-        state: directory
-      loop:
-        - usenet
-        - usenet/complete
-        - usenet/complete/books
-        - usenet/complete/movies
-        - usenet/complete/music
-        - usenet/complete/tv
-        - usenet/incomplete
-        - usenet/nzb
-        - usenet/queue
-        - usenet/tmp
-      loop_control:
-        loop_var: nzbget_item
+- name: install dependencies
+  ansible.builtin.apt:
+    name:
+      - p7zip-full
+      - par2
+      - unrar
 
-    - name: create nzbget config volume
-      community.docker.docker_volume:
-        name: nzbget-config
+- name: fetch release info
+  delegate_to: localhost
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/nzbgetcom/nzbget/releases/latest
+    headers:
+      Accept: application/vnd.github+json
+    return_content: true
+    body_format: json
+  register: nzbget_release
 
-    - name: get nzbget config volume info
-      community.docker.docker_volume:
-        name: nzbget-config
-      register: nzbget_volume
+- name: set version fact
+  ansible.builtin.set_fact:
+    nzbget_version: "{{ nzbget_release.json.tag_name | regex_replace('^v', '') }}"
 
-    - name: configure nzbget
-      ansible.builtin.template:
-        src: nzbget.conf.j2
-        dest: "{{ nzbget_volume.volume.Mountpoint }}/nzbget.conf"
-        owner: root
-        group: "{{ media_gid }}"
-        mode: !!str 0440
-      register: nzbget_config
+- ansible.builtin.get_url:
+    url: "{{ nzbget_release.json.assets | selectattr('name', 'search', '-amd64.deb') | map(attribute='browser_download_url') | first }}"
+    dest: /tmp/nzbget-{{ nzbget_version }}-amd64.deb
+    owner: root
+    group: root
+    mode: !!str 0400
 
-    - name: create nzbget container
-      community.docker.docker_container:
-        cap_drop:
-          - ALL
-        comparisons:
-          "*": strict
-        env:
-          TZ: "{{ timezone }}"
-        healthcheck:
-          {}
-          # test:
-          #   - CMD
-          #   - /usr/bin/curl
-          #   - -fsS
-          #   - --data={"method":"version"}
-          #   - "--header=Content-Type: application/json"
-          #   - http://{{ nzbget_add_username }}:{{ nzbget_add_password }}@localhost:6789/jsonrpc
-        image: ghcr.io/nosborn/nzbget:latest
-        labels:
-          traefik.docker.network: media
-          traefik.enable: !!str true
-          traefik.http.routers.nzbget.rule: Host(`nzbget.{{ domain_name }}`)
-          traefik.http.routers.nzbget.observability.metrics: !!str true
-          traefik.http.services.nzbget.loadbalancer.server.port: !!str 6789
-        mounts:
-          - source: nzbget-config
-            target: /config
-          - source: "{{ media_path }}"
-            target: /data
-            type: bind
-        name: nzbget
-        networks:
-          - name: media
-        pull: always
-        read_only: true
-        restart: "{{ nzbget_config is changed }}"
-        restart_policy: unless-stopped
-        security_opts:
-          - no-new-privileges=true
-        ulimits:
-          - core:0:0
-        user: "{{ media_uid }}:{{ media_gid }}"
+- ansible.builtin.apt:
+    deb: /tmp/nzbget-{{ nzbget_version }}-amd64.deb
+  notify: restart nzbget
 
-    - ansible.builtin.include_role:
-        name: media
-        tasks_from: site.yml
-      vars:
-        media_name: nzbget
+- name: install scripts
+  ansible.builtin.get_url:
+    url: "{{ nzbget_item }}"
+    dest: /var/lib/nzbget/scripts/{{ nzbget_item | basename }}
+    owner: nzbget
+    group: nzbget
+    mode: !!str 0555
+  loop:
+    - https://raw.githubusercontent.com/TRaSH-Guides/Guides/refs/heads/master/docs/Downloaders/NZBGet/scripts/Clean/Clean.py
+    - https://raw.githubusercontent.com/TRaSH-Guides/Guides/refs/heads/master/docs/Downloaders/NZBGet/scripts/HashRenamer/HashRenamer.py
+    # - https://raw.githubusercontent.com/TRaSH-Guides/Guides/refs/heads/master/docs/Downloaders/NZBGet/scripts/replace_for/replace_for.py
+  loop_control:
+    loop_var: nzbget_item
+
+- name: configure
+  ansible.builtin.template:
+    src: nzbget.conf.j2
+    dest: /var/lib/nzbget/nzbget.conf
+    owner: nzbget
+    group: nzbget
+    mode: !!str 0640 # FIXME
+  notify: restart nzbget
+
+- name: add user to media group
+  ansible.builtin.user:
+    name: nzbget
+    groups:
+      - media
+
+- name: create media directories
+  ansible.builtin.file:
+    path: "{{ media_path }}/{{ nzbget_item }}"
+    owner: root
+    group: media
+    mode: !!str 2770
+    state: directory
+  loop:
+    - usenet
+    - usenet/complete
+    - usenet/complete/books
+    - usenet/complete/movies
+    - usenet/complete/music
+    - usenet/complete/tv
+    - usenet/incomplete
+    - usenet/nzb
+    - usenet/queue
+    - usenet/tmp
+  loop_control:
+    loop_var: nzbget_item
+
+- name: create service overrides directory
+  ansible.builtin.file:
+    path: /etc/systemd/system/nzbget.service.d
+    owner: root
+    group: root
+    mode: !!str 0755
+    state: directory
+
+- name: configure service overrides
+  ansible.builtin.template:
+    src: overrides.conf.j2
+    dest: /etc/systemd/system/nzbget.service.d/overrides.conf
+    owner: root
+    group: root
+    mode: !!str 0444
+  notify: restart nzbget
+
+- name: enable and start service
+  ansible.builtin.systemd_service:
+    name: nzbget.service
+    daemon_reload: true
+    enabled: true
+    state: started
+
+- name: publish site
+  ansible.builtin.include_role:
+    name: media
+    tasks_from: site.yml
+  vars:
+    media_name: nzbget
+    media_port: "{{ nzbget_control_port }}"

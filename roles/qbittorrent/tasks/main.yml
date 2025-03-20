@@ -1,109 +1,227 @@
 # yamllint disable rule:line-length
 ---
-- when: ansible_system_vendor == 'Synology'
-  block:
-    - ansible.builtin.file:
-        path: "{{ media_path }}/{{ qbittorrent_item }}"
-        owner: "{{ media_uid }}"
-        group: "{{ media_gid }}"
-        mode: !!str 0700
-        state: directory
-      loop:
-        - torrents
-        - torrents/complete
-        - torrents/complete/books
-        - torrents/complete/movies
-        - torrents/complete/music
-        - torrents/complete/tv
-        - torrents/incomplete
-      loop_control:
-        loop_var: qbittorrent_item
+- name: install package
+  ansible.builtin.apt:
+    name: qbittorrent-nox
 
-    - name: create qbittorrent config volume
-      community.docker.docker_volume:
-        name: qbittorrent-config
+- name: create user
+  ansible.builtin.user:
+    name: qbittorrent
+    comment: qBittorrent
+    create_home: false
+    groups:
+      - media
+    home: /var/lib/qbittorrent
+    shell: "{{ nologin_shell }}"
+    system: true
 
-    - name: get qbittorrent config volume info
-      community.docker.docker_volume:
-        name: qbittorrent-config
-      register: qbittorrent_volume
+- name: create config directory
+  ansible.builtin.file:
+    path: /var/lib/qbittorrent
+    owner: root
+    group: qbittorrent
+    mode: !!str 2770
+    state: directory
 
-    - name: set qbittorrent config volume permissions
-      ansible.builtin.file:
-        path: "{{ qbittorrent_volume.volume.Mountpoint }}"
-        owner: "{{ media_uid }}"
-        group: "{{ media_gid }}"
-        mode: !!str 0750
-        state: directory
+- name: create config directory
+  ansible.builtin.file:
+    path: "{{ qbittorrent_item }}"
+    owner: qbittorrent
+    group: qbittorrent
+    mode: !!str 2770
+    state: directory
+  loop:
+    - /var/lib/qbittorrent
+    - /var/lib/qbittorrent/qBittorrent
+  loop_control:
+    loop_var: qbittorrent_item
+  when: false
 
-    - ansible.builtin.file:
-        path: "{{ qbittorrent_volume.volume.Mountpoint }}/qBittorrent"
-        owner: "{{ media_uid }}"
-        group: "{{ media_gid }}"
-        mode: !!str 0700
-        state: directory
+- ansible.builtin.file:
+    path: "{{ media_path }}/{{ qbittorrent_item }}"
+    owner: root
+    group: media
+    mode: !!str 2770
+    state: directory
+  loop: # FIXME
+    - torrents
+    - torrents/complete
+    - torrents/complete/books
+    - torrents/complete/movies
+    - torrents/complete/music
+    - torrents/complete/tv
+    - torrents/incomplete
+  loop_control:
+    loop_var: qbittorrent_item
 
-    - name: configure qbittorrent
-      ansible.builtin.template:
-        src: "{{ qbittorrent_item }}.j2"
-        dest: "{{ qbittorrent_volume.volume.Mountpoint }}/qBittorrent/{{ qbittorrent_item }}"
-        owner: "{{ media_uid }}"
-        group: "{{ media_gid }}"
-        mode: !!str 0666 # FIXME
-      register: qbittorrent_config
-      loop:
-        - categories.json
-        - qBittorrent.conf
-      loop_control:
-        loop_var: qbittorrent_item
+- name: create service unit
+  ansible.builtin.template:
+    src: service.j2
+    dest: /etc/systemd/system/qbittorrent.service
+    owner: root
+    group: root
+    mode: !!str 0444
+    validate: systemd-analyze verify %s
+  notify: restart qbittorrent
 
-    - name: create qbittorrent container
-      community.docker.docker_container:
-        cap_drop:
-          - ALL
-        comparisons:
-          "*": strict
-        env:
-          TZ: "{{ timezone }}"
-        healthcheck:
-          {}
-          # test:
-          #   - CMD
-          #   - /usr/bin/curl
-          #   - -fsS
-          #   - "--header=Content-Type: application/json"
-          #   - http://$USERNAME:$PASSWORD@localhost:8080/api/v2/app/version
-        image: ghcr.io/nosborn/qbittorrent:latest
-        labels:
-          traefik.docker.network: media
-          traefik.enable: !!str true
-          traefik.http.routers.qbittorrent.rule: Host(`qbittorrent.{{ domain_name }}`)
-          traefik.http.routers.qbittorrent.observability.metrics: !!str true
-          traefik.http.services.qbittorrent.loadbalancer.server.port: !!str 8080
-        mounts:
-          - source: qbittorrent-config
-            target: /config
-          - source: "{{ media_path }}"
-            target: /data
-            type: bind
-        name: qbittorrent
-        networks:
-          - name: media
-        published_ports:
-          - "{{ ansible_default_ipv4.address }}:6881:6881"
-          - "{{ ansible_default_ipv4.address }}:6881/udp:6881/udp"
-        pull: always
-        read_only: true
-        restart: "{{ qbittorrent_config is changed }}"
-        restart_policy: unless-stopped
-        security_opts:
-          - no-new-privileges=true
-        ulimits:
-          - core:0:0
-        user: "{{ media_uid }}:{{ media_gid }}"
+- name: enable and start service
+  ansible.builtin.systemd_service:
+    name: qbittorrent.service
+    daemon_reload: true
+    enabled: true
+    state: started
 
-    - ansible.builtin.include_role:
-        name: media
-        tasks_from: site.yml
-      vars:
-        media_name: qbittorrent
+- ansible.builtin.tempfile: {}
+  register: qbittorrent_tempfile
+  changed_when: false
+
+- ansible.builtin.wait_for:
+    path: /var/lib/qbittorrent/.config/qBittorrent/qBittorrent.conf
+
+- ansible.builtin.copy:
+    src: /var/lib/qbittorrent/.config/qBittorrent/qBittorrent.conf
+    remote_src: true
+    dest: "{{ qbittorrent_tempfile.path }}"
+  changed_when: false
+
+- name: configure
+  community.general.ini_file:
+    path: "{{ qbittorrent_tempfile.path }}"
+    section: BitTorrent
+    option: "{{ qbittorrent_item.key }}"
+    value: "{{ qbittorrent_item.value }}"
+    no_extra_spaces: true
+    owner: qbittorrent
+    group: qbittorrent
+    mode: !!str 0666 # FIXME
+  loop: "{{ qbittorrent_bittorrent | ansible.builtin.dict2items }}"
+  loop_control:
+    loop_var: qbittorrent_item
+  vars:
+    qbittorrent_bittorrent:
+      Session\BTProtocol: TCP
+      Session\DefaultSavePath: "{{ media_path }}/torrents/complete"
+      Session\DisableAutoTMMByDefault: !!str false
+      Session\DisableAutoTMMTriggers\CategorySavePathChanged: !!str false
+      Session\DisableAutoTMMTriggers\DefaultSavePathChanged: !!str false
+      Session\GlobalDLSpeedLimit: 500
+      Session\GlobalUPSpeedLimit: 500
+      Session\Preallocation: !!str true
+      Session\ProxyPeerConnections: !!str true
+      Session\TempPath: "{{ media_path }}/torrents/incomplete"
+      Session\TempPathEnabled: !!str true
+  notify: restart qbittorrent
+
+- name: configure
+  community.general.ini_file:
+    path: "{{ qbittorrent_tempfile.path }}"
+    section: Core
+    option: "{{ qbittorrent_item.key }}"
+    value: "{{ qbittorrent_item.value }}"
+    no_extra_spaces: true
+    owner: qbittorrent
+    group: qbittorrent
+    mode: !!str 0666 # FIXME
+  loop: "{{ qbittorrent_core | ansible.builtin.dict2items }}"
+  loop_control:
+    loop_var: qbittorrent_item
+  vars:
+    qbittorrent_core:
+      AutoDeleteAddedTorrentFile: IfAdded
+  notify: restart qbittorrent
+
+- name: configure
+  community.general.ini_file:
+    path: "{{ qbittorrent_tempfile.path }}"
+    section: Network
+    option: "{{ qbittorrent_item.key }}"
+    value: "{{ qbittorrent_item.value }}"
+    no_extra_spaces: true
+    owner: qbittorrent
+    group: qbittorrent
+    mode: !!str 0666 # FIXME
+  loop: "{{ qbittorrent_network | ansible.builtin.dict2items }}"
+  loop_control:
+    loop_var: qbittorrent_item
+  vars:
+    qbittorrent_network:
+      PortForwardingEnabled: !!str false
+      Proxy\IP: "{{ qbittorrent_network_proxy_ip }}"
+      Proxy\Password: ""
+      Proxy\Port: >-
+        {{ '@Variant(\0\0\0\x85\x%x\x%x)' % ((qbittorrent_network_proxy_port / 256) | int, (qbittorrent_network_proxy_port % 256) | int) }}
+      Proxy\Type: "{{ qbittorrent_network_proxy_type }}"
+      Proxy\Username: ""
+  notify: restart qbittorrent
+
+- name: configure
+  community.general.ini_file:
+    path: "{{ qbittorrent_tempfile.path }}"
+    section: Preferences
+    option: "{{ qbittorrent_item.key }}"
+    value: "{{ qbittorrent_item.value }}"
+    no_extra_spaces: true
+    owner: qbittorrent
+    group: qbittorrent
+    mode: !!str 0666 # FIXME
+  loop: "{{ qbittorrent_preferences | ansible.builtin.dict2items }}"
+  loop_control:
+    loop_var: qbittorrent_item
+  vars:
+    qbittorrent_preferences:
+      WebUI\Address: 127.0.0.1
+      WebUI\LocalHostAuth: !!str false
+      WebUI\Port: &qbittorrent_webui_port 8080
+      WebUI\ReverseProxySupportEnabled: !!str true
+      WebUI\TrustedReverseProxiesList: 127.0.0.1
+      WebUI\UseUPnP: !!str false
+  notify: restart qbittorrent
+
+- ansible.builtin.copy:
+    src: "{{ qbittorrent_tempfile.path }}"
+    remote_src: true
+    dest: /var/lib/qbittorrent/.config/qBittorrent/qBittorrent.conf
+  check_mode: true
+  register: qbittorrent_result
+
+- name: stopped service
+  ansible.builtin.systemd_service:
+    name: qbittorrent.service
+    state: stopped
+  when: qbittorrent_result is changed
+
+- ansible.builtin.copy:
+    src: "{{ qbittorrent_tempfile.path }}"
+    remote_src: true
+    dest: /var/lib/qbittorrent/.config/qBittorrent/qBittorrent.conf
+    owner: qbittorrent
+    group: qbittorrent
+    mode: !!str 0666 # FIXME
+  when: qbittorrent_result is changed
+
+- ansible.builtin.file:
+    path: "{{ qbittorrent_tempfile.path }}"
+    state: absent
+  changed_when: false
+
+- name: configure categories
+  ansible.builtin.template:
+    src: categories.json.j2
+    dest: /var/lib/qbittorrent/.config/qBittorrent/categories.json
+    owner: qbittorrent
+    group: qbittorrent
+    mode: !!str 0440
+    validate: jsonlint --strict %s
+  notify: restart qbittorrent
+
+- name: start service
+  ansible.builtin.systemd_service:
+    name: qbittorrent.service
+    state: started
+
+- ansible.builtin.include_role:
+    name: media
+    tasks_from: site.yml
+  vars:
+    media_name: qbittorrent
+    media_port: *qbittorrent_webui_port

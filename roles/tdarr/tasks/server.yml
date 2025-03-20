@@ -1,0 +1,44 @@
+---
+- ansible.builtin.file:
+    path: /var/lib/tdarr/Tdarr_Server
+    owner: root
+    group: root
+    mode: !!str 0755
+    state: directory
+
+- name: install server
+  ansible.builtin.unarchive:
+    src: "{{ tdarr_server_src }}"
+    remote_src: true
+    dest: /var/lib/tdarr/Tdarr_Server
+    owner: root
+    group: root
+    creates: /var/lib/tdarr/Tdarr_Server/Tdarr_Server
+  notify: restart tdarr-server
+
+- name: configure server
+  ansible.builtin.template:
+    src: Tdarr_Server_Config.j2 # TODO: trim trailing LF
+    dest: /var/lib/tdarr/configs/Tdarr_Server_Config.json
+    owner: tdarr
+    group: tdarr
+    mode: !!str 0600
+    validate: jsonlint --strict %s
+  notify: restart tdarr-server
+
+- name: create server service unit
+  ansible.builtin.template:
+    src: tdarr-server.service.j2
+    dest: /etc/systemd/system/tdarr-server.service
+    owner: root
+    group: root
+    mode: !!str 0444
+    validate: systemd-analyze verify %s
+  notify: restart tdarr-server
+
+- name: enable and start server
+  ansible.builtin.systemd_service:
+    name: tdarr-server.service
+    daemon_reload: true
+    enabled: true
+    state: started

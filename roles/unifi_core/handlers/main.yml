@@ -1,5 +1,5 @@
 ---
-- name: restart unifi-core
-  ansible.builtin.service:
-    name: unifi-core.service
-    state: restarted
+- name: reload nginx
+  ansible.builtin.systemd_service:
+    name: nginx.service
+    state: reloaded

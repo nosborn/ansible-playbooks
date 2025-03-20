@@ -37,10 +37,15 @@
   gather_facts: false
 
   roles:
-    - role: unifi_gateway
+    - role: unifi_core
+      vars:
+        unifi_core_certificate: |
+          {{ hostvars.localhost.ownca_wildcard_certificate }}
+          {{ hostvars.localhost.ownca_root_certificate }}
+        unifi_core_privatekey: |
+          {{ hostvars.localhost.ownca_wildcard_privatekey }}
       tags:
-        - unifi-gateway
-      when: false
+        - unifi-core
 
 - name: Configure Tombstone
   hosts:
@@ -70,55 +75,6 @@
       tags:
         - always
       notify: reboot
-
-    - name: configure WireGuard device
-      ansible.builtin.copy:
-        content: |
-          [NetDev]
-          Kind=wireguard
-          Name=wg0
-
-          [WireGuard]
-          ListenPort={{ wg0_listen_port }}
-          PrivateKey={{ wg0_interface_private_key }}
-
-          [WireGuardPeer]
-          {% for allowed_ips in wg0_peer_allowed_ips %}
-          AllowedIPs={{ allowed_ips }}
-          {% endfor %}
-          Endpoint={{ wg0_peer_endpoint }}
-          PersistentKeepalive=25
-          PublicKey={{ wg0_peer_public_key }}
-        dest: /etc/systemd/network/99-wg0.netdev
-        owner: root
-        group: systemd-network
-        mode: !!str 0440
-      tags:
-        - always
-      notify: reboot
-      when: false
-
-    - name: configure WireGuard VPN
-      ansible.builtin.copy:
-        content: |
-          [Match]
-          Name=wg0
-
-          [Network]
-          Address={{ wg0_interface_address }}
-          ;DNS={{ wg0_interface_dns }}
-
-          [Route]
-          Destination={{ wg0_route_destination }}
-          Gateway={{ wg0_interface_address | ansible.utils.ipaddr('address') }}
-        dest: /etc/systemd/network/99-wg0.network
-        owner: root
-        group: root
-        mode: !!str 0444
-      tags:
-        - always
-      notify: reboot
-      when: false
 
     - name: enable systemd-networkd
       ansible.builtin.systemd_service:
@@ -152,7 +108,10 @@
           - acl
           - attr
           - gpg
+          - python3-demjson # jsonlint
           - python3-lxml
+          - virtualenv
+          - yamllint
       tags:
         - always
 
@@ -174,6 +133,17 @@
     - role: alloy
       tags:
         - alloy
+    - role: bazarr
+      tags:
+        - bazarr
+    - role: calibre
+      tags:
+        - calibre
+      when: false # TODO
+    - role: calibre_web
+      tags:
+        - calibre-web
+      when: false # TODO
     - role: chrony
       tags:
         - chrony
@@ -197,19 +167,35 @@
     - role: loki
       tags:
         - loki
-    - role: media
-      tags:
-        - media
-      when: false
     - role: nginx
       tags:
         - nginx
+    - role: nzbget
+      tags:
+        - nzbget
     - role: opensmtpd
       tags:
         - opensmtpd
+    - role: overseerr
+      tags:
+        - overseerr
+      when: false # TODO
     - role: prometheus
       tags:
         - prometheus
+    - role: prowlarr
+      tags:
+        - prowlarr
+    - role: qbittorrent
+      tags:
+        - qbittorrent
+    - role: radarr
+      tags:
+        - radarr
+    - role: readarr
+      tags:
+        - readarr
+      when: false # TODO
     - role: restic
       tags:
         - restic
@@ -217,9 +203,15 @@
     - role: samba
       tags:
         - samba
+    - role: sonarr
+      tags:
+        - sonarr
     - role: sshd
       tags:
         - sshd
+    - role: tdarr
+      tags:
+        - tdarr
     - role: unattended_upgrades
       tags:
         unattended-upgrades
@@ -231,23 +223,23 @@
     - name: install additional packages
       ansible.builtin.apt:
         name:
-          - curl
-          - jq
-          - linux-cpupower
+          # - curl
+          # - jq
+          # - linux-cpupower
           - lsof
-          - man-db
+          # - man-db
           - net-tools
           - rfkill
           - tcpdump
       tags:
         - always
-      when: false
 
     - name: remove unwanted packages
       ansible.builtin.apt:
         autoremove: true
         name:
           - nano
+          - python3-kubernetes
         purge: true
         state: absent
       tags:
@@ -376,37 +368,6 @@
     - role: alloy
       tags:
         - alloy
-    - role: calibre
-      tags:
-        - calibre
-    - role: calibre_web
-      tags:
-        - calibre-web
-      when: false # TODO
-    - role: emby
-      tags:
-        - emby
-    - role: jellyseerr
-      tags:
-        - jellyseerr
-    - role: nzbget
-      tags:
-        - nzbget
-    - role: prowlarr
-      tags:
-        - prowlarr
-    - role: qbittorrent
-      tags:
-        - qbittorrent
-    - role: radarr
-      tags:
-        - radarr
-    - role: readarr
-      tags:
-        - readarr
-    - role: sonarr
-      tags:
-        - sonarr
     - role: traefik
       tags:
         - traefik
@@ -414,16 +375,67 @@
       tags:
         - watchtower
 
-# - name: Configure Pastime
-#   hosts: pastime
-#   gather_facts: false
+- name: Configure Pastime
+  hosts: pastime
+  gather_facts: false
 
-#   # tasks:
-#   #   - ansible.windows.win_optional_feature:
-#   #       name:
-#   #         - Microsoft-Windows-Subsystem-Linux
-#   #         - VirtualMachinePlatform
-#   #     register: result
+  roles:
+    - role: media
+      tags:
+        - media
 
-#   #   - ansible.windows.win_reboot: {}
-#   #     when: result.reboot_required
+  tasks:
+    - ansible.windows.win_get_url:
+        url: https://storage.tdarr.io/versions/2.17.01/win32_x64/Tdarr_Updater.zip
+        dest: C:\Users\Nick\Downloads\Tdarr_Updater.zip
+        force: false
+
+    - ansible.windows.win_file:
+        dest: C:\Users\Nick\Tdarr
+        state: directory
+
+    - community.windows.win_unzip:
+        src: C:\Users\Nick\Downloads\Tdarr_Updater.zip
+        dest: C:\Users\Nick\Tdarr
+        creates: C:\Users\Nick\Tdarr\Tdarr_Updater.exe
+
+    - ansible.windows.win_command:
+        argv:
+          - C:\Users\Nick\Tdarr\Tdarr_Updater.exe
+        chdir: C:\Users\Nick\Tdarr
+        creates: C:\Users\Nick\Tdarr\Tdarr_Node\Tdarr_Node.exe
+
+    - community.windows.win_shortcut:
+        src: C:\Users\Nick\Tdarr\Tdarr_Node\Tdarr_Node_Tray.exe
+        directory: C:\Users\Nick\Tdarr
+        windowstyle: minimized
+        dest: C:\Roaming\AppData\Nick\Microsoft\Windows\Start Menu\Programs\Start-up\Tdarr_Node_Tray.lnk
+      when: false # FIXME
+
+    - ansible.windows.win_copy:
+        content: |
+          {
+            "nodeName": "{{ ansible_hostname }}",
+            "serverIP": "{{ hostvars.tombstone.lan_ipv4_address }}",
+            "serverPort": 8266,
+            "handbrakePath": "",
+            "ffmpegPath": "",
+            "mkvpropeditPath": "",
+            "pathTranslators": [
+              {
+                "server": "/data",
+                "node": "\\\\DISKSTATION\\Media"
+              }
+            ],
+            "priority": -1
+          }
+        dest: C:\Users\Nick\Tdarr\configs\Tdarr_Node_Config.json
+
+    - ansible.builtin.win_file:
+        path: \\DISKSTATION\Media\{{ item }}"
+        state: directory
+      loop:
+        - media\movies
+        - media\tv
+        - transcode_cache\movies
+        - transcode_cache\tv

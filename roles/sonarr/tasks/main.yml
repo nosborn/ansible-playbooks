@@ -1,126 +1,137 @@
 # yamllint disable rule:line-length
 ---
-- when: ansible_system_vendor == 'Synology'
-  block:
-    - ansible.builtin.file:
-        path: "{{ media_path }}/{{ sonarr_item }}"
-        owner: "{{ media_uid }}"
-        group: "{{ media_gid }}"
-        mode: !!str 0700
-        state: directory
-      loop:
-        - media
-        - media/tv
-        - torrents
-        - torrents/complete
-        - torrents/complete/tv
-        - usenet
-        - usenet/complete
-        - usenet/complete/tv
-      loop_control:
-        loop_var: sonarr_item
+- name: fetch release info
+  delegate_to: localhost
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/Sonarr/Sonarr/releases/latest
+    headers:
+      Accept: application/vnd.github+json
+    return_content: true
+    body_format: json
+  register: sonarr_release
 
-    - name: create sonarr config volume
-      community.docker.docker_volume:
-        name: sonarr-config
+- name: set version fact
+  ansible.builtin.set_fact:
+    sonarr_version: "{{ sonarr_release.json.tag_name | regex_replace('^v', '') }}"
 
-    - name: get sonarr config volume info
-      community.docker.docker_volume:
-        name: sonarr-config
-      register: sonarr_volume
+- ansible.builtin.file:
+    path: "{{ sonarr_item }}"
+    owner: root
+    group: root
+    mode: !!str 0755
+    state: directory
+  loop:
+    - /opt/sonarr
+    - /opt/sonarr/{{ sonarr_version }}
+  loop_control:
+    loop_var: sonarr_item
 
-    - name: set sonarr volume permissions
-      ansible.builtin.file:
-        path: "{{ sonarr_volume.volume.Mountpoint }}"
-        owner: "{{ media_uid }}"
-        group: "{{ media_gid }}"
-        mode: !!str 0750
-        state: directory
+- ansible.builtin.unarchive:
+    src: "{{ sonarr_release.json.assets | selectattr('name', 'search', '.linux-x64.tar.gz') | map(attribute='browser_download_url') | first }}"
+    remote_src: true
+    dest: /opt/sonarr/{{ sonarr_version }}
+    exclude: Sonarr.Update
+    owner: root
+    group: root
+    extra_opts:
+      - --strip-components=1
+    creates: /opt/sonarr/{{ sonarr_version }}/Sonarr
+  notify: restart sonarr
 
-    - name: create sonarr container
-      community.docker.docker_container:
-        cap_drop:
-          - ALL
-        command:
-          - -data=/config
-          - -nobrowser
-        comparisons:
-          "*": strict
-        env:
-          TZ: "{{ timezone }}"
-        etc_hosts:
-          host.docker.internal: host-gateway
-        healthcheck:
-          test:
-            - CMD
-            - /usr/bin/curl
-            - -fsS
-            - http://localhost:8989/ping
-        image: ghcr.io/nosborn/sonarr:latest
-        labels:
-          traefik.docker.network: media
-          traefik.enable: !!str true
-          traefik.http.routers.sonarr.rule: Host(`sonarr.{{ domain_name }}`)
-          traefik.http.routers.sonarr.observability.metrics: !!str true
-          traefik.http.services.sonarr.loadbalancer.server.port: !!str 8989
-        mounts:
-          - source: sonarr-config
-            target: /config
-          - source: "{{ media_path }}"
-            target: /data
-            type: bind
-        name: sonarr
-        networks:
-          - name: media
-        pull: always
-        restart_policy: unless-stopped
-        security_opts:
-          - no-new-privileges=true
-        ulimits:
-          - core:0:0
-        user: "{{ media_uid }}:{{ media_gid }}"
+- name: create user
+  ansible.builtin.user:
+    name: sonarr
+    comment: Sonarr
+    create_home: false
+    groups:
+      - media
+    home: /var/lib/sonarr
+    shell: "{{ nologin_shell }}"
+    system: true
 
-    - ansible.builtin.wait_for:
-        path: "{{ sonarr_volume.volume.Mountpoint }}/config.xml"
+- name: create config directory
+  ansible.builtin.file:
+    path: /var/lib/sonarr
+    owner: root
+    group: sonarr
+    mode: !!str 2770
+    state: directory
 
-    - name: configure sonarr
-      community.general.xml:
-        path: "{{ sonarr_volume.volume.Mountpoint }}/config.xml"
-        xpath: /Config/{{ sonarr_item.key }}
-        value: "{{ sonarr_item.value | string }}"
-      loop: "{{ config | ansible.builtin.dict2items }}"
-      loop_control:
-        loop_var: sonarr_item
-      vars:
-        config:
-          AnalyticsEnabled: !!str False
-          # AuthenticationRequired: DisabledForLocalAddresses
-          LaunchBrowser: !!str False
-          LogDbEnabled: !!str False
-          LogLevel: info
-          UpdateAutomatically: !!str False
-      register: sonarr_result
+- ansible.builtin.file:
+    path: "{{ media_path }}/{{ sonarr_item }}"
+    owner: root
+    group: media
+    mode: !!str 2770
+    state: directory
+  loop:
+    - backups
+    - backups/sonarr
+    - media
+    - media/tv
+    - torrents
+    - torrents/complete
+    - torrents/complete/tv
+    - usenet
+    - usenet/complete
+    - usenet/complete/tv
+  loop_control:
+    loop_var: sonarr_item
 
-    - name: restart sonarr container
-      community.docker.docker_container:
-        comparisons:
-          "*": ignore
-        name: sonarr
-        restart: "{{ sonarr_result is changed }}"
+- name: create service unit
+  ansible.builtin.template:
+    src: service.j2
+    dest: /etc/systemd/system/sonarr.service
+    owner: root
+    group: root
+    mode: !!str 0444
+    validate: systemd-analyze verify %s
+  notify: restart sonarr
 
-    - name: remove sonarr logs database
-      ansible.builtin.file:
-        path: "{{ sonarr_volume.volume.Mountpoint }}/{{ sonarr_item }}"
-        state: absent
-      loop:
-        - logs.db
-        - logs.db-shm
-        - logs.db-wal
-      loop_control:
-        loop_var: sonarr_item
+- name: enable and start service
+  ansible.builtin.systemd_service:
+    name: sonarr.service
+    daemon_reload: true
+    enabled: true
+    state: started
 
-    - ansible.builtin.include_role:
-        name: media
-        tasks_from: site.yml
-      vars:
-        media_name: sonarr
+- ansible.builtin.wait_for:
+    path: /var/lib/sonarr/config.xml
+
+- name: configure
+  community.general.xml:
+    path: /var/lib/sonarr/config.xml
+    xpath: /Config/{{ sonarr_item.key }}
+    value: "{{ sonarr_item.value | string }}"
+  loop: "{{ config | ansible.builtin.dict2items }}"
+  loop_control:
+    loop_var: sonarr_item
+  vars:
+    config:
+      AnalyticsEnabled: !!str False
+      # AuthenticationRequired: DisabledForLocalAddresses
+      BindAddress: 127.0.0.1
+      LaunchBrowser: !!str False
+      LogDbEnabled: !!str False
+      LogLevel: info
+      Port: "{{ sonarr_port }}"
+      UpdateAutomatically: !!str False
+  notify: restart sonarr
+
+- name: remove logs database
+  ansible.builtin.file:
+    path: /var/lib/sonarr/{{ sonarr_item }}
+    state: absent
+  loop:
+    - logs.db
+    - logs.db-shm
+    - logs.db-wal
+  loop_control:
+    loop_var: sonarr_item
+  when: false # FIXME
+
+- ansible.builtin.include_role:
+    name: media
+    tasks_from: site.yml
+  vars:
+    media_name: sonarr
+    media_port: "{{ sonarr_port }}"

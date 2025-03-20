@@ -4,6 +4,7 @@
   ansible.builtin.apt:
     name:
       - ca-certificates
+      - dns-root-data
       - unbound
       - unbound-anchor
     state: present
