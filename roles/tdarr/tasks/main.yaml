@@ -67,18 +67,18 @@
     loop_var: tdarr_item
 
 - ansible.builtin.include_tasks:
-    file: server.yml
+    file: server.yaml
   vars:
     tdarr_server_src: "{{ tdarr_versions.json[tdarr_version].linux_x64.Tdarr_Server }}"
 
 - ansible.builtin.include_tasks:
-    file: node.yml
+    file: node.yaml
   vars:
     tdarr_node_src: "{{ tdarr_versions.json[tdarr_version].linux_x64.Tdarr_Node }}"
 
 - ansible.builtin.include_role:
     name: media
-    tasks_from: site.yml
+    tasks_from: site.yaml
   vars:
     media_name: tdarr
     media_port: "{{ tdarr_webui_port }}"

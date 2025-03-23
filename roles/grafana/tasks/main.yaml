@@ -39,7 +39,7 @@
 
 - ansible.builtin.include_role:
     name: nginx
-    tasks_from: site.yml
+    tasks_from: site.yaml
   vars:
     nginx_src: grafana-redirect.j2
     nginx_dest: grafana-redirect
@@ -47,7 +47,7 @@
 
 - ansible.builtin.include_role:
     name: unbound
-    tasks_from: fragment.yml
+    tasks_from: fragment.yaml
   vars:
     unbound_content: |
       server:

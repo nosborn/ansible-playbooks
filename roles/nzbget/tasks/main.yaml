@@ -109,7 +109,7 @@
 - name: publish site
   ansible.builtin.include_role:
     name: media
-    tasks_from: site.yml
+    tasks_from: site.yaml
   vars:
     media_name: nzbget
     media_port: "{{ nzbget_control_port }}"

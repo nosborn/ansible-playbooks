@@ -3,7 +3,7 @@
 - name: publish site
   ansible.builtin.include_role:
     name: nginx
-    tasks_from: site.yml
+    tasks_from: site.yaml
   vars:
     nginx_server_name: "{{ media_name }}.{{ domain_name }}"
     nginx_src: media-proxy.conf.j2
@@ -15,7 +15,7 @@
       delegate_to: tombstone
       ansible.builtin.import_role:
         name: unbound
-        tasks_from: fragment.yml
+        tasks_from: fragment.yaml
       vars:
         unbound_content: |
           server:
@@ -27,7 +27,7 @@
     - name: publish DNS
       ansible.builtin.import_role:
         name: unbound
-        tasks_from: fragment.yml
+        tasks_from: fragment.yaml
       vars:
         unbound_content: |
           server:

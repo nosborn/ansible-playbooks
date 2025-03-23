@@ -221,7 +221,7 @@
 
 - ansible.builtin.include_role:
     name: media
-    tasks_from: site.yml
+    tasks_from: site.yaml
   vars:
     media_name: qbittorrent
     media_port: *qbittorrent_webui_port

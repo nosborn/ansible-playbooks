@@ -7,7 +7,7 @@
     state: directory
 
 - ansible.builtin.include_tasks:
-    file: root.yml
+    file: root.yaml
 
 - ansible.builtin.include_tasks:
-    file: wildcard.yml
+    file: wildcard.yaml

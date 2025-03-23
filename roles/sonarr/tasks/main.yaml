@@ -131,7 +131,7 @@
 
 - ansible.builtin.include_role:
     name: media
-    tasks_from: site.yml
+    tasks_from: site.yaml
   vars:
     media_name: sonarr
     media_port: "{{ sonarr_port }}"

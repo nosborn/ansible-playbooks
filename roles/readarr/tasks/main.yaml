@@ -23,7 +23,7 @@
 
 - ansible.builtin.include_role:
     name: k3s
-    tasks_from: namespace.yml
+    tasks_from: namespace.yaml
   vars:
     k3s_name: media
 
@@ -77,6 +77,6 @@
 
 - ansible.builtin.include_role:
     name: media
-    tasks_from: site.yml
+    tasks_from: site.yaml
   vars:
     media_name: readarr

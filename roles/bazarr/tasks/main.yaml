@@ -86,9 +86,9 @@
 - name: create media directories
   ansible.builtin.file:
     path: "{{ media_path }}/{{ bazarr_item }}"
-    owner: "{{ media_owner }}"
-    group: "{{ media_group }}"
-    mode: !!str 0750
+    owner: root
+    group: media
+    mode: !!str 2770
     state: directory
   loop:
     - backups
@@ -118,7 +118,7 @@
 - name: publish service
   ansible.builtin.include_role:
     name: media
-    tasks_from: site.yml
+    tasks_from: site.yaml
   vars:
     media_name: bazarr
     media_port: "{{ bazarr_port }}"
