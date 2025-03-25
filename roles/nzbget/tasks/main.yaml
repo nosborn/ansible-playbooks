@@ -1,12 +1,5 @@
 # yamllint disable rule:line-length
 ---
-- name: install dependencies
-  ansible.builtin.apt:
-    name:
-      - p7zip-full
-      - par2
-      - unrar
-
 - name: fetch release info
   delegate_to: localhost
   ansible.builtin.uri:
@@ -16,84 +9,105 @@
     return_content: true
     body_format: json
   register: nzbget_release
+  until: nzbget_release is success
 
 - name: set version fact
   ansible.builtin.set_fact:
     nzbget_version: "{{ nzbget_release.json.tag_name | regex_replace('^v', '') }}"
 
+- ansible.builtin.file:
+    path: "{{ nzbget_item }}"
+    owner: root
+    group: root
+    mode: !!str 0755
+    state: directory
+  loop:
+    - /opt/nzbget
+    - /opt/nzbget/scripts
+    - /opt/nzbget/{{ nzbget_version }}
+  loop_control:
+    loop_var: nzbget_item
+
 - ansible.builtin.get_url:
-    url: "{{ nzbget_release.json.assets | selectattr('name', 'search', '-amd64.deb') | map(attribute='browser_download_url') | first }}"
-    dest: /tmp/nzbget-{{ nzbget_version }}-amd64.deb
+    url: "{{ nzbget_release.json.assets | selectattr('name', 'search', '-bin-linux.run') | map(attribute='browser_download_url') | first }}"
+    dest: /tmp/nzbget-{{ nzbget_version }}-bin-linux.run
     owner: root
     group: root
     mode: !!str 0400
 
-- ansible.builtin.apt:
-    deb: /tmp/nzbget-{{ nzbget_version }}-amd64.deb
+- ansible.builtin.shell:
+    chdir: /tmp
+    cmd: sed '1,/^#END-OF-INSTALLER$/d' nzbget-{{ nzbget_version }}-bin-linux.run >nzbget-{{ nzbget_version }}.tgz
+    creates: /tmp/nzbget-{{ nzbget_version }}.tgz
+
+- ansible.builtin.unarchive:
+    src: /tmp/nzbget-{{ nzbget_version }}.tgz
+    remote_src: true
+    dest: /opt/nzbget/{{ nzbget_version }}
+    owner: root
+    group: root
+    creates: /opt/nzbget/{{ nzbget_version }}/nzbget-x86_64
   notify: restart nzbget
+
+- ansible.builtin.file:
+    src: "{{ nzbget_item }}-x86_64"
+    dest: /opt/nzbget/{{ nzbget_version }}/{{ nzbget_item }}
+    state: link
+  loop:
+    - 7za
+    - nzbget
+    - unrar
+    - unrar7
+  loop_control:
+    loop_var: nzbget_item
 
 - name: install scripts
   ansible.builtin.get_url:
     url: "{{ nzbget_item }}"
-    dest: /var/lib/nzbget/scripts/{{ nzbget_item | basename }}
-    owner: nzbget
-    group: nzbget
+    dest: /opt/nzbget/scripts/{{ nzbget_item | basename }}
+    owner: root
+    group: root
     mode: !!str 0555
   loop:
     - https://raw.githubusercontent.com/TRaSH-Guides/Guides/refs/heads/master/docs/Downloaders/NZBGet/scripts/Clean/Clean.py
-    - https://raw.githubusercontent.com/TRaSH-Guides/Guides/refs/heads/master/docs/Downloaders/NZBGet/scripts/HashRenamer/HashRenamer.py
     # - https://raw.githubusercontent.com/TRaSH-Guides/Guides/refs/heads/master/docs/Downloaders/NZBGet/scripts/replace_for/replace_for.py
   loop_control:
     loop_var: nzbget_item
+
+- name: create config directory
+  ansible.builtin.file:
+    path: /var/lib/nzbget
+    owner: root
+    group: "{{ library_group }}"
+    mode: !!str 2770
+    state: directory
 
 - name: configure
   ansible.builtin.template:
     src: nzbget.conf.j2
     dest: /var/lib/nzbget/nzbget.conf
-    owner: nzbget
-    group: nzbget
+    owner: "{{ library_user }}"
+    group: "{{ library_group }}"
     mode: !!str 0640 # FIXME
   notify: restart nzbget
 
-- name: add user to media group
-  ansible.builtin.user:
-    name: nzbget
-    groups:
-      - media
-
-- name: create media directories
+- name: create library directories
   ansible.builtin.file:
-    path: "{{ media_path }}/{{ nzbget_item }}"
-    owner: root
-    group: media
+    path: "{{ library_path }}/{{ nzbget_item }}"
+    owner: "{{ library_user }}"
+    group: "{{ library_group }}"
     mode: !!str 2770
     state: directory
   loop:
-    - usenet
     - usenet/complete
-    - usenet/complete/books
-    - usenet/complete/movies
-    - usenet/complete/music
-    - usenet/complete/tv
     - usenet/incomplete
-    - usenet/nzb
-    - usenet/queue
-    - usenet/tmp
   loop_control:
     loop_var: nzbget_item
 
-- name: create service overrides directory
-  ansible.builtin.file:
-    path: /etc/systemd/system/nzbget.service.d
-    owner: root
-    group: root
-    mode: !!str 0755
-    state: directory
-
-- name: configure service overrides
+- name: create service unit
   ansible.builtin.template:
-    src: overrides.conf.j2
-    dest: /etc/systemd/system/nzbget.service.d/overrides.conf
+    src: service.j2
+    dest: /etc/systemd/system/nzbget.service
     owner: root
     group: root
     mode: !!str 0444
@@ -108,8 +122,8 @@
 
 - name: publish site
   ansible.builtin.include_role:
-    name: media
-    tasks_from: site.yaml
+    name: library
+    tasks_from: application.yaml
   vars:
-    media_name: nzbget
-    media_port: "{{ nzbget_control_port }}"
+    library_application_name: nzbget
+    library_application_port: "{{ nzbget_control_port }}"

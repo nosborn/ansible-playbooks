@@ -1,0 +1,6 @@
+---
+- name: reload library mount
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+    name: "{{ library_mount_unit_name }}.mount"
+    state: reloaded

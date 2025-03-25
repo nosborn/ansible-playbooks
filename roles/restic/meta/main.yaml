@@ -1,4 +1,4 @@
 ---
 dependencies:
-  - role: media
+  - role: library
   - role: timemachine

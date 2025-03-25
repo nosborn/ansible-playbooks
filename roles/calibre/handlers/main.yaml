@@ -1,0 +1,6 @@
+---
+- name: restart calibre-server
+  ansible.builtin.systemd_service:
+    name: calibre-server.service
+    daemon_reload: true
+    state: restarted

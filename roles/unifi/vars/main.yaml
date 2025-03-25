@@ -1,3 +1,0 @@
----
-unifi_dir: /usr/lib/unifi
-unifi_keystore_path: /etc/ssl/private/unifi.keystore.jks

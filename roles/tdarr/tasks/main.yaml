@@ -1,12 +1,15 @@
+# yamllint disable rule:line-length
 ---
 - name: install dependencies
   ansible.builtin.apt:
     name:
       - handbrake-cli
       # - libtesseract4
+      - intel-media-va-driver-non-free
       - mediainfo
       - mkvtoolnix
       - unzip
+      - vainfo
 
 - name: get versions info
   ansible.builtin.uri:
@@ -19,29 +22,19 @@
   ansible.builtin.set_fact:
     tdarr_version: "{{ tdarr_versions.json | first }}"
 
-- ansible.builtin.file:
+- name: create config directory
+  ansible.builtin.file:
     path: /var/lib/tdarr
     owner: root
     group: root
     mode: !!str 0755
     state: directory
 
-- name: create user
-  ansible.builtin.user:
-    name: tdarr
-    comment: Tdarr
-    create_home: false
-    groups:
-      - media
-    home: /var/lib/tdarr
-    shell: "{{ nologin_shell }}"
-    system: true
-
 - name: create config directory
   ansible.builtin.file:
     path: "{{ tdarr_item }}"
     owner: root
-    group: tdarr
+    group: "{{ library_group }}"
     mode: !!str 2770
     state: directory
   loop:
@@ -51,15 +44,14 @@
   loop_control:
     loop_var: tdarr_item
 
-- ansible.builtin.file:
-    path: "{{ media_path }}/{{ tdarr_item }}"
+- name: create cache directory
+  ansible.builtin.file:
+    path: "{{ library_path }}/{{ tdarr_item }}"
     owner: root
-    group: media
+    group: "{{ library_group }}"
     mode: !!str 2770
     state: directory
   loop:
-    - media/movies
-    - media/tv
     - transcode_cache
     - transcode_cache/movies
     - transcode_cache/tv
@@ -70,6 +62,7 @@
     file: server.yaml
   vars:
     tdarr_server_src: "{{ tdarr_versions.json[tdarr_version].linux_x64.Tdarr_Server }}"
+  when: tdarr_server
 
 - ansible.builtin.include_tasks:
     file: node.yaml
@@ -77,8 +70,8 @@
     tdarr_node_src: "{{ tdarr_versions.json[tdarr_version].linux_x64.Tdarr_Node }}"
 
 - ansible.builtin.include_role:
-    name: media
-    tasks_from: site.yaml
+    name: library
+    tasks_from: application.yaml
   vars:
-    media_name: tdarr
-    media_port: "{{ tdarr_webui_port }}"
+    library_application_name: tdarr
+    library_application_port: "{{ tdarr_webui_port }}"

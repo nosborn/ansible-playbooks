@@ -24,6 +24,7 @@
     group: www-data
     mode: !!str 0440
   notify: restart nginx
+  when: ansible_hostname == 'tombstone' # FIXME
 
 - ansible.builtin.copy:
     content: |
@@ -34,6 +35,7 @@
     group: root
     mode: !!str 0444
   notify: restart nginx
+  when: ansible_hostname == 'tombstone' # FIXME
 
 - name: configure
   ansible.builtin.template:

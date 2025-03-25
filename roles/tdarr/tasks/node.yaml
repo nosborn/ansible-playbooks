@@ -19,13 +19,20 @@
 
 - name: configure node
   ansible.builtin.template:
-    src: Tdarr_Node_Config.j2 # TODO: trim trailing LF
+    src: Tdarr_Node_Config.j2
     dest: /var/lib/tdarr/configs/Tdarr_Node_Config.json
-    owner: tdarr
-    group: tdarr
+    owner: "{{ library_user }}"
+    group: "{{ library_group }}"
     mode: !!str 0600
     validate: jsonlint --strict %s
   notify: restart tdarr-node
+
+- ansible.builtin.file:
+    path: /var/lib/tdarr/Tdarr_Node/assets/app/plugins
+    owner: root
+    group: "{{ library_group }}"
+    mode: !!str 2770
+    state: directory
 
 - name: create node service unit
   ansible.builtin.template:
@@ -41,5 +48,5 @@
   ansible.builtin.systemd_service:
     name: tdarr-node.service
     daemon_reload: true
-    enabled: true
-    state: started
+    enabled: false # TODO: true
+    state: stopped # TODO: started

@@ -1,7 +1,7 @@
 [Unit]
-After=network.target {{ media_mount_unit_name }}
+After=network.target {{ library_mount_unit_name }}
 Description=Lidarr Daemon
-Requires={{ media_mount_unit_name }}
+Requires={{ library_mount_unit_name }}
 
 [Service]
 ExecStart=/opt/lidarr/{{ lidarr_version }}/Lidarr -data={{ lidarr_home }} -nobrowser
@@ -19,9 +19,12 @@ ProtectKernelLogs=yes
 ProtectKernelModules=yes
 ProtectKernelTunables=yes
 ProtectSystem=strict
-ReadWritePaths={{ media_path }}
+ReadWritePaths={{ library_path }}
 RemoveIPC=yes
 Restart=on-failure
+RestartSec=5
+RestrictAddressFamilies=AF_INET AF_INET6 AF_NETLINK AF_UNIX
+RestrictNamespaces=yes
 RestrictRealtime=yes
 StateDirectory=lidarr
 StateDirectoryMode=0750

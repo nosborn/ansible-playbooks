@@ -1,4 +1,4 @@
 ---
 dependencies:
   - role: lego
-    when: lego_domains is defined
+    when: false # FIXME: lego_domains is defined

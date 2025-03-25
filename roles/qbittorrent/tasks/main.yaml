@@ -38,18 +38,12 @@
   when: false
 
 - ansible.builtin.file:
-    path: "{{ media_path }}/{{ qbittorrent_item }}"
+    path: "{{ library_path }}/{{ qbittorrent_item }}"
     owner: root
-    group: media
+    group: qbittorrent
     mode: !!str 2770
     state: directory
-  loop: # FIXME
-    - torrents
-    - torrents/complete
-    - torrents/complete/books
-    - torrents/complete/movies
-    - torrents/complete/music
-    - torrents/complete/tv
+  loop:
     - torrents/incomplete
   loop_control:
     loop_var: qbittorrent_item
@@ -100,7 +94,7 @@
   vars:
     qbittorrent_bittorrent:
       Session\BTProtocol: TCP
-      Session\DefaultSavePath: "{{ media_path }}/torrents/complete"
+      Session\DefaultSavePath: "{{ library_path }}/torrents/complete"
       Session\DisableAutoTMMByDefault: !!str false
       Session\DisableAutoTMMTriggers\CategorySavePathChanged: !!str false
       Session\DisableAutoTMMTriggers\DefaultSavePathChanged: !!str false
@@ -108,7 +102,7 @@
       Session\GlobalUPSpeedLimit: 500
       Session\Preallocation: !!str true
       Session\ProxyPeerConnections: !!str true
-      Session\TempPath: "{{ media_path }}/torrents/incomplete"
+      Session\TempPath: "{{ library_path }}/torrents/incomplete"
       Session\TempPathEnabled: !!str true
   notify: restart qbittorrent
 
@@ -206,7 +200,7 @@
 
 - name: configure categories
   ansible.builtin.template:
-    src: categories.json.j2
+    src: categories.j2 # NOT: `categories.json.j2`
     dest: /var/lib/qbittorrent/.config/qBittorrent/categories.json
     owner: qbittorrent
     group: qbittorrent
@@ -220,8 +214,8 @@
     state: started
 
 - ansible.builtin.include_role:
-    name: media
-    tasks_from: site.yaml
+    name: library
+    tasks_from: application.yaml
   vars:
-    media_name: qbittorrent
-    media_port: *qbittorrent_webui_port
+    library_application_name: qbittorrent
+    library_application_port: *qbittorrent_webui_port
