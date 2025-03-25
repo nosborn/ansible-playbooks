@@ -1,5 +1,5 @@
-upstream {{ media_name }} {
-    server 127.0.0.1:{{ media_port }} fail_timeout=30s;
+upstream {{ library_application_name }} {
+    server 127.0.0.1:{{ library_application_port }} fail_timeout=30s;
 }
 
 server {
@@ -13,7 +13,7 @@ server {
 	deny all;
 
 	location / {
-		proxy_pass http://{{ media_name }};
+		proxy_pass http://{{ library_application_name }};
 		proxy_http_version 1.1;
 		proxy_redirect off;
 

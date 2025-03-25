@@ -1,12 +1,12 @@
 ---
+- name: restart tdarr
+  ansible.builtin.systemd_service:
+    name: tdarr.service
+    daemon_reload: true
+    state: stopped # TODO: restarted
+
 - name: restart tdarr-node
   ansible.builtin.systemd_service:
     name: tdarr-node.service
     daemon_reload: true
-    state: restarted
-
-- name: restart tdarr-server
-  ansible.builtin.systemd_service:
-    name: tdarr-server.service
-    daemon_reload: true
-    state: restarted
+    state: stopped # TODO: restarted

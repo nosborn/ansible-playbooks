@@ -2,4 +2,4 @@
 dependencies:
   - role: calibre
   - role: kepubify
-  - role: media
+  - role: library

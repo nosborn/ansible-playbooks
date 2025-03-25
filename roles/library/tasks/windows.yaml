@@ -1,16 +1,16 @@
 ---
 - block:
     - community.windows.win_credential:
-        name: diskstation
+        name: tombstone
         type: generic_password
-        username: "{{ media_mount_username }}"
-        secret: "{{ media_mount_password }}"
+        username: "{{ library_mount_username }}"
+        secret: "{{ library_mount_password }}"
 
     - community.windows.win_mapped_drive:
-        letter: "{{ media_drive_letter }}"
-        path: \\DISKSTATION\Media
-        username: "{{ media_mount_username }}"
-        password: "{{ media_mount_password }}"
+        letter: "{{ library_drive_letter }}"
+        path: \\TOMBSTONE\Library # FIXME
+        username: "{{ library_mount_username }}"
+        password: "{{ library_mount_password }}"
   vars:
     ansible_become: true # required for access to credential store
     ansible_become_method: runas

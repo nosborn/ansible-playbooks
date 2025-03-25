@@ -7,13 +7,13 @@
       - --add
       - Media
       - Media Library
-      - "{{ media_path }}"
+      - "{{ library_path }}"
       - "" # na
       - "" # rw
       - "" # ro
       - 1 # browseable
       - 0 # adv_privilege
-    creates: "{{ media_path }}"
+    creates: "{{ library_path }}"
 
 - name: get videodriver group info
   ansible.builtin.command:
@@ -21,9 +21,9 @@
       - /usr/syno/sbin/synogroup
       - --get
       - videodriver
-  register: media_result
+  register: library_result
   changed_when: false
 
 - name: set videodriver GID fact
   ansible.builtin.set_fact:
-    videodriver_gid: "{{ media_result.stdout_lines | select('regex', '^Group ID:') | map('ansible.builtin.regex_replace', '.+\\[(\\d+)\\]$', '\\1') | first }}"
+    videodriver_gid: "{{ library_result.stdout_lines | select('regex', '^Group ID:') | map('ansible.builtin.regex_replace', '.+\\[(\\d+)\\]$', '\\1') | first }}"

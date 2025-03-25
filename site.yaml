@@ -53,6 +53,17 @@
   gather_facts: false
 
   pre_tasks:
+    - name: disable mitigations (!)
+      ansible.builtin.lineinfile:
+        path: /etc/default/grub
+        regex: ^GRUB_CMDLINE_LINUX_DEFAULT=
+        line: GRUB_CMDLINE_LINUX_DEFAULT="mitigations=off quiet"
+      notify:
+        - update-grub
+        - reboot
+      tags:
+        - always
+
     - name: configure LAN network
       ansible.builtin.copy:
         content: |
@@ -72,17 +83,17 @@
         owner: root
         group: root
         mode: !!str 0444
+      notify: reboot
       tags:
         - always
-      notify: reboot
 
     - name: enable systemd-networkd
       ansible.builtin.systemd_service:
         name: systemd-networkd.service
         enabled: true
+      notify: reboot
       tags:
         - always
-      notify: reboot
 
     - name: remove interfaces file
       ansible.builtin.file:
@@ -129,17 +140,17 @@
     - role: alertmanager
       tags:
         - alertmanager
-      when: false
+      when: false # TODO
     - role: alloy
       tags:
         - alloy
+      when: false # TODO
     - role: bazarr
       tags:
         - bazarr
     - role: calibre
       tags:
         - calibre
-      when: false # TODO
     - role: calibre_web
       tags:
         - calibre-web
@@ -153,20 +164,18 @@
     - role: grafana
       tags:
         - grafana
+      when: false # TODO
     - role: homebridge
       tags:
         - homebridge
     - role: imapfilter
       tags:
         - imapfilter
-      when: false
-    - role: lego
-      tags:
-        - lego
-      when: false
+      when: false # TODO
     - role: loki
       tags:
         - loki
+      when: false # TODO
     - role: nginx
       tags:
         - nginx
@@ -183,23 +192,20 @@
     - role: prometheus
       tags:
         - prometheus
+      when: false # TODO
     - role: prowlarr
       tags:
         - prowlarr
-    - role: qbittorrent
-      tags:
-        - qbittorrent
     - role: radarr
       tags:
         - radarr
     - role: readarr
       tags:
         - readarr
-      when: false # TODO
     - role: restic
       tags:
         - restic
-      when: false
+      when: false # TODO
     - role: samba
       tags:
         - samba
@@ -248,6 +254,11 @@
   handlers:
     - name: reboot
       ansible.builtin.reboot: {}
+
+    - name: update-grub
+      ansible.builtin.command:
+        argv:
+          - update-grub
 
 - name: Configure proxy-in
   hosts:
@@ -311,20 +322,21 @@
     - role: alloy
       tags:
         - alloy
+      when: false # TODO
     - role: nginx
       tags:
         - nginx
     - role: opensmtpd
       tags:
         - opensmtpd
-      when: false
+      when: false # TODO
     - role: sshd
       tags:
         - sshd
     - role: unattended_upgrades
       tags:
         unattended-upgrades
-      when: false
+      when: false # TODO
     - role: unbound
       tags:
         - unbound
@@ -344,45 +356,14 @@
     - name: reboot
       ansible.builtin.reboot: {}
 
-- name: Configure DiskStation
-  hosts: diskstation
-  gather_facts: false
-
-  pre_tasks:
-    - name: install pip
-      ansible.builtin.command:
-        argv:
-          - "{{ ansible_python.executable }}"
-          - -mensurepip
-        creates: "{{ ansible_python.executable | dirname }}/pip{{ ansible_python.version.major }}"
-      tags:
-        - always
-
-    - name: install lxml
-      ansible.builtin.pip:
-        name: lxml
-      tags:
-        - always
-
-  roles:
-    - role: alloy
-      tags:
-        - alloy
-    - role: traefik
-      tags:
-        - traefik
-    - role: watchtower
-      tags:
-        - watchtower
-
 - name: Configure Pastime
   hosts: pastime
   gather_facts: false
 
   roles:
-    - role: media
+    - role: library
       tags:
-        - media
+        - library
 
   tasks:
     - ansible.windows.win_get_url:
@@ -424,7 +405,7 @@
             "pathTranslators": [
               {
                 "server": "/data",
-                "node": "\\\\DISKSTATION\\Media"
+                "node": "\\\\TOMBSTONE\\Media"
               }
             ],
             "priority": -1
@@ -432,7 +413,7 @@
         dest: C:\Users\Nick\Tdarr\configs\Tdarr_Node_Config.json
 
     - ansible.builtin.win_file:
-        path: \\DISKSTATION\Media\{{ item }}"
+        path: \\TOMBSTONE\Media\{{ item }}"
         state: directory
       loop:
         - media\movies

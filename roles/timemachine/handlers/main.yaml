@@ -1,6 +1,6 @@
 ---
 - name: reload timemachine mount
   ansible.builtin.systemd_service:
+    name: "{{ timemachine_mount_unit_name }}.mount"
     daemon_reload: true
-    name: "{{ timemachine_mount_unit_name }}"
     state: reloaded

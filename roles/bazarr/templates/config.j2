@@ -1,11 +1,10 @@
-# yamllint disable rule:quoted-strings
 ---
 addic7ed:
-  cookies: '{{ bazarr_config_addic7ed_cookies }}'
-  password: '{{ bazarr_config_addic7ed_password }}'
-  user_agent: '{{ bazarr_config_addic7ed_user_agent }}'
-  username: '{{ bazarr_config_addic7ed_username }}'
-  vip: !!bool '{{ bazarr_config_addic7ed_vip }}'
+  cookies: ''
+  password: ''
+  user_agent: ''
+  username: ''
+  vip: false
 analytics:
   enabled: false
 anidb:
@@ -20,7 +19,7 @@ anticaptcha:
 assrt:
   token: ''
 auth:
-  apikey: "{{ bazarr_config_auth_apikey }}"
+  apikey: {{ bazarr_config_auth_apikey }}
   password: ''
   type: null
   username: ''
@@ -29,7 +28,7 @@ avistaz:
   user_agent: ''
 backup:
   day: 6
-  folder: "{{ media_path }}/backups/bazarr/"
+  folder: "{{ library_path }}/backups/bazarr/"
   frequency: Weekly
   hour: 3
   retention: 31
@@ -68,15 +67,15 @@ general:
   embedded_subtitles_parser: ffprobe
   enabled_integrations: []
   enabled_providers:
-  {% for provider in bazarr_config_general_enabled_providers %}
+{% for provider in bazarr_config_general_enabled_providers %}
   - {{ provider }}
-  {% endfor %}
+{% endfor %}
   flask_secret_key: "{{ bazarr_config_general_flask_secret_key }}"
-  hi_extension: hi
+  hi_extension: cc
   ignore_ass_subs: false
   ignore_pgs_subs: false
   ignore_vobsub_subs: false
-  ip: '*'
+  ip: '127.0.0.1'
   language_equals: []
   minimum_score: 90
   minimum_score_movie: 70
@@ -88,7 +87,7 @@ general:
   parse_embedded_audio_track: false
   path_mappings: []
   path_mappings_movie: []
-  port: "{{ bazarr_port }}"
+  port: {{ bazarr_port }}
   postprocessing_cmd: ''
   postprocessing_threshold: 90
   postprocessing_threshold_movie: 70
@@ -171,9 +170,9 @@ opensubtitles:
   vip: false
 opensubtitlescom:
   include_ai_translated: false
-  password: ''
+  password: {{ bazarr_config_opensubtitlescom_password }}
   use_hash: true
-  username: ''
+  username: {{ bazarr_config_opensubtitlescom_username }}
 podnapisi:
   verify_ssl: true
 postgresql:
@@ -193,7 +192,7 @@ proxy:
   url: ''
   username: ''
 radarr:
-  apikey: "{{ radarr_api_key }}"
+  apikey: {{ radarr_api_key }}
   base_url: ''
   defer_search_signalr: false
   excluded_tags: []
@@ -203,10 +202,10 @@ radarr:
   http_timeout: 60
   ip: 127.0.0.1
   movies_sync: 60
-  only_monitored: false
-  port: "{{ radarr_port }}"
+  only_monitored: true
+  port: {{ radarr_port }}
   ssl: false
-  sync_only_monitored_movies: false
+  sync_only_monitored_movies: true
   use_ffprobe_cache: true
 series_scores:
   audio_codec: 3
@@ -232,13 +231,13 @@ sonarr:
   full_update_day: 6
   full_update_hour: 4
   http_timeout: 60
-  ip: 127.0.0.1
-  only_monitored: false
-  port: "{{ sonar_port }}"
+  ip: '127.0.0.1'
+  only_monitored: true
+  port: {{ sonarr_port }}
   series_sync: 60
   ssl: false
-  sync_only_monitored_episodes: false
-  sync_only_monitored_series: false
+  sync_only_monitored_episodes: true
+  sync_only_monitored_series: true
   use_ffprobe_cache: true
 subdl:
   api_key: ''
