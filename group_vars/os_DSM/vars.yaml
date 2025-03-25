@@ -1,3 +1,0 @@
----
-nginx_sites_enabled_path: /usr/local/etc/nginx/sites-enabled
-nologin_shell: /usr/bin/nologin

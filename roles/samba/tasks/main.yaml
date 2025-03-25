@@ -19,7 +19,7 @@
 - ansible.builtin.lineinfile:
     path: /etc/default/wsdd
     regex: ^WSDD_PARAMS=
-    line: WSDD_PARAMS="-i {{ lan_if }}"
+    line: WSDD_PARAMS="-i {{ lan_ipv4_address }}"
   notify: restart wsdd
 
 - name: enable and start services

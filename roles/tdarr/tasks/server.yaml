@@ -1,3 +1,4 @@
+# yamllint disable rule:line-length
 ---
 - ansible.builtin.file:
     path: /var/lib/tdarr/Tdarr_Server
@@ -14,31 +15,31 @@
     owner: root
     group: root
     creates: /var/lib/tdarr/Tdarr_Server/Tdarr_Server
-  notify: restart tdarr-server
+  notify: restart tdarr
 
 - name: configure server
   ansible.builtin.template:
-    src: Tdarr_Server_Config.j2 # TODO: trim trailing LF
+    src: Tdarr_Server_Config.j2
     dest: /var/lib/tdarr/configs/Tdarr_Server_Config.json
-    owner: tdarr
-    group: tdarr
+    owner: "{{ library_user }}"
+    group: "{{ library_group }}"
     mode: !!str 0600
     validate: jsonlint --strict %s
-  notify: restart tdarr-server
+  notify: restart tdarr
 
 - name: create server service unit
   ansible.builtin.template:
-    src: tdarr-server.service.j2
-    dest: /etc/systemd/system/tdarr-server.service
+    src: tdarr.service.j2
+    dest: /etc/systemd/system/tdarr.service
     owner: root
     group: root
     mode: !!str 0444
     validate: systemd-analyze verify %s
-  notify: restart tdarr-server
+  notify: restart tdarr
 
 - name: enable and start server
   ansible.builtin.systemd_service:
-    name: tdarr-server.service
+    name: tdarr.service
     daemon_reload: true
-    enabled: true
-    state: started
+    enabled: false # TODO: true
+    state: stopped # TODO: started

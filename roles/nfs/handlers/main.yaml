@@ -1,0 +1,10 @@
+---
+- name: reload nfs-server
+  ansible.builtin.systemd_service:
+    name: nfs-server.service
+    state: reloaded
+
+- name: restart nfs-server
+  ansible.builtin.systemd_service:
+    name: nfs-server.service
+    state: restarted

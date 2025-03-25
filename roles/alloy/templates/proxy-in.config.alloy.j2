@@ -94,43 +94,43 @@ loki.write "main" {
 	}
 }
 
-prometheus.exporter.self "main" { }
+// prometheus.exporter.self "main" { }
 
-prometheus.exporter.unix "main" {
-	disable_collectors = [
-		"bonding",
-		"btrfs",
-		"fibrechannel",
-		"infiniband",
-		"mdadm",
-		"nfs",
-		"nfsd",
-		"runit",
-		"tapestats",
-		"xfs",
-		"zfs",
-	]
-}
+// prometheus.exporter.unix "main" {
+// 	disable_collectors = [
+// 		"bonding",
+// 		"btrfs",
+// 		"fibrechannel",
+// 		"infiniband",
+// 		"mdadm",
+// 		"nfs",
+// 		"nfsd",
+// 		"runit",
+// 		"tapestats",
+// 		"xfs",
+// 		"zfs",
+// 	]
+// }
 
-prometheus.scrape "main" {
-	targets = array.concat(
-		prometheus.exporter.self.main.targets,
-		prometheus.exporter.unix.main.targets,
-	)
+// prometheus.scrape "main" {
+// 	targets = array.concat(
+// 		prometheus.exporter.self.main.targets,
+// 		prometheus.exporter.unix.main.targets,
+// 	)
 
-	forward_to = [
-		prometheus.remote_write.main.receiver,
-	]
-}
+// 	forward_to = [
+// 		prometheus.remote_write.main.receiver,
+// 	]
+// }
 
-prometheus.remote_write "main" {
-	external_labels = {
-		hostname = "{{ ansible_hostname }}",
-	}
+// prometheus.remote_write "main" {
+// 	external_labels = {
+// 		hostname = "{{ ansible_hostname }}",
+// 	}
 
-	endpoint {
-		url = "https://{{ hostvars.tombstone.external_fqdn }}:9090/api/v1/write"
-	}
-}
+// 	endpoint {
+// 		url = "https://{{ hostvars.tombstone.external_fqdn }}:9090/api/v1/write"
+// 	}
+// }
 
 // vim: ft=river.jinja2

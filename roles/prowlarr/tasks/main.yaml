@@ -9,6 +9,7 @@
     return_content: true
     body_format: json
   register: prowlarr_release
+  until: prowlarr_release is success
 
 - name: set version fact
   ansible.builtin.set_fact:
@@ -35,27 +36,40 @@
     group: root
     extra_opts:
       - --strip-components=1
-    creates: /opt/prowlarr/{{ prowlarr_version }}/Radarr
+    creates: /opt/prowlarr/{{ prowlarr_version }}/Prowlarr
   notify: restart prowlarr
-
-- name: create user
-  ansible.builtin.user:
-    name: prowlarr
-    comment: Prowlarr
-    create_home: false
-    groups:
-      - media
-    home: /var/lib/prowlarr
-    shell: "{{ nologin_shell }}"
-    system: true
 
 - name: create config directory
   ansible.builtin.file:
     path: /var/lib/prowlarr
     owner: root
-    group: prowlarr
+    group: "{{ library_group }}"
     mode: !!str 2770
     state: directory
+
+- name: create library directories
+  ansible.builtin.file:
+    path: "{{ library_path }}/{{ prowlarr_item }}"
+    owner: root
+    group: "{{ library_group }}"
+    mode: !!str 2750
+    state: directory
+  loop:
+    - backups
+  loop_control:
+    loop_var: prowlarr_item
+
+- name: create library directories
+  ansible.builtin.file:
+    path: "{{ library_path }}/{{ prowlarr_item }}"
+    owner: "{{ library_user }}"
+    group: "{{ library_group }}"
+    mode: !!str 2770
+    state: directory
+  loop:
+    - backups/prowlarr
+  loop_control:
+    loop_var: prowlarr_item
 
 - ansible.builtin.template:
     src: service.j2
@@ -108,8 +122,8 @@
   when: false # FIXME
 
 - ansible.builtin.include_role:
-    name: media
-    tasks_from: site.yaml
+    name: library
+    tasks_from: application.yaml
   vars:
-    media_name: prowlarr
-    media_port: 9696
+    library_application_name: prowlarr
+    library_application_port: 9696

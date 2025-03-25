@@ -5,13 +5,16 @@
     name: lego
     state: absent
 
-- ansible.builtin.uri:
+- name: fatch release info
+  delegate_to: localhost
+  ansible.builtin.uri:
     url: https://api.github.com/repos/go-acme/lego/releases/latest
     headers:
       Accept: application/vnd.github+json
     return_content: true
     body_format: json
   register: lego_result
+  until: lego_result is success
 
 - name: set version fact
   ansible.builtin.set_fact:
@@ -37,30 +40,36 @@
       - /opt/lego/{{ lego_version }}/lego
       - --accept-tos
       - --dns=scaleway
-      - --domains={{ external_fqdn }}
+      - --domains={{ lego_item }}
       - --email={{ lego_email }}
       - --path={{ lego_path }}
       - run
-    creates: "{{ lego_path }}/{{ external_fqdn }}.crt"
+    creates: "{{ lego_path }}/{{ lego_item }}.crt"
   environment:
     SCALEWAY_API_TOKEN: "{{ lego_scaleway_api_token }}"
+  loop: "{{ lego_domains }}"
+  loop_control:
+    loop_var: lego_item
 
 # TODO: renew certificate
 
-#- ansible.builtin.copy:
-#    content: |
-#      #!/bin/sh
+# - ansible.builtin.copy:
+#     content: |
+#       #!/bin/sh
 
-#      SCALEWAY_API_TOKEN: "{{ lego_scaleway_api_token }}" \
-#      /opt/lego/{{ lego_version }}/lego \
-#        --dns=scaleway \
-#        --domains={{ external_fqdn }} \
-#        --path={{ lego_path }} \
-#        renew
-#      # --renew-hook
-#    dest: /etc/cron.daily/lego-renew
-#    owner: root
-#    group: root
-#    mode: !!str 0500
-#  environment:
-#    SCALEWAY_API_TOKEN: "{{ lego_scaleway_api_token }}"
+#       SCALEWAY_API_TOKEN: "{{ lego_scaleway_api_token }}" \
+#       /opt/lego/{{ lego_version }}/lego \
+#         --dns=scaleway \
+#         --domains={{ lego_item }} \
+#         --path={{ lego_path }} \
+#         renew
+#       # --renew-hook
+#     dest: /etc/cron.daily/lego-renew
+#     owner: root
+#     group: root
+#     mode: !!str 0500
+#   environment:
+#     SCALEWAY_API_TOKEN: "{{ lego_scaleway_api_token }}"
+#   loop: "{{ lego_domains }}"
+#   loop_control:
+#     loop_var: lego_item
