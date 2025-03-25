@@ -1,7 +1,7 @@
 [Unit]
-After=network.target {{ media_mount_unit_name }}
+After=network.target {{ library_mount_unit_name }}
 Description=Calibre-Web Daemon
-Requires={{ media_mount_unit_name }}
+Requires={{ library_mount_unit_name }}
 Wants=calibre.service
 
 [Service]
@@ -20,9 +20,12 @@ ProtectKernelLogs=yes
 ProtectKernelModules=yes
 ProtectKernelTunables=yes
 ProtectSystem=strict
-ReadWritePaths={{ media_path }}
+ReadWritePaths={{ library_path }}
 RemoveIPC=yes
 Restart=on-failure
+RestartSec=5
+RestrictAddressFamilies=AF_INET AF_INET6 AF_NETLINK AF_UNIX
+RestrictNamespaces=yes
 RestrictRealtime=yes
 StateDirectory=calibre-web
 StateDirectoryMode=0750

@@ -1,4 +1,5 @@
 ---
 dependencies:
   - role: avahi
+  - role: library
   - role: timemachine

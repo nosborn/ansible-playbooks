@@ -8,7 +8,7 @@ server:
 	interface: 127.0.0.1
 	interface: {{ lan_ipv4_address }}
 	interface: ::1
-	interface: {{ lan_ipv6_address }}
+	interface: {{ lan_ipv6_link_address }}
 
 	# ip-transparent: yes
 
@@ -21,7 +21,7 @@ server:
 	access-control: {{ lan_ipv4_subnet }} allow
 	access-control: ::0/0 deny
 	access-control: ::1 allow
-	access-control: {{ lan_ipv6_subnet }} allow
+	access-control: {{ lan_ipv6_link_subnet }} allow
 
 	# log-queries: yes
 	# log-replies: yes
@@ -130,6 +130,10 @@ forward-zone:
 {% endfor %}
 	forward-tls-upstream: yes
 	forward-no-cache: yes
+
+rpz:
+	name: rpz.{{ domain_name }}.
+	zonefile: /var/lib/unbound/rpz.{{ domain_name }}.zone
 
 rpz:
 	name: tif.hagezi.

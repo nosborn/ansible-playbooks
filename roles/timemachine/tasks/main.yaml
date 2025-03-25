@@ -3,21 +3,27 @@
   ansible.builtin.group:
     name: "{{ timemachine_group }}"
     system: true
-  register: timemachine_result
 
 - name: create mount unit
-  ansible.builtin.template:
-    src: mount.j2
-    dest: /etc/systemd/system/{{ timemachine_mount_unit_name }}
+  ansible.builtin.copy:
+    content: |
+      [Mount]
+      What=/dev/disk/by-partuuid/{{ timemachine_partition_uuid }}
+      Where={{ timemachine_path }}
+      Type=ext4
+      Options=rw,nodev,noexec,errors=remount-ro
+
+      [Install]
+      WantedBy=local-fs.target
+    dest: /etc/systemd/system/{{ timemachine_mount_unit_name }}.mount
     owner: root
     group: root
     mode: !!str 0444
-    validate: systemd-analyze verify %s
   notify: reload timemachine mount
 
 - name: enable and start mount
   ansible.builtin.systemd_service:
-    name: "{{ timemachine_mount_unit_name }}"
+    name: "{{ timemachine_mount_unit_name }}.mount"
     daemon_reload: true
     enabled: true
     state: started

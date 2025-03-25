@@ -1,9 +1,0 @@
-server {
-	listen 80;
-	listen [::]:80;
-	server_name grafana.local;
-
-	return 301 http://$host:{{ grafana_port }};
-}
-
-# vim: ft=nginx.jinja2

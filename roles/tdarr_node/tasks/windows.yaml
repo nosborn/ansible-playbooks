@@ -27,7 +27,7 @@
   when: false # FIXME
 
 - ansible.builtin.win_file:
-    path: "{{ media_path }}\\{{ tdarr_item }}"
+    path: "{{ library_path }}\\{{ tdarr_item }}"
     state: directory
   loop:
     - media/movies

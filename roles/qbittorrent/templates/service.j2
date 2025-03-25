@@ -3,28 +3,31 @@ After=local-fs.target network-online.target nss-lookup.target
 Wants=network-online.target
 
 [Service]
-; AmbientCapabilities=
-; CapabilityBoundingSet=
 Environment=LANG=en_GB.UTF-8
 Environment=TZ={{ timezone }}
 ExecStart=/usr/bin/qbittorrent-nox
 LimitCORE=0:0
 LockPersonality=yes
 ; MemoryDenyWriteExecute=yes
+Nice=10
 NoNewPrivileges=yes
 PrivateIPC=yes
 PrivateTmp=yes
 ProtectClock=yes
+ProtectControlGroups=yes
 ProtectHome=yes
 ProtectHostname=yes
 ProtectKernelLogs=yes
 ProtectKernelModules=yes
+ProtectKernelTunables=yes
 ; ProtectProc=
 ProtectSystem=strict
-; TODO: ReadWritePaths={{ media_path }}/torrents /var/lib/radarr
-ReadWritePaths={{ media_path }} /var/lib/qbittorrent
+ReadWritePaths=/var/lib/qbittorrent {{ library_path }}
 RemoveIPC=yes
 Restart=on-failure
+RestartSec=5
+RestrictAddressFamilies=AF_INET AF_INET6 AF_NETLINK AF_UNIX
+RestrictNamespaces=yes
 RestrictRealtime=yes
 TimeoutStopSec=1800
 Type=simple

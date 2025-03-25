@@ -1,39 +1,105 @@
 # yamllint disable rule:line-length
 ---
-- name: create config directory
-  ansible.builtin.file:
-    path: /var/lib/readarr
-    owner: "{{ media_owner }}"
-    group: "{{ media_group }}"
-    mode: !!str 0750
-    state: directory
+- name: fetch release info
+  delegate_to: localhost
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/Readarr/Readarr/releases
+    headers:
+      Accept: application/vnd.github+json
+    return_content: true
+    body_format: json
+  register: readarr_releases
+  until: readarr_releases is success
+
+- name: set version fact
+  ansible.builtin.set_fact:
+    readarr_version: "{{ readarr_releases.json[0].tag_name | regex_replace('^v', '') }}"
 
 - ansible.builtin.file:
-    path: "{{ media_path }}/{{ readarr_item }}"
-    owner: "{{ media_owner }}"
-    group: "{{ media_group }}"
-    mode: !!str 0750
+    path: "{{ readarr_item }}"
+    owner: root
+    group: root
+    mode: !!str 0755
     state: directory
   loop:
-    - media/books
-    - torrents/complete/books
-    - usenet/complete/books
+    - /opt/readarr
+    - /opt/readarr/{{ readarr_version }}
   loop_control:
     loop_var: readarr_item
 
-- ansible.builtin.include_role:
-    name: k3s
-    tasks_from: namespace.yaml
-  vars:
-    k3s_name: media
-
-- ansible.builtin.template:
-    src: manifest.yaml.j2
-    dest: /var/lib/rancher/k3s/server/manifests/readarr.yaml
+- ansible.builtin.unarchive:
+    src: "{{ readarr_releases.json[0].assets | selectattr('name', 'search', '.linux-core-x64.tar.gz') | map(attribute='browser_download_url') | first }}"
+    remote_src: true
+    dest: /opt/readarr/{{ readarr_version }}
+    exclude: Readarr.Update
     owner: root
     group: root
-    mode: !!str 0400
-    validate: yamllint --strict %s
+    extra_opts:
+      - --strip-components=1
+    creates: /opt/readarr/{{ readarr_version }}/Readarr
+  notify: restart readarr
+
+# - name: create user
+#   ansible.builtin.user:
+#     name: readarr
+#     comment: Readarr
+#     create_home: false
+#     groups:
+#       - media
+#     home: /var/lib/readarr
+#     shell: "{{ nologin_shell }}"
+#     system: true
+
+- name: create config directory
+  ansible.builtin.file:
+    path: /var/lib/readarr
+    owner: root
+    group: "{{ library_group }}"
+    mode: !!str 2770
+    state: directory
+
+- name: create library directories
+  ansible.builtin.file:
+    path: "{{ library_path }}/{{ readarr_item }}"
+    owner: root
+    group: "{{ library_group }}"
+    mode: !!str 2750
+    state: directory
+  loop:
+    - backups
+    - media
+  loop_control:
+    loop_var: readarr_item
+
+- name: create library directories
+  ansible.builtin.file:
+    path: "{{ library_path }}/{{ readarr_item }}"
+    owner: "{{ library_user }}"
+    group: "{{ library_group }}"
+    mode: !!str 2770
+    state: directory
+  loop:
+    - backups/readarr
+    - media/books
+  loop_control:
+    loop_var: readarr_item
+
+- name: create service unit
+  ansible.builtin.template:
+    src: service.j2
+    dest: /etc/systemd/system/readarr.service
+    owner: root
+    group: root
+    mode: !!str 0444
+    validate: systemd-analyze verify %s
+  notify: restart readarr
+
+- name: enable and start service
+  ansible.builtin.systemd_service:
+    name: readarr.service
+    daemon_reload: true
+    enabled: true
+    state: started
 
 - ansible.builtin.wait_for:
     path: /var/lib/readarr/config.xml
@@ -49,21 +115,17 @@
   vars:
     config:
       AnalyticsEnabled: !!str False
+      # ApiKey: "{{ readarr_api_key }}"
       # AuthenticationRequired: DisabledForLocalAddresses
+      BindAddress: 127.0.0.1
       LaunchBrowser: !!str False
       # LogDbEnabled: !!str False
       LogLevel: info
+      # Port: "{{ readarr_port }}"
       UpdateAutomatically: !!str False
-  register: readarr_result
+  notify: restart readarr
 
-# - name: restart container
-#   community.docker.docker_container:
-#     comparisons:
-#       "*": ignore
-#     name: readarr
-#     restart: "{{ readarr_result is changed }}"
-
-- name: remove readarr logs database
+- name: remove logs database
   ansible.builtin.file:
     path: /var/lib/readarr/{{ readarr_item }}
     state: absent
@@ -73,10 +135,11 @@
     - logs.db-wal
   loop_control:
     loop_var: readarr_item
-  when: false
+  when: false # FIXME
 
 - ansible.builtin.include_role:
-    name: media
-    tasks_from: site.yaml
+    name: library
+    tasks_from: application.yaml
   vars:
-    media_name: readarr
+    library_application_name: readarr
+    library_application_port: "{{ readarr_port }}"

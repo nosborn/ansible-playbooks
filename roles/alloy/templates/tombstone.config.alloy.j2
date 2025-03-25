@@ -113,59 +113,65 @@ loki.write "main" {
 prometheus.exporter.blackbox "main" {
 	config = "{ modules: { icmp: { prober: icmp } } }"
 
-	target {
-		name    = "diablo3"
-		address = "103.4.115.248" // Diablo III - Australia
-		module  = "icmp"
-	}
+	// target {
+	// 	name    = "diablo3"
+	// 	address = "103.4.115.248" // Diablo III - Australia
+	// 	module  = "icmp"
+	// }
+
+	// target {
+	// 	name    = "diablo4"
+	// 	address = "34.116.85.89" // Diablo IV - Australia
+	// 	module  = "icmp"
+	// }
 
 	target {
-		name    = "diablo4"
-		address = "34.116.85.89" // Diablo IV - Australia
-		module  = "icmp"
-	}
-
-	target {
-		name    = "proxy-in"
 		address = "{{ hostvars['proxy-in'].ansible_default_ipv4.address }}"
+		name    = "proxy-in"
 		module  = "icmp"
+
+		labels = {
+			hostname = "proxy-in",
+		}
 	}
 }
 
-prometheus.exporter.self "main" { }
+// prometheus.exporter.self "main" { }
 
-prometheus.exporter.unix "main" {
-	disable_collectors = [
-		"bonding",
-		"btrfs",
-		"fibrechannel",
-		"infiniband",
-		"mdadm",
-		"nfs",
-		"nfsd",
-		"runit",
-		"tapestats",
-		"xfs",
-		"zfs",
-	]
-}
+// prometheus.exporter.unix "main" {
+// 	disable_collectors = [
+// 		"bonding",
+// 		"btrfs",
+// 		"fibrechannel",
+// 		"infiniband",
+// 		"mdadm",
+// 		"nfs",
+// 		"nfsd",
+// 		"runit",
+// 		"tapestats",
+// 		"xfs",
+// 		"zfs",
+// 	]
+// }
 
 prometheus.scrape "main" {
-	targets = array.concat(
-		prometheus.exporter.blackbox.main.targets,
-		prometheus.exporter.self.main.targets,
-		prometheus.exporter.unix.main.targets,
-	)
-
 	forward_to = [
 		prometheus.remote_write.main.receiver,
 	]
+
+	targets = array.concat(
+		prometheus.exporter.blackbox.main.targets,
+	)
+
+	// prometheus.exporter.self.main.targets,
+	// prometheus.exporter.unix.main.targets,
+
 }
 
 prometheus.remote_write "main" {
-	external_labels = {
-		hostname = "{{ ansible_hostname }}",
-	}
+	// external_labels = {
+	// 	hostname = "{{ ansible_hostname }}",
+	// }
 
 	endpoint {
 		url = "http://localhost:9090/api/v1/write"

@@ -3,7 +3,9 @@
 - name: install dependencies
   ansible.builtin.apt:
     name:
+      - 7zip
       - ffmpeg
+      - unrar
       - unzip
 
 - name: fetch release info
@@ -15,6 +17,7 @@
     return_content: true
     body_format: json
   register: bazarr_release
+  until: bazarr_release is success
 
 - name: set version fact
   ansible.builtin.set_fact:
@@ -36,7 +39,6 @@
     src: "{{ bazarr_release.json.assets | selectattr('name', 'equalto', 'bazarr.zip') | map(attribute='browser_download_url') | first }}"
     remote_src: true
     dest: /opt/bazarr/{{ bazarr_version }}
-    exclude: Bazarr.Update
     owner: root
     group: root
     creates: /opt/bazarr/{{ bazarr_version }}/bazarr.py
@@ -48,22 +50,11 @@
     virtualenv: venv
   notify: restart bazarr
 
-- name: create user
-  ansible.builtin.user:
-    name: bazarr
-    comment: Bazarr
-    create_home: false
-    groups:
-      - media
-    home: /var/lib/bazarr
-    shell: "{{ nologin_shell }}"
-    system: true
-
 - name: creare config directory
   ansible.builtin.file:
     name: "{{ bazarr_item }}"
     owner: root
-    group: bazarr
+    group: "{{ library_group }}"
     mode: !!str 2770
     state: directory
   loop:
@@ -74,27 +65,36 @@
 
 - name: configure
   ansible.builtin.template:
-    src: config.yaml.j2
+    src: config.j2
     dest: /var/lib/bazarr/config/config.yaml
-    owner: "{{ media_owner }}"
-    group: "{{ media_group }}"
-    mode: !!str 0440
-    validate: yamllint --strict %s
-  register: bazarr_config
-  when: false # FIXME
+    owner: "{{ library_user }}"
+    group: "{{ library_group }}"
+    mode: !!str 0660
+    # validate: yamllint --no-warnings %s
+  notify: restart bazarr
 
-- name: create media directories
+- name: create library directories
   ansible.builtin.file:
-    path: "{{ media_path }}/{{ bazarr_item }}"
+    path: "{{ library_path }}/{{ bazarr_item }}"
     owner: root
-    group: media
-    mode: !!str 2770
+    group: "{{ library_group }}"
+    mode: !!str 2750
     state: directory
   loop:
     - backups
+    - media
+  loop_control:
+    loop_var: bazarr_item
+
+- name: create library directories
+  ansible.builtin.file:
+    path: "{{ library_path }}/{{ bazarr_item }}"
+    owner: "{{ library_user }}"
+    group: "{{ library_group }}"
+    mode: !!str 2770
+    state: directory
+  loop:
     - backups/bazarr
-    - media/movies
-    - media/tv
   loop_control:
     loop_var: bazarr_item
 
@@ -112,13 +112,13 @@
   ansible.builtin.systemd_service:
     name: bazarr.service
     daemon_reload: true
-    enabled: true
-    state: started
+    enabled: false # TODO: true
+    state: stopped # TODO: started
 
 - name: publish service
   ansible.builtin.include_role:
-    name: media
-    tasks_from: site.yaml
+    name: library
+    tasks_from: application.yaml
   vars:
-    media_name: bazarr
-    media_port: "{{ bazarr_port }}"
+    library_application_name: bazarr
+    library_application_port: "{{ bazarr_port }}"

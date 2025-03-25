@@ -1,0 +1,49 @@
+# yamllint disable rule:line-length
+---
+- name: fetch release info
+  delegate_to: localhost
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/animetosho/par2cmdline-turbo/releases/latest
+    headers:
+      Accept: application/vnd.github+json
+    return_content: true
+    body_format: json
+  register: par2cmdline_turbo_release
+  until: par2cmdline_turbo_release is success
+
+- name: set version fact
+  ansible.builtin.set_fact:
+    par2cmdline_turbo_version: "{{ par2cmdline_turbo_release.json.tag_name }}"
+
+- name: create directories
+  ansible.builtin.file:
+    path: "{{ par2cmdline_turbo_item }}"
+    owner: root
+    group: root
+    mode: !!str 0755
+    state: directory
+  loop:
+    - /opt/par2cmdline-turbo
+    - /opt/par2cmdline-turbo/{{ par2cmdline_turbo_version }}
+  loop_control:
+    loop_var: par2cmdline_turbo_item
+
+- ansible.builtin.stat:
+    path: /opt/par2cmdline-turbo/{{ par2cmdline_turbo_version }}/par2
+  register: par2cmdline_turbo_result
+
+- ansible.builtin.get_url:
+    url: "{{ par2cmdline_turbo_release.json.assets | selectattr('name', 'search', '-linux-amd64.xz') | map(attribute='browser_download_url') | first }}"
+    dest: /opt/par2cmdline-turbo/{{ par2cmdline_turbo_version }}/par2.xz
+    owner: root
+    group: root
+    mode: !!str 0555
+  when: not par2cmdline_turbo_result.stat.exists
+
+- ansible.builtin.command:
+    argv:
+      - xz
+      - -d
+      - par2.xz
+    chdir: /opt/par2cmdline-turbo/{{ par2cmdline_turbo_version }}
+  when: not par2cmdline_turbo_result.stat.exists

@@ -1,8 +1,8 @@
 ---
 - ansible.builtin.file:
-    path: "{{ media_path }}/{{ tdarr_node_item }}"
-    owner: "{{ media_uid }}"
-    group: "{{ media_gid }}"
+    path: "{{ library_path }}/{{ tdarr_node_item }}"
+    owner: "{{ library_uid }}"
+    group: "{{ library_gid }}"
     mode: !!str 0700
     state: directory
   loop:
@@ -35,14 +35,14 @@
     # devices:
     #   - /dev/dri:/dev/dri
     env:
-      PGID: "{{ media_gid }}"
-      PUID: "{{ media_uid }}"
+      PGID: "{{ library_gid }}"
+      PUID: "{{ library_uid }}"
       TZ: "{{ timezone }}"
       ffmpegVersion: !!str 7
       inContainer: !!str true
       nodeName: "{{ ansible_hostname }}"
-      # pathTranslators: "{{ [{server: '\\\\DISKSTATION\\Media', node: '/data/media'}] | tojson | safe}}"
-      serverIP: "{{ hostvars.diskstation.ansible_default_ipv4.address }}"
+      # pathTranslators: "{{ [{server: '\\\\TOMBSTONE\\Media', node: '/data/media'}] | tojson | safe}}"
+      serverIP: "{{ hostvars.tombstone.ansible_default_ipv4.address }}"
       serverPort: !!str 8266
     # groups:
     #   - 44 # `video` -- FIXME

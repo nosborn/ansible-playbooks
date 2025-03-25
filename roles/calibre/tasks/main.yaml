@@ -1,46 +1,89 @@
 ---
-- name: create config directory
-  ansible.builtin.file:
-    path: /var/lib/calibre
-    owner: "{{ media_owner }}"
-    group: "{{ media_group }}"
-    mode: !!str 0750
-    state: directory
+- name: install package
+  ansible.builtin.apt:
+    name: calibre
+  notify: restart calibre-server
+
+# && mkdir /opt/calibre \
+#   && curl -fsS "https://download.calibre-ebook.com/8.0.1/calibre-8.0.1-x86_64.txz" \
+#        | tar -C /opt/calibre -xvf - \
+#   && /opt/calibre/calibre_postinstall \
+#   && url=https://plugins.calibre-ebook.com/291290.zip \
+#   && curl -fLOsS "${url:?}" \
+#   && calibre-customize --add-plugin "$(basename "${url:?}")" \
+#   && rm "$(basename "${url:?}")" \
+#   && url="$( \
+#        curl -fsS https://api.github.com/repos/noDRM/DeDRM_tools/releases/latest \
+#          | jq -r '.assets[]|select(.name|endswith(".zip"))|.browser_download_url' \
+#      )" \
+#   && curl -fLOsS "${url:?}" \
+#   && unzip "$(basename "${url:?}")" DeDRM_plugin.zip \
+#   && rm "$(basename "${url}")" \
+#   && calibre-customize --add-plugin DeDRM_plugin.zip \
+#   && rm DeDRM_plugin.zip
+
+# - name: create user
+#   ansible.builtin.user:
+#     name: calibre
+#     comment: Calibre Server
+#     create_home: false
+#     groups:
+#       - media
+#     home: /var/lib/calibre
+#     shell: "{{ nologin_shell }}"
+#     system: true
 
 - ansible.builtin.file:
-    path: "{{ media_path }}/{{ calibre_item }}"
-    owner: "{{ media_owner }}"
-    group: "{{ media_group }}"
-    mode: !!str 0750
+    path: /var/lib/calibre
+    owner: root
+    group: "{{ library_group }}"
+    mode: !!str 2770
+    state: directory
+
+- name: create library directories
+  ansible.builtin.file:
+    path: "{{ library_path }}/{{ calibre_item }}"
+    owner: root
+    group: "{{ library_group }}"
+    mode: !!str 2750
     state: directory
   loop:
     - media
-    - media/books
-    - torrents/
-    - torrents/complete
-    - torrents/complete/books
-    - usenet/
-    - usenet/complete
-    - usenet/complete/books
   loop_control:
     loop_var: calibre_item
 
-- ansible.builtin.include_role:
-    name: k3s
-    tasks_from: namespace.yaml
-  vars:
-    k3s_name: media
+- name: create library directories
+  ansible.builtin.file:
+    path: "{{ library_path }}/{{ calibre_item }}"
+    owner: "{{ library_user }}"
+    group: "{{ library_group }}"
+    mode: !!str 2770
+    state: directory
+  loop:
+    - media/books
+  loop_control:
+    loop_var: calibre_item
 
-- ansible.builtin.template:
-    src: manifest.yaml.j2
-    dest: /var/lib/rancher/k3s/server/manifests/calibre.yaml
+- name: create service unit
+  ansible.builtin.template:
+    src: service.j2
+    dest: /etc/systemd/system/calibre-server.service
     owner: root
     group: root
-    mode: !!str 0400
-    validate: yamllint --strict %s
+    mode: !!str 0444
+    validate: systemd-analyze verify %s
+  notify: restart calibre-server
+
+- name: enable and start service
+  ansible.builtin.systemd_service:
+    name: calibre-server.service
+    daemon_reload: true
+    enabled: true
+    state: started
 
 - ansible.builtin.include_role:
-    name: media
-    tasks_from: site.yaml
+    name: library
+    tasks_from: application.yaml
   vars:
-    media_name: calibre
+    library_application_name: calibre
+    library_application_port: "{{ calibre_server_port }}"

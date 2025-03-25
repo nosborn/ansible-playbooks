@@ -72,23 +72,25 @@
         owner: root
         group: root
         mode: !!str 0444
+      notify: reboot
       tags:
         - always
-      notify: reboot
 
     - name: enable systemd-networkd
       ansible.builtin.systemd_service:
         name: systemd-networkd.service
         enabled: true
+      notify: reboot
       tags:
         - always
-      notify: reboot
 
     - name: remove interfaces file
       ansible.builtin.file:
         path: /etc/network/interfaces
         state: absent
       notify: reboot
+      tags:
+        - always
 
     - name: flush handlers
       ansible.builtin.meta: flush_handlers
@@ -129,7 +131,7 @@
     - role: alertmanager
       tags:
         - alertmanager
-      when: false
+      when: false # TODO
     - role: alloy
       tags:
         - alloy
@@ -139,7 +141,6 @@
     - role: calibre
       tags:
         - calibre
-      when: false # TODO
     - role: calibre_web
       tags:
         - calibre-web
@@ -159,11 +160,10 @@
     - role: imapfilter
       tags:
         - imapfilter
-      when: false
-    - role: lego
+      when: false # TODO
+    - role: lidarr
       tags:
-        - lego
-      when: false
+        - lidarr
     - role: loki
       tags:
         - loki
@@ -186,20 +186,19 @@
     - role: prowlarr
       tags:
         - prowlarr
-    - role: qbittorrent
-      tags:
-        - qbittorrent
     - role: radarr
       tags:
         - radarr
     - role: readarr
       tags:
         - readarr
-      when: false # TODO
+    - role: recyclarr
+      tags:
+        - recyclarr
     - role: restic
       tags:
         - restic
-      when: false
+      when: false # TODO
     - role: samba
       tags:
         - samba
@@ -248,6 +247,11 @@
   handlers:
     - name: reboot
       ansible.builtin.reboot: {}
+
+    - name: update-grub
+      ansible.builtin.command:
+        argv:
+          - update-grub
 
 - name: Configure proxy-in
   hosts:
@@ -317,14 +321,13 @@
     - role: opensmtpd
       tags:
         - opensmtpd
-      when: false
+      when: false # TODO
     - role: sshd
       tags:
         - sshd
     - role: unattended_upgrades
       tags:
         unattended-upgrades
-      when: false
     - role: unbound
       tags:
         - unbound
@@ -344,98 +347,68 @@
     - name: reboot
       ansible.builtin.reboot: {}
 
-- name: Configure DiskStation
-  hosts: diskstation
-  gather_facts: false
+# - name: Configure Pastime
+#   hosts: pastime
+#   gather_facts: false
 
-  pre_tasks:
-    - name: install pip
-      ansible.builtin.command:
-        argv:
-          - "{{ ansible_python.executable }}"
-          - -mensurepip
-        creates: "{{ ansible_python.executable | dirname }}/pip{{ ansible_python.version.major }}"
-      tags:
-        - always
+#   roles:
+#     - role: library
+#       tags:
+#         - library
 
-    - name: install lxml
-      ansible.builtin.pip:
-        name: lxml
-      tags:
-        - always
+#   tasks:
+#     - ansible.windows.win_get_url:
+#         url: https://storage.tdarr.io/versions/2.17.01/win32_x64/Tdarr_Updater.zip
+#         dest: C:\Users\Nick\Downloads\Tdarr_Updater.zip
+#         force: false
 
-  roles:
-    - role: alloy
-      tags:
-        - alloy
-    - role: traefik
-      tags:
-        - traefik
-    - role: watchtower
-      tags:
-        - watchtower
+#     - ansible.windows.win_file:
+#         dest: C:\Users\Nick\Tdarr
+#         state: directory
 
-- name: Configure Pastime
-  hosts: pastime
-  gather_facts: false
+#     - community.windows.win_unzip:
+#         src: C:\Users\Nick\Downloads\Tdarr_Updater.zip
+#         dest: C:\Users\Nick\Tdarr
+#         creates: C:\Users\Nick\Tdarr\Tdarr_Updater.exe
 
-  roles:
-    - role: media
-      tags:
-        - media
+#     - ansible.windows.win_command:
+#         argv:
+#           - C:\Users\Nick\Tdarr\Tdarr_Updater.exe
+#         chdir: C:\Users\Nick\Tdarr
+#         creates: C:\Users\Nick\Tdarr\Tdarr_Node\Tdarr_Node.exe
 
-  tasks:
-    - ansible.windows.win_get_url:
-        url: https://storage.tdarr.io/versions/2.17.01/win32_x64/Tdarr_Updater.zip
-        dest: C:\Users\Nick\Downloads\Tdarr_Updater.zip
-        force: false
+#     - community.windows.win_shortcut:
+#         src: C:\Users\Nick\Tdarr\Tdarr_Node\Tdarr_Node_Tray.exe
+#         directory: C:\Users\Nick\Tdarr
+#         windowstyle: minimized
+#         dest: C:\Roaming\AppData\Nick\Microsoft\Windows\Start Menu\Programs\Start-up\Tdarr_Node_Tray.lnk
+#       when: false # FIXME
 
-    - ansible.windows.win_file:
-        dest: C:\Users\Nick\Tdarr
-        state: directory
+#     - ansible.windows.win_copy:
+#         content: |
+#           {
+#             "nodeName": "{{ ansible_hostname }}",
+#             "serverIP": "{{ hostvars.tombstone.lan_ipv4_address }}",
+#             "serverPort": 8266,
+#             "handbrakePath": "",
+#             "ffmpegPath": "",
+#             "mkvpropeditPath": "",
+#             "pathTranslators": [
+#               {
+#                 "server": "/srv/media",
+#                 "node": "\\\\TOMBSTONE\\Library"
+#               }
+#             ],
+#             "priority": -1
+#           }
+#         dest: C:\Users\Nick\Tdarr\configs\Tdarr_Node_Config.json
 
-    - community.windows.win_unzip:
-        src: C:\Users\Nick\Downloads\Tdarr_Updater.zip
-        dest: C:\Users\Nick\Tdarr
-        creates: C:\Users\Nick\Tdarr\Tdarr_Updater.exe
-
-    - ansible.windows.win_command:
-        argv:
-          - C:\Users\Nick\Tdarr\Tdarr_Updater.exe
-        chdir: C:\Users\Nick\Tdarr
-        creates: C:\Users\Nick\Tdarr\Tdarr_Node\Tdarr_Node.exe
-
-    - community.windows.win_shortcut:
-        src: C:\Users\Nick\Tdarr\Tdarr_Node\Tdarr_Node_Tray.exe
-        directory: C:\Users\Nick\Tdarr
-        windowstyle: minimized
-        dest: C:\Roaming\AppData\Nick\Microsoft\Windows\Start Menu\Programs\Start-up\Tdarr_Node_Tray.lnk
-      when: false # FIXME
-
-    - ansible.windows.win_copy:
-        content: |
-          {
-            "nodeName": "{{ ansible_hostname }}",
-            "serverIP": "{{ hostvars.tombstone.lan_ipv4_address }}",
-            "serverPort": 8266,
-            "handbrakePath": "",
-            "ffmpegPath": "",
-            "mkvpropeditPath": "",
-            "pathTranslators": [
-              {
-                "server": "/data",
-                "node": "\\\\DISKSTATION\\Media"
-              }
-            ],
-            "priority": -1
-          }
-        dest: C:\Users\Nick\Tdarr\configs\Tdarr_Node_Config.json
-
-    - ansible.builtin.win_file:
-        path: \\DISKSTATION\Media\{{ item }}"
-        state: directory
-      loop:
-        - media\movies
-        - media\tv
-        - transcode_cache\movies
-        - transcode_cache\tv
+#     - ansible.builtin.win_file:
+#         path: \\TOMBSTONE\Media\{{ item }}"
+#         state: directory
+#       loop:
+#         - media\movies
+#         - media\tv
+#         - transcode_cache\movies
+#         - transcode_cache\tv
+#       when: false

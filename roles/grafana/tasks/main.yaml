@@ -41,9 +41,8 @@
     name: nginx
     tasks_from: site.yaml
   vars:
-    nginx_src: grafana-redirect.j2
-    nginx_dest: grafana-redirect
-  when: false
+    nginx_src: proxy.conf.j2
+    nginx_dest: grafana-proxy
 
 - ansible.builtin.include_role:
     name: unbound
@@ -51,6 +50,5 @@
   vars:
     unbound_content: |
       server:
-        local-data: "grafana.{{ domain_name }}. CNAME tombstone.{{ domain_name }}."
+        local-data: "grafana.{{ domain_name }}. A {{ lan_ipv4_address }}"
     unbound_dest: local-data-grafana.conf
-  when: false

@@ -1,0 +1,95 @@
+# yamllint disable rule:line-length
+---
+- name: create group
+  ansible.builtin.group:
+    name: "{{ library_group }}"
+    system: true
+
+- name: create user
+  ansible.builtin.user:
+    create_home: false
+    group: "{{ library_group }}"
+    groups:
+      - render
+      - video
+    home: "{{ library_path }}"
+    name: "{{ library_user }}"
+    shell: "{{ nologin_shell }}"
+    system: true
+
+- ansible.builtin.getent:
+    database: group
+    key: "{{ library_group }}"
+
+- ansible.builtin.set_fact:
+    library_gid: "{{ ansible_facts.getent_group[library_group][1] }}"
+    # library_uid: "{{ ansible_facts.getent_passwd[library_owner][1] }}"
+
+- name: create mount unit
+  ansible.builtin.copy:
+    content: |
+      [Mount]
+      What=PARTUUID={{ library_partition_uuid }}
+      Where={{ library_path }}
+      Type=ext4
+      Options=rw,nodev,noexec,errors=remount-ro
+
+      [Install]
+      WantedBy=local-fs.target
+    dest: /etc/systemd/system/{{ library_mount_unit_name }}.mount
+    owner: root
+    group: root
+    mode: !!str 0444
+  notify: reload library mount
+
+- name: enable and start mount
+  ansible.builtin.systemd_service:
+    name: "{{ library_mount_unit_name }}.mount"
+    daemon_reload: true
+    enabled: true
+    state: started
+
+- name: mount now
+  ansible.builtin.meta: flush_handlers
+
+- name: create library directories
+  ansible.builtin.file:
+    path: "{{ library_item }}"
+    owner: root
+    group: "{{ library_group }}"
+    mode: !!str 2750
+    state: directory
+  loop:
+    - "{{ library_path }}"
+    - "{{ library_path }}/backups"
+    - "{{ library_path }}/media"
+    - "{{ library_path }}/torrents"
+    - "{{ library_path }}/usenet"
+  loop_control:
+    loop_var: library_item
+
+- name: create library directories
+  ansible.builtin.file:
+    path: "{{ library_path }}/{{ library_item }}"
+    owner: "{{ library_user }}"
+    group: "{{ library_group }}"
+    mode: !!str 2770
+    state: directory
+  loop:
+    - media/movies
+    - media/tv
+  loop_control:
+    loop_var: library_item
+
+- ansible.builtin.include_role:
+    name: nfs
+    tasks_from: export.yaml
+  vars:
+    nfs_export_mount_point: "{{ library_path }}/{{ library_debian_item }}"
+    nfs_export_clients:
+      - "{{ lan_ipv4_subnet }}(ro,no_subtree_check,mountpoint={{ library_path }},all_squash,anongid={{ library_gid }})"
+  loop:
+    - media/movies
+    - media/tv
+  loop_control:
+    loop_var: library_debian_item

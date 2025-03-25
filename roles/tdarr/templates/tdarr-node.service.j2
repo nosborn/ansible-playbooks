@@ -1,36 +1,43 @@
 [Unit]
 After=local-fs.target network.target
-Wants=tdarr-server.service
+{% if tdarr_server %}
+Wants=tdarr.service
+{% endif %}
 
 [Service]
-; AmbientCapabilities=
-; CapabilityBoundingSet=
+; DeviceAllow=/dev/dri/* rw
 Environment=LANG=en_GB.UTF-8
 Environment=NODE_ENV=production
 Environment=TZ={{ timezone }}
 ExecStart=/var/lib/tdarr/Tdarr_Node/Tdarr_Node
+Group={{ library_group }}
 LimitCORE=0:0
 LockPersonality=yes
 ; MemoryDenyWriteExecute=yes
+Nice=10
 NoNewPrivileges=yes
 ; PrivateDevices=yes
 PrivateIPC=yes
 PrivateTmp=yes
 ProtectClock=yes
+ProtectControlGroups=yes
 ProtectHome=yes
 ProtectHostname=yes
 ProtectKernelLogs=yes
 ProtectKernelModules=yes
+ProtectKernelTunables=yes
 ; ProtectProc=
 ProtectSystem=strict
-; TODO: ReadWritePaths={{ media_path }}/backups/radarr {{ media_path }}/media/movies {{ media_path }}/torrents/complete/movies {{ media_path }}/usenet/complete/movies /var/lib/radarr
-ReadWritePaths={{ media_path }} /var/lib/tdarr/configs /var/lib/tdarr/logs
+ReadWritePaths=/var/lib/tdarr {{ library_path }}
 RemoveIPC=yes
 Restart=on-failure
+RestartSec=5
+RestrictAddressFamilies=AF_INET AF_INET6 AF_NETLINK AF_UNIX
+RestrictNamespaces=yes
 RestrictRealtime=yes
 Type=simple
 UMask=0007
-User=tdarr
+User={{ library_user }}
 WorkingDirectory=/var/lib/tdarr
 
 [Install]

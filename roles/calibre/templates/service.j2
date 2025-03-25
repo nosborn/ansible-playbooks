@@ -1,0 +1,41 @@
+[Unit]
+After=local-fs.target network.target
+
+[Service]
+Environment=HOME=/var/lib/calibre
+Environment=LANG=en_GB.UTF-8
+Environment=TZ={{ timezone }}
+ExecStart=/usr/bin/calibre-server --disable-fallback-to-detected-interface --disable-use-bonjour --enable-local-write --listen-on 127.0.0.1 --port {{ calibre_server_port }} {{ library_path }}/media/books
+Group={{ library_group }}
+LimitCORE=0:0
+LockPersonality=yes
+; MemoryDenyWriteExecute=yes
+Nice=10
+NoNewPrivileges=yes
+PrivateIPC=yes
+PrivateTmp=yes
+ProtectClock=yes
+ProtectControlGroups=yes
+ProtectHome=yes
+ProtectHostname=yes
+ProtectKernelLogs=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+; ProtectProc=
+ProtectSystem=strict
+ReadWritePaths=/var/lib/calibre {{ library_path }}
+RemoveIPC=yes
+Restart=on-failure
+RestartSec=5
+RestrictAddressFamilies=AF_INET AF_INET6 AF_NETLINK AF_UNIX
+RestrictNamespaces=yes
+RestrictRealtime=yes
+Type=simple
+UMask=0007
+User={{ library_user }}
+WorkingDirectory=/var/lib/calibre
+
+[Install]
+WantedBy=multi-user.target
+
+; vim: ft=systemd.jinja2

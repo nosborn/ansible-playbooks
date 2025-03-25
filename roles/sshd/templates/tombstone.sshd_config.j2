@@ -52,10 +52,10 @@ UsePAM no
 VersionAddendum none
 #X11Forwarding no
 
-Match Address {{ lan_ipv4_subnet }}
+Match Address !{{ hostvars.gateway.ansible_default_ipv4.address }},{{ lan_ipv4_subnet }}
 	PermitRootLogin prohibit-password
 
-Match Address {{ lan_ipv6_subnet }}
+Match Address {{ lan_ipv6_link_subnet }}
 	PermitRootLogin prohibit-password
 
 # vim: ft=sshdconfig.jinja2

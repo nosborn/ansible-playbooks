@@ -1,33 +1,40 @@
 [Unit]
-After=local-fs.target network.target
+Description=Bazarr Daemon
+After=local-fs.target network.target syslog.target
 
 [Service]
-; AmbientCapabilities=
-; CapabilityBoundingSet=
 Environment=LANG=en_GB.UTF-8
 Environment=TZ={{ timezone }}
-ExecStart=/opt/bazarr/{{ bazarr_version }}/venv/bin/python3 /opt/bazarr/{{ bazarr_version }}/bazarr.py --config=/var/lib/bazarr
+ExecStart=/opt/bazarr/{{ bazarr_version }}/venv/bin/python3 /opt/bazarr/{{ bazarr_version }}/bazarr.py --config=/var/lib/bazarr --no-update
+Group={{ library_group }}
+KillSignal=SIGINT
 LimitCORE=0:0
 LockPersonality=yes
-; MemoryDenyWriteExecute=yes
+Nice=10
 NoNewPrivileges=yes
+PrivateDevices=yes
 PrivateIPC=yes
 PrivateTmp=yes
 ProtectClock=yes
+ProtectControlGroups=yes
 ProtectHome=yes
 ProtectHostname=yes
 ProtectKernelLogs=yes
 ProtectKernelModules=yes
+ProtectKernelTunables=yes
 ; ProtectProc=
 ProtectSystem=strict
-; TODO: ReadWritePaths={{ media_path }}/backups/bazarr {{ media_path }}/media/movies {{ media_path }}/media/tv /var/lib/bazarr
-ReadWritePaths={{ media_path }} /var/lib/bazarr
+ReadWritePaths=/var/lib/bazarr {{ library_path }}
 RemoveIPC=yes
 Restart=on-failure
+RestartSec=5
+RestrictAddressFamilies=AF_INET AF_INET6 AF_NETLINK AF_UNIX
+RestrictNamespaces=yes
 RestrictRealtime=yes
+TimeoutStopSec=20
 Type=simple
 UMask=0007
-User=bazarr
+User={{ library_user }}
 WorkingDirectory=/var/lib/bazarr
 
 [Install]

@@ -1,0 +1,38 @@
+---
+- name: install packages
+  ansible.builtin.apt:
+    name: nfs-kernel-server
+
+
+- name: configure
+  ansible.builtin.copy:
+    content: |
+      [General]
+      Verbosity = 0
+      Domain = {{ domain_name }}
+
+      [Mapping]
+      Nobody-User = nobody
+      Nobody-Group = nogroup
+    dest: /etc/idmapd.conf
+    owner: root
+    group: root
+    mode: !!str 0444
+  notify: restart nfs-server
+
+# - name: configure
+#   ansible.builtin.copy:
+#     content: |
+#       [nfsd]
+#       vers3=n
+#     dest: /etc/nfs.conf.d/local.conf
+#     owner: root
+#     group: root
+#     mode: !!str 0444
+#   notify: restart nfs-server
+
+- name: enable and start service
+  ansible.builtin.systemd_service:
+    name: nfs-server.service
+    enabled: true
+    state: started

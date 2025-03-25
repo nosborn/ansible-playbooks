@@ -1,6 +1,7 @@
 # yamllint disable rule:line-length
 ---
 - name: fetch releases
+  delegate_to: localhost
   ansible.builtin.uri:
     url: https://api.github.com/repos/scaleway/scaleway-cli/releases/latest
     headers:
@@ -8,6 +9,7 @@
     return_content: true
     body_format: json
   register: scaleway_cli_result
+  until: scaleway_cli_result is success
 
 - name: set URL facts
   ansible.builtin.set_fact:
@@ -15,10 +17,12 @@
     scaleway_cli_checksum_url: "{{ scaleway_cli_result.json.assets | selectattr('name', 'eq', 'SHA256SUMS') | map(attribute='browser_download_url') | first }}"
 
 - name: fetch checksums
+  delegate_to: localhost
   ansible.builtin.uri:
     url: "{{ scaleway_cli_checksum_url }}"
     return_content: true
   register: scaleway_cli_result
+  until: scaleway_cli_result is success
 
 - name: set checksum fact
   ansible.builtin.set_fact:

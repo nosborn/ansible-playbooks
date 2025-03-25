@@ -12,7 +12,6 @@
       - python3-virtualenv
       # - sqlite3
       # - unrar
-      # - util-linux # for `ionice`
     state: present
 
 - ansible.builtin.pip:

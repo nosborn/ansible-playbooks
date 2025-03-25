@@ -19,4 +19,4 @@ backblaze-b2 ls "b2://${bucket}" | grep -Fqx "${path}/" || {
 
 restic backup \
   --cache-dir=/var/cache/restic --exclude-caches --exclude-file=/etc/restic/exclude --one-file-system --skip-if-unchanged \
-  '{{ media_path }}' '{{ timemachine_path }}'
+  '{{ library_path }}' '{{ timemachine_path }}'

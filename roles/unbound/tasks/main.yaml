@@ -9,6 +9,15 @@
       - unbound-anchor
     state: present
 
+- ansible.builtin.copy:
+    content: "{{ unbound_rpz_content }}"
+    dest: /var/lib/unbound/rpz.{{ domain_name }}.zone
+    owner: unbound
+    group: unbound
+    mode: !!str 0444
+  notify: restart unbound
+  when: unbound_rpz_content is defined
+
 - name: configure
   ansible.builtin.template:
     src: "{{ ansible_hostname }}.unbound.conf.j2"

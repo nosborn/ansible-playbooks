@@ -9,6 +9,7 @@
     return_content: true
     body_format: json
   register: radarr_release
+  until: radarr_release is success
 
 - name: set version fact
   ansible.builtin.set_fact:
@@ -38,37 +39,44 @@
     creates: /opt/radarr/{{ radarr_version }}/Radarr
   notify: restart radarr
 
-- name: create user
-  ansible.builtin.user:
-    name: radarr
-    comment: Radarr
-    create_home: false
-    groups:
-      - media
-    home: /var/lib/radarr
-    shell: "{{ nologin_shell }}"
-    system: true
-
 - name: create config directory
   ansible.builtin.file:
     path: /var/lib/radarr
     owner: root
-    group: radarr
+    group: "{{ library_group }}"
     mode: !!str 2770
     state: directory
 
-- ansible.builtin.file:
-    path: "{{ media_path }}/{{ radarr_item }}"
+- name: create library directories
+  ansible.builtin.file:
+    path: "{{ library_path }}/{{ radarr_item }}"
     owner: root
-    group: media
-    mode: !!str 2770
+    group: "{{ library_group }}"
+    mode: !!str 2750
     state: directory
   loop:
     - backups
+    - media
+    - torrents
+    - usenet
+  loop_control:
+    loop_var: radarr_item
+
+- name: create library directories
+  ansible.builtin.file:
+    path: "{{ library_path }}/{{ radarr_item }}"
+    owner: "{{ library_user }}"
+    group: "{{ library_group }}"
+    mode: !!str 2770
+    state: directory
+  loop:
     - backups/radarr
     - media/movies
-    - torrents/complete/movies
-    - usenet/complete/movies
+    - torrents/complete
+    - torrents/complete/radarr
+    - usenet/complete
+    - usenet/complete/radarr
+    - usenet/incomplete # strange but true
   loop_control:
     loop_var: radarr_item
 
@@ -126,8 +134,8 @@
   when: false # FIXME
 
 - ansible.builtin.include_role:
-    name: media
-    tasks_from: site.yaml
+    name: library
+    tasks_from: application.yaml
   vars:
-    media_name: radarr
-    media_port: "{{ radarr_port }}"
+    library_application_name: radarr
+    library_application_port: "{{ radarr_port }}"
