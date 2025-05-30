@@ -14,14 +14,14 @@
       tags:
         - always
 
-    - name: gateway default IPv4 address must be public
-      ansible.builtin.assert:
-        quiet: true
-        that:
-          - ([hostvars.gateway.ansible_default_ipv4.address] | ansible.utils.ipaddr('public')) | length
-      run_once: true
-      tags:
-        - always
+  # - name: gateway default IPv4 address must be public
+  #   ansible.builtin.assert:
+  #     quiet: true
+  #     that:
+  #       - ([hostvars.gateway.ansible_default_ipv4.address] | ansible.utils.ipaddr('public')) | length
+  #   run_once: true
+  #   tags:
+  #     - always
 
 - name: Set up OwnCA
   hosts: localhost
@@ -32,20 +32,20 @@
       tags:
         - always
 
-- name: Configure Gateway
-  hosts: gateway
-  gather_facts: false
-
-  roles:
-    - role: unifi_core
-      vars:
-        unifi_core_certificate: |
-          {{ hostvars.localhost.ownca_wildcard_certificate }}
-          {{ hostvars.localhost.ownca_root_certificate }}
-        unifi_core_privatekey: |
-          {{ hostvars.localhost.ownca_wildcard_privatekey }}
-      tags:
-        - unifi-core
+# - name: Configure Gateway
+#   hosts: gateway
+#   gather_facts: false
+#
+#   roles:
+#     - role: unifi_core
+#       vars:
+#         unifi_core_certificate: |
+#           {{ hostvars.localhost.ownca_wildcard_certificate }}
+#           {{ hostvars.localhost.ownca_root_certificate }}
+#         unifi_core_privatekey: |
+#           {{ hostvars.localhost.ownca_wildcard_privatekey }}
+#       tags:
+#         - unifi-core
 
 - name: Configure Tombstone
   hosts:
@@ -104,6 +104,13 @@
       tags:
         - always
 
+    - ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/apt/sources.list.d/vultr-apprepo.list
+        - /etc/apt/trusted.gpg.d/vultr-apprepo.gpg
+
     - name: install prerequisite packages
       ansible.builtin.apt:
         name:
@@ -119,9 +126,9 @@
 
     - name: remove conflicting packages
       ansible.builtin.apt:
-        autoremove: true
         name:
           - ufw
+        autoremove: true
         purge: true
         state: absent
       tags:
@@ -151,9 +158,6 @@
     - role: dns_updater
       tags:
         - dns-updater
-    - role: grafana
-      tags:
-        - grafana
     - role: homebridge
       tags:
         - homebridge
@@ -164,25 +168,18 @@
     - role: lidarr
       tags:
         - lidarr
-    - role: loki
-      tags:
-        - loki
     - role: nginx
       tags:
         - nginx
     - role: nzbget
       tags:
         - nzbget
+    - role: ombi
+      tags:
+        - ombi
     - role: opensmtpd
       tags:
         - opensmtpd
-    - role: overseerr
-      tags:
-        - overseerr
-      when: false # TODO
-    - role: prometheus
-      tags:
-        - prometheus
     - role: prowlarr
       tags:
         - prowlarr
@@ -192,9 +189,6 @@
     - role: readarr
       tags:
         - readarr
-    - role: recyclarr
-      tags:
-        - recyclarr
     - role: restic
       tags:
         - restic
@@ -213,7 +207,7 @@
         - tdarr
     - role: unattended_upgrades
       tags:
-        unattended-upgrades
+        - unattended-upgrades
     - role: unbound
       tags:
         - unbound
@@ -238,7 +232,6 @@
         autoremove: true
         name:
           - nano
-          - python3-kubernetes
         purge: true
         state: absent
       tags:
@@ -253,9 +246,9 @@
         argv:
           - update-grub
 
-- name: Configure proxy-in
+- name: Configure proxy-nl
   hosts:
-    - proxy-in
+    - proxy-nl
   gather_facts: false
 
   pre_tasks:
@@ -327,7 +320,7 @@
         - sshd
     - role: unattended_upgrades
       tags:
-        unattended-upgrades
+        - unattended-upgrades
     - role: unbound
       tags:
         - unbound
@@ -346,69 +339,3 @@
   handlers:
     - name: reboot
       ansible.builtin.reboot: {}
-
-# - name: Configure Pastime
-#   hosts: pastime
-#   gather_facts: false
-
-#   roles:
-#     - role: library
-#       tags:
-#         - library
-
-#   tasks:
-#     - ansible.windows.win_get_url:
-#         url: https://storage.tdarr.io/versions/2.17.01/win32_x64/Tdarr_Updater.zip
-#         dest: C:\Users\Nick\Downloads\Tdarr_Updater.zip
-#         force: false
-
-#     - ansible.windows.win_file:
-#         dest: C:\Users\Nick\Tdarr
-#         state: directory
-
-#     - community.windows.win_unzip:
-#         src: C:\Users\Nick\Downloads\Tdarr_Updater.zip
-#         dest: C:\Users\Nick\Tdarr
-#         creates: C:\Users\Nick\Tdarr\Tdarr_Updater.exe
-
-#     - ansible.windows.win_command:
-#         argv:
-#           - C:\Users\Nick\Tdarr\Tdarr_Updater.exe
-#         chdir: C:\Users\Nick\Tdarr
-#         creates: C:\Users\Nick\Tdarr\Tdarr_Node\Tdarr_Node.exe
-
-#     - community.windows.win_shortcut:
-#         src: C:\Users\Nick\Tdarr\Tdarr_Node\Tdarr_Node_Tray.exe
-#         directory: C:\Users\Nick\Tdarr
-#         windowstyle: minimized
-#         dest: C:\Roaming\AppData\Nick\Microsoft\Windows\Start Menu\Programs\Start-up\Tdarr_Node_Tray.lnk
-#       when: false # FIXME
-
-#     - ansible.windows.win_copy:
-#         content: |
-#           {
-#             "nodeName": "{{ ansible_hostname }}",
-#             "serverIP": "{{ hostvars.tombstone.lan_ipv4_address }}",
-#             "serverPort": 8266,
-#             "handbrakePath": "",
-#             "ffmpegPath": "",
-#             "mkvpropeditPath": "",
-#             "pathTranslators": [
-#               {
-#                 "server": "/srv/media",
-#                 "node": "\\\\TOMBSTONE\\Library"
-#               }
-#             ],
-#             "priority": -1
-#           }
-#         dest: C:\Users\Nick\Tdarr\configs\Tdarr_Node_Config.json
-
-#     - ansible.builtin.win_file:
-#         path: \\TOMBSTONE\Media\{{ item }}"
-#         state: directory
-#       loop:
-#         - media\movies
-#         - media\tv
-#         - transcode_cache\movies
-#         - transcode_cache\tv
-#       when: false

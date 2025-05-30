@@ -7,3 +7,5 @@ skip_list:
   - meta-no-info
   - name[casing]
 use_default_rules: true
+
+# vim: ft=yaml

@@ -23,7 +23,7 @@ server:
 	access-control: ::1 allow
 	access-control: {{ lan_ipv6_link_subnet }} allow
 
-	# log-queries: yes
+	log-queries: yes
 	# log-replies: yes
 	# log-tag-queryreply: yes
 
@@ -62,8 +62,8 @@ server:
 {%   endfor %}
 
 {% endif %}
-{% if unbound_proxy_in_zones | length %}
-{%   for zone in unbound_proxy_in_zones | sort | unique %}
+{% if unbound_proxy_nl_zones | length %}
+{%   for zone in unbound_proxy_nl_zones | sort | unique %}
 	domain-insecure: "{{ zone }}"
 {%   endfor %}
 
@@ -101,10 +101,10 @@ server:
 {%   endfor %}
 
 {% endif %}
-{% if unbound_proxy_in_zones | length %}
-{%   for zone in unbound_proxy_in_zones | sort | unique %}
+{% if unbound_proxy_nl_zones | length %}
+{%   for zone in unbound_proxy_nl_zones | sort | unique %}
 	local-zone: "{{ zone }}." redirect
-	local-data: "{{ zone }}. A {{ hostvars['proxy-in'].ansible_default_ipv4.address }}"
+	local-data: "{{ zone }}. A {{ hostvars['proxy-nl'].ansible_default_ipv4.address }}"
 {%   endfor %}
 
 {% endif %}

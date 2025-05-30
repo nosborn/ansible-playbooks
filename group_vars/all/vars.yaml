@@ -1,5 +1,7 @@
 # yamllint disable rule:line-length
 ---
+loki_write_username: "{{ vault_loki_write_username }}"
+prometheus_remote_write_username: "{{ vault_prometheus_remote_write_username }}"
 pushover_user_key: "{{ vault_pushover_user_key }}"
 sshd_config_host_key_algorithms: "{{ vault_sshd_config_host_key_algorithms }}"
 sshd_config_pubkey_accepted_algorithms: "{{ vault_sshd_config_pubkey_accepted_algorithms }}"

@@ -1,0 +1,12 @@
+---
+- name: restart deluged
+  ansible.builtin.systemd_service:
+    name: deluged.service
+    daemon_reload: true
+    state: restarted
+
+- name: restart deluge-web
+  ansible.builtin.systemd_service:
+    name: deluge-web.service
+    daemon_reload: true
+    state: restarted

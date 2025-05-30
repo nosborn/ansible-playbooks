@@ -13,7 +13,7 @@ if [ "${current_ip}" != "${dns_ip}" ]; then
 fi
 unset current_ip dns_ip
 
-current_ip="$(ip -6 addr show dev '{{ lan_if }}' scope global dynamic -deprecated -temporary | awk '$1=="inet6" {print $2}' | cut -d/ -f1)"
+current_ip="$(ip -6 addr show dev '{{ lan_if }}' scope global dynamic -deprecated -temporary | awk '$1=="inet6" {print $2}' | grep -Ev ^fd7e: | cut -d/ -f1)"
 dns_ip="$(dig '{{ external_fqdn }}.' AAAA +short)"
 if [ "${current_ip}" != "${dns_ip}" ]; then
   scw dns record set '{{ external_domain }}' name=tombstone ttl=60 type=AAAA "values.0=${current_ip}" >/dev/null

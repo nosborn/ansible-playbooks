@@ -1,0 +1,115 @@
+# yamllint disable rule:line-length
+---
+# - name: install dependencies
+#   ansible.builtin.apt:
+#     name:
+#       - deluge-web
+#       - deluged
+
+- ansible.builtin.file:
+    path: /opt/deluge
+    owner: root
+    group: root
+    mode: !!str 0755
+    state: directory
+
+- ansible.builtin.pip:
+    chdir: /opt/deluge
+    name: deluge # deluge[all]
+    virtualenv: "{{ deluge_version }}"
+  notify:
+    - restart deluged
+    - restart deluge-web
+
+- ansible.builtin.user:
+    append: true
+    home: /var/lib/deluge
+    name: deluge
+    groups:
+      - media
+    shell: "{{ nologin_shell }}"
+    system: true
+
+- name: create config directory
+  ansible.builtin.file:
+    path: "{{ deluge_item }}"
+    owner: deluge
+    group: deluge
+    mode: !!str 0750
+    state: directory
+  loop:
+    - /var/lib/deluge
+    - /var/lib/deluge/config
+  loop_control:
+    loop_var: deluge_item
+
+- name: configure deluged
+  ansible.builtin.template:
+    src: "{{ deluge_item }}.j2"
+    dest: /var/lib/deluge/config/{{ deluge_item }}
+    owner: deluge
+    group: deluge
+    mode: !!str 0600 # FIXME
+  loop:
+    - core.conf
+    - label.conf
+  loop_control:
+    loop_var: deluge_item
+  notify: restart deluged
+
+- name: configure deluge-web
+  ansible.builtin.template:
+    src: web.conf.j2
+    dest: /var/lib/deluge/config/web.conf
+    owner: deluge
+    group: deluge
+    mode: !!str 0600 # FIXME
+  notify: restart deluge-web
+
+# - ansible.builtin.file:
+#     path: "{{ library_path }}/{{ qbittorrent_item }}"
+#     owner: root
+#     group: debian-deluge
+#     mode: !!str 2770
+#     state: directory
+#   loop:
+#     - torrents/incomplete
+#   loop_control:
+#     loop_var: deluge_item
+
+- name: create daemon service unit
+  ansible.builtin.template:
+    src: deluged.service.j2
+    dest: /etc/systemd/system/deluged.service
+    owner: root
+    group: root
+    mode: !!str 0444
+  notify: restart deluged
+
+- name: create web service unit
+  ansible.builtin.template:
+    src: deluge-web.service.j2
+    dest: /etc/systemd/system/deluge-web.service
+    owner: root
+    group: root
+    mode: !!str 0444
+  notify: restart deluge-web
+
+- name: enable and start services
+  ansible.builtin.systemd_service:
+    name: "{{ deluge_item }}"
+    daemon_reload: true
+    enabled: true
+    state: started
+  loop:
+    - deluge-web.service
+    - deluged.service
+  loop_control:
+    loop_var: deluge_item
+
+- ansible.builtin.include_role:
+    name: library
+    tasks_from: application.yaml
+  vars:
+    library_application_name: deluge
+    library_application_port: "{{ deluge_web_port }}"

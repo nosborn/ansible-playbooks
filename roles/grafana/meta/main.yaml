@@ -1,5 +1,0 @@
----
-dependencies:
-  - role: grafana_common
-  - role: nginx
-    when: false

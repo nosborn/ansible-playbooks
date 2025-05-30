@@ -5,6 +5,13 @@
     name: "{{ library_group }}"
     system: true
 
+- ansible.builtin.getent:
+    database: group
+    key: "{{ library_group }}"
+
+- ansible.builtin.set_fact:
+    library_gid: "{{ ansible_facts.getent_group[library_group][1] }}"
+
 - name: create user
   ansible.builtin.user:
     create_home: false
@@ -18,12 +25,11 @@
     system: true
 
 - ansible.builtin.getent:
-    database: group
-    key: "{{ library_group }}"
+    database: passwd
+    key: "{{ library_user }}"
 
 - ansible.builtin.set_fact:
-    library_gid: "{{ ansible_facts.getent_group[library_group][1] }}"
-    # library_uid: "{{ ansible_facts.getent_passwd[library_owner][1] }}"
+    library_uid: "{{ ansible_facts.getent_passwd[library_user][1] }}"
 
 - name: create mount unit
   ansible.builtin.copy:

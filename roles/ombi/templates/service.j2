@@ -1,0 +1,41 @@
+[Unit]
+After=local-fs.target network.target
+
+[Service]
+Environment=LANG=en_GB.UTF-8
+Environment=TZ={{ timezone }}
+ExecStart=/opt/ombi/{{ ombi_version }}/Ombi --host=http://127.0.0.1:{{ ombi_port }} --storage=/var/lib/ombi
+Group={{ library_group }}
+LimitCORE=0:0
+LockPersonality=yes
+; MemoryDenyWriteExecute=yes
+Nice=10
+NoNewPrivileges=yes
+PrivateDevices=yes
+PrivateIPC=yes
+PrivateTmp=yes
+ProtectClock=yes
+ProtectControlGroups=yes
+ProtectHome=yes
+ProtectHostname=yes
+ProtectKernelLogs=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+; ProtectProc=
+ProtectSystem=strict
+ReadWritePaths=/var/lib/ombi {{ library_path }}
+RemoveIPC=yes
+Restart=on-failure
+RestartSec=5
+RestrictAddressFamilies=AF_INET AF_INET6 AF_NETLINK AF_UNIX
+RestrictNamespaces=yes
+RestrictRealtime=yes
+Type=simple
+UMask=0007
+User={{ library_user }}
+WorkingDirectory=/opt/ombi/{{ ombi_version }}
+
+[Install]
+WantedBy=multi-user.target
+
+; vim: ft=systemd.jinja2
