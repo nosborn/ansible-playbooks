@@ -1,0 +1,6 @@
+---
+- name: restart ombi
+  ansible.builtin.systemd_service:
+    name: ombi.service
+    daemon_reload: true
+    state: restarted

@@ -1,7 +1,7 @@
 gateway ansible_host=192.168.1.1
 localhost ansible_connection=local ansible_host=127.0.0.1
 ; pastime ansible_host=pastime.home.arpa
-proxy-in ansible_host=proxy-in.osborn.io ansible_user=root
+proxy-nl ansible_host=proxy-nl.osborn.io ansible_user=root
 tombstone ansible_host=192.168.1.3 ansible_user=root
 
 [home]
@@ -14,7 +14,7 @@ tombstone
 localhost
 
 [os_Debian]
-proxy-in
+proxy-nl
 tombstone
 
 [os_EdgeOS]
@@ -22,3 +22,6 @@ gateway
 
 [os_Windows]
 ; pastime
+
+[vultr]
+proxy-nl

@@ -39,4 +39,4 @@ repos:
         language: script
         files: ^(group|host)_vars/.+/vault\.(yaml|yml)$
 
-minimum_pre_commit_version: !!str 2.17
+minimum_pre_commit_version: !!str 4.2

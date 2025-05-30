@@ -1,12 +1,61 @@
+# yamllint disable rule:line-length
 ---
+- ansible.builtin.uri:
+    url: https://apt.grafana.com/gpg.key
+    return_content: true
+  register: alloy_key
+  until: alloy_key.status == 200
+  changed_when: false
+
+- ansible.builtin.tempfile: {}
+  register: alloy_tempfile
+  changed_when: false
+
+- ansible.builtin.command:
+    argv:
+      - gpg
+      - --dearmor
+      - --output={{ alloy_tempfile.path }}
+      - --yes
+    stdin: "{{ alloy_key.content }}"
+  register: alloy_result
+  changed_when: false
+
+- ansible.builtin.copy:
+    src: "{{ alloy_tempfile.path }}"
+    remote_src: true
+    dest: /etc/apt/keyrings/grafana.gpg
+    owner: root
+    group: root
+    mode: !!str 0444
+
+- ansible.builtin.file:
+    path: "{{ alloy_tempfile.path }}"
+    state: absent
+  changed_when: false
+
+- ansible.builtin.copy:
+    content: |
+      Types: deb
+      URIs: https://apt.grafana.com
+      Suites: stable
+      Components: main
+      Architectures: amd64
+      Signed-By: /etc/apt/keyrings/grafana.gpg
+    dest: /etc/apt/sources.list.d/grafana.sources
+    owner: root
+    group: root
+    mode: !!str 0444
+
 - name: install package
   ansible.builtin.apt:
     name: alloy
     update_cache: true
+  notify: restart alloy
 
 - name: configure
   ansible.builtin.template:
-    src: "{{ ansible_hostname }}.config.alloy.j2"
+    src: config.alloy.j2
     dest: /etc/alloy/config.alloy
     owner: root
     group: alloy
@@ -16,36 +65,13 @@
 
 - name: configure service
   ansible.builtin.lineinfile:
-    path: /etc/default/alloy
+    dest: /etc/default/alloy
     regex: ^CUSTOM_ARGS=
     line: CUSTOM_ARGS="--disable-reporting"
-    owner: root
-    group: root
-    mode: !!str 0444
-    validate: sh -n %s
-  notify: restart alloy
-
-- ansible.builtin.file:
-    path: /etc/systemd/system/alloy.service.d
-    owner: root
-    group: root
-    mode: !!str 0755
-    state: directory
-
-- name: configure service
-  ansible.builtin.copy:
-    content: |
-      [Service]
-      AmbientCapabilities=CAP_NET_BIND_SERVICE
-    dest: /etc/systemd/system/alloy.service.d/overrides.conf
-    owner: root
-    group: root
-    mode: !!str 0444
   notify: restart alloy
 
 - name: enable and start service
   ansible.builtin.systemd_service:
     name: alloy.service
-    daemon_reload: true
     enabled: true
     state: started

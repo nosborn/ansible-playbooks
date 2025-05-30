@@ -1,0 +1,21 @@
+[Unit]
+Description=Deluge Bittorrent Client Daemon
+Documentation=man:deluged
+After=local-fs.target network-online.target
+
+[Service]
+ExecStart=/opt/deluge/{{ deluge_version }}/bin/deluged -d -c /var/lib/deluge/config -l /var/log/deluge/daemon.log -L info
+Group=deluge
+ProtectSystem=strict
+ReadWritePaths=/var/lib/deluge \
+        /media/media/torrents
+Restart=on-failure
+TimeoutStopSec=300
+Type=simple
+UMask=007
+User=deluge
+
+[Install]
+WantedBy=multi-user.target
+
+; vim: ft=systemd.jinja2

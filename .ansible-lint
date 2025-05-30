@@ -1,9 +1,11 @@
 ---
 exclude_paths:
-  - group_vars/*/vault.yml
-  - host_vars/*/vault.yml
-  - roles/*/vars/vault.yml
+  - group_vars/*/vault.yaml
+  - host_vars/*/vault.yaml
+  - roles/*/vars/vault.yaml
 skip_list:
   - meta-no-info
   - name[casing]
 use_default_rules: true
+
+# vim: ft=yaml
