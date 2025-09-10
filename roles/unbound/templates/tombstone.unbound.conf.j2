@@ -62,9 +62,9 @@ server:
 {%   endfor %}
 
 {% endif %}
-{% if unbound_proxy_nl_zones | length %}
-{%   for zone in unbound_proxy_nl_zones | sort | unique %}
-	domain-insecure: "{{ zone }}"
+{% if unbound_proxy_in_zones | length %}
+{%   for zone in unbound_proxy_in_zones | sort | unique %}
+#	domain-insecure: "{{ zone }}"
 {%   endfor %}
 
 {% endif %}
@@ -101,10 +101,10 @@ server:
 {%   endfor %}
 
 {% endif %}
-{% if unbound_proxy_nl_zones | length %}
-{%   for zone in unbound_proxy_nl_zones | sort | unique %}
-	local-zone: "{{ zone }}." redirect
-	local-data: "{{ zone }}. A {{ hostvars['proxy-nl'].ansible_default_ipv4.address }}"
+{% if unbound_proxy_in_zones | length %}
+{%   for zone in unbound_proxy_in_zones | sort | unique %}
+#	local-zone: "{{ zone }}." redirect
+#	local-data: "{{ zone }}. A {{ hostvars['proxy-in'].ansible_default_ipv4.address }}"
 {%   endfor %}
 
 {% endif %}

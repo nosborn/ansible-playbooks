@@ -28,19 +28,24 @@
   loop_control:
     loop_var: nzbget_item
 
-- ansible.builtin.get_url:
+- name: download installer
+  ansible.builtin.get_url:
     url: "{{ nzbget_release.json.assets | selectattr('name', 'search', '-bin-linux.run') | map(attribute='browser_download_url') | first }}"
     dest: /tmp/nzbget-{{ nzbget_version }}-bin-linux.run
     owner: root
     group: root
     mode: !!str 0400
+  changed_when: false
 
-- ansible.builtin.shell:
+- name: extract installation tarball
+  ansible.builtin.shell:
     chdir: /tmp
     cmd: sed '1,/^#END-OF-INSTALLER$/d' nzbget-{{ nzbget_version }}-bin-linux.run >nzbget-{{ nzbget_version }}.tgz
     creates: /tmp/nzbget-{{ nzbget_version }}.tgz
+  changed_when: false
 
-- ansible.builtin.unarchive:
+- name: install
+  ansible.builtin.unarchive:
     src: /tmp/nzbget-{{ nzbget_version }}.tgz
     remote_src: true
     dest: /opt/nzbget/{{ nzbget_version }}

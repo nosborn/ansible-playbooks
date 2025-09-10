@@ -246,9 +246,9 @@
         argv:
           - update-grub
 
-- name: Configure proxy-nl
+- name: Configure proxy-in
   hosts:
-    - proxy-nl
+    - proxy-in
   gather_facts: false
 
   pre_tasks:

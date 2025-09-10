@@ -1,3 +1,32 @@
+prometheus.exporter.blackbox "integrations_blackbox" {
+	config = "{ modules: { icmp: { prober: icmp, timeout: 5s } } }"
+
+	target {
+		address = "{% if ansible_hostname == 'proxy-in' %}f1tv.formula1.com{% else %}proxy-in.osborn.io{% endif %}"
+		module  = "icmp"
+		name    = "{% if ansible_hostname == 'proxy-in' %}f1tv.formula1.com{% else %}proxy-in.osborn.io{% endif %}"
+	}
+}
+
+discovery.relabel "integrations_blackbox" {
+	targets = prometheus.exporter.blackbox.integrations_blackbox.targets
+
+	rule {
+		replacement  = "integrations/blackbox"
+		target_label = "job"
+	}
+}
+
+prometheus.scrape "integrations_blackbox" {
+	job_name        = "integrations/blackbox"
+	scrape_interval = "15s"
+	targets         = discovery.relabel.integrations_blackbox.output
+
+	forward_to = [
+		prometheus.remote_write.grafana_cloud.receiver,
+	]
+}
+
 discovery.relabel "integrations_node_exporter" {
 	targets = prometheus.exporter.unix.integrations_node_exporter.targets
 
@@ -32,11 +61,11 @@ prometheus.exporter.unix "integrations_node_exporter" {
 	}
 
 	netclass {
-		ignored_devices = "^(veth.*|cali.*|[a-f0-9]{15})$"
+		ignored_devices = "^(cali.*|lo|veth.*|[a-f0-9]{15})$"
 	}
 
 	netdev {
-		device_exclude = "^(veth.*|cali.*|[a-f0-9]{15})$"
+		device_exclude = "^(cali.*|lo|veth.*|[a-f0-9]{15})$"
 	}
 }
 

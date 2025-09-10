@@ -27,9 +27,11 @@
     daemon_reload: true
     enabled: true
     state: started
+  when: false # FIXME
 
 - name: mount now
   ansible.builtin.meta: flush_handlers
+  when: false # FIXME
 
 - ansible.builtin.file:
     path: "{{ timemachine_path }}"
@@ -37,3 +39,4 @@
     group: "{{ timemachine_group }}"
     mode: !!str 0770
     state: directory
+  when: false # FIXME
