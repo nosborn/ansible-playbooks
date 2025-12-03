@@ -5,9 +5,9 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: daily
+      interval: monthly
 
   - package-ecosystem: npm
     directory: /roles/homebridge/files
     schedule:
-      interval: daily
+      interval: monthly
