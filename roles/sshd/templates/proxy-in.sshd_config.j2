@@ -1,6 +1,6 @@
 #Port 22
 AddressFamily inet
-ListenAddress {{ ansible_default_ipv4.address }}
+ListenAddress {{ ansible_facts['default_ipv4'].address }}
 #ListenAddress ::
 
 AcceptEnv LANG
@@ -52,7 +52,7 @@ UsePAM no
 VersionAddendum none
 #X11Forwarding no
 
-Match Address {{ hostvars.gateway.ansible_default_ipv4.address }}
+Match Address {{ hostvars.gateway.ansible_facts['default_ipv4'].address }}
 	PermitRootLogin prohibit-password
 
 Match Address {{ hostvars.tombstone.lan_ipv6_subnet }}

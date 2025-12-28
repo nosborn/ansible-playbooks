@@ -1,5 +1,5 @@
 {
-  "nodeName": "{{ ansible_hostname }}",
+  "nodeName": "{{ ansible_facts['hostname'] }}",
   "serverURL": "http://127.0.0.1:{{ tdarr_server_port }}",
   "serverIP": "127.0.0.1",
   "serverPort": "{{ tdarr_server_port }}",

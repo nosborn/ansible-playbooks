@@ -1,0 +1,18 @@
+[NetDev]
+Description = VPN Server
+Name = {{ vpn_server_if }}
+Kind = wireguard
+
+[WireGuard]
+PrivateKey = {{ vpn_server_private_key }}
+ListenPort = {{ vpn_server_port }}
+{% if vpn_clients | default({}) | length %}
+{%   for peer in vpn_clients|dict2items %}
+
+[WireGuardPeer]
+PublicKey = {{ peer.value.public_key }}
+PresharedKey = {{ peer.value.preshared_key }}
+AllowedIPs = {{ peer.value.allowed_ips | join(',') }}
+PersistentKeepalive = 25
+{%   endfor %}
+{% endif %}

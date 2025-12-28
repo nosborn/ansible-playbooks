@@ -40,9 +40,9 @@
       TZ: "{{ timezone }}"
       ffmpegVersion: !!str 7
       inContainer: !!str true
-      nodeName: "{{ ansible_hostname }}"
+      nodeName: "{{ ansible_facts['hostname'] }}"
       # pathTranslators: "{{ [{server: '\\\\TOMBSTONE\\Media', node: '/data/media'}] | tojson | safe}}"
-      serverIP: "{{ hostvars.tombstone.ansible_default_ipv4.address }}"
+      serverIP: "{{ hostvars.tombstone.ansible_facts['default_ipv4'].address }}"
       serverPort: !!str 8266
     # groups:
     #   - 44 # `video` -- FIXME

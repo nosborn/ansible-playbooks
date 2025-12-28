@@ -3,13 +3,13 @@ upstream {{ library_application_name }} {
 }
 
 server {
-	listen {{ ansible_default_ipv4.address }}:443 ssl;
+	listen {{ ansible_facts['default_ipv4'].address }}:443 ssl;
 	server_name {{ nginx_server_name }};
 
 	ssl_certificate /etc/nginx/wildcard.pem;
 	ssl_certificate_key /etc/nginx/wildcard.key;
 
-	allow {{ ansible_default_ipv4.network }}/{{ ansible_default_ipv4.prefix }};
+	allow {{ ansible_facts['default_ipv4'].network }}/{{ ansible_facts['default_ipv4'].prefix }};
 	deny all;
 
 	location / {

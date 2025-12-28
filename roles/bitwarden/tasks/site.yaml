@@ -1,0 +1,8 @@
+---
+- ansible.builtin.template:
+    src: "{{ nginx_src }}"
+    dest: "{{ nginx_sites_enabled_path }}/{{ nginx_dest }}"
+    owner: root
+    group: root
+    mode: !!str 0444
+  notify: reload nginx

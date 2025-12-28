@@ -1,8 +1,8 @@
 ---
-- when: ansible_system == 'Linux'
+- when: ansible_facts['system'] == 'Linux'
   block:
     - ansible.builtin.import_tasks: linux.yaml
 
-- when: ansible_os_family == 'Windows'
+- when: ansible_facts['os_family'] == 'Windows'
   block:
     - ansible.builtin.import_tasks: windows.yaml

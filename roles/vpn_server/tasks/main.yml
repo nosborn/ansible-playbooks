@@ -1,0 +1,44 @@
+---
+- ansible.builtin.apt:
+    name: wireguard-tools
+    install_recommends: false
+    state: present
+
+- ansible.builtin.template:
+    src: netdev.j2
+    dest: /etc/systemd/network/30-vpn-server.netdev
+    owner: root
+    group: systemd-network
+    mode: !!str 0440
+  notify: restart systemd-networkd
+
+- ansible.builtin.template:
+    src: network.j2
+    dest: /etc/systemd/network/30-vpn-server.network
+    owner: root
+    group: systemd-network
+    mode: !!str 0440
+  notify: restart systemd-networkd
+
+- delegate_to: localhost
+  run_once: true
+  template:
+    src: client.conf.j2
+    dest: "{{ playbook_dir }}/wg-{{ vpn_server_item.key }}.conf"
+    mode: !!str 0400
+  loop: "{{ vpn_clients | dict2items }}"
+  loop_control:
+    label: "{{ vpn_server_item.key }}"
+    loop_var: vpn_server_item
+  vars:
+    vpn_client: "{{ vpn_server_item.value }}"
+
+- delegate_to: localhost
+  run_once: true
+  ansible.builtin.shell:
+    cmd: qrencode -t png -o "{{ playbook_dir }}/wg-{{ vpn_server_item.key }}.png" < "{{ playbook_dir }}/wg-{{ vpn_server_item.key }}.conf"
+  loop: "{{ vpn_clients | dict2items }}"
+  loop_control:
+    label: "{{ vpn_server_item.key }}"
+    loop_var: vpn_server_item
+  changed_when: false

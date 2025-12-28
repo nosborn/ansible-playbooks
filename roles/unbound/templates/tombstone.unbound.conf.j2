@@ -5,10 +5,13 @@ server:
 
 	num-threads: 1
 
-	interface: 127.0.0.1
-	interface: {{ lan_ipv4_address }}
-	interface: ::1
-	interface: {{ lan_ipv6_link_address }}
+	interface: 0.0.0.0
+	# interface: 127.0.0.1
+	# interface: {{ lan_ipv4_address }}
+	interface: ::0
+	# interface: ::1
+	# interface: {{ lan_ipv6_link_address }}
+  interface-automatic: yes
 
 	# ip-transparent: yes
 
@@ -19,9 +22,12 @@ server:
 	access-control: 0.0.0.0/0 refuse
 	access-control: 127.0.0.0/8 allow
 	access-control: {{ lan_ipv4_subnet }} allow
+	access-control: {{ vpn_ipv4_subnet }} allow
 	access-control: ::0/0 deny
 	access-control: ::1 allow
-	access-control: {{ lan_ipv6_link_subnet }} allow
+	# access-control: {{ lan_ipv6_link_subnet }} allow
+	access-control: {{ lan_ipv6_subnet }} allow
+	access-control: {{ vpn_ipv6_subnet }} allow
 
 	log-queries: yes
 	# log-replies: yes
@@ -62,9 +68,9 @@ server:
 {%   endfor %}
 
 {% endif %}
-{% if unbound_proxy_in_zones | length %}
-{%   for zone in unbound_proxy_in_zones | sort | unique %}
-#	domain-insecure: "{{ zone }}"
+{% if unbound_proxy_nl_zones | default([]) | length %}
+{%   for zone in unbound_proxy_nl_zones | sort | unique %}
+	domain-insecure: "{{ zone }}"
 {%   endfor %}
 
 {% endif %}
@@ -101,10 +107,10 @@ server:
 {%   endfor %}
 
 {% endif %}
-{% if unbound_proxy_in_zones | length %}
-{%   for zone in unbound_proxy_in_zones | sort | unique %}
-#	local-zone: "{{ zone }}." redirect
-#	local-data: "{{ zone }}. A {{ hostvars['proxy-in'].ansible_default_ipv4.address }}"
+{% if unbound_proxy_nl_zones | default([]) | length %}
+{%   for zone in unbound_proxy_nl_zones | sort | unique %}
+	local-zone: "{{ zone }}." redirect
+	local-data: "{{ zone }}. A {{ hostvars['proxy-nl'].ansible_facts['default_ipv4'].address }}"
 {%   endfor %}
 
 {% endif %}

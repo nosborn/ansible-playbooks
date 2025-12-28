@@ -3,3 +3,6 @@
 .envrc
 .ownca/
 .vault_password
+CLAUDE.local.md
+wg-*.conf
+wg-*.png

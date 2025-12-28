@@ -4,22 +4,29 @@ Description=HomeKit support for the impatient.
 
 [Service]
 ExecStart={{ homebridge_home }}/node_modules/.bin/homebridge -Q -T -U {{ homebridge_home }}
+; Group=homebridge
 LockPersonality=yes
 NoNewPrivileges=yes
+; PrivateDevices=yes
+; PrivateIPC=yes
 PrivateTmp=yes
 ProtectClock=yes
 ProtectControlGroups=yes
 ProtectHome=tmpfs
 ProtectHostname=yes
+; ProtectKernelLogs=yes
 ProtectKernelModules=yes
 ProtectKernelTunables=yes
+ProtectSystem=strict
+ReadWritePaths=/var/lib/homebridge/persist
 RemoveIPC=yes
 Restart=always
 RestrictRealtime=yes
+; RestrictSUIDSGID=yes
 User=homebridge
 WorkingDirectory={{ homebridge_home }}
 
 [Install]
 WantedBy=sysinit.target
 
-# vim: ft=systemd.jinja2
+; vim: ft=systemd.jinja2

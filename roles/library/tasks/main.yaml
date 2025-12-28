@@ -1,13 +1,13 @@
 # yamllint disable rule:line-length
 ---
-- when: ansible_system == 'Linux'
+- when: ansible_facts['system'] == 'Linux'
   block:
     - ansible.builtin.import_tasks: debian.yaml
-      when: ansible_distribution == 'Debian'
+      when: ansible_facts['distribution'] == 'Debian'
 
     - ansible.builtin.import_tasks: synology.yaml
-      when: ansible_system_vendor == 'Synology'
+      when: ansible_facts['system_vendor'] == 'Synology'
 
-- when: ansible_os_family == 'Windows'
+- when: ansible_facts['os_family'] == 'Windows'
   block:
     - ansible.builtin.import_tasks: windows.yaml

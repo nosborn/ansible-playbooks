@@ -1,0 +1,15 @@
+[Match]
+Name = {{ vpn_server_if }}
+
+[Link]
+MTUBytes = 1412
+RequiredForOnline = no
+ActivationPolicy = always-up
+
+[Network]
+Address = {{ vpn_server_ipv4_address }}
+Address = {{ vpn_server_ipv6_address }}
+IPv4Forwarding = yes
+IPv6Forwarding = yes
+IPMasquerade = both
+IPv6AcceptRA = no

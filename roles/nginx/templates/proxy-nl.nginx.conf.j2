@@ -28,14 +28,14 @@ stream {
 	resolver 127.0.0.1;
 
 	server {
-		listen {{ ansible_facts['default_ipv4'].address }}:443;
+		listen 0.0.0.0:443;
 		ssl_preread on;
 
-		allow {{ hostvars.gateway.ansible_facts['default_ipv4'].address }};
+		allow {{ hostvars.tombstone.wan_ipv4_address }};
 		deny all;
 
 		proxy_pass $ssl_preread_server_name:443;
 	}
 }
 
-# vim: ft=nginx.jinja2
+# vim: ft=nginx.jinja2 noet sw=8 ts=8

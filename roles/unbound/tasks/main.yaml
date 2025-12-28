@@ -20,7 +20,7 @@
 
 - name: configure
   ansible.builtin.template:
-    src: "{{ ansible_hostname }}.unbound.conf.j2"
+    src: "{{ ansible_facts['hostname'] }}.unbound.conf.j2"
     dest: /etc/unbound/unbound.conf
     owner: root
     group: root

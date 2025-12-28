@@ -1,0 +1,12 @@
+[Interface]
+Address = {{ vpn_client.allowed_ips | join(',') }}
+DNS = {{ vpn_server_ipv4_address | ansible.utils.ipaddr('address') }},{{ vpn_server_ipv6_address | ansible.utils.ipaddr('address') }}
+MTU = 1412
+PrivateKey = {{ vpn_client.private_key }}
+
+[Peer]
+AllowedIPs = 0.0.0.0/0, ::/0
+Endpoint = {{ external_fqdn }}:{{ vpn_server_port }}
+PersistentKeepAlive = 25
+PresharedKey = {{ vpn_client.preshared_key }}
+PublicKey = {{ vpn_server_public_key }}

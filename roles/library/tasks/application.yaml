@@ -9,7 +9,7 @@
     nginx_src: media-proxy.conf.j2
     nginx_dest: media-proxy-{{ library_application_name }}
 
-- when: ansible_system_vendor == 'Synology'
+- when: ansible_facts['system_vendor'] == 'Synology'
   block:
     - name: publish DNS
       delegate_to: tombstone
@@ -19,10 +19,10 @@
       vars:
         unbound_content: |
           server:
-            local-data: "{{ library_application_name }}.{{ domain_name }}. A {{ ansible_default_ipv4.address }}"
+            local-data: "{{ library_application_name }}.{{ domain_name }}. A {{ ansible_facts['default_ipv4'].address }}"
         unbound_dest: local-data-{{ library_application_name }}.conf
 
-- when: ansible_system_vendor != 'Synology'
+- when: ansible_facts['system_vendor'] != 'Synology'
   block:
     - name: publish DNS
       ansible.builtin.import_role:

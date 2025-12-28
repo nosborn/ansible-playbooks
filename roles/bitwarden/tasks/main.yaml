@@ -1,0 +1,119 @@
+# yamllint disable rule:line-length
+---
+- ansible.builtin.group:
+    name: bitwarden
+    system: true
+  register: bitwarden_group_result
+
+- ansible.builtin.user:
+    create_home: false
+    home: /opt/bitwarden
+    name: bitwarden
+    group: bitwarden
+    groups:
+      - docker
+    shell: "{{ nologin_shell }}"
+    system: true
+  register: bitwarden_user_result
+
+- ansible.builtin.file:
+    path: /opt/bitwarden
+    owner: root
+    group: bitwarden
+    mode: !!str 2770
+    state: directory
+
+- ansible.builtin.file:
+    path: /opt/bitwarden/bwdata
+    owner: bitwarden
+    group: bitwarden
+    mode: !!str 0700
+    state: directory
+
+- ansible.builtin.unarchive:
+    src: https://github.com/bitwarden/server/releases/download/v2025.12.1/docker-stub-EU.zip
+    remote_src: true
+    dest: /opt/bitwarden/bwdata
+    owner: bitwarden
+    group: bitwarden
+    creates: /opt/bitwarden/bwdata/docker/docker-compose.yml
+
+- ansible.builtin.lineinfile:
+    path: /opt/bitwarden/bwdata/env/global.override.env
+    regex: ^{{ item.key }}=
+    line: "{{ item.key }}={{ item.value }}"
+    owner: bitwarden
+    group: bitwarden
+    mode: !!str 0400
+  loop: "{{ global_overrides | dict2items }}"
+  vars:
+    global_overrides:
+      globalSettings__baseServiceUri__cloudRegion: EU
+      globalSettings__baseServiceUri__vault: https://bitwarden.{{ domain_name }}
+      globalSettings__duo__aKey: "{{ bitwarden_duo_akey }}"
+      globalSettings__identityServer__certificatePassword: "{{ bitwarden_identity_server_certificate_password }}"
+      globalSettings__installation__id: "{{ bitwarden_installation_id }}"
+      globalSettings__installation__key: "{{ bitwarden_installation_key }}"
+      globalSettings__internalIdentityKey: "{{ bitwarden_internal_identity_key }}"
+      globalSettings__oidcIdentityClientKey: "{{ bitwarden_oidc_identity_client_key }}"
+      globalSettings__sqlServer__connectionString: Data Source=tcp:mssql,1433;Initial Catalog=vault;Persist Security Info=False;User ID=sa;Password={{ bitwarden_database_password }};Multiple Active Result Sets=False;Connect Timeout=30;Encrypt=True;Trust Server Certificate=True
+
+      # adminSettings__admins:
+      # globalSettings__disableUserRegistration: false
+      # globalSettings__hibpApiKey: REPLACE
+      # globalSettings__mail__replyToEmail: no-reply@bitwarden.example.com
+      # globalSettings__mail__smtp__host: REPLACE
+      # globalSettings__mail__smtp__password: REPLACE
+      # globalSettings__mail__smtp__port: 587
+      # globalSettings__mail__smtp__ssl: false
+      # globalSettings__mail__smtp__username: REPLACE
+      # globalSettings__yubico__clientId: REPLACE
+      # globalSettings__yubico__key: REPLACE
+  notify: restart bitwarden
+
+- community.crypto.openssl_pkcs12:
+    action: export
+    path: /opt/bitwarden/bwdata/identity/identity.pfx
+    certificate_privatekey: "{{ bitwarden_identity_server_key }}"
+    certificate_content: "{{ bitwarden_identity_server_certificate }}"
+    passphrase: "{{ bitwarden_identity_server_certificate_password }}"
+    owner: bitwarden
+    group: bitwarden
+    mode: !!str 0400
+  notify: restart bitwarden
+  when: false
+
+- ansible.builtin.file:
+    path: /opt/bitwarden/bwdata/bitwarden.{{ domain_name }}
+    owner: bitwarden
+    group: bitwarden
+    mode: !!str 0700
+    state: directory
+
+- ansible.builtin.lineinfile:
+    path: /opt/bitwarden/bwdata/env/mssql.override.env
+    regex: ^SA_PASSWORD=
+    line: SA_PASSWORD={{ bitwarden_database_password }}
+    owner: bitwarden
+    group: bitwarden
+    mode: !!str 0400
+  notify: restart bitwarden
+
+- ansible.builtin.lineinfile:
+    path: /opt/bitwarden/bwdata/env/uid.env
+    regex: ^{{ item.key }}=
+    line: "{{ item.key }}={{ item.value }}"
+    owner: bitwarden
+    group: bitwarden
+    mode: !!str 0400
+  loop: "{{ uid | dict2items }}"
+  vars:
+    uid:
+      LOCAL_UID: "{{ bitwarden_user_result.uid }}"
+      LOCAL_GID: "{{ bitwarden_group_result.gid }}"
+  notify: restart bitwarden
+
+- name: start service
+  community.docker.docker_compose_v2:
+    project_src: /opt/bitwarden/bwdata/docker
+    state: present

@@ -18,7 +18,7 @@
   #   ansible.builtin.assert:
   #     quiet: true
   #     that:
-  #       - ([hostvars.gateway.ansible_default_ipv4.address] | ansible.utils.ipaddr('public')) | length
+  #       - ([hostvars.gateway.ansible_facts['default_ipv4.address']] | ansible.utils.ipaddr('public')) | length
   #   run_once: true
   #   tags:
   #     - always
@@ -142,9 +142,14 @@
     - role: alloy
       tags:
         - alloy
+      when: false # FIXME
     - role: bazarr
       tags:
         - bazarr
+    - role: bitwarden
+      tags:
+        - bitwarden
+      when: false # TODO
     - role: calibre
       tags:
         - calibre
@@ -171,6 +176,7 @@
     - role: nginx
       tags:
         - nginx
+      when: false
     - role: nzbget
       tags:
         - nzbget
@@ -211,6 +217,9 @@
     - role: unbound
       tags:
         - unbound
+    - role: vpn_server
+      tags:
+        - vpn-server
 
   tasks:
     - name: install additional packages
@@ -241,14 +250,19 @@
     - name: reboot
       ansible.builtin.reboot: {}
 
+    - name: restart systemd-networkd
+      ansible.builtin.systemd:
+        name: systemd-networkd.service
+        state: restarted
+
     - name: update-grub
       ansible.builtin.command:
         argv:
           - update-grub
 
-- name: Configure proxy-in
+- name: Configure proxy-nl
   hosts:
-    - proxy-in
+    - proxy-nl
   gather_facts: false
 
   pre_tasks:
@@ -277,7 +291,7 @@
         - always
 
     - ansible.builtin.shell:
-        cmd: ip -f inet6 -o addr show dev {{ ansible_default_ipv6.interface }} scope global mngtmpaddr | awk '{print $4}' | cut -d/ -f1
+        cmd: ip -f inet6 -o addr show dev {{ ansible_facts['default_ipv6'].interface }} scope global mngtmpaddr | awk '{print $4}' | cut -d/ -f1
       changed_when: false
       register: result
       when: false
@@ -308,6 +322,7 @@
     - role: alloy
       tags:
         - alloy
+      when: false # FIXME
     - role: nginx
       tags:
         - nginx
@@ -333,6 +348,13 @@
           - nano
         purge: true
         state: absent
+      tags:
+        - always
+
+    - name: remove root password
+      ansible.builtin.user:
+        name: root
+        password: "*"
       tags:
         - always
 

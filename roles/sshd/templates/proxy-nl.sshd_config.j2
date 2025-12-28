@@ -1,6 +1,6 @@
 #Port 22
-#AddressFamily any
-#ListenAddress 0.0.0.0
+AddressFamily inet
+ListenAddress 0.0.0.0
 #ListenAddress ::
 
 AcceptEnv LANG
@@ -52,13 +52,10 @@ UsePAM no
 VersionAddendum none
 #X11Forwarding no
 
-Match Address {{ lan_ipv4_subnet }}
+Match Address {{ hostvars.tombstone.wan_ipv4_address }}
 	PermitRootLogin prohibit-password
 
-Match Address {{ lan_ipv6_link_subnet }}
-	PermitRootLogin prohibit-password
-
-Match Address {{ lan_ipv6_subnet }}
+Match Address {{ hostvars.tombstone.lan_ipv6_subnet }}
 	PermitRootLogin prohibit-password
 
 # vim: ft=sshdconfig.jinja2

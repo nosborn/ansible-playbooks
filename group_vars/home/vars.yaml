@@ -1,10 +1,14 @@
 ---
 domain_name: "{{ vault_domain_name }}"
 guest_ipv4_subnet: "{{ vault_guest_ipv4_subnet }}"
+guest_ipv6_subnet: "{{ vault_guest_ipv6_subnet }}"
 guest_vlan: "{{ vault_guest_vlan }}"
 iot_ipv4_subnet: "{{ vault_iot_ipv4_subnet }}"
 iot_vlan: "{{ vault_iot_vlan }}"
 ipv4_network: "{{ vault_ipv4_network }}"
+ipv6_network: "{{ vault_ipv6_network }}"
 lan_ipv4_subnet: "{{ vault_lan_ipv4_subnet }}"
-timezone: Asia/Singapore
+timezone: Europe/London
 vpn_ipv4_subnet: "{{ vault_vpn_ipv4_subnet }}"
+vpn_ipv6_subnet: "{{ vault_vpn_ipv6_subnet }}"
+wan_ipv4_address: "{{ vault_wan_ipv4_address }}"
