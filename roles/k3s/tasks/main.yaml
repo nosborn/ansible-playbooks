@@ -1,0 +1,142 @@
+# yamllint disable rule:line-length
+---
+- name: install dependencies
+  ansible.builtin.apt:
+    name: python3-kubernetes
+    state: present
+
+- name: fetch release info
+  delegate_to: localhost
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/k3s-io/k3s/releases/latest
+    headers:
+      Accept: application/vnd.github+json
+    return_content: true
+    body_format: json
+  register: k3s_result
+  until: k3s_result is success
+
+- name: set facts
+  ansible.builtin.set_fact:
+    k3s_asset_url: "{{ k3s_result.json.assets | selectattr('name', 'eq', 'k3s') | map(attribute='browser_download_url') | first }}"
+    k3s_checksum_url: "{{ k3s_result.json.assets | selectattr('name', 'eq', 'sha256sum-amd64.txt') | map(attribute='browser_download_url') | first }}"
+    k3s_version: "{{ k3s_result.json.tag_name | regex_replace('^v', '') }}"
+
+- name: fetch checksums
+  delegate_to: localhost
+  ansible.builtin.uri:
+    url: "{{ k3s_checksum_url }}"
+    return_content: true
+  register: k3s_result
+  until: k3s_result is success
+
+- name: set checksum fact
+  ansible.builtin.set_fact:
+    k3s_checksum: "{{ k3s_result.content | split('\n') | select('search', 'k3s$') | first | split(' ') | first }}"
+
+- name: install binary
+  ansible.builtin.get_url:
+    url: "{{ k3s_asset_url }}"
+    checksum: sha256:{{ k3s_checksum }}
+    dest: /usr/local/bin/k3s
+    owner: root
+    group: root
+    mode: !!str 0555
+  notify: restart k3s
+
+- name: create config directory
+  ansible.builtin.file:
+    name: "{{ k3s_item }}"
+    owner: root
+    group: root
+    mode: !!str 0755
+    state: directory
+  loop:
+    - /etc/rancher
+    - /etc/rancher/k3s
+  loop_control:
+    loop_var: k3s_item
+
+- name: configure
+  ansible.builtin.template:
+    src: config.yaml.j2
+    dest: /etc/rancher/k3s/config.yaml
+    owner: root
+    group: root
+    mode: !!str 0400
+    # validate: yamllint --no-warnings %s
+  notify: restart k3s
+
+- name: create service unit
+  ansible.builtin.template:
+    src: service.j2
+    dest: /etc/systemd/system/k3s.service
+    owner: root
+    group: root
+    mode: !!str 0444
+    validate: systemd-analyze verify %s
+  notify: restart k3s
+
+- name: enable and start service
+  ansible.builtin.systemd_service:
+    name: k3s.service
+    daemon_reload: true
+    enabled: true
+    state: started
+
+- ansible.builtin.meta: flush_handlers
+
+- name: wait for k3s manifests directory
+  ansible.builtin.wait_for:
+    path: /var/lib/rancher/k3s/server/manifests
+
+- name: install manifests
+  ansible.builtin.template:
+    src: manifests/{{ k3s_item }}.j2
+    dest: /var/lib/rancher/k3s/server/manifests/{{ k3s_item }}
+    owner: root
+    group: root
+    mode: !!str 0400
+  loop:
+    - traefik-config.yaml
+  loop_control:
+    loop_var: k3s_item
+  notify: restart k3s
+
+- ansible.builtin.meta: flush_handlers
+
+- name: wait for k3s kubeconfig
+  ansible.builtin.wait_for:
+    path: "{{ k8s_kubeconfig }}"
+
+- name: Wait for Gateway CRD
+  kubernetes.core.k8s_info:
+    api_version: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    name: gateways.gateway.networking.k8s.io
+  register: k3s_result
+  until: k3s_result.resources | length > 0
+  retries: 30
+  delay: 10
+
+- name: create TLS secret
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: wildcard-tls
+        namespace: kube-system
+      type: kubernetes.io/tls
+      data:
+        tls.crt: "{{ lookup('file', '.ownca/wildcard.crt') | b64encode }}"
+        tls.key: "{{ lookup('file', '.ownca/wildcard.key') | b64encode }}"
+
+- name: configure Gateway
+  kubernetes.core.k8s:
+    template: gateway.yaml.j2
+    context: default
+    state: present
+
+- name: configure local kubeconfig
+  ansible.builtin.include_tasks: kubeconfig.yaml

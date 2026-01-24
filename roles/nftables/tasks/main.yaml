@@ -4,14 +4,14 @@
     name: nftables
     state: present
 
-# - name: configure nftables
-#   ansible.builtin.template:
-#     src: nftables.conf.j2
-#     dest: /etc/nftables.conf
-#     owner: root
-#     group: root
-#     mode: !!str 0440
-#   notify: restart nftables
+- name: configure nftables
+  ansible.builtin.template:
+    src: nftables.conf.j2
+    dest: /etc/nftables.conf
+    owner: root
+    group: root
+    mode: !!str 0440
+  notify: restart nftables
 
 - name: enable and start service
   ansible.builtin.systemd_service:

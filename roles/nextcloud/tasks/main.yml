@@ -1,0 +1,35 @@
+---
+- name: create namespace
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: nextcloud
+
+- name: create secret
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        labels:
+          app.kubernetes.io/instance: nextcloud
+          app.kubernetes.io/managed-by: Ansible
+          app.kubernetes.io/name: nextcloud
+        name: nextcloud
+        namespace: nextcloud
+      stringData:
+        nextcloud-username: "{{ nextcloud_username }}"
+        nextcloud-password: "{{ nextcloud_password }}"
+      type: Opaque
+
+- name: publish DNS
+  ansible.builtin.import_role:
+    name: unbound
+    tasks_from: fragment.yaml
+  vars:
+    unbound_content: |
+      server:
+        local-data: "nextcloud.{{ domain_name }}. A {{ lan_ipv4_address }}"
+    unbound_dest: local-data-nextcloud.conf

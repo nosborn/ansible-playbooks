@@ -1,4 +1,11 @@
 table aliases file:/etc/aliases
+{% if opensmtpd_domains | default([]) | length %}
+table domains { \
+{%   for domain in opensmtpd_domains %}
+	{{ domain }}
+{%   endfor %}
+}
+{% endif %}
 table secrets { \
 {% for secret in opensmtpd_secrets %}
 	{{ secret.key }} = {{ secret.value }} \
@@ -6,9 +13,18 @@ table secrets { \
 }
 
 listen on localhost
+{% if opensmtpd_domains | default([]) | length %}
+listen on {{ lan_ipv4_address }} hostname {{ external_fqdn }}
+{% endif %}
 
 action "local" maildir alias <aliases>
 action "relay" relay helo {{ external_fqdn }} host {{ opensmtpd_relay_host }} auth <secrets>
+{% if opensmtpd_domains | default([]) | length %}
+action "backupmx" relay backup helo {{ external_fqdn }} tls
+{% endif %}
 
 match for local action "local"
 match from local for any action "relay"
+{% if opensmtpd_domains | default([]) | length %}
+match from any for domain <domains> action "backupmx"
+{% endif %}

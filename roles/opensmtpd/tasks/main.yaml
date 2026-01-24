@@ -1,8 +1,10 @@
 ---
 - name: install package
   ansible.builtin.apt:
-    name: opensmtpd
-    install_recommends: false
+    name:
+      - opensmtpd
+      - opensmtpd-filter-dkimsign
+    state: present
 
 - name: configure aliases
   ansible.builtin.copy:

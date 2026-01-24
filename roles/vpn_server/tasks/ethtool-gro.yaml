@@ -1,0 +1,29 @@
+# yamllint disable rule:line-length
+---
+- name: create ethtool GRO service
+  ansible.builtin.copy:
+    content: |
+      [Unit]
+      Description=Configure ethtool GRO settings for LAN interface
+      After=systemd-networkd.service
+      BindsTo=systemd-networkd.service
+
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/sbin/ethtool -K {{ lan_if }} rx-udp-gro-forwarding on rx-gro-list off
+      RemainAfterExit=yes
+
+      [Install]
+      WantedBy=multi-user.target
+    dest: /etc/systemd/system/ethtool-gro.service
+    owner: root
+    group: root
+    mode: !!str 0644
+  notify: restart ethtool-gro
+
+- name: enable and start service
+  ansible.builtin.systemd_service:
+    name: ethtool-gro.service
+    daemon_reload: true
+    enabled: true
+    state: started

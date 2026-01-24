@@ -1,0 +1,10 @@
+---
+- name: publish DNS
+  ansible.builtin.import_role:
+    name: unbound
+    tasks_from: fragment.yaml
+  vars:
+    unbound_content: |
+      server:
+        local-data: "immich.{{ domain_name }}. A {{ lan_ipv4_address }}"
+    unbound_dest: local-data-immich.conf

@@ -52,6 +52,10 @@
     - tombstone
   gather_facts: false
 
+  module_defaults:
+    group/kubernetes.core.k8s:
+      kubeconfig: "{{ k8s_kubeconfig }}"
+
   pre_tasks:
     - name: configure LAN network
       ansible.builtin.copy:
@@ -143,16 +147,17 @@
       tags:
         - alloy
       when: false # FIXME
+    - role: argocd
+      tags:
+        - argocd
     - role: bazarr
       tags:
         - bazarr
-    - role: bitwarden
-      tags:
-        - bitwarden
       when: false # TODO
     - role: calibre
       tags:
         - calibre
+      when: false # TODO
     - role: calibre_web
       tags:
         - calibre-web
@@ -163,6 +168,10 @@
     - role: dns_updater
       tags:
         - dns-updater
+    - role: gitea
+      tags:
+        - gitea
+      when: false
     - role: homebridge
       tags:
         - homebridge
@@ -170,31 +179,46 @@
       tags:
         - imapfilter
       when: false # TODO
+    - role: immich
+      tags:
+        - immich
+    - role: k3s
+      tags:
+        - k3s
     - role: lidarr
       tags:
         - lidarr
+      when: false # TODO
+    - role: nextcloud
+      tags:
+        - nextcloud
     - role: nginx
       tags:
         - nginx
-      when: false
+      when: false # TODO?
     - role: nzbget
       tags:
         - nzbget
+      when: false # TODO
     - role: ombi
       tags:
         - ombi
+      when: false # TODO
     - role: opensmtpd
       tags:
         - opensmtpd
     - role: prowlarr
       tags:
         - prowlarr
+      when: false # TODO
     - role: radarr
       tags:
         - radarr
+      when: false # TODO
     - role: readarr
       tags:
         - readarr
+      when: false # TODO
     - role: restic
       tags:
         - restic
@@ -202,21 +226,27 @@
     - role: samba
       tags:
         - samba
+      when: false # TODO
     - role: sonarr
       tags:
         - sonarr
+      when: false # TODO
     - role: sshd
       tags:
         - sshd
     - role: tdarr
       tags:
         - tdarr
+      when: false # TODO
     - role: unattended_upgrades
       tags:
         - unattended-upgrades
     - role: unbound
       tags:
         - unbound
+    - role: vaultwarden
+      tags:
+        - vaultwarden
     - role: vpn_server
       tags:
         - vpn-server
@@ -259,6 +289,38 @@
       ansible.builtin.command:
         argv:
           - update-grub
+
+- name: Configure DiskStation
+  hosts:
+    - diskstation
+  gather_facts: false
+
+  pre_tasks:
+    - name: install Python
+      ansible.builtin.raw: /usr/syno/bin/synopkg install_from_server Python3.9
+      changed_when: false
+      failed_when: false
+
+    - name: bootstrap pip
+      # ansible.builtin.raw: /usr/local/bin/python3.9 -m ensurepip --upgrade
+      ansible.builtin.raw: /usr/local/bin/python3.9 -m ensurepip
+      changed_when: false
+
+    - name: bootstrap Python dependencies
+      # ansible.builtin.raw: /usr/local/bin/python3.9 -m pip install --upgrade packaging setuptools
+      ansible.builtin.raw: /usr/local/bin/python3.9 -m pip install packaging setuptools
+      changed_when: false
+
+    - name: install Python dependencies
+      ansible.builtin.pip:
+        name:
+          - PyYAML
+          - requests
+
+  roles:
+    - role: nextcloud
+      tags:
+        - nextcloud
 
 - name: Configure proxy-nl
   hosts:

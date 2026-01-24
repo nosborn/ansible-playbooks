@@ -1,0 +1,15 @@
+---
+- name: add chart repository
+  kubernetes.core.helm_repository:
+    name: gitea-charts
+    repo_url: https://dl.gitea.com/charts/
+
+- name: install Helm chart
+  kubernetes.core.helm:
+    chart_ref: gitea-charts/gitea
+    chart_version: "{{ gitea_chart_version }}"
+    create_namespace: true
+    kubeconfig: "{{ k8s_kubeconfig }}"
+    release_name: gitea
+    release_namespace: gitea
+    release_values: {}

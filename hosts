@@ -1,14 +1,19 @@
-; gateway ansible_host=192.168.1.1
+diskstation ansible_host=192.168.1.3 ansible_user=root
+gateway ansible_host=192.168.1.1 ansible_user=root
 localhost ansible_connection=local ansible_host=127.0.0.1
-; pastime ansible_host=pastime.home.arpa
+; pastime ansible_host=pastime.home.arpa ansible_user=root
 proxy-nl ansible_host=proxy-nl.osborn.io ansible_user=root
 tombstone ansible_host=192.168.1.2 ansible_user=root
 
 [home]
-; gateway
+diskstation
+gateway
 localhost
 ; pastime
 tombstone
+
+[os_Arch]
+; pastime
 
 [os_Darwin]
 localhost
@@ -17,11 +22,14 @@ localhost
 proxy-nl
 tombstone
 
-[os_EdgeOS]
-; gateway
+[os_DSM]
+diskstation
 
-[os_Windows]
-; pastime
+[os_DSM:vars]
+ansible_python_interpreter=/usr/local/bin/python3.9
+
+[os_Unifi]
+gateway
 
 [vultr]
 proxy-nl

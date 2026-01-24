@@ -1,4 +1,7 @@
+# yamllint disable rule:line-length
 ---
+- ansible.builtin.import_tasks: ethtool-gro.yaml
+
 - ansible.builtin.apt:
     name: wireguard-tools
     install_recommends: false

@@ -11,7 +11,7 @@ server:
 	interface: ::0
 	# interface: ::1
 	# interface: {{ lan_ipv6_link_address }}
-  interface-automatic: yes
+	interface-automatic: yes
 
 	# ip-transparent: yes
 
@@ -152,3 +152,5 @@ rpz:
 	url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/rpz/tif.medium.txt
 	zonefile: /var/lib/unbound/rpz.tif.hagezi.zone
 	rpz-log: yes
+
+# vim: noet sw=8 ts=8

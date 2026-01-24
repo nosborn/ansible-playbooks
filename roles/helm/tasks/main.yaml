@@ -1,0 +1,54 @@
+# yamllint disable rule:line-length
+---
+- when: helm_version == 'latest'
+  block:
+    - name: fetch release info
+      delegate_to: localhost
+      ansible.builtin.uri:
+        url: https://api.github.com/repos/helm/helm/releases/latest
+        headers:
+          Accept: application/vnd.github+json
+        return_content: true
+        body_format: json
+      register: helm_release
+      until: helm_release is success
+
+    - name: set version fact
+      ansible.builtin.set_fact:
+        helm_version: "{{ helm_release.json.tag_name | regex_replace('^v', '') }}"
+
+- ansible.builtin.file:
+    path: "{{ helm_item }}"
+    owner: root
+    group: root
+    mode: !!str 0755
+    state: directory
+  loop:
+    - /opt/helm
+    - /opt/helm/{{ helm_version }}
+  loop_control:
+    loop_var: helm_item
+
+- ansible.builtin.unarchive:
+    src: https://get.helm.sh/helm-v{{ helm_version }}-linux-amd64.tar.gz
+    remote_src: true
+    dest: /opt/helm/{{ helm_version }}
+    owner: root
+    group: root
+    extra_opts:
+      - --strip-components=1
+    creates: /opt/helm/{{ helm_version }}/helm
+
+- ansible.builtin.file:
+    src: /opt/helm/{{ helm_version }}/helm
+    dest: /usr/local/bin/helm
+    owner: root
+    group: root
+    mode: !!str 0555
+    state: link
+
+- kubernetes.core.helm_plugin:
+    plugin_path: https://github.com/databus23/helm-diff
+    plugin_version: 3.14.1
+    state: present
+  when: false # TODO
