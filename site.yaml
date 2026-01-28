@@ -52,10 +52,6 @@
     - tombstone
   gather_facts: false
 
-  module_defaults:
-    group/kubernetes.core.k8s:
-      kubeconfig: "{{ k8s_kubeconfig }}"
-
   pre_tasks:
     - name: configure LAN network
       ansible.builtin.copy:
@@ -147,9 +143,6 @@
       tags:
         - alloy
       when: false # FIXME
-    - role: argocd
-      tags:
-        - argocd
     - role: bazarr
       tags:
         - bazarr
@@ -168,6 +161,9 @@
     - role: dns_updater
       tags:
         - dns-updater
+    - role: docker
+      tags:
+        - docker
     - role: gitea
       tags:
         - gitea
@@ -182,9 +178,6 @@
     - role: immich
       tags:
         - immich
-    - role: k3s
-      tags:
-        - k3s
     - role: lidarr
       tags:
         - lidarr
@@ -192,6 +185,7 @@
     - role: nextcloud
       tags:
         - nextcloud
+      when: false # TODO
     - role: nginx
       tags:
         - nginx
@@ -238,6 +232,9 @@
       tags:
         - tdarr
       when: false # TODO
+    - role: traefik
+      tags:
+        - traefik
     - role: unattended_upgrades
       tags:
         - unattended-upgrades

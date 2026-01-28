@@ -1,0 +1,30 @@
+---
+api:
+  dashboard: true
+  insecure: false # We'll secure it via Traefik itself
+
+entryPoints:
+  web:
+    address: :80
+    # http:
+    #   redirections:
+    #     entryPoint:
+    #       permanent: true
+    #       scheme: https
+    #       to: websecure
+    observability:
+      accessLogs: false
+      metrics: false
+      tracing: false
+  websecure:
+    address: :443
+    http:
+      tls: {}
+
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
+providers:
+  swarm:
+    exposedByDefault: false

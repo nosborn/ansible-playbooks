@@ -1,0 +1,132 @@
+# yamllint disable rule:line-length
+---
+- name: fetch release info
+  delegate_to: localhost
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/dani-garcia/vaultwarden/releases/latest
+    headers:
+      Accept: application/vnd.github+json
+    return_content: true
+    body_format: json
+  register: vaultwarden_result
+  until: vaultwarden_result is success
+
+- name: set version fact
+  ansible.builtin.set_fact:
+    vaultwarden_version: "{{ vaultwarden_result.json.tag_name }}"
+
+- name: create group
+  ansible.builtin.group:
+    name: vaultwarden
+    system: true
+
+- ansible.builtin.getent:
+    database: group
+    key: vaultwarden
+
+- name: create user
+  ansible.builtin.user:
+    comment: Vaultwarden
+    create_home: false
+    group: vaultwarden
+    home: "{{ vaultwarden_home }}"
+    name: vaultwarden
+    shell: "{{ nologin_shell }}"
+    system: true
+
+- ansible.builtin.getent:
+    database: passwd
+    key: vaultwarden
+
+- ansible.builtin.set_fact:
+    vaultwarden_gid: "{{ ansible_facts.getent_passwd['vaultwarden'][2] }}"
+    vaultwarden_uid: "{{ ansible_facts.getent_passwd['vaultwarden'][1] }}"
+
+- name: create home directory
+  ansible.builtin.file:
+    path: "{{ vaultwarden_home }}"
+    owner: root
+    group: vaultwarden
+    mode: !!str 0750
+    state: directory
+
+- name: configure .env
+  ansible.builtin.copy:
+    content:
+      - DOMAIN=https://vaultwarden.{{ domain_name }}
+      - EMAIL_CHANGE_ALLOWED=false
+      - EMERGENCY_ACCESS_ALLOWED=false
+      - PASSWORD_HINTS_ALLOWED=false
+      - PUSH_ENABLED=true
+      - PUSH_IDENTITY_URI=https://identity.bitwarden.eu
+      - PUSH_INSTALLATION_ID={{ bitwarden_installation_id }}
+      - PUSH_INSTALLATION_KEY={{ bitwarden_installation_key }}
+      - PUSH_RELAY_URI=https://api.bitwarden.eu
+      - SHOW_PASSWORD_HINT=false
+      - SIGNUPS_DOMAINS_WHITELIST={{ external_domain }}
+      - SIGNUPS_VERIFY=true
+    dest: "{{ vaultwarden_home }}/.env"
+    owner: root
+    group: vaultwarden
+    mode: !!str 0440
+  register: vaultwarden_env
+
+- name: create data directory
+  ansible.builtin.file:
+    path: "{{ vaultwarden_home }}/data"
+    owner: root
+    group: vaultwarden
+    mode: !!str 0770
+    state: directory
+
+- name: create network
+  community.docker.docker_network:
+    name: vaultwarden_external
+    driver: overlay
+    attachable: true
+    internal: true  # Blocks external access, only containers on this network can communicate
+    state: present
+
+- name: create service (swarm mode)
+  community.docker.docker_swarm_service:
+    cap_drop:
+      - ALL
+    env_files:
+      - "{{ vaultwarden_home }}/.env"
+    force_update: "{{ vaultwarden_env is changed }}"
+    image: vaultwarden/server:{{ vaultwarden_version }}
+    init: true
+    labels:
+      traefik.enable: !!str true
+      traefik.http.routers.vaultwarden.rule: Host(`vaultwarden.{{ domain_name }}`)
+      traefik.http.routers.vaultwarden.entrypoints: web
+      traefik.http.services.vaultwarden.loadbalancer.server.port: 80
+      # # Add IP whitelisting middleware for extra security
+      # traefik.http.routers.vaultwarden.middlewares: vaultwarden-ipwhitelist
+      # traefik.http.middlewares.vaultwarden-ipwhitelist.ipwhitelist.sourcerange: "{{ lan_ipv4_subnet }},{{ lan_ipv6_subnet }}"
+    mounts:
+      - source: "{{ vaultwarden_home }}/data"
+        target: /data
+        type: bind
+      - target: /data/tmp
+        type: tmpfs
+    name: vaultwarden
+    networks:
+      - vaultwarden_external
+    read_only: true
+    restart_config:
+      condition: any
+      delay: 5s
+    tls: true
+    user: "{{ vaultwarden_uid }}:{{ vaultwarden_gid }}"
+    working_dir: "{{ vaultwarden_home }}"
+
+- name: publish DNS
+  ansible.builtin.import_role:
+    name: unbound
+    tasks_from: fragment.yaml
+  vars:
+    unbound_content: |
+      server:
+        local-data: "vaultwarden.{{ domain_name }}. A {{ lan_ipv4_address }}"
+    unbound_dest: local-data-vaultwarden.conf

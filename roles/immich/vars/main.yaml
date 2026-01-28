@@ -1,0 +1,6 @@
+---
+immich_db_name: immich
+immich_db_password: postgres
+immich_db_username: postgres
+immich_home: /srv/immich
+immich_version: v2.5.0

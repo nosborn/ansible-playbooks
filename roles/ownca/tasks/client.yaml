@@ -1,0 +1,56 @@
+# yamllint disable rule:line-length
+---
+- name: "{{ client_name }} : create private key"
+  community.crypto.openssl_privatekey:
+    path: "{{ ownca_dir }}/{{ client_name }}.key"
+    type: ECC
+    curve: secp256r1
+    mode: !!str 0400
+
+- name: "{{ client_name }} : create CSR"
+  community.crypto.openssl_csr_pipe:
+    common_name: "{{ client_name }}.{{ domain_name }}"
+    country_name: "{{ ownca_country_name }}"
+    create_subject_key_identifier: true
+    extended_key_usage:
+      - serverAuth
+      - clientAuth
+    key_usage:
+      - digitalSignature
+      - keyEncipherment
+    key_usage_critical: true
+    privatekey_path: "{{ ownca_dir }}/{{ client_name }}.key"
+    subject_alt_name:
+      - DNS:{{ client_name }}.{{ domain_name }}
+  changed_when: false
+  register: ownca_client_csr
+
+- name: "{{ client_name }} : check whether certificate exists"
+  ansible.builtin.stat:
+    path: "{{ ownca_dir }}/{{ client_name }}.crt"
+  register: ownca_client_certificate_file
+
+- name: "{{ client_name }} : read existing certificate"
+  ansible.builtin.slurp:
+    src: "{{ ownca_dir }}/{{ client_name }}.crt"
+  when: ownca_client_certificate_file.stat.exists
+  register: ownca_client_certificate
+
+- name: "{{ client_name }} : sign certificate"
+  community.crypto.x509_certificate_pipe:
+    content: "{{ (ownca_client_certificate.content | b64decode) if ownca_client_certificate_file.stat.exists else omit }}"
+    csr_content: "{{ ownca_client_csr.csr }}"
+    ownca_path: "{{ ownca_dir }}/root.crt"
+    ownca_privatekey_path: "{{ ownca_dir }}/root.key"
+    ownca_privatekey_passphrase: "{{ ownca_root_privatekey_passphrase }}"
+    ownca_not_after: +398d  # https://support.apple.com/en-us/103769
+    ownca_create_authority_key_identifier: true
+    provider: ownca
+  register: ownca_client_certificate
+
+- name: "{{ client_name }} : save certificate"
+  ansible.builtin.copy:
+    content: "{{ ownca_client_certificate.certificate }}"
+    dest: "{{ ownca_dir }}/{{ client_name }}.crt"
+    mode: !!str 0444
+  when: ownca_client_certificate is changed # noqa: no-handler

@@ -11,3 +11,19 @@
 
 - ansible.builtin.include_tasks:
     file: wildcard.yaml
+
+- ansible.builtin.include_tasks:
+    file: client.yaml
+  vars:
+    client_name: "{{ ownca_item }}"
+  loop: "{{ ownca_client_names }}"
+  loop_control:
+    loop_var: ownca_item
+
+- delegate_to: localhost
+  run_once: true
+  ansible.builtin.copy:
+    content: "{{ ownca_mobileconfig }}"
+    dest: "{{ playbook_dir }}/OwnCA.mobileconfig"
+    mode: !!str 0400
+    validate: plutil -lint %s

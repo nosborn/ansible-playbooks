@@ -1,0 +1,13 @@
+port 0
+unixsocket /run/valkey-immich/valkey-server.sock
+unixsocketperm 770
+
+daemonize no
+supervised systemd
+pidfile /run/valkey-immich/valkey-server.pid
+loglevel notice
+logfile /var/log/valkey/valkey-server-immich.log
+databases 16
+
+save ""
+dir /var/lib/valkey
