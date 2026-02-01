@@ -1,0 +1,338 @@
+# yamllint disable rule:line-length
+---
+- name: check for Namespace
+  kubernetes.core.k8s_info:
+    kind: Namespace
+    name: argocd
+  register: argocd_namespace
+
+- name: create namespace
+  kubernetes.core.k8s:
+    apply: true
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        annotations:
+          linkerd.io/inject: disabled
+        labels:
+          pod-security.kubernetes.io/enforce: restricted
+        name: argocd
+    server_side_apply:
+      field_manager: Ansible
+  when: not argocd_namespace.resources
+
+- name: check for NetworkPolicy
+  kubernetes.core.k8s_info:
+    kind: NetworkPolicy
+    namespace: argocd
+  register: argocd_network_policy
+
+- name: fetch release info
+  delegate_to: localhost
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/argoproj/argo-cd/releases/latest
+    headers:
+      Accept: application/vnd.github+json
+    return_content: true
+    body_format: json
+  register: argocd_result
+  until: argocd_result is success
+  when: not argocd_network_policy.resources
+
+- name: set version fact
+  ansible.builtin.set_fact:
+    argocd_version: "{{ argocd_result.json.tag_name }}"
+  when: not argocd_network_policy.resources
+
+- name: apply manifest
+  kubernetes.core.k8s:
+    apply: true
+    namespace: argocd
+    server_side_apply:
+      field_manager: Ansible
+    src: https://raw.githubusercontent.com/argoproj/argo-cd/refs/tags/{{ argocd_version }}/manifests/core-install.yaml
+  when: not argocd_network_policy.resources
+
+- kubernetes.core.k8s:
+    apply: true
+    namespace: argocd
+    resource_definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        annotations: {}
+        labels:
+          argocd.argoproj.io/secret-type: cluster
+        name: cluster-tombstone
+      stringData:
+        config: >-
+          {
+            "tlsClientConfig": {
+              "insecure": false
+            }
+          }
+        name: tombstone
+        server: https://kubernetes.default.svc
+      type: Opaque
+    server_side_apply:
+      field_manager: Ansible
+
+- kubernetes.core.k8s:
+    apply: true
+    namespace: argocd
+    resource_definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        annotations: {}
+        labels:
+          argocd.argoproj.io/secret-type: repository
+        name: repo-deployments
+      stringData:
+        githubAppID: "{{ argocd_github_app_id }}"
+        githubAppInstallationID: "{{ argocd_github_app_installation_id }}"
+        githubAppPrivateKey: "{{ argocd_github_app_private_key }}"
+        name: deployments
+        type: git
+        url: "{{ argocd_deployments_repo_url }}"
+      type: Opaque
+    server_side_apply:
+      field_manager: Ansible
+
+- name: check for ApplicationSet
+  kubernetes.core.k8s_info:
+    kind: ApplicationSet
+    namespace: argocd
+    name: cluster-resources
+  register: argocd_result
+
+- name: bootstrap application
+  kubernetes.core.k8s:
+    apply: true
+    namespace: argocd
+    server_side_apply:
+      field_manager: Ansible
+    src: https://raw.githubusercontent.com/nosborn/argocd-deployments/refs/heads/main/bootstrap/cluster-resources.yaml
+    # when: not argocd_result.resources
+
+- name: check for Application
+  kubernetes.core.k8s_info:
+    kind: Application
+    namespace: argocd
+    name: root
+  register: argocd_result
+
+- name: bootstrap application
+  kubernetes.core.k8s:
+    apply: true
+    namespace: argocd
+    server_side_apply:
+      field_manager: Ansible
+    src: https://raw.githubusercontent.com/nosborn/argocd-deployments/refs/heads/main/bootstrap/root.yaml
+    # when: not argocd_result.resources
+
+- name: check for Application
+  kubernetes.core.k8s_info:
+    kind: Application
+    namespace: argocd
+    name: argo-cd
+  register: argocd_result
+
+- name: bootstrap application
+  kubernetes.core.k8s:
+    apply: true
+    namespace: argocd
+    server_side_apply:
+      field_manager: Ansible
+    src: https://raw.githubusercontent.com/nosborn/argocd-deployments/refs/heads/main/bootstrap/argo-cd.yaml
+    # when: not argocd_result.resources
+
+# - name: install argo-cd
+#   kubernetes.core.helm:
+#     chart_ref: argo-cd
+#     chart_repo_url: https://argoproj.github.io/argo-helm
+#     chart_version: "{{ argocd_chart_version }}"
+#     release_name: argocd
+#     release_namespace: argocd
+#     release_values:
+#       applicationSet:
+#         ingress:
+#           annotations:
+#             cert-manager.io/cluster-issuer: ownca
+#             cert-manager.io/duration: 160h
+#             cert-manager.io/renew-before: 24h
+#           enabled: true
+#           pathType: Exact
+#           tls: true
+#       configs:
+#         cm:
+#           kustomize.buildOptions: --enable-helm
+#         credentialTemplates:
+#           ghcr:
+#             url: ghcr.io
+#             enableOCI: true
+#             username: anonymous
+#             password: QQ==
+#         repositories:
+#           deployments:
+#             url: "{{ argocd_deployments_repo_url }}"
+#             name: deployments
+#             type: git
+#             githubAppID: "{{ argocd_github_app_id }}"
+#             githubAppInstallationID: "{{ argocd_github_app_installation_id }}"
+#             githubAppPrivateKey: "{{ argocd_github_app_private_key }}"
+#         secret:
+#           githubSecret: "{{ argocd_github_secret }}"
+#       dex:
+#         enabled: false
+#       global:
+#         domain: argocd.{{ domain_name }}
+#       notifications:
+#         argocdUrl: https://argocd.{{ domain_name }}
+#         enabled: true
+#         secret:
+#           items:
+#             github-privateKey: "{{ argocd_github_app_private_key }}"
+#         notifiers:
+#           service.github: |
+#             appID: {{ argocd_github_app_id }}
+#             installationID: {{ argocd_github_app_installation_id }}
+#             privateKey: $github-privateKey
+#         templates:
+#           template.app-deployed: |
+#             github:
+#               status:
+#                 label: "{{ 'continuous-delivery/{{.app.metadata.name}}' }}"
+#                 state: success
+#                 targetURL: "{{ '{{.context.argocdUrl}}/applications/{{.app.metadata.name}}' }}"
+#             message: |
+#               Application {{ '{{.app.metadata.name}}' }} is now running new version.
+#           template.app-health-degraded: |
+#             github:
+#               status:
+#                 label: {{ 'continuous-delivery/{{.app.metadata.name}}' }}
+#                 state: error
+#                 targetURL: "{{ '{{.context.argocdUrl}}/applications/{{.app.metadata.name}}' }}"
+#             message: |
+#               Application {{ '{{.app.metadata.name}}' }} has degraded.
+#           template.app-sync-failed: |
+#             github:
+#               status:
+#                 label: {{ 'continuous-delivery/{{.app.metadata.name}}' }}
+#                 state: failure
+#                 targetURL: "{{ '{{.context.argocdUrl}}/applications/{{.app.metadata.name}}' }}"
+#             message: |
+#               Application {{ '{{.app.metadata.name}}' }} sync failed.
+#           template.app-sync-running: |
+#             github:
+#               status:
+#                 label: {{ 'continuous-delivery/{{.app.metadata.name}}' }}
+#                 state: pending
+#                 targetURL: "{{ '{{.context.argocdUrl}}/applications/{{.app.metadata.name}}' }}"
+#             message: |
+#               Application {{ '{{.app.metadata.name}}' }} is being synced.
+#           template.app-sync-succeeded: |
+#             github:
+#               status:
+#                 label: {{ 'continuous-delivery/{{.app.metadata.name}}' }}
+#                 state: success
+#                 targetURL: "{{ '{{.context.argocdUrl}}/applications/{{.app.metadata.name}}' }}"
+#             message: |
+#               Application {{ '{{.app.metadata.name}}' }} sync succeeded.
+#         subscriptions:
+#           - recipients:
+#               - github
+#             triggers:
+#               - on-deployed
+#               - on-health-degraded
+#               - on-sync-failed
+#               - on-sync-running
+#               - on-sync-succeeded
+#         triggers:
+#           trigger.on-deployed: |
+#             - oncePer: app.status.sync.revision
+#               send:
+#                 - app-deployed
+#               when: app.status.operationState.phase in ['Succeeded']
+#           trigger.on-health-degraded: |
+#             - send:
+#                 - app-health-degraded
+#               when: app.status.health.status == 'Degraded'
+#           trigger.on-sync-failed: |
+#             - send:
+#                 - app-sync-failed
+#               when: app.status.operationState.phase in ['Error', 'Failed']
+#           trigger.on-sync-running: |
+#             - oncePer: app.status.sync.revision
+#               send:
+#                 - app-sync-running
+#               when: app.status.operationState.phase in ['Running']
+#           trigger.on-sync-succeeded: |
+#             - oncePer: app.status.sync.revision
+#               send:
+#                 - app-sync-succeeded
+#               when: app.status.operationState.phase in ['Succeeded']
+#       server:
+#         ingress:
+#           enabled: false
+#         insecure: true
+
+# - name: check for IngressRoute CRD
+#   kubernetes.core.k8s_info:
+#     api_version: apiextensions.k8s.io/v1
+#     kind: CustomResourceDefinition
+#     name: ingressroutes.traefik.io
+#   register: ingressroute_crd
+
+# - name: create deployments AppProject
+#   kubernetes.core.k8s:
+#     namespace: argocd
+#     resource_definition:
+#       apiVersion: argoproj.io/v1alpha1
+#       kind: AppProject
+#       metadata:
+#         finalizers:
+#           - resources-finalizer.argocd.argoproj.io
+#         labels:
+#           app.kubernetes.io/managed-by: Ansible
+#         name: deployments
+#       spec:
+#         clusterResourceWhitelist:
+#           - group: "*"
+#             kind: "*"
+#         description: Deployments
+#         destinations:
+#           - namespace: "*"
+#             server: https://kubernetes.default.svc
+#             name: in-cluster
+#         namespaceResourceWhitelist:
+#           - group: "*"
+#             kind: "*"
+#         orphanedResources:
+#           warn: false
+#         sourceRepos:
+#           - "{{ argocd_deployments_repo_url }}"
+
+#           - missingkey=error
+#         template:
+#           metadata:
+#             finalizers:
+#               - resources-finalizer.argocd.argoproj.io
+#             name: "{{ '{{index .path.segments 1}}' }}"
+#           spec:
+#             destination:
+#               namespace: "{{ '{{index .path.segments 0}}' }}"
+#               server: https://kubernetes.default.svc
+#             project: deployments
+#             source:
+#               path: "{{ '{{.path.path}}' }}"
+#               repoURL: "{{ argocd_deployments_repo_url }}"
+#               targetRevision: HEAD
+#             syncPolicy:
+#               automated:
+#                 enabled: true
+#                 prune: true
+#                 selfHeal: true
+#               syncOptions:
+#                 - SkipDryRunOnMissingResource=true

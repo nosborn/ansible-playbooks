@@ -1,0 +1,6 @@
+---
+- ansible.builtin.import_tasks: debian.yml
+  when: ansible_facts['distribution'] == 'Debian'
+
+- ansible.builtin.import_tasks: synology.yml
+  when: ansible_facts['system_vendor'] == 'Synology'

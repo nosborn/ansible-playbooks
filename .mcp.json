@@ -1,9 +1,9 @@
 {
   "mcpServers": {
-    "docker-mcp": {
-      "command": "uvx",
+    "kubernetes": {
+      "command": "npx",
       "args": [
-        "docker-mcp"
+        "mcp-server-kubernetes"
       ]
     }
   }

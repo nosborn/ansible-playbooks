@@ -1,0 +1,107 @@
+# yamllint disable rule:line-length
+---
+- name: "k0s : create groups"
+  ansible.builtin.group:
+    name: "{{ k0s_item }}"
+    system: true
+  loop:
+    - etcd
+    - konnectivity-server
+    - kube-apiserver
+    - kube-scheduler
+  loop_control:
+    loop_var: k0s_item
+
+- name: "k0s : create users"
+  ansible.builtin.user:
+    create_home: false
+    group: "{{ k0s_item }}"
+    home: /var/lib/k0s
+    name: "{{ k0s_item }}"
+    password_lock: true
+    shell: "{{ nologin_shell }}"
+    system: true
+  loop:
+    - etcd
+    - konnectivity-server
+    - kube-apiserver
+    - kube-scheduler
+  loop_control:
+    loop_var: k0s_item
+
+- name: "k0s : fetch release info"
+  delegate_to: localhost
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/k0sproject/k0s/releases/latest
+    headers:
+      Accept: application/vnd.github+json
+    return_content: true
+    body_format: json
+  register: k0s_result
+  until: k0s_result is success
+
+- name: "k0s : set version fact"
+  ansible.builtin.set_fact:
+    k0s_version: "{{ k0s_result.json.tag_name }}"
+
+- name: "k0s : install binary"
+  ansible.builtin.get_url:
+    url: "{{ k0s_result.json.assets | selectattr('name', 'eq', 'k0s-'~k0s_version~'-amd64') | map(attribute='browser_download_url') | first }}"
+    checksum: "{{ k0s_result.json.assets | selectattr('name', 'eq', 'k0s-'~k0s_version~'-amd64') | map(attribute='digest') | first }}"
+    dest: /usr/local/bin/k0s
+    owner: root
+    group: root
+    mode: !!str 0555
+  notify: restart k0scontroller
+
+- name: "k0s : create config dir"
+  ansible.builtin.file:
+    path: /etc/k0s
+    owner: root
+    group: root
+    mode: !!str 0755
+    state: directory
+
+- name: "k0s : configure"
+  ansible.builtin.template:
+    src: "{{ k0s_item }}.j2"
+    dest: /etc/k0s/{{ k0s_item }}
+    owner: root
+    group: root
+    mode: !!str 0444
+  loop:
+    - admission.yaml
+  loop_control:
+    loop_var: k0s_item
+  notify: restart k0scontroller
+
+- name: "k0s : configure"
+  ansible.builtin.template:
+    src: k0s.yaml.j2
+    dest: /etc/k0s/k0s.yaml
+    owner: root
+    group: root
+    mode: !!str 0444
+    validate: k0s config validate --config %s
+  notify: restart k0scontroller
+
+- name: "k0s : install service"
+  ansible.builtin.template:
+    src: k0scontroller.service.j2
+    dest: /etc/systemd/system/k0scontroller.service
+    owner: root
+    group: root
+    mode: !!str 0444
+  notify: restart k0scontroller
+
+- name: "k0s : enable and start service"
+  ansible.builtin.systemd_service:
+    name: k0scontroller.service
+    daemon_reload: true
+    enabled: true
+    state: started
+
+- ansible.builtin.meta: flush_handlers
+
+- ansible.builtin.wait_for:
+    path: /run/k0s/status.sock

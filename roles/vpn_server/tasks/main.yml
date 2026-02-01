@@ -1,47 +1,141 @@
 # yamllint disable rule:line-length
 ---
-- ansible.builtin.import_tasks: ethtool-gro.yaml
+# Configure ethtool GRO for UDP forwarding performance
+- ansible.builtin.import_tasks: ethtool-gro.yml
 
-- ansible.builtin.apt:
-    name: wireguard-tools
-    install_recommends: false
+# Install strongSwan
+- name: install strongswan packages
+  ansible.builtin.apt:
+    name:
+      - charon-systemd
+      - libstrongswan-standard-plugins
+      - strongswan-swanctl
     state: present
 
-- ansible.builtin.template:
-    src: netdev.j2
-    dest: /etc/systemd/network/30-vpn-server.netdev
+- name: create strongswan drop-in directory
+  ansible.builtin.file:
+    path: /etc/systemd/system/strongswan.service.d
+    state: directory
     owner: root
-    group: systemd-network
-    mode: !!str 0440
-  notify: restart systemd-networkd
+    group: root
+    mode: !!str 0755
 
-- ansible.builtin.template:
-    src: network.j2
-    dest: /etc/systemd/network/30-vpn-server.network
+- name: configure strongswan to auto-load swanctl config
+  ansible.builtin.copy:
+    content: |
+      [Service]
+      ExecStartPost=/usr/sbin/swanctl --load-all
+    dest: /etc/systemd/system/strongswan.service.d/swanctl.conf
     owner: root
-    group: systemd-network
-    mode: !!str 0440
-  notify: restart systemd-networkd
+    group: root
+    mode: !!str 0444
+  notify: restart strongswan
 
-- delegate_to: localhost
-  run_once: true
-  template:
-    src: client.conf.j2
-    dest: "{{ playbook_dir }}/wg-{{ vpn_server_item.key }}.conf"
+- name: configure strongswan to use LAN interface only
+  ansible.builtin.copy:
+    content: |
+      charon {
+        interfaces_use = {{ lan_if }}
+      }
+    dest: /etc/strongswan.d/interfaces.conf
+    owner: root
+    group: root
+    mode: !!str 0444
+  notify: restart strongswan
+
+- name: enable and start strongswan
+  ansible.builtin.systemd_service:
+    name: strongswan.service
+    daemon_reload: true
+    enabled: true
+    state: started
+
+# Configure certificates
+- name: copy CA certificate
+  ansible.builtin.copy:
+    content: "{{ hostvars.localhost.ownca_root_certificate }}"
+    dest: /etc/swanctl/x509ca/root.crt
+    owner: root
+    group: root
+    mode: !!str 0444
+  notify: reload strongswan
+
+- name: copy VPN server certificate
+  ansible.builtin.copy:
+    content: "{{ hostvars.localhost.ownca_vpn_server_certificate }}"
+    dest: /etc/swanctl/x509/vpn.crt
+    owner: root
+    group: root
+    mode: !!str 0444
+  notify: reload strongswan
+
+- name: copy VPN server private key
+  ansible.builtin.copy:
+    content: "{{ hostvars.localhost.ownca_vpn_server_privatekey }}"
+    dest: /etc/swanctl/private/vpn.key
+    owner: root
+    group: root
     mode: !!str 0400
-  loop: "{{ vpn_clients | dict2items }}"
-  loop_control:
-    label: "{{ vpn_server_item.key }}"
-    loop_var: vpn_server_item
-  vars:
-    vpn_client: "{{ vpn_server_item.value }}"
+  notify: reload strongswan
 
-- delegate_to: localhost
+# Configure swanctl
+- name: remove old conf.d config
+  ansible.builtin.file:
+    path: /etc/swanctl/conf.d/ios.conf
+    state: absent
+
+- name: configure swanctl
+  ansible.builtin.template:
+    src: swanctl.conf.j2
+    dest: /etc/swanctl/swanctl.conf
+    owner: root
+    group: root
+    mode: !!str 0440
+  notify: reload strongswan
+
+# Generate client mobileconfig profiles
+- name: generate client PKCS#12 files
+  delegate_to: localhost
+  community.crypto.openssl_pkcs12:
+    path: "{{ ownca_dir }}/{{ vpn_server_item }}.p12"
+    certificate_path: "{{ ownca_dir }}/{{ vpn_server_item }}.crt"
+    privatekey_path: "{{ ownca_dir }}/{{ vpn_server_item }}.key"
+    friendly_name: "{{ vpn_server_item }}.{{ domain_name }}"
+    passphrase: "{{ vpn_clients[vpn_server_item].p12_password }}"
+    encryption_level: compatibility2022
+    mode: !!str 0400
+    state: present
+  loop: "{{ vpn_clients.keys() | list }}"
+  loop_control:
+    loop_var: vpn_server_item
+
+- name: read client PKCS#12 files as base64
+  delegate_to: localhost
   run_once: true
   ansible.builtin.shell:
-    cmd: qrencode -t png -o "{{ playbook_dir }}/wg-{{ vpn_server_item.key }}.png" < "{{ playbook_dir }}/wg-{{ vpn_server_item.key }}.conf"
-  loop: "{{ vpn_clients | dict2items }}"
-  loop_control:
-    label: "{{ vpn_server_item.key }}"
-    loop_var: vpn_server_item
+    cmd: base64 < "{{ ownca_dir }}/{{ vpn_server_item }}.p12"
   changed_when: false
+  loop: "{{ vpn_clients.keys() | list }}"
+  loop_control:
+    loop_var: vpn_server_item
+  register: vpn_client_p12_results
+
+- name: generate iOS mobileconfig profiles
+  delegate_to: localhost
+  run_once: true
+  ansible.builtin.template:
+    src: mobileconfig.j2
+    dest: "{{ playbook_dir }}/VPN.{{ vpn_server_item.vpn_server_item }}.mobileconfig"
+    mode: !!str 0400
+    validate: plutil -lint %s
+  loop: "{{ vpn_client_p12_results.results }}"
+  loop_control:
+    loop_var: vpn_server_item
+  vars:
+    vpn_client_name: "{{ vpn_server_item.vpn_server_item }}"
+    vpn_client_p12_b64: "{{ vpn_server_item.stdout }}"
+    vpn_client_p12_password: "{{ vpn_clients[vpn_server_item.vpn_server_item].p12_password }}"
+    vpn_profile_uuid_client: "{{ (domain_name ~ '.vpn.client.' ~ vpn_server_item.vpn_server_item) | ansible.builtin.to_uuid }}"
+    vpn_profile_uuid_vpn: "{{ (domain_name ~ '.vpn.ikev2.' ~ vpn_server_item.vpn_server_item) | ansible.builtin.to_uuid }}"
+    vpn_profile_uuid_profile: "{{ (domain_name ~ '.vpn.profile.' ~ vpn_server_item.vpn_server_item) | ansible.builtin.to_uuid }}"
+    ownca_common_name: "{{ hostvars.localhost.ownca_common_name }}"

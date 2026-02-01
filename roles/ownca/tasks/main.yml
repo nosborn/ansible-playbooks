@@ -1,0 +1,34 @@
+---
+- name: create CA directory
+  ansible.builtin.file:
+    path: "{{ ownca_dir }}"
+    mode: !!str 0700
+    state: directory
+
+- ansible.builtin.include_tasks:
+    file: root.yml
+
+- ansible.builtin.include_tasks:
+    file: intermediate.yml
+
+- ansible.builtin.include_tasks:
+    file: wildcard.yml
+
+- ansible.builtin.include_tasks:
+    file: client.yml
+  vars:
+    client_name: "{{ ownca_item }}"
+  loop: "{{ ownca_client_names }}"
+  loop_control:
+    loop_var: ownca_item
+
+- ansible.builtin.include_tasks:
+    file: vpn.yml
+
+- delegate_to: localhost
+  run_once: true
+  ansible.builtin.copy:
+    content: "{{ ownca_mobileconfig }}"
+    dest: "{{ playbook_dir }}/OwnCA.mobileconfig"
+    mode: !!str 0400
+    validate: plutil -lint %s

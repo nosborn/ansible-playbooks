@@ -1,6 +1,0 @@
----
-- name: restart ethtool-gro
-  ansible.builtin.systemd_service:
-    name: ethtool-gro
-    daemon_reload: false
-    state: restarted

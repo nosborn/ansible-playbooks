@@ -1,0 +1,60 @@
+# yamllint disable rule:line-length
+---
+- name: create VPN server private key
+  community.crypto.openssl_privatekey:
+    path: "{{ ownca_dir }}/vpn.key"
+    type: ECC
+    curve: secp256r1
+    mode: !!str 0400
+
+- name: create VPN server CSR
+  community.crypto.openssl_csr_pipe:
+    common_name: vpn.{{ domain_name }}
+    country_name: "{{ ownca_country_name }}"
+    create_subject_key_identifier: true
+    extended_key_usage:
+      - serverAuth
+    key_usage:
+      - digitalSignature
+      - keyEncipherment
+    key_usage_critical: true
+    privatekey_path: "{{ ownca_dir }}/vpn.key"
+    subject_alt_name:
+      - DNS:vpn.{{ domain_name }}
+      - IP:{{ wan_ipv4_address }}
+  changed_when: false
+  register: ownca_vpn_csr
+
+- name: check whether VPN server certificate exists
+  ansible.builtin.stat:
+    path: "{{ ownca_dir }}/vpn.crt"
+  register: ownca_vpn_certificate_file
+
+- name: read existing VPN server certificate
+  ansible.builtin.slurp:
+    src: "{{ ownca_dir }}/vpn.crt"
+  when: ownca_vpn_certificate_file.stat.exists
+  register: ownca_vpn_certificate
+
+- name: sign VPN server certificate
+  community.crypto.x509_certificate_pipe:
+    content: "{{ (ownca_vpn_certificate.content | b64decode) if ownca_vpn_certificate_file.stat.exists else omit }}"
+    csr_content: "{{ ownca_vpn_csr.csr }}"
+    ownca_path: "{{ ownca_dir }}/root.crt"
+    ownca_privatekey_path: "{{ ownca_dir }}/root.key"
+    ownca_privatekey_passphrase: "{{ ownca_root_privatekey_passphrase }}"
+    ownca_not_after: +398d  # https://support.apple.com/en-us/103769
+    ownca_create_authority_key_identifier: true
+    provider: ownca
+  register: ownca_vpn_certificate
+
+- name: save VPN server certificate
+  ansible.builtin.copy:
+    content: "{{ ownca_vpn_certificate.certificate }}"
+    dest: "{{ ownca_dir }}/vpn.crt"
+    mode: !!str 0444
+  when: ownca_vpn_certificate is changed  # noqa: no-handler
+
+- ansible.builtin.set_fact:
+    ownca_vpn_server_certificate: "{{ lookup('ansible.builtin.file', ownca_dir~'/vpn.crt') }}"
+    ownca_vpn_server_privatekey: "{{ lookup('ansible.builtin.file', ownca_dir~'/vpn.key') }}"

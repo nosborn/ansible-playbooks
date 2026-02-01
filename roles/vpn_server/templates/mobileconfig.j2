@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>PayloadContent</key>
+    <array>
+        <dict>
+            <key>PayloadCertificateFileName</key>
+            <string>{{ vpn_client_name }}.p12</string>
+            <key>PayloadContent</key>
+            <data>{{ vpn_client_p12_b64 }}</data>
+            <key>PayloadDescription</key>
+            <string>Client Certificate</string>
+            <key>PayloadDisplayName</key>
+            <string>{{ vpn_client_name }}.{{ domain_name }}</string>
+            <key>PayloadIdentifier</key>
+            <string>com.apple.security.pkcs12.{{ vpn_profile_uuid_client }}</string>
+            <key>PayloadType</key>
+            <string>com.apple.security.pkcs12</string>
+            <key>PayloadUUID</key>
+            <string>{{ vpn_profile_uuid_client }}</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+            <key>Password</key>
+            <string>{{ vpn_client_p12_password }}</string>
+        </dict>
+        <dict>
+            <key>IKEv2</key>
+            <dict>
+                <key>AuthenticationMethod</key>
+                <string>Certificate</string>
+                <key>CertificateType</key>
+                <string>ECDSA256</string>
+                <key>ChildSecurityAssociationParameters</key>
+                <dict>
+                    <key>DiffieHellmanGroup</key>
+                    <integer>19</integer>
+                    <key>EncryptionAlgorithm</key>
+                    <string>AES-256-GCM</string>
+                    <key>IntegrityAlgorithm</key>
+                    <string>SHA2-256</string>
+                    <key>LifeTimeInMinutes</key>
+                    <integer>1440</integer>
+                </dict>
+                <key>DeadPeerDetectionRate</key>
+                <string>Medium</string>
+                <key>DisableMOBIKE</key>
+                <integer>0</integer>
+                <key>DisableRedirect</key>
+                <integer>0</integer>
+                <key>EnableCertificateRevocationCheck</key>
+                <integer>0</integer>
+                <key>EnablePFS</key>
+                <integer>1</integer>
+                <key>IKESecurityAssociationParameters</key>
+                <dict>
+                    <key>DiffieHellmanGroup</key>
+                    <integer>19</integer>
+                    <key>EncryptionAlgorithm</key>
+                    <string>AES-256</string>
+                    <key>IntegrityAlgorithm</key>
+                    <string>SHA2-256</string>
+                    <key>LifeTimeInMinutes</key>
+                    <integer>1440</integer>
+                </dict>
+                <key>LocalIdentifier</key>
+                <string>{{ vpn_client_name }}.{{ domain_name }}</string>
+                <key>PayloadCertificateUUID</key>
+                <string>{{ vpn_profile_uuid_client }}</string>
+                <key>RemoteAddress</key>
+                <string>{{ wan_ipv4_address }}</string>
+                <key>RemoteIdentifier</key>
+                <string>{{ wan_ipv4_address }}</string>
+                <key>ServerCertificateIssuerCommonName</key>
+                <string>{{ ownca_common_name }}</string>
+                <key>UseConfigurationAttributeInternalIPSubnet</key>
+                <integer>0</integer>
+            </dict>
+            <key>IPv4</key>
+            <dict>
+                <key>OverridePrimary</key>
+                <integer>1</integer>
+            </dict>
+            <key>PayloadDescription</key>
+            <string>IKEv2 VPN</string>
+            <key>PayloadDisplayName</key>
+            <string>VPN ({{ domain_name }})</string>
+            <key>PayloadIdentifier</key>
+            <string>com.apple.vpn.managed.{{ vpn_profile_uuid_vpn }}</string>
+            <key>PayloadType</key>
+            <string>com.apple.vpn.managed</string>
+            <key>PayloadUUID</key>
+            <string>{{ vpn_profile_uuid_vpn }}</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+            <key>Proxies</key>
+            <dict/>
+            <key>UserDefinedName</key>
+            <string>{{ domain_name }}</string>
+            <key>VPNType</key>
+            <string>IKEv2</string>
+            <key>OnDemandEnabled</key>
+            <integer>1</integer>
+            <key>OnDemandRules</key>
+            <array>
+                <dict>
+                    <key>SSIDMatch</key>
+                    <array>
+                        <string>Alpacalypse</string>
+                        <string>Alpacalypse Guest</string>
+                        <string>Alpacalypse IoT</string>
+                    </array>
+                    <key>Action</key>
+                    <string>Disconnect</string>
+                </dict>
+                <dict>
+                    <key>Action</key>
+                    <string>Connect</string>
+                </dict>
+            </array>
+            <key>DNS</key>
+            <dict>
+                <key>ServerAddresses</key>
+                <array>
+                    <string>{{ lan_ipv4_address }}</string>
+                    <string>{{ lan_ipv6_address }}</string>
+                </array>
+            </dict>
+        </dict>
+    </array>
+    <key>PayloadDescription</key>
+    <string>VPN configuration for {{ domain_name }}</string>
+    <key>PayloadDisplayName</key>
+    <string>VPN - {{ vpn_client_name }}</string>
+    <key>PayloadIdentifier</key>
+    <string>{{ domain_name }}.vpn.{{ vpn_client_name }}</string>
+    <key>PayloadOrganization</key>
+    <string>{{ ownca_common_name }}</string>
+    <key>PayloadRemovalDisallowed</key>
+    <false/>
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadUUID</key>
+    <string>{{ vpn_profile_uuid_profile }}</string>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+</dict>
+</plist>

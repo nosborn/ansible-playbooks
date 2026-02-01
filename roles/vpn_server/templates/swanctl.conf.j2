@@ -1,0 +1,43 @@
+# {{ ansible_managed }}
+
+connections {
+    ios {
+        version = 2
+        mobike = yes
+        dpd_delay = 30s
+        proposals = aes256-sha256-ecp256
+        pools = ipv4, ipv6
+
+        local {
+            auth = pubkey
+            certs = vpn.crt
+            id = {{ wan_ipv4_address }}
+        }
+
+        remote {
+            auth = pubkey
+            cacerts = root.crt
+        }
+
+        children {
+            ios {
+                local_ts = 0.0.0.0/0, ::/0
+                esp_proposals = aes256gcm16-sha256-ecp256
+            }
+        }
+    }
+}
+
+pools {
+    ipv4 {
+        addrs = {{ vpn_ipv4_subnet }}
+        dns = {{ lan_ipv4_address }}
+    }
+    ipv6 {
+        addrs = {{ vpn_ipv6_subnet }}
+        dns = {{ lan_ipv6_address }}
+    }
+}
+
+secrets {
+}

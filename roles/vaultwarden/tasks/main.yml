@@ -20,16 +20,12 @@
     name: vaultwarden
     system: true
 
-- ansible.builtin.getent:
-    database: group
-    key: vaultwarden
-
 - name: create user
   ansible.builtin.user:
     comment: Vaultwarden
     create_home: false
     group: vaultwarden
-    home: "{{ vaultwarden_home }}"
+    home: /srv/vaultwarden
     name: vaultwarden
     shell: "{{ nologin_shell }}"
     system: true
@@ -42,91 +38,237 @@
     vaultwarden_gid: "{{ ansible_facts.getent_passwd['vaultwarden'][2] }}"
     vaultwarden_uid: "{{ ansible_facts.getent_passwd['vaultwarden'][1] }}"
 
-- name: create home directory
-  ansible.builtin.file:
-    path: "{{ vaultwarden_home }}"
-    owner: root
-    group: vaultwarden
-    mode: !!str 0750
-    state: directory
-
-- name: configure .env
-  ansible.builtin.copy:
-    content:
-      - DOMAIN=https://vaultwarden.{{ domain_name }}
-      - EMAIL_CHANGE_ALLOWED=false
-      - EMERGENCY_ACCESS_ALLOWED=false
-      - PASSWORD_HINTS_ALLOWED=false
-      - PUSH_ENABLED=true
-      - PUSH_IDENTITY_URI=https://identity.bitwarden.eu
-      - PUSH_INSTALLATION_ID={{ bitwarden_installation_id }}
-      - PUSH_INSTALLATION_KEY={{ bitwarden_installation_key }}
-      - PUSH_RELAY_URI=https://api.bitwarden.eu
-      - SHOW_PASSWORD_HINT=false
-      - SIGNUPS_DOMAINS_WHITELIST={{ external_domain }}
-      - SIGNUPS_VERIFY=true
-    dest: "{{ vaultwarden_home }}/.env"
-    owner: root
-    group: vaultwarden
-    mode: !!str 0440
-  register: vaultwarden_env
-
 - name: create data directory
   ansible.builtin.file:
-    path: "{{ vaultwarden_home }}/data"
-    owner: root
+    path: /srv/vaultwarden
+    owner: vaultwarden
     group: vaultwarden
-    mode: !!str 0770
+    mode: !!str 0700
     state: directory
 
-- name: create network
-  community.docker.docker_network:
-    name: vaultwarden_external
-    driver: overlay
-    attachable: true
-    internal: true  # Blocks external access, only containers on this network can communicate
-    state: present
+- name: Namespace
+  kubernetes.core.k8s:
+    resource_definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        labels:
+          pod-security.kubernetes.io/enforce: privileged # uses `hostPath`
+          pod-security.kubernetes.io/warn: baseline
+        name: vaultwarden
 
-- name: create service (swarm mode)
-  community.docker.docker_swarm_service:
-    cap_drop:
-      - ALL
-    env_files:
-      - "{{ vaultwarden_home }}/.env"
-    force_update: "{{ vaultwarden_env is changed }}"
-    image: vaultwarden/server:{{ vaultwarden_version }}
-    init: true
-    labels:
-      traefik.enable: !!str true
-      traefik.http.routers.vaultwarden.rule: Host(`vaultwarden.{{ domain_name }}`)
-      traefik.http.routers.vaultwarden.entrypoints: web
-      traefik.http.services.vaultwarden.loadbalancer.server.port: 80
-      # # Add IP whitelisting middleware for extra security
-      # traefik.http.routers.vaultwarden.middlewares: vaultwarden-ipwhitelist
-      # traefik.http.middlewares.vaultwarden-ipwhitelist.ipwhitelist.sourcerange: "{{ lan_ipv4_subnet }},{{ lan_ipv6_subnet }}"
-    mounts:
-      - source: "{{ vaultwarden_home }}/data"
-        target: /data
-        type: bind
-      - target: /data/tmp
-        type: tmpfs
-    name: vaultwarden
-    networks:
-      - vaultwarden_external
-    read_only: true
-    restart_config:
-      condition: any
-      delay: 5s
-    tls: true
-    user: "{{ vaultwarden_uid }}:{{ vaultwarden_gid }}"
-    working_dir: "{{ vaultwarden_home }}"
+- name: ConfigMap
+  kubernetes.core.k8s:
+    namespace: vaultwarden
+    resource_definition:
+      apiVersion: v1
+      data:
+        ADMIN_RATELIMIT_MAX_BURST: !!str 3
+        ADMIN_RATELIMIT_SECONDS: !!str 300
+        DATABASE_MAX_CONNS: !!str 10
+        DB_CONNECTION_RETRIES: !!str 15
+        DOMAIN: https://passwords.{{ domain_name }}
+        EMAIL_CHANGE_ALLOWED: !!str true
+        EMERGENCY_ACCESS_ALLOWED: !!str true
+        EMERGENCY_NOTIFICATION_REMINDER_SCHEDULE: 0 3 * * * *
+        EMERGENCY_REQUEST_TIMEOUT_SCHEDULE: 0 7 * * * *
+        EXTENDED_LOGGING: !!str true
+        ICON_BLACKLIST_NON_GLOBAL_IPS: !!str true
+        ICON_REDIRECT_CODE: !!str 302
+        ICON_SERVICE: internal
+        INVITATIONS_ALLOWED: !!str true
+        INVITATION_EXPIRATION_HOURS: !!str 120
+        INVITATION_ORG_NAME: Vaultwarden
+        IP_HEADER: X-Real-IP
+        LOG_TIMESTAMP_FORMAT: "%Y-%m-%d %H:%M:%S.%3f"
+        ORG_EVENTS_ENABLED: !!str false
+        ORG_GROUPS_ENABLED: !!str false
+        PASSWORD_HINTS_ALLOWED: !!str false
+        REQUIRE_DEVICE_EMAIL: !!str false
+        ROCKET_ADDRESS: 0.0.0.0
+        ROCKET_PORT: !!str 8080
+        ROCKET_WORKERS: !!str 10
+        SENDS_ALLOWED: !!str true
+        SHOW_PASSWORD_HINT: !!str false
+        SIGNUPS_ALLOWED: !!str true
+        SIGNUPS_VERIFY: !!str true
+        # TRASH_AUTO_DELETE_DAYS: !!str ...
+        WEB_VAULT_ENABLED: !!str true
+      kind: ConfigMap
+      metadata:
+        labels:
+          app.kubernetes.io/component: vaultwarden
+          app.kubernetes.io/instance: vaultwarden
+          app.kubernetes.io/name: vaultwarden
+        name: vaultwarden
+  register: vaultwarden_configmap_result
 
-- name: publish DNS
+- name: Secret
+  kubernetes.core.k8s:
+    namespace: vaultwarden
+    resource_definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: vaultwarden
+      stringData:
+        ADMIN_TOKEN: "{{ vaultwarden_admin_token }}"
+        PUSH_INSTALLATION_ID: "{{ bitwarden_installation_id }}"
+        PUSH_INSTALLATION_KEY: "{{ bitwarden_installation_key }}"
+  register: vaultwarden_secret_result
+
+- name: Deployment
+  kubernetes.core.k8s:
+    namespace: vaultwarden
+    resource_definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        labels:
+          app.kubernetes.io/component: vaultwarden
+          app.kubernetes.io/instance: vaultwarden
+          app.kubernetes.io/name: vaultwarden
+          configmap-version: "{{ vaultwarden_configmap_result.result.metadata.resourceVersion }}"
+          secret-version: "{{ vaultwarden_secret_result.result.metadata.resourceVersion }}"
+        name: vaultwarden
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app.kubernetes.io/component: vaultwarden
+            app.kubernetes.io/instance: vaultwarden
+            app.kubernetes.io/name: vaultwarden
+        strategy:
+          type: Recreate
+        template:
+          metadata:
+            labels:
+              app.kubernetes.io/component: vaultwarden
+              app.kubernetes.io/instance: vaultwarden
+              app.kubernetes.io/name: vaultwarden
+          spec:
+            containers:
+              - envFrom:
+                  - configMapRef:
+                      name: vaultwarden
+                  - secretRef:
+                      name: vaultwarden
+                image: docker.io/vaultwarden/server:{{ vaultwarden_version }}-alpine
+                imagePullPolicy: IfNotPresent
+                livenessProbe:
+                  failureThreshold: 10
+                  httpGet:
+                    path: /alive
+                    port: http
+                  initialDelaySeconds: 5
+                  periodSeconds: 10
+                  successThreshold: 1
+                  timeoutSeconds: 1
+                name: vaultwarden
+                ports:
+                  - containerPort: 8080
+                    name: http
+                    protocol: TCP
+                readinessProbe:
+                  failureThreshold: 3
+                  httpGet:
+                    path: /alive
+                    port: http
+                  initialDelaySeconds: 5
+                  periodSeconds: 10
+                  successThreshold: 1
+                  timeoutSeconds: 1
+                resources: {}
+                securityContext:
+                  allowPrivilegeEscalation: false
+                  capabilities:
+                    drop:
+                      - ALL
+                  readOnlyRootFilesystem: true
+                  runAsGroup: "{{ vaultwarden_gid | int }}"
+                  runAsNonRoot: true
+                  runAsUser: "{{ vaultwarden_uid | int }}"
+                volumeMounts:
+                  - name: data
+                    mountPath: /data
+                  - name: data-tmp
+                    mountPath: /data/tmp
+            securityContext:
+              seccompProfile:
+                type: RuntimeDefault
+            # serviceAccountName: vaultwarden
+            volumes:
+              - name: data
+                hostPath:
+                  path: /srv/vaultwarden
+                  type: Directory
+                  # persistentVolumeClaim:
+                  #   claimName: vaultwarden-data
+              - name: data-tmp
+                emptyDir:
+                  medium: Memory
+                  # sizeLimit: ...
+
+- name: Service
+  kubernetes.core.k8s:
+    namespace: vaultwarden
+    resource_definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        labels:
+          app.kubernetes.io/component: vaultwarden
+          app.kubernetes.io/instance: vaultwarden
+          app.kubernetes.io/name: vaultwarden
+        name: vaultwarden
+      spec:
+        ipFamilyPolicy: SingleStack
+        ports:
+          - name: http
+            port: 80
+            protocol: TCP
+            targetPort: 8080
+        selector:
+          app.kubernetes.io/component: vaultwarden
+          app.kubernetes.io/instance: vaultwarden
+          app.kubernetes.io/name: vaultwarden
+        type: ClusterIP
+
+- name: Ingress
+  kubernetes.core.k8s:
+    namespace: vaultwarden
+    resource_definition:
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        annotations:
+          cert-manager.io/cluster-issuer: ownca
+          cert-manager.io/duration: 160h
+          cert-manager.io/renew-before: 24h
+        name: vaultwarden
+      spec:
+        rules:
+          - http:
+              paths:
+                - backend:
+                    service:
+                      name: vaultwarden
+                      port:
+                        name: http
+                  path: /
+                  pathType: Prefix
+            host: passwords.{{ domain_name }}
+        tls:
+          - hosts:
+              - passwords.{{ domain_name }}
+            secretName: vaultwarden-tls
+
+- name: DNS
   ansible.builtin.import_role:
     name: unbound
-    tasks_from: fragment.yaml
+    tasks_from: fragment.yml
   vars:
     unbound_content: |
       server:
-        local-data: "vaultwarden.{{ domain_name }}. A {{ lan_ipv4_address }}"
+        local-data: "passwords.{{ domain_name }}. A {{ lan_ipv4_address }}"
     unbound_dest: local-data-vaultwarden.conf

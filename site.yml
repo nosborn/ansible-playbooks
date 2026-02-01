@@ -1,0 +1,436 @@
+# yamllint disable rule:line-length
+---
+- name: Gather facts
+  hosts: all
+
+  pre_tasks:
+    - name: gather facts from excluded hosts
+      ansible.builtin.setup: {}
+      delegate_to: "{{ item }}"
+      delegate_facts: true
+      loop: "{{ groups['all'] }}"
+      when: item not in ansible_play_hosts
+      run_once: true
+      tags:
+        - always
+
+  # - name: gateway default IPv4 address must be public
+  #   ansible.builtin.assert:
+  #     quiet: true
+  #     that:
+  #       - ([hostvars.gateway.ansible_facts['default_ipv4.address']] | ansible.utils.ipaddr('public')) | length
+  #   run_once: true
+  #   tags:
+  #     - always
+
+- name: Set up OwnCA
+  hosts: localhost
+  gather_facts: false
+
+  roles:
+    - name: ownca
+      tags:
+        - always
+
+# - name: Configure Gateway
+#   hosts: gateway
+#   gather_facts: false
+#
+#   roles:
+#     - role: unifi_core
+#       vars:
+#         unifi_core_certificate: |
+#           {{ hostvars.localhost.ownca_wildcard_certificate }}
+#           {{ hostvars.localhost.ownca_root_certificate }}
+#         unifi_core_privatekey: |
+#           {{ hostvars.localhost.ownca_wildcard_privatekey }}
+#       tags:
+#         - unifi-core
+
+- name: Configure Tombstone
+  hosts:
+    - tombstone
+  gather_facts: false
+
+  # module_defaults:
+  #   kubernetes.core.k8s:
+  #     apply: true
+  #     server_side_apply:
+  #       field_manager: Ansible
+
+  pre_tasks:
+    - name: configure LAN network
+      ansible.builtin.copy:
+        content: |
+          [Match]
+          Name={{ lan_if }}
+
+          [Network]
+          Address={{ lan_ipv4_address }}/24
+          DNS={{ lan_ipv4_subnet | ansible.utils.nthhost(1) }}
+          Gateway={{ lan_ipv4_subnet | ansible.utils.nthhost(1) }}
+          IPv6AcceptRA=yes
+          IPv6PrivacyExtensions=yes
+
+          [IPv6AcceptRA]
+          Token=eui64
+        dest: /etc/systemd/network/20-lan.network
+        owner: root
+        group: root
+        mode: !!str 0444
+      notify: reboot
+      tags:
+        - always
+
+    - name: enable systemd-networkd
+      ansible.builtin.systemd_service:
+        name: systemd-networkd.service
+        enabled: true
+      notify: reboot
+      tags:
+        - always
+
+    - name: remove interfaces file
+      ansible.builtin.file:
+        path: /etc/network/interfaces
+        state: absent
+      notify: reboot
+      tags:
+        - always
+
+    - name: flush handlers
+      ansible.builtin.meta: flush_handlers
+      tags:
+        - always
+
+    - name: refresh network facts
+      ansible.builtin.setup:
+        gather_subset:
+          - network
+      tags:
+        - always
+
+    - ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/apt/sources.list.d/vultr-apprepo.list
+        - /etc/apt/trusted.gpg.d/vultr-apprepo.gpg
+
+    - name: install prerequisite packages
+      ansible.builtin.apt:
+        name:
+          - acl
+          - attr
+          - gpg
+          - python3-demjson # jsonlint
+          - python3-lxml
+          - virtualenv
+          - yamllint
+      tags:
+        - always
+
+    - name: remove conflicting packages
+      ansible.builtin.apt:
+        name:
+          - ufw
+        autoremove: true
+        purge: true
+        state: absent
+      tags:
+        - always
+
+  roles:
+    - role: alertmanager
+      tags:
+        - alertmanager
+      when: false # TODO
+    - role: alloy
+      tags:
+        - alloy
+      when: false # FIXME
+    - role: argocd
+      tags:
+        - argo-cd
+    - role: bazarr
+      tags:
+        - bazarr
+      when: false # TODO
+    - role: calibre
+      tags:
+        - calibre
+      when: false # TODO
+    - role: calibre_web
+      tags:
+        - calibre-web
+      when: false # TODO
+    - role: chrony
+      tags:
+        - chrony
+    - role: dns_updater
+      tags:
+        - dns-updater
+    - role: gitea
+      tags:
+        - gitea
+    - role: homebridge
+      tags:
+        - homebridge
+    - role: imapfilter
+      tags:
+        - imapfilter
+      when: false # TODO
+    - role: immich
+      tags:
+        - immich
+    - role: kubernetes
+      tags:
+        - kubernetes
+    - role: lidarr
+      tags:
+        - lidarr
+      when: false # TODO
+    - role: metallb
+      tags:
+        - metallb
+    - role: nextcloud
+      tags:
+        - nextcloud
+    - role: nginx
+      tags:
+        - nginx
+      when: false # TODO?
+    - role: nzbget
+      tags:
+        - nzbget
+      when: false # TODO
+    - role: ombi
+      tags:
+        - ombi
+      when: false # TODO
+    - role: openclaw
+      tags:
+        - openclaw
+      when: false
+    - role: opensmtpd
+      tags:
+        - opensmtpd
+    - role: prowlarr
+      tags:
+        - prowlarr
+      when: false # TODO
+    - role: radarr
+      tags:
+        - radarr
+      when: false # TODO
+    - role: readarr
+      tags:
+        - readarr
+      when: false # TODO
+    - role: restic
+      tags:
+        - restic
+      when: false # TODO
+    - role: samba
+      tags:
+        - samba
+      when: false # TODO
+    - role: sonarr
+      tags:
+        - sonarr
+      when: false # TODO
+    - role: sshd
+      tags:
+        - sshd
+    - role: tdarr
+      tags:
+        - tdarr
+      when: false # TODO
+    - role: traefik
+      tags:
+        - traefik
+    - role: unattended_upgrades
+      tags:
+        - unattended-upgrades
+    - role: unbound
+      tags:
+        - unbound
+    - role: vaultwarden
+      tags:
+        - vaultwarden
+    - role: vpn_server
+      tags:
+        - vpn-server
+
+  tasks:
+    - name: install additional packages
+      ansible.builtin.apt:
+        name:
+          # - curl
+          # - jq
+          # - linux-cpupower
+          - lsof
+          # - man-db
+          - net-tools
+          - rfkill
+          - tcpdump
+      tags:
+        - always
+
+    - name: remove unwanted packages
+      ansible.builtin.apt:
+        autoremove: true
+        name:
+          - nano
+        purge: true
+        state: absent
+      tags:
+        - always
+
+  handlers:
+    - name: reboot
+      ansible.builtin.reboot: {}
+
+    - name: restart systemd-networkd
+      ansible.builtin.systemd:
+        name: systemd-networkd.service
+        state: restarted
+
+    - name: update-grub
+      ansible.builtin.command:
+        argv:
+          - update-grub
+
+- name: Configure DiskStation
+  hosts:
+    - diskstation
+  gather_facts: false
+
+  pre_tasks:
+    - name: install Python
+      ansible.builtin.raw: /usr/syno/bin/synopkg install_from_server Python3.9
+      changed_when: false
+      failed_when: false
+
+    - name: bootstrap pip
+      # ansible.builtin.raw: /usr/local/bin/python3.9 -m ensurepip --upgrade
+      ansible.builtin.raw: /usr/local/bin/python3.9 -m ensurepip
+      changed_when: false
+
+    - name: bootstrap Python dependencies
+      # ansible.builtin.raw: /usr/local/bin/python3.9 -m pip install --upgrade packaging setuptools
+      ansible.builtin.raw: /usr/local/bin/python3.9 -m pip install packaging setuptools
+      changed_when: false
+
+    - name: install Python dependencies
+      ansible.builtin.pip:
+        name:
+          - PyYAML
+          - requests
+
+  roles:
+    - role: nextcloud
+      tags:
+        - nextcloud
+
+- name: Configure proxy-nl
+  hosts:
+    - proxy-nl
+  gather_facts: false
+
+  pre_tasks:
+    - name: configure network
+      ansible.builtin.copy:
+        content: |
+          auto lo
+          iface lo inet loopback
+
+          auto enp1s0
+          iface enp1s0 inet dhcp
+            dns-nameservers 108.61.10.10 2001:19f0:300:1704::6
+          iface enp1s0 inet6 auto
+            privext 2
+        dest: /etc/network/interfaces
+        owner: root
+        group: root
+        mode: !!str 0444
+      tags:
+        - always
+      notify: reboot
+
+    - name: flush handlers
+      ansible.builtin.meta: flush_handlers
+      tags:
+        - always
+
+    - ansible.builtin.shell:
+        cmd: ip -f inet6 -o addr show dev {{ ansible_facts['default_ipv6'].interface }} scope global mngtmpaddr | awk '{print $4}' | cut -d/ -f1
+      changed_when: false
+      register: result
+      when: false
+
+    - ansible.builtin.set_fact:
+        wan_ipv6_address: "{{ result.stdout | trim }}"
+      when: false
+
+    - name: install prerequisite packages
+      ansible.builtin.apt:
+        name:
+          - acl
+          - attr
+      tags:
+        - always
+
+    - name: remove conflicting packages
+      ansible.builtin.apt:
+        autoremove: true
+        name:
+          - ufw
+        purge: true
+        state: absent
+      tags:
+        - always
+
+  roles:
+    - role: alloy
+      tags:
+        - alloy
+      when: false # FIXME
+    - role: nginx
+      tags:
+        - nginx
+    - role: opensmtpd
+      tags:
+        - opensmtpd
+      when: false # TODO
+    - role: sshd
+      tags:
+        - sshd
+    - role: unattended_upgrades
+      tags:
+        - unattended-upgrades
+    - role: unbound
+      tags:
+        - unbound
+
+  tasks:
+    - name: remove unwanted packages
+      ansible.builtin.apt:
+        autoremove: true
+        name:
+          - nano
+        purge: true
+        state: absent
+      tags:
+        - always
+
+    - name: remove root password
+      ansible.builtin.user:
+        name: root
+        password: "*"
+      tags:
+        - always
+
+  handlers:
+    - name: reboot
+      ansible.builtin.reboot: {}

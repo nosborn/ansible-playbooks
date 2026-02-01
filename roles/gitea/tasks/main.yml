@@ -1,0 +1,119 @@
+---
+- name: create group
+  ansible.builtin.group:
+    name: gitea
+    system: true
+
+- name: create user
+  ansible.builtin.user:
+    comment: gitea
+    create_home: false
+    group: gitea
+    home: /var/lib/gitea
+    name: gitea
+    shell: "{{ nologin_shell }}"
+    system: true
+
+- name: create data directory
+  ansible.builtin.file:
+    path: "{{ gitea_item }}"
+    owner: gitea
+    group: gitea
+    mode: !!str 0700
+    state: directory
+  loop:
+    - /var/lib/gitea
+    # - /var/lib/gitea/postgresql
+    - /var/lib/gitea/shared-storage
+    # - /var/lib/gitea/valkey
+  loop_control:
+    loop_var: gitea_item
+
+- name: create PersistentVolume
+  kubernetes.core.k8s:
+    resource_definition:
+      apiVersion: v1
+      kind: PersistentVolume
+      metadata:
+        name: gitea-shared-storage
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        capacity:
+          storage: &gitea_capacity_storage 10Gi
+        local:
+          path: /var/lib/gitea/shared-storage
+        nodeAffinity:
+          required:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - "{{ ansible_facts['hostname'] }}"
+        persistentVolumeReclaimPolicy: Retain
+        storageClassName: local-storage
+        volumeMode: Filesystem
+
+- name: create namespace
+  kubernetes.core.k8s:
+    resource_definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        labels:
+          pod-security.kubernetes.io/enforce: baseline # TODO: restricted
+        name: &gitea_namespace gitea
+
+- name: create PersistentVolumeClaim
+  kubernetes.core.k8s:
+    namespace: *gitea_namespace
+    resource_definition:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: gitea-shared-storage
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: *gitea_capacity_storage
+        storageClassName: local-storage
+        volumeName: gitea-shared-storage
+
+- name: install Helm chart
+  kubernetes.core.helm:
+    chart_ref: gitea
+    chart_repo_url: https://dl.gitea.com/charts/
+    chart_version: "{{ gitea_chart_version }}"
+    release_name: gitea
+    release_namespace: *gitea_namespace
+    release_values:
+      global:
+        storageClass: local-storage
+      ingress:
+        enabled: true
+        hosts:
+          - host: git.{{ domain_name }}
+      persistence:
+        create: false
+      postgresql:
+        enabled: false
+      postgresql-ha:
+        enabled: false
+      valkey:
+        enabled: true
+      valkey-cluster:
+        enabled: false
+    wait: true
+
+- name: publish DNS
+  ansible.builtin.import_role:
+    name: unbound
+    tasks_from: fragment.yaml
+  vars:
+    unbound_content: |
+      server:
+        local-data: "git.{{ domain_name }}. A {{ lan_ipv4_address }}"
+    unbound_dest: local-data-gitea.conf

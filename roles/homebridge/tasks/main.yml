@@ -1,0 +1,107 @@
+# yamllint disable rule:line-length
+---
+- name: create user group
+  ansible.builtin.group:
+    name: homebridge
+    system: true
+
+- name: create user
+  ansible.builtin.user:
+    name: homebridge
+    comment: Homebridge
+    create_home: false
+    group: homebridge
+    home: "{{ homebridge_home }}"
+    password_lock: true
+    shell: "{{ nologin_shell }}"
+    system: true
+
+- name: create directory
+  ansible.builtin.file:
+    path: "{{ homebridge_home }}"
+    owner: homebridge
+    group: homebridge
+    mode: !!str 0700
+    state: directory
+
+- name: create configuration
+  ansible.builtin.copy:
+    content: "{{ homebridge_config | to_json }}\n"
+    dest: "{{ homebridge_home }}/config.json"
+    owner: homebridge
+    group: homebridge
+    mode: !!str 0400
+    validate: jsonlint --strict %s
+  notify: restart homebridge
+
+- name: create package configuration
+  ansible.builtin.copy:
+    src: package.json
+    dest: "{{ homebridge_home }}/package.json"
+    owner: homebridge
+    group: homebridge
+    mode: !!str 0400
+    validate: jsonlint --strict %s
+  notify: restart homebridge
+
+- name: install packages
+  become: true
+  become_user: homebridge
+  community.general.npm:
+    path: "{{ homebridge_home }}"
+    ignore_scripts: true
+  notify: restart homebridge
+
+# Patch homebridge-unifi-occupancy-lite to reduce log verbosity.
+# The plugin logs routine status at info level; these should be debug.
+# State changes (presence changed, occupied/empty) remain at info level.
+- name: patch unifi-occupancy-lite logging
+  ansible.builtin.replace:
+    path: "{{ homebridge_home }}/node_modules/homebridge-unifi-occupancy-lite/dist/platform.js"
+    regexp: "{{ item.regexp }}"
+    replace: "{{ item.replace }}"
+  loop:
+    # Device online at AP (every device, every refresh)
+    - regexp: this\.log\.info\(`Device \$\{device\.name\}
+      replace: this.log.debug(`Device ${device.name}
+    # Processing N WiFi points (every refresh)
+    - regexp: this\.log\.info\(`Processing \$\{this\.wifiPoints\.length\}
+      replace: this.log.debug(`Processing ${this.wifiPoints.length}
+    # Access points found (every refresh)
+    - regexp: "this\\.log\\.info\\(`Access points found:"
+      replace: "this.log.debug(`Access points found:"
+    # Processing WiFi Point (every wifi point, every refresh)
+    - regexp: "this\\.log\\.info\\(`Processing WiFi Point:"
+      replace: "this.log.debug(`Processing WiFi Point:"
+    # WiFi Point matched to AP (every wifi point, every refresh)
+    - regexp: "this\\.log\\.info\\(`WiFi Point \\$\\{wifiPoint\\.name\\} matched to AP:"
+      replace: "this.log.debug(`WiFi Point ${wifiPoint.name} matched to AP:"
+    # WiFi Point devices at AP (every wifi point, every refresh)
+    - regexp: "this\\.log\\.info\\(`WiFi Point \\$\\{wifiPoint\\.name\\}: devices at AP"
+      replace: "this.log.debug(`WiFi Point ${wifiPoint.name}: devices at AP"
+    # WiFi Point status (every wifi point, every refresh)
+    - regexp: "this\\.log\\.info\\(`WiFi Point \\$\\{wifiPoint\\.name\\} status:"
+      replace: "this.log.debug(`WiFi Point ${wifiPoint.name} status:"
+    # Residents at home summary (every refresh)
+    - regexp: "this\\.log\\.info\\(`Residents at home:"
+      replace: "this.log.debug(`Residents at home:"
+  loop_control:
+    label: "{{ item.regexp | regex_replace('\\\\', '') | truncate(40) }}"
+  notify: restart homebridge
+
+- name: install service
+  ansible.builtin.template:
+    src: homebridge.service.j2
+    dest: /etc/systemd/system/homebridge.service
+    owner: root
+    group: root
+    mode: !!str 0444
+    validate: systemd-analyze verify %s
+  notify: restart homebridge
+
+- name: enable and start service
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+    name: homebridge.service
+    enabled: true
+    state: started
