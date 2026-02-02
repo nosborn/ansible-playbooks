@@ -1,6 +1,0 @@
----
-- name: restart lidarr
-  ansible.builtin.systemd_service:
-    name: lidarr.service
-    daemon_reload: true
-    state: stopped # TODO: restarted

@@ -52,12 +52,6 @@
     - tombstone
   gather_facts: false
 
-  # module_defaults:
-  #   kubernetes.core.k8s:
-  #     apply: true
-  #     server_side_apply:
-  #       field_manager: Ansible
-
   pre_tasks:
     - name: configure LAN network
       ansible.builtin.copy:
@@ -149,9 +143,6 @@
       tags:
         - alloy
       when: false # FIXME
-    - role: argocd
-      tags:
-        - argo-cd
     - role: bazarr
       tags:
         - bazarr
@@ -167,9 +158,9 @@
     - role: chrony
       tags:
         - chrony
-    - role: dns_updater
+    - role: fluxcd
       tags:
-        - dns-updater
+        - fluxcd
     - role: gitea
       tags:
         - gitea
@@ -190,43 +181,31 @@
       tags:
         - lidarr
       when: false # TODO
-    - role: metallb
-      tags:
-        - metallb
     - role: nextcloud
       tags:
         - nextcloud
-    - role: nginx
-      tags:
-        - nginx
-      when: false # TODO?
     - role: nzbget
       tags:
         - nzbget
-      when: false # TODO
     - role: ombi
       tags:
         - ombi
-      when: false # TODO
-    - role: openclaw
-      tags:
-        - openclaw
-      when: false
     - role: opensmtpd
       tags:
         - opensmtpd
     - role: prowlarr
       tags:
         - prowlarr
-      when: false # TODO
     - role: radarr
       tags:
         - radarr
-      when: false # TODO
     - role: readarr
       tags:
         - readarr
       when: false # TODO
+    - role: recyclarr
+      tags:
+        - recyclarr
     - role: restic
       tags:
         - restic
@@ -238,7 +217,9 @@
     - role: sonarr
       tags:
         - sonarr
-      when: false # TODO
+    - role: sops
+      tags:
+        - sops
     - role: sshd
       tags:
         - sshd
@@ -246,9 +227,6 @@
       tags:
         - tdarr
       when: false # TODO
-    - role: traefik
-      tags:
-        - traefik
     - role: unattended_upgrades
       tags:
         - unattended-upgrades
@@ -332,6 +310,7 @@
     - role: nextcloud
       tags:
         - nextcloud
+      when: false
 
 - name: Configure proxy-nl
   hosts:

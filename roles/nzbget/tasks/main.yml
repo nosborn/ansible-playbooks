@@ -1,84 +1,4 @@
-# yamllint disable rule:line-length
 ---
-- name: fetch release info
-  delegate_to: localhost
-  ansible.builtin.uri:
-    url: https://api.github.com/repos/nzbgetcom/nzbget/releases/latest
-    headers:
-      Accept: application/vnd.github+json
-    return_content: true
-    body_format: json
-  register: nzbget_release
-  until: nzbget_release is success
-
-- name: set version fact
-  ansible.builtin.set_fact:
-    nzbget_version: "{{ nzbget_release.json.tag_name | regex_replace('^v', '') }}"
-
-- ansible.builtin.file:
-    path: "{{ nzbget_item }}"
-    owner: root
-    group: root
-    mode: !!str 0755
-    state: directory
-  loop:
-    - /opt/nzbget
-    - /opt/nzbget/scripts
-    - /opt/nzbget/{{ nzbget_version }}
-  loop_control:
-    loop_var: nzbget_item
-
-- name: download installer
-  ansible.builtin.get_url:
-    url: "{{ nzbget_release.json.assets | selectattr('name', 'search', '-bin-linux.run') | map(attribute='browser_download_url') | first }}"
-    dest: /tmp/nzbget-{{ nzbget_version }}-bin-linux.run
-    owner: root
-    group: root
-    mode: !!str 0400
-  changed_when: false
-
-- name: extract installation tarball
-  ansible.builtin.shell:
-    chdir: /tmp
-    cmd: sed '1,/^#END-OF-INSTALLER$/d' nzbget-{{ nzbget_version }}-bin-linux.run >nzbget-{{ nzbget_version }}.tgz
-    creates: /tmp/nzbget-{{ nzbget_version }}.tgz
-  changed_when: false
-
-- name: install
-  ansible.builtin.unarchive:
-    src: /tmp/nzbget-{{ nzbget_version }}.tgz
-    remote_src: true
-    dest: /opt/nzbget/{{ nzbget_version }}
-    owner: root
-    group: root
-    creates: /opt/nzbget/{{ nzbget_version }}/nzbget-x86_64
-  notify: restart nzbget
-
-- ansible.builtin.file:
-    src: "{{ nzbget_item }}-x86_64"
-    dest: /opt/nzbget/{{ nzbget_version }}/{{ nzbget_item }}
-    state: link
-  loop:
-    - 7za
-    - nzbget
-    - unrar
-    - unrar7
-  loop_control:
-    loop_var: nzbget_item
-
-- name: install scripts
-  ansible.builtin.get_url:
-    url: "{{ nzbget_item }}"
-    dest: /opt/nzbget/scripts/{{ nzbget_item | basename }}
-    owner: root
-    group: root
-    mode: !!str 0555
-  loop:
-    - https://raw.githubusercontent.com/TRaSH-Guides/Guides/refs/heads/master/docs/Downloaders/NZBGet/scripts/Clean/Clean.py
-    # - https://raw.githubusercontent.com/TRaSH-Guides/Guides/refs/heads/master/docs/Downloaders/NZBGet/scripts/replace_for/replace_for.py
-  loop_control:
-    loop_var: nzbget_item
-
 - name: create config directory
   ansible.builtin.file:
     path: /var/lib/nzbget
@@ -86,15 +6,6 @@
     group: "{{ library_group }}"
     mode: !!str 2770
     state: directory
-
-- name: configure
-  ansible.builtin.template:
-    src: nzbget.conf.j2
-    dest: /var/lib/nzbget/nzbget.conf
-    owner: "{{ library_user }}"
-    group: "{{ library_group }}"
-    mode: !!str 0640 # FIXME
-  notify: restart nzbget
 
 - name: create library directories
   ansible.builtin.file:
@@ -109,26 +20,13 @@
   loop_control:
     loop_var: nzbget_item
 
-- name: create service unit
-  ansible.builtin.template:
-    src: service.j2
-    dest: /etc/systemd/system/nzbget.service
-    owner: root
-    group: root
-    mode: !!str 0444
-  notify: restart nzbget
-
-- name: enable and start service
-  ansible.builtin.systemd_service:
-    name: nzbget.service
-    daemon_reload: true
-    enabled: true
-    state: started
-
-- name: publish site
-  ansible.builtin.include_role:
-    name: library
-    tasks_from: application.yaml
+- name: DNS
+  ansible.builtin.import_role:
+    name: unbound
+    tasks_from: fragment.yml
   vars:
-    library_application_name: nzbget
-    library_application_port: "{{ nzbget_control_port }}"
+    unbound_content: |
+      server:
+        local-data: "nzbget.{{ domain_name }}. A {{ lan_ipv4_address }}"
+        local-data: "nzbget.{{ domain_name }}. AAAA {{ lan_ipv6_address }}"
+    unbound_dest: local-data-nzbget.conf

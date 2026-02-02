@@ -74,6 +74,12 @@ server:
 {%   endfor %}
 
 {% endif %}
+{% if unbound_redirector_zones | default([]) | length %}
+{%   for zone in unbound_redirector_zones | sort | unique %}
+	domain-insecure: "{{ zone }}"
+{%   endfor %}
+
+{% endif %}
 	val-log-level: 2
 	val-permissive-mode: yes # Danger, Will Robinson! Danger!
 
@@ -111,6 +117,14 @@ server:
 {%   for zone in unbound_proxy_nl_zones | sort | unique %}
 	local-zone: "{{ zone }}." redirect
 	local-data: "{{ zone }}. A {{ hostvars['proxy-nl'].ansible_facts['default_ipv4'].address }}"
+{%   endfor %}
+
+{% endif %}
+{% if unbound_redirector_zones | default([]) | length %}
+{%   for zone in unbound_redirector_zones | sort | unique %}
+	local-zone: "{{ zone }}." redirect
+	local-data: "{{ zone }}. A {{ lan_ipv4_address }}"
+	# local-data: "{{ zone }}. AAAA {{ lan_ipv6_address }}"
 {%   endfor %}
 
 {% endif %}

@@ -28,7 +28,7 @@
     loop_var: recyclarr_item
 
 - ansible.builtin.unarchive:
-    src: "{{ recyclarr_release.json.assets | selectattr('name', 'search', '.linux-x64.tar.xz') | map(attribute='browser_download_url') | first }}"
+    src: https://github.com/recyclarr/recyclarr/releases/download/v{{ recyclarr_version }}/recyclarr-linux-x64.tar.xz
     remote_src: true
     dest: /opt/recyclarr/{{ recyclarr_version }}
     owner: root
@@ -43,18 +43,6 @@
     mode: !!str 2770
     state: directory
 
-# - name: create config directory
-#   ansible.builtin.file:
-#     path: /var/lib/recyclarr/{{ recyclarr_item }}
-#     owner: "{{ library_user }}"
-#     group: "{{ library_group }}"
-#     mode: !!str 0750
-#     state: directory
-#   loop:
-#     - configs
-#   loop_control:
-#     loop_var: recyclarr_item
-
 - name: create config file
   ansible.builtin.template:
     src: recyclarr.yml.j2
@@ -63,95 +51,8 @@
     group: "{{ library_group }}"
     mode: !!str 0640
 
-# - name: create library directories
-#   ansible.builtin.file:
-#     path: "{{ library_path }}/{{ radarr_item }}"
-#     owner: root
-#     group: "{{ library_group }}"
-#     mode: !!str 2750
-#     state: directory
-#   loop:
-#     - backups
-#     - media
-#     - torrents
-#     - usenet
-#   loop_control:
-#     loop_var: radarr_item
-
-# - name: create library directories
-#   ansible.builtin.file:
-#     path: "{{ library_path }}/{{ radarr_item }}"
-#     owner: "{{ library_user }}"
-#     group: "{{ library_group }}"
-#     mode: !!str 2770
-#     state: directory
-#   loop:
-#     - backups/radarr
-#     - media/movies
-#     - torrents/complete
-#     - torrents/complete/radarr
-#     - usenet/complete
-#     - usenet/complete/radarr
-#     - usenet/incomplete # strange but true
-#   loop_control:
-#     loop_var: radarr_item
-
-# - name: create service unit
-#   ansible.builtin.template:
-#     src: service.j2
-#     dest: /etc/systemd/system/radarr.service
-#     owner: root
-#     group: root
-#     mode: !!str 0444
-#     validate: systemd-analyze verify %s
-#   notify: restart radarr
-
-# - name: enable and start service
-#   ansible.builtin.systemd_service:
-#     name: radarr.service
-#     daemon_reload: true
-#     enabled: true
-#     state: started
-
-# - ansible.builtin.wait_for:
-#     path: /var/lib/radarr/config.xml
-
-# - name: configure
-#   community.general.xml:
-#     path: /var/lib/radarr/config.xml
-#     xpath: /Config/{{ radarr_item.key }}
-#     value: "{{ radarr_item.value | string }}"
-#   loop: "{{ config | ansible.builtin.dict2items }}"
-#   loop_control:
-#     loop_var: radarr_item
-#   vars:
-#     config:
-#       AnalyticsEnabled: !!str False
-#       ApiKey: "{{ radarr_api_key }}"
-#       # AuthenticationRequired: DisabledForLocalAddresses
-#       BindAddress: 127.0.0.1
-#       LaunchBrowser: !!str False
-#       LogDbEnabled: !!str False
-#       LogLevel: info
-#       Port: "{{ radarr_port }}"
-#       UpdateAutomatically: !!str False
-#   notify: restart radarr
-
-# - name: remove logs database
-#   ansible.builtin.file:
-#     path: /var/lib/radarr/{{ radarr_item }}
-#     state: absent
-#   loop:
-#     - logs.db
-#     - logs.db-shm
-#     - logs.db-wal
-#   loop_control:
-#     loop_var: radarr_item
-#   when: false # FIXME
-
-# - ansible.builtin.include_role:
-#     name: library
-#     tasks_from: application.yaml
-#   vars:
-#     library_application_name: radarr
-#     library_application_port: "{{ radarr_port }}"
+- name: link binary
+  ansible.builtin.file:
+    path: /usr/local/bin/recyclarr
+    src: /opt/recyclarr/{{ recyclarr_version }}/recyclarr
+    state: link

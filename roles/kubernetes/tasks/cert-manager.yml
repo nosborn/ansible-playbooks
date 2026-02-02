@@ -1,76 +1,28 @@
 # yamllint disable rule:line-length
 ---
-- name: "cert-manager : fetch release info"
-  delegate_to: localhost
-  ansible.builtin.uri:
-    url: https://api.github.com/repos/cert-manager/cert-manager/releases/latest
-    headers:
-      Accept: application/vnd.github+json
-    return_content: true
-    body_format: json
-  register: cert_manager_result
-  until: cert_manager_result is success
-
-- name: set version fact
-  ansible.builtin.set_fact:
-    cert_manager_version: "{{ cert_manager_result.json.tag_name }}"
-
-- name: "cert-manager : create namespace"
+- name: create cert-manager namespace
   kubernetes.core.k8s:
+    apply: true
+    server_side_apply:
+      field_manager: ansible
     resource_definition:
       apiVersion: v1
       kind: Namespace
       metadata:
-        annotations:
-          linkerd.io/inject: disabled
-        labels:
-          pod-security.kubernetes.io/enforce: restricted
         name: cert-manager
 
-- name: "cert-manager : install"
-  kubernetes.core.helm:
-    chart_ref: oci://quay.io/jetstack/charts/cert-manager
-    chart_version: "{{ cert_manager_version }}"
-    release_name: cert-manager
-    release_namespace: cert-manager
-    release_values:
-      crds:
-        enabled: true
-      enableCertificateOwnerRef: true
-      prometheus:
-        enabled: false
-    wait: true
-
-- name: "cert-manager : create self-signed issuer"
+- name: create ownca intermediate CA secret
   kubernetes.core.k8s:
-    resource_definition:
-      apiVersion: cert-manager.io/v1
-      kind: ClusterIssuer
-      metadata:
-        name: selfsigned
-      spec:
-        selfSigned: {}
-
-- name: "cert-manager : create intermediate CA secret"
-  kubernetes.core.k8s:
-    namespace: cert-manager
+    apply: true
     resource_definition:
       apiVersion: v1
       kind: Secret
       metadata:
-        name: ownca-intermediate
+        name: ownca-intermediate-ca
+        namespace: cert-manager
       type: kubernetes.io/tls
-      stringData:
-        tls.crt: "{{ hostvars['localhost']['ownca_intermediate_certificate'] }}"
-        tls.key: "{{ hostvars['localhost']['ownca_intermediate_privatekey'] }}"
-
-- name: "cert-manager : create ownca issuer"
-  kubernetes.core.k8s:
-    resource_definition:
-      apiVersion: cert-manager.io/v1
-      kind: ClusterIssuer
-      metadata:
-        name: ownca
-      spec:
-        ca:
-          secretName: ownca-intermediate
+      data:
+        tls.crt: "{{ lookup('file', playbook_dir~'/.ownca/intermediate.crt') | b64encode }}"
+        tls.key: "{{ lookup('file', playbook_dir~'/.ownca/intermediate.key') | b64encode }}"
+    server_side_apply:
+      field_manager: ansible

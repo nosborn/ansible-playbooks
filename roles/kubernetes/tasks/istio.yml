@@ -1,0 +1,31 @@
+---
+- name: "istio : create namespace"
+  kubernetes.core.k8s:
+    apply: true
+    resource_definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: istio-system
+    server_side_apply:
+      field_manager: ansible
+
+- name: "istio : generate manifest"
+  delegate_to: localhost
+  ansible.builtin.command:
+    argv:
+      - istioctl
+      - manifest
+      - generate
+      - --cluster-specific
+      - --set
+      - profile=ambient
+  register: istio_result
+  changed_when: false
+
+- name: "istio : apply manifest"
+  kubernetes.core.k8s:
+    apply: true
+    resource_definition: "{{ istio_result.stdout }}"
+    server_side_apply:
+      field_manager: ansible

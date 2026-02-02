@@ -105,3 +105,11 @@
 
 - ansible.builtin.wait_for:
     path: /run/k0s/status.sock
+
+- name: "k0s : remove k0s-autopilot"
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: Namespace
+    name: k0s-autopilot
+    state: absent
+  when: false

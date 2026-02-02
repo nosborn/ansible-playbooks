@@ -1,43 +1,43 @@
 # yamllint disable rule:line-length
 ---
-- name: fetch release info
-  delegate_to: localhost
-  ansible.builtin.uri:
-    url: https://api.github.com/repos/Ombi-app/Ombi/releases/latest
-    headers:
-      Accept: application/vnd.github+json
-    return_content: true
-    body_format: json
-  register: ombi_release
-  until: ombi_release is success
+# - name: fetch release info
+#   delegate_to: localhost
+#   ansible.builtin.uri:
+#     url: https://api.github.com/repos/Ombi-app/Ombi/releases/latest
+#     headers:
+#       Accept: application/vnd.github+json
+#     return_content: true
+#     body_format: json
+#   register: ombi_release
+#   until: ombi_release is success
 
-- name: set version fact
-  ansible.builtin.set_fact:
-    ombi_version: "{{ ombi_release.json.tag_name | regex_replace('^v', '') }}"
+# - name: set version fact
+#   ansible.builtin.set_fact:
+#     ombi_version: "{{ ombi_release.json.tag_name | regex_replace('^v', '') }}"
 
-- ansible.builtin.file:
-    path: "{{ ombi_item }}"
-    owner: root
-    group: root
-    mode: !!str 0755
-    state: directory
-  loop:
-    - /opt/ombi
-    - /opt/ombi/{{ ombi_version }}
-  loop_control:
-    loop_var: ombi_item
+# - ansible.builtin.file:
+#     path: "{{ ombi_item }}"
+#     owner: root
+#     group: root
+#     mode: !!str 0755
+#     state: directory
+#   loop:
+#     - /opt/ombi
+#     - /opt/ombi/{{ ombi_version }}
+#   loop_control:
+#     loop_var: ombi_item
 
-- ansible.builtin.unarchive:
-    src: "{{ ombi_release.json.assets | selectattr('name', 'search', 'linux-x64.tar.gz') | map(attribute='browser_download_url') | first }}"
-    remote_src: true
-    dest: /opt/ombi/{{ ombi_version }}
-    # exclude: Radarr.Update
-    owner: root
-    group: root
-    extra_opts:
-      - --strip-components=1
-    creates: /opt/ombi/{{ ombi_version }}/Ombi
-  notify: restart ombi
+# - ansible.builtin.unarchive:
+#     src: "{{ ombi_release.json.assets | selectattr('name', 'search', 'linux-x64.tar.gz') | map(attribute='browser_download_url') | first }}"
+#     remote_src: true
+#     dest: /opt/ombi/{{ ombi_version }}
+#     # exclude: Radarr.Update
+#     owner: root
+#     group: root
+#     extra_opts:
+#       - --strip-components=1
+#     creates: /opt/ombi/{{ ombi_version }}/Ombi
+#   notify: restart ombi
 
 - name: create config directory
   ansible.builtin.file:
@@ -47,95 +47,37 @@
     mode: !!str 2770
     state: directory
 
-# - name: create library directories
-#   ansible.builtin.file:
-#     path: "{{ library_path }}/{{ ombi_item }}"
+# - name: create service unit
+#   ansible.builtin.template:
+#     src: service.j2
+#     dest: /etc/systemd/system/ombi.service
 #     owner: root
-#     group: "{{ library_group }}"
-#     mode: !!str 2750
-#     state: directory
-#   loop:
-#     - backups
-#     - media
-#     - torrents
-#     - usenet
-#   loop_control:
-#     loop_var: ombi_item
-
-# - name: create library directories
-#   ansible.builtin.file:
-#     path: "{{ library_path }}/{{ ombi_item }}"
-#     owner: "{{ library_user }}"
-#     group: "{{ library_group }}"
-#     mode: !!str 2770
-#     state: directory
-#   loop:
-#     - backups/ombi
-#     - media/movies
-#     - torrents/complete
-#     - torrents/complete/ombi
-#     - usenet/complete
-#     - usenet/complete/ombi
-#     - usenet/incomplete # strange but true
-#   loop_control:
-#     loop_var: ombi_item
-
-- name: create service unit
-  ansible.builtin.template:
-    src: service.j2
-    dest: /etc/systemd/system/ombi.service
-    owner: root
-    group: root
-    mode: !!str 0444
-    validate: systemd-analyze verify %s
-  notify: restart ombi
-
-- name: enable and start service
-  ansible.builtin.systemd_service:
-    name: ombi.service
-    daemon_reload: true
-    enabled: true
-    state: started
-
-# - ansible.builtin.wait_for:
-#     path: /var/lib/ombi/config.xml
-
-# - name: configure
-#   community.general.xml:
-#     path: /var/lib/ombi/config.xml
-#     xpath: /Config/{{ ombi_item.key }}
-#     value: "{{ ombi_item.value | string }}"
-#   loop: "{{ config | ansible.builtin.dict2items }}"
-#   loop_control:
-#     loop_var: ombi_item
-#   vars:
-#     config:
-#       AnalyticsEnabled: !!str False
-#       ApiKey: "{{ ombi_api_key }}"
-#       # AuthenticationRequired: DisabledForLocalAddresses
-#       BindAddress: 127.0.0.1
-#       LaunchBrowser: !!str False
-#       LogDbEnabled: !!str False
-#       LogLevel: info
-#       Port: "{{ ombi_port }}"
-#       UpdateAutomatically: !!str False
+#     group: root
+#     mode: !!str 0444
+#     validate: systemd-analyze verify %s
 #   notify: restart ombi
 
-# - name: remove logs database
-#   ansible.builtin.file:
-#     path: /var/lib/ombi/{{ ombi_item }}
-#     state: absent
-#   loop:
-#     - logs.db
-#     - logs.db-shm
-#     - logs.db-wal
-#   loop_control:
-#     loop_var: ombi_item
-#   when: false # FIXME
+# - name: enable and start service
+#   ansible.builtin.systemd_service:
+#     name: ombi.service
+#     daemon_reload: true
+#     enabled: true
+#     state: started
 
-- ansible.builtin.include_role:
-    name: library
-    tasks_from: application.yaml
+# - ansible.builtin.include_role:
+#     name: library
+#     tasks_from: application.yaml
+#   vars:
+#     library_application_name: ombi
+#     library_application_port: "{{ ombi_port }}"
+
+- name: DNS
+  ansible.builtin.import_role:
+    name: unbound
+    tasks_from: fragment.yml
   vars:
-    library_application_name: ombi
-    library_application_port: "{{ ombi_port }}"
+    unbound_content: |
+      server:
+        local-data: "ombi.{{ domain_name }}. A {{ lan_ipv4_address }}"
+        local-data: "ombi.{{ domain_name }}. AAAA {{ lan_ipv6_address }}"
+    unbound_dest: local-data-ombi.conf

@@ -38,5 +38,3 @@ repos:
         entry: .pre-commit-hooks.d/ansible-vault-encrypted.sh
         language: script
         files: ^(group|host)_vars/.+/vault\.(yaml|yml)$
-
-minimum_pre_commit_version: !!str 4.2

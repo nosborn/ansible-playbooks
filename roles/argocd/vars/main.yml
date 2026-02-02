@@ -1,4 +1,0 @@
----
-argocd_chart_version: 9.3.7
-argocd_deployments_repo_url: https://github.com/nosborn/argocd-deployments.git
-# argocd_image_updater_chart_version: 1.0.4

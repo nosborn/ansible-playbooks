@@ -1,0 +1,28 @@
+---
+- name: create namespace
+  kubernetes.core.k8s:
+    apply: true
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: sops
+    server_side_apply:
+      field_manager: ansible
+
+- kubernetes.core.k8s:
+    apply: true
+    namespace: sops
+    resource_definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        annotations: {}
+        labels:
+          app.kubernetes.io/managed-by: Ansible
+        name: sops-age-key-file
+      stringData:
+        key: "{{ sops_age_key_file }}"
+      type: Opaque
+    server_side_apply:
+      field_manager: ansible

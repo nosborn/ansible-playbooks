@@ -1,44 +1,4 @@
-# yamllint disable rule:line-length
 ---
-- name: fetch release info
-  delegate_to: localhost
-  ansible.builtin.uri:
-    url: https://api.github.com/repos/Sonarr/Sonarr/releases/latest
-    headers:
-      Accept: application/vnd.github+json
-    return_content: true
-    body_format: json
-  register: sonarr_release
-  until: sonarr_release is success
-
-- name: set version fact
-  ansible.builtin.set_fact:
-    sonarr_version: "{{ sonarr_release.json.tag_name | regex_replace('^v', '') }}"
-
-- ansible.builtin.file:
-    path: "{{ sonarr_item }}"
-    owner: root
-    group: root
-    mode: !!str 0755
-    state: directory
-  loop:
-    - /opt/sonarr
-    - /opt/sonarr/{{ sonarr_version }}
-  loop_control:
-    loop_var: sonarr_item
-
-- ansible.builtin.unarchive:
-    src: "{{ sonarr_release.json.assets | selectattr('name', 'search', '.linux-x64.tar.gz') | map(attribute='browser_download_url') | first }}"
-    remote_src: true
-    dest: /opt/sonarr/{{ sonarr_version }}
-    exclude: Sonarr.Update
-    owner: root
-    group: root
-    extra_opts:
-      - --strip-components=1
-    creates: /opt/sonarr/{{ sonarr_version }}/Sonarr
-  notify: restart sonarr
-
 - name: create config directory
   ansible.builtin.file:
     path: /var/lib/sonarr
@@ -80,61 +40,13 @@
   loop_control:
     loop_var: sonarr_item
 
-- name: create service unit
-  ansible.builtin.template:
-    src: service.j2
-    dest: /etc/systemd/system/sonarr.service
-    owner: root
-    group: root
-    mode: !!str 0444
-    validate: systemd-analyze verify %s
-  notify: restart sonarr
-
-- name: enable and start service
-  ansible.builtin.systemd_service:
-    name: sonarr.service
-    daemon_reload: true
-    enabled: true
-    state: started
-
-- ansible.builtin.wait_for:
-    path: /var/lib/sonarr/config.xml
-
-- name: configure
-  community.general.xml:
-    path: /var/lib/sonarr/config.xml
-    xpath: /Config/{{ sonarr_item.key }}
-    value: "{{ sonarr_item.value | string }}"
-  loop: "{{ config | ansible.builtin.dict2items }}"
-  loop_control:
-    loop_var: sonarr_item
+- name: DNS
+  ansible.builtin.import_role:
+    name: unbound
+    tasks_from: fragment.yml
   vars:
-    config:
-      AnalyticsEnabled: !!str False
-      # AuthenticationRequired: DisabledForLocalAddresses
-      BindAddress: 127.0.0.1
-      LaunchBrowser: !!str False
-      LogDbEnabled: !!str False
-      LogLevel: info
-      Port: "{{ sonarr_port }}"
-      UpdateAutomatically: !!str False
-  notify: restart sonarr
-
-- name: remove logs database
-  ansible.builtin.file:
-    path: /var/lib/sonarr/{{ sonarr_item }}
-    state: absent
-  loop:
-    - logs.db
-    - logs.db-shm
-    - logs.db-wal
-  loop_control:
-    loop_var: sonarr_item
-  when: false # FIXME
-
-- ansible.builtin.include_role:
-    name: library
-    tasks_from: application.yaml
-  vars:
-    library_application_name: sonarr
-    library_application_port: "{{ sonarr_port }}"
+    unbound_content: |
+      server:
+        local-data: "sonarr.{{ domain_name }}. A {{ lan_ipv4_address }}"
+        local-data: "sonarr.{{ domain_name }}. AAAA {{ lan_ipv6_address }}"
+    unbound_dest: local-data-sonarr.conf

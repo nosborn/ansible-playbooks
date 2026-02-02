@@ -1,44 +1,4 @@
-# yamllint disable rule:line-length
 ---
-- name: fetch release info
-  delegate_to: localhost
-  ansible.builtin.uri:
-    url: https://api.github.com/repos/Radarr/Radarr/releases/latest
-    headers:
-      Accept: application/vnd.github+json
-    return_content: true
-    body_format: json
-  register: radarr_release
-  until: radarr_release is success
-
-- name: set version fact
-  ansible.builtin.set_fact:
-    radarr_version: "{{ radarr_release.json.tag_name | regex_replace('^v', '') }}"
-
-- ansible.builtin.file:
-    path: "{{ radarr_item }}"
-    owner: root
-    group: root
-    mode: !!str 0755
-    state: directory
-  loop:
-    - /opt/radarr
-    - /opt/radarr/{{ radarr_version }}
-  loop_control:
-    loop_var: radarr_item
-
-- ansible.builtin.unarchive:
-    src: "{{ radarr_release.json.assets | selectattr('name', 'search', '.linux-core-x64.tar.gz') | map(attribute='browser_download_url') | first }}"
-    remote_src: true
-    dest: /opt/radarr/{{ radarr_version }}
-    exclude: Radarr.Update
-    owner: root
-    group: root
-    extra_opts:
-      - --strip-components=1
-    creates: /opt/radarr/{{ radarr_version }}/Radarr
-  notify: restart radarr
-
 - name: create config directory
   ansible.builtin.file:
     path: /var/lib/radarr
@@ -80,62 +40,13 @@
   loop_control:
     loop_var: radarr_item
 
-- name: create service unit
-  ansible.builtin.template:
-    src: service.j2
-    dest: /etc/systemd/system/radarr.service
-    owner: root
-    group: root
-    mode: !!str 0444
-    validate: systemd-analyze verify %s
-  notify: restart radarr
-
-- name: enable and start service
-  ansible.builtin.systemd_service:
-    name: radarr.service
-    daemon_reload: true
-    enabled: true
-    state: started
-
-- ansible.builtin.wait_for:
-    path: /var/lib/radarr/config.xml
-
-- name: configure
-  community.general.xml:
-    path: /var/lib/radarr/config.xml
-    xpath: /Config/{{ radarr_item.key }}
-    value: "{{ radarr_item.value | string }}"
-  loop: "{{ config | ansible.builtin.dict2items }}"
-  loop_control:
-    loop_var: radarr_item
+- name: DNS
+  ansible.builtin.import_role:
+    name: unbound
+    tasks_from: fragment.yml
   vars:
-    config:
-      AnalyticsEnabled: !!str False
-      ApiKey: "{{ radarr_api_key }}"
-      # AuthenticationRequired: DisabledForLocalAddresses
-      BindAddress: 127.0.0.1
-      LaunchBrowser: !!str False
-      LogDbEnabled: !!str False
-      LogLevel: info
-      Port: "{{ radarr_port }}"
-      UpdateAutomatically: !!str False
-  notify: restart radarr
-
-- name: remove logs database
-  ansible.builtin.file:
-    path: /var/lib/radarr/{{ radarr_item }}
-    state: absent
-  loop:
-    - logs.db
-    - logs.db-shm
-    - logs.db-wal
-  loop_control:
-    loop_var: radarr_item
-  when: false # FIXME
-
-- ansible.builtin.include_role:
-    name: library
-    tasks_from: application.yaml
-  vars:
-    library_application_name: radarr
-    library_application_port: "{{ radarr_port }}"
+    unbound_content: |
+      server:
+        local-data: "radarr.{{ domain_name }}. A {{ lan_ipv4_address }}"
+        local-data: "radarr.{{ domain_name }}. AAAA {{ lan_ipv6_address }}"
+    unbound_dest: local-data-radarr.conf

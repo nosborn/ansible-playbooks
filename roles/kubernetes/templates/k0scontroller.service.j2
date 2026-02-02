@@ -4,12 +4,12 @@ Documentation=https://docs.k0sproject.io
 ConditionFileIsExecutable=/usr/local/bin/k0s
 
 After=network-online.target
-Wants=network-online.target
+Wants=local-fs.target,network-online.target
 
 [Service]
 StartLimitInterval=5
 StartLimitBurst=10
-ExecStart=/usr/local/bin/k0s controller --disable-components=autopilot --single
+ExecStart=/usr/local/bin/k0s controller --disable-components=autopilot --kubelet-extra-args=--node-ip={{ lan_ipv4_address }},{{ lan_ipv6_address }} --single
 
 RestartSec=10
 Delegate=yes

@@ -7,17 +7,33 @@ metadata:
 spec:
   api:
     address: "{{ lan_ipv4_address }}"
-    ca:
-      certificatesExpireAfter: 8760h0m0s
-      expiresAfter: 87600h0m0s
     extraArgs:
       admission-control-config-file: /etc/k0s/admission.yaml
-    k0sApiPort: 9443
-    port: 6443
+    onlyBindToAddress: true
     sans:
       - "{{ lan_ipv4_address }}"
+      - "{{ lan_ipv6_address }}"
   controllerManager: {}
-  extensions: {}
+  extensions:
+    helm:
+      repositories:
+        - name: openebs-internal
+          url: https://openebs.github.io/charts
+      charts:
+        - chartname: openebs-internal/openebs
+          name: openebs
+          namespace: openebs
+          order: 1
+          values: |
+            localprovisioner:
+              hostpathClass:
+                enabled: true
+                isDefaultClass: false
+            ndm:
+              enabled: false
+            ndmOperator:
+              enabled: false
+          version: 3.9.0
   installConfig:
     users:
       etcdUser: etcd
@@ -25,48 +41,18 @@ spec:
       konnectivityUser: konnectivity-server
       kubeAPIserverUser: kube-apiserver
       kubeSchedulerUser: kube-scheduler
-  konnectivity:
-    adminPort: 8133
-    agentPort: 8132
   network:
-    clusterDomain: cluster.local
     dualStack:
-      enabled: false
+      IPv6podCIDR: fd00::/108
+      IPv6serviceCIDR: fd01::/108
+      enabled: true
     kubeProxy:
-      iptables:
-        minSyncPeriod: 0s
-        syncPeriod: 0s
-      ipvs:
-        minSyncPeriod: 0s
-        syncPeriod: 0s
-        tcpFinTimeout: 0s
-        tcpTimeout: 0s
-        udpTimeout: 0s
-      metricsBindAddress: 0.0.0.0:10249
-      mode: iptables
-      nftables:
-        minSyncPeriod: 0s
-        syncPeriod: 0s
+      # metricsBindAddress: 0.0.0.0:10249
+      mode: iptables # explicit default
     kuberouter:
-      autoMTU: true
-      hairpin: Enabled
-      metricsPort: 8080
-    nodeLocalLoadBalancing:
-      enabled: false
-      envoyProxy:
-        apiServerBindPort: 7443
-        konnectivityServerBindPort: 7132
-      type: EnvoyProxy
-    podCIDR: 10.244.0.0/16
-    provider: kuberouter
-    serviceCIDR: 10.96.0.0/12
+      hairpin: Disabled # Enabled
   scheduler: {}
   storage:
-    etcd:
-      ca:
-        certificatesExpireAfter: 8760h0m0s
-        expiresAfter: 87600h0m0s
-      peerAddress: "{{ lan_ipv4_address }}"
-    type: etcd
+    type: kine
   telemetry:
     enabled: false

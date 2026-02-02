@@ -3,7 +3,6 @@
   ansible.builtin.apt:
     name: nfs-kernel-server
 
-
 - name: configure
   ansible.builtin.copy:
     content: |

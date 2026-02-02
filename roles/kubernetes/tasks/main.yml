@@ -12,21 +12,28 @@
 - ansible.builtin.include_tasks:
     file: kubeconfig.yml
 
-# - ansible.builtin.include_tasks:
-#     file: linkerd.yml
+- ansible.builtin.include_tasks:
+    file: cert-manager.yml
 
 # - ansible.builtin.include_tasks:
-#     file: cert-manager.yml
+#     file: istio.yml
 
-# - ansible.builtin.include_tasks:
-#     file: metallb.yml
-
-# - name: create local-storage StorageClass
-#   kubernetes.core.k8s:
-#     resource_definition:
-#       apiVersion: storage.k8s.io/v1
-#       kind: StorageClass
-#       metadata:
-#         name: local-storage
-#       provisioner: kubernetes.io/no-provisioner
-#       volumeBindingMode: WaitForFirstConsumer
+- name: create openebs-hostpath-retain StorageClass
+  kubernetes.core.k8s:
+    apply: true
+    resource_definition:
+      apiVersion: storage.k8s.io/v1
+      kind: StorageClass
+      metadata:
+        annotations:
+          cas.openebs.io/config: |
+            - name: StorageType
+              value: hostpath
+            - name: BasePath
+              value: /var/openebs/local
+        name: openebs-hostpath-retain
+      provisioner: openebs.io/local
+      reclaimPolicy: Retain
+      volumeBindingMode: WaitForFirstConsumer
+    server_side_apply:
+      field_manager: ansible

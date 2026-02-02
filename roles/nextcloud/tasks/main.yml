@@ -16,57 +16,11 @@
 
 - name: create data directory
   ansible.builtin.file:
-    path: "{{ nextcloud_item }}"
+    path: /srv/nextcloud
     owner: nextcloud
     group: nextcloud
     mode: !!str 0700
     state: directory
-  loop:
-    - /srv/nextcloud
-    # - /srv/nextcloud/data
-  loop_control:
-    loop_var: nextcloud_item
-
-- name: create namespace
-  kubernetes.core.k8s:
-    definition:
-      apiVersion: v1
-      kind: Namespace
-      metadata:
-        labels:
-          pod-security.kubernetes.io/enforce: baseline # TODO: restricted
-        name: nextcloud
-
-# - name: create secret
-#   kubernetes.core.k8s:
-#     definition:
-#       apiVersion: v1
-#       kind: Secret
-#       metadata:
-#         labels:
-#           app.kubernetes.io/instance: nextcloud
-#           app.kubernetes.io/managed-by: Ansible
-#           app.kubernetes.io/name: nextcloud
-#         name: nextcloud
-#         namespace: nextcloud
-#       stringData:
-#         nextcloud-username: "{{ nextcloud_username }}"
-#         nextcloud-password: "{{ nextcloud_password }}"
-#       type: Opaque
-
-- name: install Helm chart
-  kubernetes.core.helm:
-    chart_ref: nextcloud
-    chart_repo_url: https://nextcloud.github.io/helm/
-    chart_version: "{{ nextcloud_chart_version }}"
-    release_name: nextcloud
-    release_namespace: nextcloud
-    release_values:
-      nextcloud:
-        host: cloud.{{ domain_name }}
-      persistence:
-        hostPath: /srv/nextcloud
-    wait: true
 
 - name: publish DNS
   ansible.builtin.import_role:

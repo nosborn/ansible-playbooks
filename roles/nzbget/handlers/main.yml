@@ -1,6 +1,0 @@
----
-- name: restart nzbget
-  ansible.builtin.systemd_service:
-    name: nzbget.service
-    daemon_reload: true
-    state: restarted
