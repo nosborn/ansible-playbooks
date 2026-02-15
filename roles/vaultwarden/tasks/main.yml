@@ -17,11 +17,16 @@
 
 - name: create data directory
   ansible.builtin.file:
-    path: /srv/vaultwarden
+    path: "{{ vaultwarden_item }}"
     owner: vaultwarden
     group: vaultwarden
     mode: !!str 0700
     state: directory
+  loop:
+    - /srv/vaultwarden
+    - /srv/vaultwarden/backups
+  loop_control:
+    loop_var: vaultwarden_item
 
 - name: DNS
   ansible.builtin.import_role:
@@ -30,5 +35,5 @@
   vars:
     unbound_content: |
       server:
-        local-data: "passwords.{{ domain_name }}. A {{ lan_ipv4_address }}"
+        local-data: "passwords.{{ domain_name }}. CNAME {{ ansible_facts['hostname'] }}.{{ domain_name }}."
     unbound_dest: local-data-vaultwarden.conf

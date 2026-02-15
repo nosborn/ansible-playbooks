@@ -1,3 +1,3 @@
 ---
-calibre_web_home: /var/lib/calibre-web
+calibre_web_home: /srv/calibre-web
 calibre_web_port: 8083

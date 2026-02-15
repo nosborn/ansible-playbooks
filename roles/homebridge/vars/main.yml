@@ -1,2 +1,2 @@
 ---
-homebridge_home: /var/lib/homebridge
+homebridge_home: /srv/homebridge

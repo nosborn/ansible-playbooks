@@ -9,7 +9,7 @@ Wants=tdarr.service
 Environment=LANG=en_GB.UTF-8
 Environment=NODE_ENV=production
 Environment=TZ={{ timezone }}
-ExecStart=/var/lib/tdarr/Tdarr_Node/Tdarr_Node
+ExecStart=/srv/tdarr/Tdarr_Node/Tdarr_Node
 Group={{ library_group }}
 LimitCORE=0:0
 LockPersonality=yes
@@ -28,7 +28,7 @@ ProtectKernelModules=yes
 ProtectKernelTunables=yes
 ; ProtectProc=
 ProtectSystem=strict
-ReadWritePaths=/var/lib/tdarr {{ library_path }}
+ReadWritePaths=/srv/tdarr {{ library_path }}
 RemoveIPC=yes
 Restart=on-failure
 RestartSec=5
@@ -38,7 +38,7 @@ RestrictRealtime=yes
 Type=simple
 UMask=0007
 User={{ library_user }}
-WorkingDirectory=/var/lib/tdarr
+WorkingDirectory=/srv/tdarr
 
 [Install]
 WantedBy=multi-user.target

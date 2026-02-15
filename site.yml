@@ -210,7 +210,6 @@
     - role: samba
       tags:
         - samba
-      when: false # TODO
     - role: sonarr
       tags:
         - sonarr
@@ -303,7 +302,7 @@
           - PyYAML
           - requests
 
-  roles: {}
+  roles: []
 
 - name: Configure proxy-nl
   hosts:

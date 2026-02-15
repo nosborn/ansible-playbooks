@@ -29,12 +29,12 @@
 #     create_home: false
 #     groups:
 #       - media
-#     home: /var/lib/calibre
+#     home: /srv/calibre
 #     shell: "{{ nologin_shell }}"
 #     system: true
 
 - ansible.builtin.file:
-    path: /var/lib/calibre
+    path: /srv/calibre
     owner: root
     group: "{{ library_group }}"
     mode: !!str 2770

@@ -1,75 +1,12 @@
 # yamllint disable rule:line-length
 ---
-# - name: fetch release info
-#   delegate_to: localhost
-#   ansible.builtin.uri:
-#     url: https://api.github.com/repos/Ombi-app/Ombi/releases/latest
-#     headers:
-#       Accept: application/vnd.github+json
-#     return_content: true
-#     body_format: json
-#   register: ombi_release
-#   until: ombi_release is success
-
-# - name: set version fact
-#   ansible.builtin.set_fact:
-#     ombi_version: "{{ ombi_release.json.tag_name | regex_replace('^v', '') }}"
-
-# - ansible.builtin.file:
-#     path: "{{ ombi_item }}"
-#     owner: root
-#     group: root
-#     mode: !!str 0755
-#     state: directory
-#   loop:
-#     - /opt/ombi
-#     - /opt/ombi/{{ ombi_version }}
-#   loop_control:
-#     loop_var: ombi_item
-
-# - ansible.builtin.unarchive:
-#     src: "{{ ombi_release.json.assets | selectattr('name', 'search', 'linux-x64.tar.gz') | map(attribute='browser_download_url') | first }}"
-#     remote_src: true
-#     dest: /opt/ombi/{{ ombi_version }}
-#     # exclude: Radarr.Update
-#     owner: root
-#     group: root
-#     extra_opts:
-#       - --strip-components=1
-#     creates: /opt/ombi/{{ ombi_version }}/Ombi
-#   notify: restart ombi
-
 - name: create config directory
   ansible.builtin.file:
-    path: /var/lib/ombi
+    path: /srv/ombi
     owner: root
     group: "{{ library_group }}"
     mode: !!str 2770
     state: directory
-
-# - name: create service unit
-#   ansible.builtin.template:
-#     src: service.j2
-#     dest: /etc/systemd/system/ombi.service
-#     owner: root
-#     group: root
-#     mode: !!str 0444
-#     validate: systemd-analyze verify %s
-#   notify: restart ombi
-
-# - name: enable and start service
-#   ansible.builtin.systemd_service:
-#     name: ombi.service
-#     daemon_reload: true
-#     enabled: true
-#     state: started
-
-# - ansible.builtin.include_role:
-#     name: library
-#     tasks_from: application.yaml
-#   vars:
-#     library_application_name: ombi
-#     library_application_port: "{{ ombi_port }}"
 
 - name: DNS
   ansible.builtin.import_role:
@@ -78,6 +15,5 @@
   vars:
     unbound_content: |
       server:
-        local-data: "ombi.{{ domain_name }}. A {{ lan_ipv4_address }}"
-        local-data: "ombi.{{ domain_name }}. AAAA {{ lan_ipv6_address }}"
+        local-data: "ombi.{{ domain_name }}. CNAME {{ ansible_facts['hostname'] }}.{{ domain_name }}."
     unbound_dest: local-data-ombi.conf

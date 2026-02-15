@@ -31,5 +31,5 @@
       vars:
         unbound_content: |
           server:
-            local-data: "{{ library_application_name }}.{{ domain_name }}. A {{ lan_ipv4_address }}"
+            local-data: "{{ library_application_name }}.{{ domain_name }}. CNAME {{ ansible_facts['hostname'] }}.{{ domain_name }}."
         unbound_dest: local-data-{{ library_application_name }}.conf

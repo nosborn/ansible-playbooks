@@ -24,7 +24,7 @@
 
 - name: create config directory
   ansible.builtin.file:
-    path: /var/lib/tdarr
+    path: /srv/tdarr
     owner: root
     group: root
     mode: !!str 0755
@@ -38,9 +38,9 @@
     mode: !!str 2770
     state: directory
   loop:
-    - /var/lib/tdarr/configs
-    - /var/lib/tdarr/logs
-    - /var/lib/tdarr/server
+    - /srv/tdarr/configs
+    - /srv/tdarr/logs
+    - /srv/tdarr/server
   loop_control:
     loop_var: tdarr_item
 

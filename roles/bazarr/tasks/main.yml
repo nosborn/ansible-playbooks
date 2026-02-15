@@ -58,15 +58,15 @@
     mode: !!str 2770
     state: directory
   loop:
-    - /var/lib/bazarr
-    - /var/lib/bazarr/config
+    - /srv/bazarr
+    - /srv/bazarr/config
   loop_control:
     loop_var: bazarr_item
 
 - name: configure
   ansible.builtin.template:
     src: config.j2
-    dest: /var/lib/bazarr/config/config.yaml
+    dest: /srv/bazarr/config/config.yaml
     owner: "{{ library_user }}"
     group: "{{ library_group }}"
     mode: !!str 0660

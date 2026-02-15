@@ -23,7 +23,7 @@
 
 - ansible.builtin.user:
     append: true
-    home: /var/lib/deluge
+    home: /srv/deluge
     name: deluge
     groups:
       - media
@@ -38,15 +38,15 @@
     mode: !!str 0750
     state: directory
   loop:
-    - /var/lib/deluge
-    - /var/lib/deluge/config
+    - /srv/deluge
+    - /srv/deluge/config
   loop_control:
     loop_var: deluge_item
 
 - name: configure deluged
   ansible.builtin.template:
     src: "{{ deluge_item }}.j2"
-    dest: /var/lib/deluge/config/{{ deluge_item }}
+    dest: /srv/deluge/config/{{ deluge_item }}
     owner: deluge
     group: deluge
     mode: !!str 0600 # FIXME
@@ -60,7 +60,7 @@
 - name: configure deluge-web
   ansible.builtin.template:
     src: web.conf.j2
-    dest: /var/lib/deluge/config/web.conf
+    dest: /srv/deluge/config/web.conf
     owner: deluge
     group: deluge
     mode: !!str 0600 # FIXME

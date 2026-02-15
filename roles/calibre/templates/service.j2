@@ -2,7 +2,7 @@
 After=local-fs.target network.target
 
 [Service]
-Environment=HOME=/var/lib/calibre
+Environment=HOME=/srv/calibre
 Environment=LANG=en_GB.UTF-8
 Environment=TZ={{ timezone }}
 ExecStart=/usr/bin/calibre-server --disable-fallback-to-detected-interface --disable-use-bonjour --enable-local-write --listen-on 127.0.0.1 --port {{ calibre_server_port }} {{ library_path }}/media/books
@@ -23,7 +23,7 @@ ProtectKernelModules=yes
 ProtectKernelTunables=yes
 ; ProtectProc=
 ProtectSystem=strict
-ReadWritePaths=/var/lib/calibre {{ library_path }}
+ReadWritePaths=/srv/calibre {{ library_path }}
 RemoveIPC=yes
 Restart=on-failure
 RestartSec=5
@@ -33,7 +33,7 @@ RestrictRealtime=yes
 Type=simple
 UMask=0007
 User={{ library_user }}
-WorkingDirectory=/var/lib/calibre
+WorkingDirectory=/srv/calibre
 
 [Install]
 WantedBy=multi-user.target

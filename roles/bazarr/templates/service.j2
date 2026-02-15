@@ -5,7 +5,7 @@ After=local-fs.target network.target syslog.target
 [Service]
 Environment=LANG=en_GB.UTF-8
 Environment=TZ={{ timezone }}
-ExecStart=/opt/bazarr/{{ bazarr_version }}/venv/bin/python3 /opt/bazarr/{{ bazarr_version }}/bazarr.py --config=/var/lib/bazarr --no-update
+ExecStart=/opt/bazarr/{{ bazarr_version }}/venv/bin/python3 /opt/bazarr/{{ bazarr_version }}/bazarr.py --config=/srv/bazarr --no-update
 Group={{ library_group }}
 KillSignal=SIGINT
 LimitCORE=0:0
@@ -24,7 +24,7 @@ ProtectKernelModules=yes
 ProtectKernelTunables=yes
 ; ProtectProc=
 ProtectSystem=strict
-ReadWritePaths=/var/lib/bazarr {{ library_path }}
+ReadWritePaths=/srv/bazarr {{ library_path }}
 RemoveIPC=yes
 Restart=on-failure
 RestartSec=5
@@ -35,7 +35,7 @@ TimeoutStopSec=20
 Type=simple
 UMask=0007
 User={{ library_user }}
-WorkingDirectory=/var/lib/bazarr
+WorkingDirectory=srv/bazarr
 
 [Install]
 WantedBy=multi-user.target

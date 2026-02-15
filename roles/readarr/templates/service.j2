@@ -4,7 +4,7 @@ After=local-fs.target network.target
 [Service]
 Environment=LANG=en_GB.UTF-8
 Environment=TZ={{ timezone }}
-ExecStart=/opt/readarr/{{ readarr_version }}/Readarr -data=/var/lib/readarr -nobrowser
+ExecStart=/opt/readarr/{{ readarr_version }}/Readarr -data=/srv/readarr -nobrowser
 Group={{ library_group }}
 LimitCORE=0:0
 LockPersonality=yes
@@ -23,7 +23,7 @@ ProtectKernelModules=yes
 ProtectKernelTunables=yes
 ; ProtectProc=
 ProtectSystem=strict
-ReadWritePaths=/var/lib/readarr {{ library_path }}
+ReadWritePaths=/srv/readarr {{ library_path }}
 RemoveIPC=yes
 Restart=on-failure
 RestartSec=5
@@ -33,7 +33,7 @@ RestrictRealtime=yes
 Type=simple
 UMask=0007
 User={{ library_user }}
-WorkingDirectory=/var/lib/readarr
+WorkingDirectory=/srv/readarr
 
 [Install]
 WantedBy=multi-user.target

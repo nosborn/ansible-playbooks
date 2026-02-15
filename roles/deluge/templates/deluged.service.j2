@@ -4,11 +4,10 @@ Documentation=man:deluged
 After=local-fs.target network-online.target
 
 [Service]
-ExecStart=/opt/deluge/{{ deluge_version }}/bin/deluged -d -c /var/lib/deluge/config -l /var/log/deluge/daemon.log -L info
+ExecStart=/opt/deluge/{{ deluge_version }}/bin/deluged -d -c /srv/deluge/config -l /var/log/deluge/daemon.log -L info
 Group=deluge
 ProtectSystem=strict
-ReadWritePaths=/var/lib/deluge \
-        /media/media/torrents
+ReadWritePaths=/srv/deluge /media/media/torrents
 Restart=on-failure
 TimeoutStopSec=300
 Type=simple

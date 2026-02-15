@@ -1,7 +1,7 @@
 # yamllint disable rule:line-length
 ---
 - ansible.builtin.file:
-    path: /var/lib/tdarr/Tdarr_Node
+    path: /srv/tdarr/Tdarr_Node
     owner: root
     group: root
     mode: !!str 0755
@@ -11,16 +11,16 @@
   ansible.builtin.unarchive:
     src: "{{ tdarr_node_src }}"
     remote_src: true
-    dest: /var/lib/tdarr/Tdarr_Node
+    dest: /srv/tdarr/Tdarr_Node
     owner: root
     group: root
-    creates: /var/lib/tdarr/Tdarr_Node/Tdarr_Node
+    creates: /srv/tdarr/Tdarr_Node/Tdarr_Node
   notify: restart tdarr-node
 
 - name: configure node
   ansible.builtin.template:
     src: Tdarr_Node_Config.j2
-    dest: /var/lib/tdarr/configs/Tdarr_Node_Config.json
+    dest: /srv/tdarr/configs/Tdarr_Node_Config.json
     owner: "{{ library_user }}"
     group: "{{ library_group }}"
     mode: !!str 0600
@@ -28,7 +28,7 @@
   notify: restart tdarr-node
 
 - ansible.builtin.file:
-    path: /var/lib/tdarr/Tdarr_Node/assets/app/plugins
+    path: /srv/tdarr/Tdarr_Node/assets/app/plugins
     owner: root
     group: "{{ library_group }}"
     mode: !!str 2770

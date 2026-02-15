@@ -22,7 +22,7 @@ ProtectKernelModules=yes
 ProtectKernelTunables=yes
 ; ProtectProc=
 ProtectSystem=strict
-ReadWritePaths=/var/lib/qbittorrent {{ library_path }}
+ReadWritePaths=/srv/qbittorrent {{ library_path }}
 RemoveIPC=yes
 Restart=on-failure
 RestartSec=5
@@ -33,7 +33,7 @@ TimeoutStopSec=1800
 Type=simple
 UMask=0007
 User=qbittorrent
-WorkingDirectory=/var/lib/qbittorrent
+WorkingDirectory=/srv/qbittorrent
 
 [Install]
 WantedBy=multi-user.target

@@ -46,13 +46,13 @@
 #     create_home: false
 #     groups:
 #       - media
-#     home: /var/lib/readarr
+#     home: /srv/readarr
 #     shell: "{{ nologin_shell }}"
 #     system: true
 
 - name: create config directory
   ansible.builtin.file:
-    path: /var/lib/readarr
+    path: /srv/readarr
     owner: root
     group: "{{ library_group }}"
     mode: !!str 2770
@@ -102,11 +102,11 @@
     state: started
 
 - ansible.builtin.wait_for:
-    path: /var/lib/readarr/config.xml
+    path: /srv/readarr/config.xml
 
 - name: configure
   community.general.xml:
-    path: /var/lib/readarr/config.xml
+    path: /srv/readarr/config.xml
     xpath: /Config/{{ readarr_item.key }}
     value: "{{ readarr_item.value | string }}"
   loop: "{{ config | ansible.builtin.dict2items }}"
@@ -127,7 +127,7 @@
 
 - name: remove logs database
   ansible.builtin.file:
-    path: /var/lib/readarr/{{ readarr_item }}
+    path: /srv/readarr/{{ readarr_item }}
     state: absent
   loop:
     - logs.db

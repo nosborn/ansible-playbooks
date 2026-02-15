@@ -1,7 +1,8 @@
+# yamllint disable rule:line-length
 ---
 - name: create config directory
   ansible.builtin.file:
-    path: /var/lib/sonarr
+    path: /srv/sonarr
     owner: root
     group: "{{ library_group }}"
     mode: !!str 2770
@@ -47,6 +48,5 @@
   vars:
     unbound_content: |
       server:
-        local-data: "sonarr.{{ domain_name }}. A {{ lan_ipv4_address }}"
-        local-data: "sonarr.{{ domain_name }}. AAAA {{ lan_ipv6_address }}"
+        local-data: "sonarr.{{ domain_name }}. CNAME {{ ansible_facts['hostname'] }}.{{ domain_name }}."
     unbound_dest: local-data-sonarr.conf

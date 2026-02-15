@@ -10,7 +10,7 @@ Environment=ffmpegVersion=7
 Environment=serverIP=127.0.0.1
 Environment=serverPort={{ tdarr_server_port }}
 Environment=webUIPort={{ tdarr_webui_port }}
-ExecStart=/var/lib/tdarr/Tdarr_Server/Tdarr_Server
+ExecStart=/srv/tdarr/Tdarr_Server/Tdarr_Server
 Group={{ library_group }}
 LimitCORE=0:0
 LockPersonality=yes
@@ -29,7 +29,7 @@ ProtectKernelModules=yes
 ProtectKernelTunables=yes
 ; ProtectProc=
 ProtectSystem=strict
-ReadWritePaths=/var/lib/tdarr {{ library_path }}
+ReadWritePaths=/srv/tdarr {{ library_path }}
 RemoveIPC=yes
 Restart=on-failure
 RestartSec=5
@@ -39,7 +39,7 @@ RestrictRealtime=yes
 Type=simple
 UMask=0007
 User={{ library_user }}
-WorkingDirectory=/var/lib/tdarr
+WorkingDirectory=/srv/tdarr
 
 [Install]
 WantedBy=multi-user.target

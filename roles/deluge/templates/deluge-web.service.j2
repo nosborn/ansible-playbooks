@@ -5,11 +5,10 @@ After=deluged.service network-online.target
 Wants=deluged.service
 
 [Service]
-ExecStart=/opt/deluge/{{ deluge_version }}/bin/deluge-web -d -c /var/lib/deluge/config
+ExecStart=/opt/deluge/{{ deluge_version }}/bin/deluge-web -d -c /srv/deluge/config
 Group=deluge
 ProtectSystem=strict
-ReadWritePaths=/var/lib/deluge \
-        /media/media/torrents
+ReadWritePaths=/srv/deluge /media/media/torrents
 Restart=on-failure
 Type=simple
 UMask=027

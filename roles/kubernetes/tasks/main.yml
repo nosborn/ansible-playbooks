@@ -15,9 +15,6 @@
 - ansible.builtin.include_tasks:
     file: cert-manager.yml
 
-# - ansible.builtin.include_tasks:
-#     file: istio.yml
-
 - name: create openebs-hostpath-retain StorageClass
   kubernetes.core.k8s:
     apply: true

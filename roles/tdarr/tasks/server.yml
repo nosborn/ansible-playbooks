@@ -1,7 +1,7 @@
 # yamllint disable rule:line-length
 ---
 - ansible.builtin.file:
-    path: /var/lib/tdarr/Tdarr_Server
+    path: /srv/tdarr/Tdarr_Server
     owner: root
     group: root
     mode: !!str 0755
@@ -11,16 +11,16 @@
   ansible.builtin.unarchive:
     src: "{{ tdarr_server_src }}"
     remote_src: true
-    dest: /var/lib/tdarr/Tdarr_Server
+    dest: /srv/tdarr/Tdarr_Server
     owner: root
     group: root
-    creates: /var/lib/tdarr/Tdarr_Server/Tdarr_Server
+    creates: /srv/tdarr/Tdarr_Server/Tdarr_Server
   notify: restart tdarr
 
 - name: configure server
   ansible.builtin.template:
     src: Tdarr_Server_Config.j2
-    dest: /var/lib/tdarr/configs/Tdarr_Server_Config.json
+    dest: /srv/tdarr/configs/Tdarr_Server_Config.json
     owner: "{{ library_user }}"
     group: "{{ library_group }}"
     mode: !!str 0600
