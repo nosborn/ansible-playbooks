@@ -43,8 +43,6 @@ library_path: /srv/media # FIXME: /srv/library
 library_partition_uuid: "{{ vault_library_partition_uuid }}"
 metallb_ip_address_pool: "{{ vault_metallb_ip_address_pool }}"
 network_interfaces: "{{ vault_network_interfaces }}"
-nextcloud_password: "{{ vault_nextcloud_password }}"
-nextcloud_username: "{{ vault_nextcloud_username }}"
 nzbget_add_password: "{{ vault_nzbget_add_password }}"
 nzbget_add_username: "{{ vault_nzbget_add_username }}"
 nzbget_control_password: "{{ vault_nzbget_control_password }}"

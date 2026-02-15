@@ -180,10 +180,7 @@
     - role: lidarr
       tags:
         - lidarr
-      when: false # TODO
-    - role: nextcloud
-      tags:
-        - nextcloud
+      when: false
     - role: nzbget
       tags:
         - nzbget
@@ -306,11 +303,7 @@
           - PyYAML
           - requests
 
-  roles:
-    - role: nextcloud
-      tags:
-        - nextcloud
-      when: false
+  roles: {}
 
 - name: Configure proxy-nl
   hosts:
