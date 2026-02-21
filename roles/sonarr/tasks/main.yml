@@ -1,4 +1,3 @@
-# yamllint disable rule:line-length
 ---
 - name: create config directory
   ansible.builtin.file:
@@ -40,13 +39,3 @@
     - usenet/incomplete # strange but true
   loop_control:
     loop_var: sonarr_item
-
-- name: DNS
-  ansible.builtin.import_role:
-    name: unbound
-    tasks_from: fragment.yml
-  vars:
-    unbound_content: |
-      server:
-        local-data: "sonarr.{{ domain_name }}. CNAME {{ ansible_facts['hostname'] }}.{{ domain_name }}."
-    unbound_dest: local-data-sonarr.conf

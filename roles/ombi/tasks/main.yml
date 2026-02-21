@@ -1,4 +1,3 @@
-# yamllint disable rule:line-length
 ---
 - name: create config directory
   ansible.builtin.file:
@@ -7,13 +6,3 @@
     group: "{{ library_group }}"
     mode: !!str 2770
     state: directory
-
-- name: DNS
-  ansible.builtin.import_role:
-    name: unbound
-    tasks_from: fragment.yml
-  vars:
-    unbound_content: |
-      server:
-        local-data: "ombi.{{ domain_name }}. CNAME {{ ansible_facts['hostname'] }}.{{ domain_name }}."
-    unbound_dest: local-data-ombi.conf

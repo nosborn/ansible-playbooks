@@ -130,6 +130,7 @@
     validate: plutil -lint %s
   loop: "{{ vpn_client_p12_results.results }}"
   loop_control:
+    label: "{{ vpn_client_name }}"
     loop_var: vpn_server_item
   vars:
     vpn_client_name: "{{ vpn_server_item.vpn_server_item }}"

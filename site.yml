@@ -181,6 +181,9 @@
       tags:
         - lidarr
       when: false
+    - role: linkerd
+      tags:
+        - linkerd
     - role: nzbget
       tags:
         - nzbget
@@ -203,6 +206,7 @@
     - role: recyclarr
       tags:
         - recyclarr
+      when: false # TODO
     - role: restic
       tags:
         - restic
@@ -219,6 +223,9 @@
     - role: sshd
       tags:
         - sshd
+    - role: traefik
+      tags:
+        - traefik
     - role: tdarr
       tags:
         - tdarr
