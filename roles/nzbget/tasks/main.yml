@@ -1,4 +1,3 @@
-# yamllint disable rule:line-length
 ---
 - name: create config directory
   ansible.builtin.file:
@@ -20,13 +19,3 @@
     - usenet/incomplete
   loop_control:
     loop_var: nzbget_item
-
-- name: DNS
-  ansible.builtin.import_role:
-    name: unbound
-    tasks_from: fragment.yml
-  vars:
-    unbound_content: |
-      server:
-        local-data: "nzbget.{{ domain_name }}. CNAME {{ ansible_facts['hostname'] }}.{{ domain_name }}."
-    unbound_dest: local-data-nzbget.conf

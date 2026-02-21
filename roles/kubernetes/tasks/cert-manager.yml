@@ -3,13 +3,13 @@
 - name: create cert-manager namespace
   kubernetes.core.k8s:
     apply: true
-    server_side_apply:
-      field_manager: ansible
     resource_definition:
       apiVersion: v1
       kind: Namespace
       metadata:
         name: cert-manager
+    server_side_apply:
+      field_manager: ansible
 
 - name: create ownca intermediate CA secret
   kubernetes.core.k8s:

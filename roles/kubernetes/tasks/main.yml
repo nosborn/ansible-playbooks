@@ -15,22 +15,22 @@
 - ansible.builtin.include_tasks:
     file: cert-manager.yml
 
-- name: create openebs-hostpath-retain StorageClass
-  kubernetes.core.k8s:
-    apply: true
-    resource_definition:
-      apiVersion: storage.k8s.io/v1
-      kind: StorageClass
-      metadata:
-        annotations:
-          cas.openebs.io/config: |
-            - name: StorageType
-              value: hostpath
-            - name: BasePath
-              value: /var/openebs/local
-        name: openebs-hostpath-retain
-      provisioner: openebs.io/local
-      reclaimPolicy: Retain
-      volumeBindingMode: WaitForFirstConsumer
-    server_side_apply:
-      field_manager: ansible
+# - name: create openebs-hostpath-retain StorageClass
+#   kubernetes.core.k8s:
+#     apply: true
+#     resource_definition:
+#       apiVersion: storage.k8s.io/v1
+#       kind: StorageClass
+#       metadata:
+#         annotations:
+#           cas.openebs.io/config: |
+#             - name: StorageType
+#               value: hostpath
+#             - name: BasePath
+#               value: /var/openebs/local
+#         name: openebs-hostpath-retain
+#       provisioner: openebs.io/local
+#       reclaimPolicy: Retain
+#       volumeBindingMode: WaitForFirstConsumer
+#     server_side_apply:
+#       field_manager: ansible

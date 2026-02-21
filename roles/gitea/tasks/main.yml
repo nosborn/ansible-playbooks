@@ -30,13 +30,3 @@
     - /srv/gitea/gitea/conf
   loop_control:
     loop_var: gitea_item
-
-- name: DNS
-  ansible.builtin.import_role:
-    name: unbound
-    tasks_from: fragment.yml
-  vars:
-    unbound_content: |
-      server:
-        local-data: "git.{{ domain_name }}. CNAME {{ ansible_facts['hostname'] }}.{{ domain_name }}."
-    unbound_dest: local-data-gitea.conf
