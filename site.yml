@@ -311,6 +311,13 @@
 
   roles: []
 
+- name: Configure Pastime
+  hosts:
+    - pastime
+  gather_facts: false
+
+  roles: []
+
 - name: Configure proxy-nl
   hosts:
     - proxy-nl
