@@ -1,2 +1,2 @@
 ---
-ownca_dir: "{{ playbook_dir }}/.ownca"
+ownca_dir: "{{ playbook_dir }}/ownca"

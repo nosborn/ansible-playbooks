@@ -1,1 +1,2 @@
 ---
+k0s_taints: gpu=nvidia:NoSchedule

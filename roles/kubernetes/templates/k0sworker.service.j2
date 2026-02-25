@@ -1,0 +1,25 @@
+[Unit]
+Description=k0s - Zero Friction Kubernetes
+Documentation=https://docs.k0sproject.io
+ConditionFileIsExecutable=/usr/local/bin/k0s
+
+After=network-online.target
+Wants=local-fs.target,network-online.target
+
+[Service]
+StartLimitInterval=5
+StartLimitBurst=10
+ExecStart=/usr/local/bin/k0s worker {{ (k0s_taints | default('') | length) | ansible.builtin.ternary('--taints='~k0s_taints, '') }}
+Environment=K0S_TOKEN={{ k0s_token | default('TODO') }}
+
+RestartSec=10
+Delegate=yes
+KillMode=process
+LimitCORE=infinity
+TasksMax=infinity
+TimeoutStartSec=0
+LimitNOFILE=999999
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

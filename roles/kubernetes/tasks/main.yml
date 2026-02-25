@@ -5,15 +5,24 @@
     name: python3-kubernetes
     install_recommends: false
     state: present
+  when: ansible_facts['distribution'] == 'Debian'
+
+- name: install prerequisites
+  community.general.pacman:
+    name: python-kubernetes
+    state: present
+  when: ansible_facts['distribution'] == 'Archlinux'
 
 - ansible.builtin.include_tasks:
     file: k0s.yml
 
 - ansible.builtin.include_tasks:
     file: kubeconfig.yml
+  when: k0s_control_plane | default(false)
 
 - ansible.builtin.include_tasks:
     file: cert-manager.yml
+  when: k0s_control_plane | default(false)
 
 # - name: create openebs-hostpath-retain StorageClass
 #   kubernetes.core.k8s:

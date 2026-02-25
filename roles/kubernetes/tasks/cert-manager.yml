@@ -22,7 +22,7 @@
         namespace: cert-manager
       type: kubernetes.io/tls
       data:
-        tls.crt: "{{ lookup('file', playbook_dir~'/.ownca/intermediate.crt') | b64encode }}"
-        tls.key: "{{ lookup('file', playbook_dir~'/.ownca/intermediate.key') | b64encode }}"
+        tls.crt: "{{ lookup('file', playbook_dir~'/ownca/intermediate-ca.crt') | b64encode }}"
+        tls.key: "{{ lookup('file', playbook_dir~'/ownca/intermediate-ca.key') | b64encode }}"
     server_side_apply:
       field_manager: ansible

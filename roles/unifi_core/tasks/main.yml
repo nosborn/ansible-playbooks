@@ -1,8 +1,9 @@
+# Don't use this!
 ---
 - name: upload certificate
   ansible.builtin.copy:
     content: "{{ unifi_core_certificate }}"
-    dest: /data/unifi-core/config/local.crt
+    dest: /data/unifi-core/config/ownca-unifi.crt
     owner: root
     group: root
     mode: !!str 0444
@@ -11,7 +12,7 @@
 - name: upload private key
   ansible.builtin.copy:
     content: "{{ unifi_core_privatekey }}"
-    dest: /data/unifi-core/config/local.key
+    dest: /data/unifi-core/config/ownca-unifi.key
     owner: root
     group: root
     mode: !!str 0400
@@ -20,10 +21,16 @@
 - name: activate certificate
   ansible.builtin.copy:
     content: |
-      ssl_certificate     /data/unifi-core/config/local.crt;
-      ssl_certificate_key /data/unifi-core/config/local.key;
+      ssl_certificate     /data/unifi-core/config/ownca-unifi.crt;
+      ssl_certificate_key /data/unifi-core/config/ownca-unifi.key;
     dest: /data/unifi-core/config/http/local-certs.conf
     owner: root
     group: root
     mode: !!str 0444
+  notify: reload nginx
+
+- ansible.builtin.lineinfile:
+    path: /data/unifi-core/config/settings.yaml
+    regex: "^activeCertId:"
+    line: "activeCertId: ownca-unifi"
   notify: reload nginx

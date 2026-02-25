@@ -4,3 +4,9 @@
     name: k0scontroller.service
     daemon_reload: true
     state: restarted
+
+- name: restart k0sworker
+  ansible.builtin.systemd_service:
+    name: k0sworker.service
+    daemon_reload: true
+    state: restarted

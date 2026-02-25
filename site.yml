@@ -14,14 +14,14 @@
       tags:
         - always
 
-  # - name: gateway default IPv4 address must be public
-  #   ansible.builtin.assert:
-  #     quiet: true
-  #     that:
-  #       - ([hostvars.gateway.ansible_facts['default_ipv4.address']] | ansible.utils.ipaddr('public')) | length
-  #   run_once: true
-  #   tags:
-  #     - always
+    - name: gateway default IPv4 address must be public
+      ansible.builtin.assert:
+        quiet: true
+        that:
+          - ([hostvars.gateway.ansible_facts['default_ipv4'].address] | ansible.utils.ipaddr('public')) | length > 0
+      run_once: true
+      tags:
+        - always
 
 - name: Set up OwnCA
   hosts: localhost
@@ -32,20 +32,11 @@
       tags:
         - always
 
-# - name: Configure Gateway
-#   hosts: gateway
-#   gather_facts: false
-#
-#   roles:
-#     - role: unifi_core
-#       vars:
-#         unifi_core_certificate: |
-#           {{ hostvars.localhost.ownca_wildcard_certificate }}
-#           {{ hostvars.localhost.ownca_root_certificate }}
-#         unifi_core_privatekey: |
-#           {{ hostvars.localhost.ownca_wildcard_privatekey }}
-#       tags:
-#         - unifi-core
+- name: Configure Gateway
+  hosts: gateway
+  gather_facts: false
+
+  roles: []
 
 - name: Configure Tombstone
   hosts:
@@ -316,7 +307,10 @@
     - pastime
   gather_facts: false
 
-  roles: []
+  roles:
+    - name: kubernetes
+      tags:
+        - kubernetes
 
 - name: Configure proxy-nl
   hosts:

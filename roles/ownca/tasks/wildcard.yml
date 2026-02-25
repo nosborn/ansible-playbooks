@@ -10,14 +10,12 @@
 - name: create wildcard CSR
   community.crypto.openssl_csr_pipe:
     common_name: "*.{{ domain_name }}"
-    country_name: "{{ ownca_country_name }}"
     create_subject_key_identifier: true
     extended_key_usage:
       - serverAuth
       - clientAuth
     key_usage:
       - digitalSignature
-      - keyEncipherment
     key_usage_critical: true
     privatekey_path: "{{ ownca_dir }}/wildcard.key"
     subject_alt_name:
@@ -40,8 +38,8 @@
   community.crypto.x509_certificate_pipe:
     content: "{{ (ownca_wildcard_certificate.content | b64decode) if ownca_wildcard_certificate_file.stat.exists else omit }}"
     csr_content: "{{ ownca_wildcard_csr.csr }}"
-    ownca_path: "{{ ownca_dir }}/root.crt"
-    ownca_privatekey_path: "{{ ownca_dir }}/root.key"
+    ownca_path: "{{ ownca_dir }}/root-ca.crt"
+    ownca_privatekey_path: "{{ ownca_dir }}/root-ca.key"
     ownca_privatekey_passphrase: "{{ ownca_root_privatekey_passphrase }}"
     ownca_not_after: +398d  # https://support.apple.com/en-us/103769
     ownca_create_authority_key_identifier: true

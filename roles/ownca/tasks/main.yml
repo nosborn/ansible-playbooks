@@ -14,11 +14,11 @@
 - ansible.builtin.include_tasks:
     file: wildcard.yml
 
-- ansible.builtin.include_tasks:
+- ansible.builtin.include_tasks: # DEPRECATED
     file: client.yml
   vars:
     client_name: "{{ ownca_item }}"
-  loop: "{{ ownca_client_names }}"
+  loop: "{{ ownca_client_names | default([]) }}"
   loop_control:
     loop_var: ownca_item
 

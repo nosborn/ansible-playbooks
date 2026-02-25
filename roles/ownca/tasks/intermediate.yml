@@ -2,7 +2,7 @@
 ---
 - name: create intermediate private key
   community.crypto.openssl_privatekey:
-    path: "{{ ownca_dir }}/intermediate.key"
+    path: "{{ ownca_dir }}/intermediate-ca.key"
     type: ECC
     curve: secp256r1
     mode: !!str 0400
@@ -14,25 +14,24 @@
       - pathlen:0
     basic_constraints_critical: true
     common_name: "{{ ownca_common_name }} Intermediate"
-    country_name: "{{ ownca_country_name }}"
     create_subject_key_identifier: true
     key_usage:
       - keyCertSign
       - cRLSign
     key_usage_critical: true
-    privatekey_path: "{{ ownca_dir }}/intermediate.key"
+    privatekey_path: "{{ ownca_dir }}/intermediate-ca.key"
     use_common_name_for_san: false
   changed_when: false
   register: ownca_intermediate_csr
 
 - name: check whether intermediate certificate exists
   ansible.builtin.stat:
-    path: "{{ ownca_dir }}/intermediate.crt"
+    path: "{{ ownca_dir }}/intermediate-ca.crt"
   register: ownca_intermediate_certificate_file
 
 - name: read existing intermediate certificate
   ansible.builtin.slurp:
-    src: "{{ ownca_dir }}/intermediate.crt"
+    src: "{{ ownca_dir }}/intermediate-ca.crt"
   when: ownca_intermediate_certificate_file.stat.exists
   register: ownca_intermediate_certificate
 
@@ -40,8 +39,8 @@
   community.crypto.x509_certificate_pipe:
     content: "{{ (ownca_intermediate_certificate.content | b64decode) if ownca_intermediate_certificate_file.stat.exists else omit }}"
     csr_content: "{{ ownca_intermediate_csr.csr }}"
-    ownca_path: "{{ ownca_dir }}/root.crt"
-    ownca_privatekey_path: "{{ ownca_dir }}/root.key"
+    ownca_path: "{{ ownca_dir }}/root-ca.crt"
+    ownca_privatekey_path: "{{ ownca_dir }}/root-ca.key"
     ownca_privatekey_passphrase: "{{ ownca_root_privatekey_passphrase }}"
     ownca_not_after: +3650d
     ownca_create_authority_key_identifier: true
@@ -51,10 +50,10 @@
 - name: save intermediate certificate
   ansible.builtin.copy:
     content: "{{ ownca_intermediate_certificate.certificate }}"
-    dest: "{{ ownca_dir }}/intermediate.crt"
+    dest: "{{ ownca_dir }}/intermediate-ca.crt"
     mode: !!str 0444
   when: ownca_intermediate_certificate is changed # noqa: no-handler
 
 - ansible.builtin.set_fact:
-    ownca_intermediate_certificate: "{{ lookup('ansible.builtin.file', ownca_dir~'/intermediate.crt') }}"
-    ownca_intermediate_privatekey: "{{ lookup('ansible.builtin.file', ownca_dir~'/intermediate.key') }}"
+    ownca_intermediate_certificate: "{{ lookup('ansible.builtin.file', ownca_dir~'/intermediate-ca.crt') }}"
+    ownca_intermediate_privatekey: "{{ lookup('ansible.builtin.file', ownca_dir~'/intermediate-ca.key') }}"

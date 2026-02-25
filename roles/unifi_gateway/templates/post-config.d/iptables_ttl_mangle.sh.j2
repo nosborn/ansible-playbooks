@@ -1,2 +1,0 @@
-#!/bin/sh
-iptables -I PREROUTING 1 -t mangle -i '{{ lan_if }}' -d 239.255.255.250 -j TTL --ttl-set 4
