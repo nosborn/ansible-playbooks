@@ -1,7 +1,7 @@
 # ansible-playbooks
 
 [![Pull Request Workflow Status](https://github.com/nosborn/ansible-playbooks/actions/workflows/pull_request.yaml/badge.svg)](https://github.com/nosborn/ansible-playbooks/actions/workflows/pull_request.yaml)
-[![Push Workflow Status](https://github.com/nosborn/ansible-playbooks/actions/workflows/push.yaml/badge.svg)](https://github.com/nosborn/ansible-playbooks/actions/workflows/push.yaml)
+[![Dependabot Updates](https://github.com/nosborn/ansible-playbooks/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/nosborn/ansible-playbooks/actions/workflows/dependabot/dependabot-updates)
 
 ## License
 

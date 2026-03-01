@@ -5,18 +5,19 @@ server:
 
 	num-threads: 1
 
-	interface: 0.0.0.0
-	# interface: 127.0.0.1
-	# interface: {{ lan_ipv4_address }}
-	interface: ::0
-	# interface: ::1
-	# interface: {{ lan_ipv6_link_address }}
-	interface-automatic: yes
-
-	# ip-transparent: yes
+	interface: 127.0.0.1
+	interface: {{ lan_ipv4_address }}
+	interface: {{ lan_ipv4_address }}@853
+	interface: ::1
+	interface: {{ lan_ipv6_address }}
+	interface: {{ lan_ipv6_address }}@853
+	ip-freebind: yes
 
 	prefer-ip6: yes
 
+	tls-service-key: /etc/unbound/service.key
+	tls-service-pem: /etc/unbound/service.pem
+	tls-port: 853
 	tls-cert-bundle: /etc/ssl/certs/ca-certificates.crt
 
 	access-control: 0.0.0.0/0 refuse
@@ -25,9 +26,10 @@ server:
 	access-control: {{ vpn_ipv4_subnet }} allow
 	access-control: ::0/0 deny
 	access-control: ::1 allow
-	# access-control: {{ lan_ipv6_link_subnet }} allow
 	access-control: {{ lan_ipv6_subnet }} allow
 	access-control: {{ vpn_ipv6_subnet }} allow
+	access-control-view: {{ lan_ipv4_subnet }} lan
+	access-control-view: {{ lan_ipv6_subnet }} lan
 
 	log-queries: yes
 	# log-replies: yes
@@ -150,6 +152,11 @@ forward-zone:
 {% endfor %}
 	forward-tls-upstream: yes
 	forward-no-cache: yes
+
+view:
+	name: "lan"
+	local-data: "_dns.resolver.arpa. SVCB 1 tombstone.{{ domain_name }}. alpn=dot"
+	view-first: yes
 
 rpz:
 	name: rpz.{{ domain_name }}.

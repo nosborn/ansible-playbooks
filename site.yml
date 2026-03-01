@@ -214,6 +214,9 @@
     - role: sshd
       tags:
         - sshd
+    - role: synology_csi
+      tags:
+        - synology-csi
     - role: traefik
       tags:
         - traefik
@@ -311,6 +314,7 @@
     - name: kubernetes
       tags:
         - kubernetes
+      when: false
 
 - name: Configure proxy-nl
   hosts:

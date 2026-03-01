@@ -18,6 +18,27 @@
   notify: restart unbound
   when: unbound_rpz_content is defined
 
+- ansible.builtin.copy:
+    content: |
+      {{ lookup('file', playbook_dir~'/ownca/wildcard.key') }}
+    dest: /etc/unbound/service.key
+    owner: root
+    group: root
+    mode: !!str 0400
+  notify: restart unbound
+  when: inventory_hostname_short == 'tombstone'
+
+- ansible.builtin.copy:
+    content: |
+      {{ lookup('file', playbook_dir~'/ownca/wildcard.crt') }}
+      {{ lookup('file', playbook_dir~'/ownca/root-ca.crt') }}
+    dest: /etc/unbound/service.pem
+    owner: root
+    group: root
+    mode: !!str 0444
+  notify: restart unbound
+  when: inventory_hostname_short == 'tombstone'
+
 - name: configure
   ansible.builtin.template:
     src: "{{ ansible_facts['hostname'] }}.unbound.conf.j2"
