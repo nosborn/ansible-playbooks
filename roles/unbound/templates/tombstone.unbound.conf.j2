@@ -61,6 +61,7 @@ server:
 	module-config: "respip validator iterator"
 	trust-anchor-file: /usr/share/dns/root.key
 
+	domain-insecure: "internal"
 	domain-insecure: "local"
 	domain-insecure: "{{ domain_name }}"
 
@@ -144,6 +145,10 @@ forward-zone:
 forward-zone:
 	name: "local."
 	forward-addr: "{{ lan_ipv4_subnet | ansible.utils.nthhost(1) }}"
+
+forward-zone:
+	name: "internal."
+	forward-addr: "{{ fly_6pn_dns }}"
 
 forward-zone:
 	name: "."

@@ -152,6 +152,9 @@
     - role: fluxcd
       tags:
         - fluxcd
+    - role: freshrss
+      tags:
+        - freshrss
     - role: gitea
       tags:
         - gitea
@@ -172,9 +175,6 @@
       tags:
         - lidarr
       when: false
-    - role: linkerd
-      tags:
-        - linkerd
     - role: nzbget
       tags:
         - nzbget
@@ -184,6 +184,9 @@
     - role: opensmtpd
       tags:
         - opensmtpd
+    - role: pds
+      tags:
+        - pds
     - role: prowlarr
       tags:
         - prowlarr
@@ -217,13 +220,13 @@
     - role: synology_csi
       tags:
         - synology-csi
-    - role: traefik
-      tags:
-        - traefik
     - role: tdarr
       tags:
         - tdarr
       when: false # TODO
+    - role: traefik
+      tags:
+        - traefik
     - role: unattended_upgrades
       tags:
         - unattended-upgrades

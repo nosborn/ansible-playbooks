@@ -1,0 +1,25 @@
+---
+- name: create group
+  ansible.builtin.group:
+    name: freshrss
+    system: true
+
+- name: create user
+  ansible.builtin.user:
+    comment: FreshRSS
+    create_home: false
+    group: freshrss
+    groups:
+      - www-data
+    home: /srv/freshrss
+    name: freshrss
+    shell: "{{ nologin_shell }}"
+    system: true
+
+- name: create data directory
+  ansible.builtin.file:
+    path: /srv/freshrss
+    owner: freshrss
+    group: www-data
+    mode: !!str 0770
+    state: directory

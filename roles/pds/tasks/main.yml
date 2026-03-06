@@ -1,31 +1,31 @@
 ---
 - name: create group
   ansible.builtin.group:
-    name: gitea
+    name: pds
     system: true
 
 - name: create user
   ansible.builtin.user:
-    comment: gitea
+    comment: Personal Data Server
     create_home: false
-    group: gitea
-    home: /srv/gitea
-    name: gitea
+    group: pds
+    home: /srv/pds
+    name: pds
     shell: "{{ nologin_shell }}"
     system: true
 
 - name: create data directory
   ansible.builtin.file:
-    path: "{{ gitea_item }}"
-    owner: gitea
-    group: gitea
+    path: "{{ pds_item }}"
+    owner: pds
+    group: pds
     mode: !!str 0700
     state: directory
   loop:
-    - /srv/gitea
-    - /srv/gitea/git
-    - /srv/gitea/git/.ssh
-    - /srv/gitea/gitea
-    - /srv/gitea/gitea/conf
+    - /srv/pds
+    # - /srv/pds/git
+    # - /srv/pds/git/.ssh
+    # - /srv/pds/pds
+    # - /srv/pds/pds/conf
   loop_control:
-    loop_var: gitea_item
+    loop_var: pds_item
