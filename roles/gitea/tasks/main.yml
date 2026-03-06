@@ -1,4 +1,3 @@
-# yamllint disable rule:line-length
 ---
 - name: create group
   ansible.builtin.group:

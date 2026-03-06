@@ -9,7 +9,7 @@ spec:
     address: "{{ lan_ipv4_address }}"
     extraArgs:
       admission-control-config-file: /etc/k0s/admission.yaml
-    onlyBindToAddress: true
+    # onlyBindToAddress: true
     sans:
       - "{{ lan_ipv4_address }}"
       - "{{ lan_ipv6_address }}"
@@ -53,10 +53,6 @@ spec:
       hairpin: Disabled # Enabled
   scheduler: {}
   storage:
-    type: kine
+    type: etcd
   telemetry:
     enabled: false
-  workerProfiles:
-    - name: default
-      values:
-        serializeImagePulls: false

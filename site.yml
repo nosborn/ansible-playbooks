@@ -172,9 +172,6 @@
       tags:
         - lidarr
       when: false
-    - role: linkerd
-      tags:
-        - linkerd
     - role: nzbget
       tags:
         - nzbget
@@ -217,22 +214,19 @@
     - role: synology_csi
       tags:
         - synology-csi
-    - role: traefik
-      tags:
-        - traefik
     - role: tdarr
       tags:
         - tdarr
       when: false # TODO
+    - role: traefik
+      tags:
+        - traefik
     - role: unattended_upgrades
       tags:
         - unattended-upgrades
     - role: unbound
       tags:
         - unbound
-    - role: vaultwarden
-      tags:
-        - vaultwarden
     - role: vpn_server
       tags:
         - vpn-server

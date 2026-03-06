@@ -1,5 +1,11 @@
 # yamllint disable rule:line-length
 ---
+- name: install dependencies
+  ansible.builtin.apt:
+    name: open-iscsi
+    install_recommends: false
+    state: present
+
 - name: create namespace
   kubernetes.core.k8s:
     apply: true
@@ -27,15 +33,8 @@
             - host: {{ hostvars.diskstation.ansible_facts['default_ipv4'].address }}
               https: true
               password: {{ synology_csi_password }}
-              port: 443
+              port: 5001
               username: {{ synology_csi_username }}
       type: Opaque
     server_side_apply:
       field_manager: ansible
-
-- ansible.builtin.file:
-    path: /var/lib/kubelet/plugins_registry
-    owner: root
-    group: root
-    mode: !!str 0755
-    state: directory
