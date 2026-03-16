@@ -58,33 +58,7 @@ server:
 
 	deny-any: yes
 
-	module-config: "respip validator iterator"
-	trust-anchor-file: /usr/share/dns/root.key
-
-	domain-insecure: "internal"
-	domain-insecure: "local"
-	domain-insecure: "{{ domain_name }}"
-
-{% if unbound_null_zones | length %}
-{%   for zone in unbound_null_zones | sort | unique %}
-	domain-insecure: "{{ zone }}"
-{%   endfor %}
-
-{% endif %}
-{% if unbound_proxy_nl_zones | default([]) | length %}
-{%   for zone in unbound_proxy_nl_zones | sort | unique %}
-	domain-insecure: "{{ zone }}"
-{%   endfor %}
-
-{% endif %}
-{% if unbound_redirector_zones | default([]) | length %}
-{%   for zone in unbound_redirector_zones | sort | unique %}
-	domain-insecure: "{{ zone }}"
-{%   endfor %}
-
-{% endif %}
-	val-log-level: 2
-	val-permissive-mode: yes # Danger, Will Robinson! Danger!
+	module-config: "respip iterator"
 
 	# serve-expired: yes
 	# serve-expired-ttl: 86400

@@ -40,15 +40,7 @@ server:
 
 	deny-any: yes
 
-	trust-anchor-file: /usr/share/dns/root.key
-
-{% if unbound_null_zones | length %}
-{%   for zone in unbound_null_zones | sort | unique %}
-	domain-insecure: "{{ zone }}"
-{%   endfor %}
-
-{% endif %}
-	val-log-level: 2
+  module-config: "iterator"
 
 {% if unbound_null_zones | length %}
 {%   for zone in unbound_null_zones | sort | unique %}
