@@ -1,3 +1,0 @@
----
-k0s_taints: gpu=nvidia:NoSchedule
-k0s_token: "{{ vault_k0s_token }}"

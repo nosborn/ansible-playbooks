@@ -48,17 +48,15 @@ Subsystem sftp internal-sftp -f AUTHPRIV -l INFO
 #SyslogFacility AUTH
 TCPKeepAlive no
 #UseDNS no
-UsePAM no
+UsePAM yes
 VersionAddendum none
 #X11Forwarding no
 
-Match Address {{ lan_ipv4_subnet }}
+Match Address !{{ lan_ipv4_subnet | ansible.utils.nthhost(1) }},{{ lan_ipv4_subnet }}
 	PermitRootLogin prohibit-password
 
 Match Address {{ lan_ipv6_link_subnet }}
 	PermitRootLogin prohibit-password
 
-Match Address {{ lan_ipv6_subnet }}
+Match Address !{{ lan_ipv6_subnet | ansible.utils.nthhost(1) }},{{ lan_ipv6_subnet }}
 	PermitRootLogin prohibit-password
-
-# vim: ft=sshdconfig.jinja2

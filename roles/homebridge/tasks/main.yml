@@ -18,11 +18,17 @@
 
 - name: create directory
   ansible.builtin.file:
-    path: "{{ homebridge_home }}"
+    path: "{{ homebridge_item }}"
     owner: homebridge
     group: homebridge
     mode: !!str 0700
     state: directory
+  loop:
+    - "{{ homebridge_home }}"
+    - "{{ homebridge_home }}/accessories"
+    - "{{ homebridge_home }}/persist"
+  loop_control:
+    loop_var: homebridge_item
 
 - name: create configuration
   ansible.builtin.copy:

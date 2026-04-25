@@ -1,6 +1,6 @@
 ---
 - name: install package
-  ansible.builtin.apt:
+  ansible.builtin.package:
     name: nftables
     state: present
 
@@ -11,6 +11,7 @@
     owner: root
     group: root
     mode: !!str 0440
+    validate: nft --file=%s --check
   notify: restart nftables
 
 - name: enable and start service

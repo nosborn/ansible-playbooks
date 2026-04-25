@@ -48,7 +48,7 @@ spec:
       enabled: true
     kubeProxy:
       # metricsBindAddress: 0.0.0.0:10249
-      mode: iptables # explicit default
+      mode: nftables
     kuberouter:
       hairpin: Disabled # Enabled
   scheduler: {}

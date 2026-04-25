@@ -5,7 +5,7 @@
     name:
       - handbrake-cli
       # - libtesseract4
-      - intel-media-va-driver-non-free
+      # - intel-media-va-driver-non-free
       - mediainfo
       - mkvtoolnix
       - unzip

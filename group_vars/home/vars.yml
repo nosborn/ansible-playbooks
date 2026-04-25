@@ -12,5 +12,4 @@ ipv6_delegated_prefix: "{{ vault_ipv6_delegated_prefix }}"
 lan_ipv4_subnet: "{{ vault_lan_ipv4_subnet }}"
 timezone: Europe/London
 vpn_ipv4_subnet: "{{ vault_vpn_ipv4_subnet }}"
-vpn_ipv6_subnet: "{{ vault_vpn_ipv6_subnet }}"
 wan_ipv4_address: "{{ vault_wan_ipv4_address }}"

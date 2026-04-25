@@ -3,8 +3,8 @@ Description=k0s - Zero Friction Kubernetes
 Documentation=https://docs.k0sproject.io
 ConditionFileIsExecutable=/usr/local/bin/k0s
 
-After=network-online.target
-Wants=local-fs.target,network-online.target
+After=network-online.target,nftables.service
+Wants=local-fs.target,network-online.target,nftables.service
 
 [Service]
 StartLimitInterval=5

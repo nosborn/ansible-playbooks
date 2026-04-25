@@ -27,13 +27,13 @@ server:
 	access-control: ::0/0 deny
 	access-control: ::1 allow
 	access-control: {{ lan_ipv6_subnet }} allow
-	access-control: {{ vpn_ipv6_subnet }} allow
 	access-control-view: {{ lan_ipv4_subnet }} lan
 	access-control-view: {{ lan_ipv6_subnet }} lan
 
 	log-queries: yes
 	# log-replies: yes
 	# log-tag-queryreply: yes
+	log-servfail: yes
 
 	root-hints: /usr/share/dns/root.hints
 

@@ -6,6 +6,7 @@ exclude_paths:
 skip_list:
   - meta-no-info
   - name[casing]
+  - name[missing]
 use_default_rules: true
 
 # vim: ft=yaml

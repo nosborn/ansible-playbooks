@@ -22,9 +22,6 @@
   loop_control:
     loop_var: ownca_item
 
-- ansible.builtin.include_tasks:
-    file: vpn.yml
-
 - delegate_to: localhost
   run_once: true
   ansible.builtin.copy:
