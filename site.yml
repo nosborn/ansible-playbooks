@@ -59,7 +59,7 @@
 
           [IPv6AcceptRA]
           Token=eui64
-        dest: /etc/systemd/network/20-lan.network
+        dest: /etc/systemd/network/20-ethernet.network
         owner: root
         group: root
         mode: !!str 0444
@@ -98,7 +98,7 @@
     - name: install open-iscsi
       ansible.builtin.apt:
         name:
-          - brtfs-progs
+          - btrfs-progs
           - open-iscsi
         install_recommends: false
         state: present
@@ -148,6 +148,11 @@
       tags:
         - bazarr
       when: false # TODO
+    - role: beszel
+      tags:
+        - beszel
+      vars:
+        beszel_hub: true
     - role: calibre
       tags:
         - calibre
@@ -162,9 +167,10 @@
     - role: fluxcd
       tags:
         - fluxcd
-    - role: gitea
+    - role: forgejo
       tags:
-        - gitea
+        - forgejo
+      when: false # TODO
     - role: homebridge
       tags:
         - homebridge
@@ -172,16 +178,15 @@
       tags:
         - imapfilter
       when: false # TODO
-    - role: immich
-      tags:
-        - immich
     - role: kubernetes
       tags:
         - kubernetes
     - role: lidarr
       tags:
         - lidarr
-      when: false
+    - role: nftables
+      tags:
+        - nftables
     - role: nzbget
       tags:
         - nzbget
@@ -200,10 +205,6 @@
     - role: readarr
       tags:
         - readarr
-      when: false # TODO
-    - role: recyclarr
-      tags:
-        - recyclarr
       when: false # TODO
     - role: restic
       tags:
@@ -234,17 +235,16 @@
     - role: unbound
       tags:
         - unbound
-    - role: vpn_server
-      tags:
-        - vpn-server
 
   tasks:
     - name: install additional packages
       ansible.builtin.apt:
         name:
-          # - curl
-          # - jq
+          # - cpupower
+          - curl
+          - jq
           # - linux-cpupower
+          - lm-sensors
           - lsof
           # - man-db
           - net-tools
@@ -263,7 +263,28 @@
       tags:
         - always
 
+    # - name: disable unused hardware
+    #   ansible.builtin.copy:
+    #     content: |
+    #       blacklist btusb
+    #       blacklist snd_hda_intel
+    #     dest: /etc/modprobe.d/blacklist.conf
+    #     owner: root
+    #     group: root
+    #     mode: !!str 0444
+    #   notify:
+    #     - update-initramfs
+    #     - reboot
+    #   tags:
+    #     - always
+
   handlers:
+    # - name: update-initramfs
+    #   ansible.builtin.command:
+    #     argv:
+    #       - mkinitcpio
+    #       - -P
+
     - name: reboot
       ansible.builtin.reboot: {}
 
@@ -304,117 +325,37 @@
           - PyYAML
           - requests
 
-  roles: []
+  roles:
+    - role: beszel
+      tags:
+        - beszel
+      when: false
 
-- name: Configure Pastime
+- name: Configure Vegas
   hosts:
-    - pastime
+    - vegas
   gather_facts: false
 
+  pre_tasks:
+    - name: install open-iscsi
+      ansible.builtin.pacman:
+        name:
+          - btrfs-progs
+          - open-iscsi
+        state: present
+      notify: reboot
+      tags:
+        - always
+
   roles:
+    - role: beszel
+      tags:
+        - beszel
     - name: kubernetes
       tags:
         - kubernetes
       when: false
 
-# - name: Configure proxy-nl
-#   hosts:
-#     - proxy-nl
-#   gather_facts: false
-#
-#   pre_tasks:
-#     - name: configure network
-#       ansible.builtin.copy:
-#         content: |
-#           auto lo
-#           iface lo inet loopback
-#
-#           auto enp1s0
-#           iface enp1s0 inet dhcp
-#             dns-nameservers 108.61.10.10 2001:19f0:300:1704::6
-#           iface enp1s0 inet6 auto
-#             privext 2
-#         dest: /etc/network/interfaces
-#         owner: root
-#         group: root
-#         mode: !!str 0444
-#       tags:
-#         - always
-#       notify: reboot
-#
-#     - name: flush handlers
-#       ansible.builtin.meta: flush_handlers
-#       tags:
-#         - always
-#
-#     - ansible.builtin.shell:
-#         cmd: ip -f inet6 -o addr show dev {{ ansible_facts['default_ipv6'].interface }} scope global mngtmpaddr | awk '{print $4}' | cut -d/ -f1
-#       changed_when: false
-#       register: result
-#       when: false
-#
-#     - ansible.builtin.set_fact:
-#         wan_ipv6_address: "{{ result.stdout | trim }}"
-#       when: false
-#
-#     - name: install prerequisite packages
-#       ansible.builtin.apt:
-#         name:
-#           - acl
-#           - attr
-#       tags:
-#         - always
-#
-#     - name: remove conflicting packages
-#       ansible.builtin.apt:
-#         autoremove: true
-#         name:
-#           - ufw
-#         purge: true
-#         state: absent
-#       tags:
-#         - always
-#
-#   roles:
-#     - role: alloy
-#       tags:
-#         - alloy
-#       when: false # FIXME
-#     - role: nginx
-#       tags:
-#         - nginx
-#     - role: opensmtpd
-#       tags:
-#         - opensmtpd
-#       when: false # TODO
-#     - role: sshd
-#       tags:
-#         - sshd
-#     - role: unattended_upgrades
-#       tags:
-#         - unattended-upgrades
-#     - role: unbound
-#       tags:
-#         - unbound
-#
-#   tasks:
-#     - name: remove unwanted packages
-#       ansible.builtin.apt:
-#         autoremove: true
-#         name:
-#           - nano
-#         purge: true
-#         state: absent
-#       tags:
-#         - always
-#
-#     - name: remove root password
-#       ansible.builtin.user:
-#         name: root
-#         password: "*"
-#       tags:
-#         - always
-#
-#   handlers:
-#     - name: reboot
-#       ansible.builtin.reboot: {}
+  handlers:
+    - name: reboot
+      ansible.builtin.reboot: {}

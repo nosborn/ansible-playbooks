@@ -1,5 +1,0 @@
----
-grafana_cloud_password: "{{ vault_grafana_cloud_password }}"
-sshd_config_allow_users: "{{ vault_sshd_config_allow_users }}"
-unbound_null_zones: "{{ vault_unbound_null_zones }}"
-unbound_forwarders: "{{ vault_unbound_forwarders }}"

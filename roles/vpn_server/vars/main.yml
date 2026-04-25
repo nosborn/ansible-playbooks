@@ -1,2 +1,0 @@
----
-ownca_dir: "{{ playbook_dir }}/ownca"

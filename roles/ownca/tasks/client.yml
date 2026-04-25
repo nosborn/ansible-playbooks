@@ -1,13 +1,13 @@
 # yamllint disable rule:line-length
 ---
-- name: "{{ client_name }} : create private key"
+- name: "client : create private key : {{ client_name }}"
   community.crypto.openssl_privatekey:
     path: "{{ ownca_dir }}/{{ client_name }}.key"
     type: ECC
     curve: secp256r1
     mode: !!str 0400
 
-- name: "{{ client_name }} : create CSR"
+- name: "client : create CSR : {{ client_name }}"
   community.crypto.openssl_csr_pipe:
     common_name: "{{ client_name }}.{{ domain_name }}"
     create_subject_key_identifier: true
@@ -24,18 +24,18 @@
   changed_when: false
   register: ownca_client_csr
 
-- name: "{{ client_name }} : check whether certificate exists"
+- name: "client : check whether certificate exists : {{ client_name }}"
   ansible.builtin.stat:
     path: "{{ ownca_dir }}/{{ client_name }}.crt"
   register: ownca_client_certificate_file
 
-- name: "{{ client_name }} : read existing certificate"
+- name: "client : read existing certificate : {{ client_name }}"
   ansible.builtin.slurp:
     src: "{{ ownca_dir }}/{{ client_name }}.crt"
   when: ownca_client_certificate_file.stat.exists
   register: ownca_client_certificate
 
-- name: "{{ client_name }} : sign certificate"
+- name: "client : sign certificate : {{ client_name }}"
   community.crypto.x509_certificate_pipe:
     content: "{{ (ownca_client_certificate.content | b64decode) if ownca_client_certificate_file.stat.exists else omit }}"
     csr_content: "{{ ownca_client_csr.csr }}"
@@ -47,7 +47,7 @@
     provider: ownca
   register: ownca_client_certificate
 
-- name: "{{ client_name }} : save certificate"
+- name: "client : save certificate : {{ client_name }}"
   ansible.builtin.copy:
     content: "{{ ownca_client_certificate.certificate }}"
     dest: "{{ ownca_dir }}/{{ client_name }}.crt"

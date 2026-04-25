@@ -27,13 +27,13 @@ server:
 	access-control: ::0/0 deny
 	access-control: ::1 allow
 	access-control: {{ lan_ipv6_subnet }} allow
-	access-control: {{ vpn_ipv6_subnet }} allow
 	access-control-view: {{ lan_ipv4_subnet }} lan
 	access-control-view: {{ lan_ipv6_subnet }} lan
 
-	log-queries: yes
+  # log-queries: yes
 	# log-replies: yes
 	# log-tag-queryreply: yes
+  log-servfail: yes
 
 	root-hints: /usr/share/dns/root.hints
 
@@ -55,6 +55,8 @@ server:
 	private-address: ::ffff:0:0/96      # IPv4-mapped IPv6 addresses
 	private-domain: local
 	private-domain: {{ domain_name }}
+
+  prefetch: yes
 
 	deny-any: yes
 
@@ -146,12 +148,12 @@ rpz:
 	name: pro.hagezi.
 	url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/rpz/pro.txt
 	zonefile: /var/lib/unbound/rpz.pro.hagezi.zone
-	rpz-log: yes
+  # rpz-log: yes
 
 rpz:
 	name: tif.hagezi.
 	url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/rpz/tif.medium.txt
 	zonefile: /var/lib/unbound/rpz.tif.hagezi.zone
-	rpz-log: yes
+  # rpz-log: yes
 
 # vim: noet sw=8 ts=8

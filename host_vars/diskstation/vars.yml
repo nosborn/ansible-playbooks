@@ -1,0 +1,5 @@
+---
+lan_ipv4_address: "{{ vault_lan_ipv4_address }}"
+lan_ipv6_address: "{{ vault_lan_ipv6_address }}"
+lan_ipv6_subnet: "{{ vault_lan_ipv6_subnet }}"
+nologin_shell: /usr/bin/nologin

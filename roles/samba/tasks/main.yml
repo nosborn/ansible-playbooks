@@ -3,7 +3,7 @@
   ansible.builtin.apt:
     name:
       - samba
-      - wsdd
+      # - wsdd -- FIXME
     state: present
 
 - name: configure
@@ -21,6 +21,7 @@
     regex: ^WSDD_PARAMS=
     line: WSDD_PARAMS="-i {{ lan_ipv4_address }}"
   notify: restart wsdd
+  when: false # FIXME
 
 - name: enable and start services
   ansible.builtin.systemd_service:
@@ -30,7 +31,7 @@
   loop:
     - nmbd.service
     - smbd.service
-    - wsdd.service
+    # - wsdd.service -- FIXME
   loop_control:
     loop_var: samba_item
 

@@ -1,0 +1,42 @@
+[Unit]
+Description=Beszel Agent Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+AmbientCapabilities=CAP_SYS_ADMIN CAP_SYS_RAWIO
+CapabilityBoundingSet=CAP_SYS_ADMIN CAP_SYS_RAWIO
+DeviceAllow=/dev/nvidia0 rw
+DeviceAllow=/dev/nvidiactl rw
+DeviceAllow=/dev/nvme0n1 r
+Environment="HUB_URL={{ beszel_agent_hub_url }}"
+Environment="KEY={{ beszel_agent_public_key }}"
+Environment="PORT=45876"
+Environment="SMART_INTERVAL=1h"
+Environment="SYSTEM_NAME={{ beszel_agent_system_name }}"
+Environment="TOKEN={{ beszel_agent_token }}"
+ExecStart=/usr/local/bin/beszel-agent
+KeyringMode=private
+LockPersonality=yes
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectClock=yes
+; ProtectHome=read-only
+ProtectHostname=yes
+ProtectKernelLogs=yes
+ProtectKernelTunables=yes
+ProtectSystem=strict
+RemoveIPC=yes
+Restart=on-failure
+RestartSec=5
+RestrictSUIDSGID=true
+; StateDirectory=beszel-agent
+SystemCallArchitectures=native
+User=beszel
+
+ProtectHome=yes
+ReadWritePaths=/var/lib/beszel
+WorkingDirectory=/var/lib/beszel
+
+[Install]
+WantedBy=multi-user.target

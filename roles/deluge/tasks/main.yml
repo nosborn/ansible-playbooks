@@ -5,6 +5,7 @@
 #     name:
 #       - deluge-web
 #       - deluged
+#     state: present
 
 - ansible.builtin.file:
     path: /opt/deluge

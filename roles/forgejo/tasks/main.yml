@@ -1,0 +1,31 @@
+---
+- name: create group
+  ansible.builtin.group:
+    name: forgejo
+    system: true
+
+- name: create user
+  ansible.builtin.user:
+    comment: forgejo
+    create_home: false
+    group: forgejo
+    home: /srv/forgejo
+    name: forgejo
+    shell: "{{ nologin_shell }}"
+    system: true
+
+- name: create data directory
+  ansible.builtin.file:
+    path: "{{ forgejo_item }}"
+    owner: forgejo
+    group: forgejo
+    mode: !!str 0700
+    state: directory
+  loop:
+    - /srv/forgejo
+    - /srv/forgejo/git
+    - /srv/forgejo/git/.ssh
+    - /srv/forgejo/forgejo
+    - /srv/forgejo/forgejo/conf
+  loop_control:
+    loop_var: forgejo_item

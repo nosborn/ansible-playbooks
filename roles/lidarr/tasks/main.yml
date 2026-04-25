@@ -1,97 +1,41 @@
-# yamllint disable rule:line-length
 ---
-- name: install dependencies
-  ansible.builtin.apt:
-    name:
-      - sqlite3
-    state: present
-
-- name: fetch release info
-  delegate_to: localhost
-  ansible.builtin.uri:
-    url: https://api.github.com/repos/Lidarr/Lidarr/releases/latest
-    headers:
-      Accept: application/vnd.github+json
-    return_content: true
-    body_format: json
-  register: lidarr_result
-  until: lidarr_result is success
-
-- name: set version fact
-  ansible.builtin.set_fact:
-    lidarr_version: "{{ lidarr_result.json.name }}"
-
-- ansible.builtin.file:
-    path: "{{ lidarr_item }}"
+- name: create config directory
+  ansible.builtin.file:
+    path: /srv/lidarr
     owner: root
-    group: root
-    mode: !!str 0755
+    group: "{{ library_group }}"
+    mode: !!str 2770
+    state: directory
+
+- name: create media directories
+  ansible.builtin.file:
+    path: "{{ library_path }}/{{ lidarr_item }}"
+    owner: root
+    group: "{{ library_group }}"
+    mode: !!str 2750
     state: directory
   loop:
-    - /opt/lidarr
-    - /opt/lidarr/{{ lidarr_version }}
+    - backups
+    - media
+    - torrents
+    - usenet
   loop_control:
     loop_var: lidarr_item
 
-- ansible.builtin.unarchive:
-    src: "{{ lidarr_result.json.assets | selectattr('name', 'search', '.linux-core-x64.tar.gz') | map(attribute='browser_download_url') | first }}"
-    remote_src: true
-    dest: /opt/lidarr/{{ lidarr_version }}
-    owner: root
-    group: root
-    extra_opts:
-      - --strip-components=1
-    creates: /opt/lidarr/{{ lidarr_version }}/Lidarr
-  notify: restart lidarr
-
-- name: create group
-  ansible.builtin.group:
-    name: lidarr
-    system: true
-
-- name: create service
-  ansible.builtin.template:
-    src: service.j2
-    dest: /etc/systemd/system/lidarr.service
-    owner: root
-    group: root
-    mode: !!str 0444
-    validate: systemd-analyze verify %s
-  notify: restart lidarr
-
-- name: enable and start service
-  ansible.builtin.systemd_service:
-    name: lidarr.service
-    daemon_reload: true
-    enabled: false # TODO: true
-    state: stopped # TODO: started
-
-- ansible.builtin.wait_for:
-    path: "{{ lidarr_home }}/config.xml"
-
-- name: configure
-  community.general.xml:
-    path: "{{ lidarr_home }}/config.xml"
-    xpath: /Config/{{ lidarr_item.key }}
-    value: "{{ lidarr_item.value | string }}"
-  loop: "{{ lidarr_config | ansible.builtin.dict2items }}"
+- name: create media directories
+  ansible.builtin.file:
+    path: "{{ library_path }}/{{ lidarr_item }}"
+    owner: "{{ library_user }}"
+    group: "{{ library_group }}"
+    mode: !!str 2770
+    state: directory
+  loop:
+    - backups/lidarr
+    - media/tv
+    - torrents/complete
+    - torrents/complete/lidarr
+    - usenet/complete
+    - usenet/complete/lidarr
+    - usenet/incomplete # strange but true
   loop_control:
     loop_var: lidarr_item
-  vars:
-    lidarr_config:
-      AnalyticsEnabled: !!str False
-      ApiKey: "{{ lidarr_api_key }}"
-      # AuthenticationRequired: DisabledForLocalAddresses
-      BindAddress: 127.0.0.1
-      LaunchBrowser: !!str False
-      LogLevel: info
-      Port: "{{ lidarr_port }}"
-      UpdateAutomatically: !!str False
-  notify: restart lidarr
-
-- ansible.builtin.include_role:
-    name: library
-    tasks_from: application.yaml
-  vars:
-    library_application_name: lidarr
-    library_application_port: "{{ lidarr_port }}"
