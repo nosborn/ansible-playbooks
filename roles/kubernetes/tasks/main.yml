@@ -1,25 +1,30 @@
 # yamllint disable rule:line-length
 ---
 - name: install prerequisites
-  ansible.builtin.apt:
-    name: python3-kubernetes
-    install_recommends: false
-    state: present
-  when: ansible_facts['os_family'] == 'Debian'
+  block:
+    - ansible.builtin.apt:
+        name: python3-kubernetes
+        install_recommends: false
+        state: present
+      when: ansible_facts['os_family'] == 'Debian'
 
-- name: install prerequisites
-  community.general.pacman:
-    name: python-kubernetes
-    state: present
-  when: ansible_facts['os_family'] == 'Archlinux'
+    - community.general.pacman:
+        name: python-kubernetes
+        state: present
+      when: false # ansible_facts['os_family'] == 'Archlinux'
+  when: kubernetes_control_plane
 
 - ansible.builtin.include_tasks:
-    file: k0s.yml
+    file: nvidia-container-toolkit.yml
+  when: ansible_facts['os_family'] == 'Archlinux' # FIXME
+
+- ansible.builtin.include_tasks:
+    file: k3s.yml
 
 - ansible.builtin.include_tasks:
     file: kubeconfig.yml
-  when: k0s_control_plane | default(false)
+  when: kubernetes_control_plane
 
 - ansible.builtin.include_tasks:
     file: cert-manager.yml
-  when: k0s_control_plane | default(false)
+  when: kubernetes_control_plane

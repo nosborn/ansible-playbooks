@@ -43,6 +43,10 @@
     - tombstone
   gather_facts: false
 
+  module_defaults:
+    kubernetes.core.k8s:
+      kubeconfig: /etc/rancher/k3s/k3s.yaml
+
   pre_tasks:
     - name: configure LAN network
       ansible.builtin.copy:
@@ -347,6 +351,18 @@
       tags:
         - always
 
+    - delegate_to: tombstone
+      ansible.builtin.slurp:
+        src: /var/lib/rancher/k3s/server/agent-token
+      register: result
+      tags:
+        - kubernetes
+
+    - ansible.builtin.set_fact:
+        k3s_token: "{{ result.content | b64decode }}"
+      tags:
+        - kubernetes
+
   roles:
     - role: beszel
       tags:
@@ -354,7 +370,6 @@
     - name: kubernetes
       tags:
         - kubernetes
-      when: false
 
   handlers:
     - name: reboot

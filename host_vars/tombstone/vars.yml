@@ -41,7 +41,8 @@ grafana_cloud_password: "{{ vault_grafana_cloud_password }}"
 homebridge_config: "{{ vault_homebridge_config }}"
 imapfilter_config: "{{ vault_imapfilter_config }}"
 # iscsi_initiator_name: "{{ vault_iscsi_initiator_name }}"
-k0s_control_plane: true
+k3s_server_agent_token: "{{ vault_k3s_server_agent_token }}"
+kubernetes_control_plane: true
 lan_if: "{{ vault_lan_if }}"
 lan_ipv4_address: "{{ vault_lan_ipv4_address }}"
 lan_ipv6_address: "{{ vault_lan_ipv6_address }}"

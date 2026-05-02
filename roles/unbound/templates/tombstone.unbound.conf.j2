@@ -13,7 +13,7 @@ server:
 	interface: {{ lan_ipv6_address }}@853
 	ip-freebind: yes
 
-	prefer-ip6: yes
+  # prefer-ip6: yes
 
 	tls-service-key: /etc/unbound/service.key
 	tls-service-pem: /etc/unbound/service.pem
@@ -30,10 +30,10 @@ server:
 	access-control-view: {{ lan_ipv4_subnet }} lan
 	access-control-view: {{ lan_ipv6_subnet }} lan
 
-  # log-queries: yes
+	# log-queries: yes
 	# log-replies: yes
 	# log-tag-queryreply: yes
-  log-servfail: yes
+	log-servfail: yes
 
 	root-hints: /usr/share/dns/root.hints
 
@@ -82,6 +82,7 @@ server:
 	local-zone: "resolver.arpa." always_nxdomain
 
 	local-zone: "{{ domain_name }}." typetransparent
+	local-zone: "{{ external_domain }}." transparent
 	local-zone: "local." typetransparent
 
 	{{ unbound_config_local_data | indent(width=8) }}
@@ -120,12 +121,12 @@ forward-zone:
 	forward-addr: "{{ lan_ipv4_subnet | ansible.utils.nthhost(1) }}"
 
 forward-zone:
-	name: "local."
-	forward-addr: "{{ lan_ipv4_subnet | ansible.utils.nthhost(1) }}"
-
-forward-zone:
 	name: "internal."
 	forward-addr: "{{ fly_6pn_dns }}"
+
+forward-zone:
+	name: "local."
+	forward-addr: "{{ lan_ipv4_subnet | ansible.utils.nthhost(1) }}"
 
 forward-zone:
 	name: "."

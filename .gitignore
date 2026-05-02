@@ -1,6 +1,7 @@
 *.mobileconfig
 .ansible/
 .envrc
+.kube/
 .vault_password
 CLAUDE.local.md
 ownca/

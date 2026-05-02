@@ -1,0 +1,6 @@
+---
+- name: "nvidia-container-toolkit : install package"
+  ansible.builtin.package:
+    name: nvidia-container-toolkit
+    state: present
+  notify: restart k3s

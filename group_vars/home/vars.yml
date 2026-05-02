@@ -9,6 +9,7 @@ iot_ipv6_subnet: "{{ vault_iot_ipv6_subnet }}"
 iot_vlan: "{{ vault_iot_vlan }}"
 ipv4_network: "{{ vault_ipv4_network }}"
 ipv6_delegated_prefix: "{{ vault_ipv6_delegated_prefix }}"
+k3s_url: "{{ vault_k3s_url }}"
 lan_ipv4_subnet: "{{ vault_lan_ipv4_subnet }}"
 timezone: Europe/London
 vpn_ipv4_subnet: "{{ vault_vpn_ipv4_subnet }}"

@@ -14,9 +14,30 @@
     validate: nft --file=%s --check
   notify: restart nftables
 
+- ansible.builtin.file:
+    path: /etc/systemd/system/nftables.service.d
+    owner: root
+    group: root
+    mode: !!str 0755
+    state: directory
+  when: ansible_facts['os_family'] == 'Archlinux'
+
+- name: configure service
+  ansible.builtin.copy:
+    content: |
+      [Service]
+      RemainAfterExit=yes
+    dest: /etc/systemd/system/nftables.service.d/overrides.conf
+    owner: root
+    group: root
+    mode: !!str 0444
+  notify: restart nftables
+  when: ansible_facts['os_family'] == 'Archlinux'
+
 - name: enable and start service
   ansible.builtin.systemd_service:
     name: nftables.service
+    daemon_reload: true
     enabled: true
     state: started
 
