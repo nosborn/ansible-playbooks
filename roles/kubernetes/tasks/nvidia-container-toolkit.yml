@@ -1,6 +1,8 @@
 ---
-- name: "nvidia-container-toolkit : install package"
+- name: "nvidia-container-toolkit : install packages"
   ansible.builtin.package:
-    name: nvidia-container-toolkit
+    name:
+      - cuda
+      - nvidia-container-toolkit
     state: present
   notify: restart k3s

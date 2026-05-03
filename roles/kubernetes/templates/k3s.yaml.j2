@@ -1,5 +1,11 @@
 ---
-{% if kubernetes_node_taints | default([]) | length -%}
+{% if kubernetes_node_labels | length -%}
+node-label:
+{%   for node_label in kubernetes_node_labels | sort | unique -%}
+  - "{{ node_label }}"
+{%   endfor -%}
+{% endif -%}
+{% if kubernetes_node_taints | length -%}
 node-taint:
 {%   for node_taint in kubernetes_node_taints | sort | unique -%}
   - "{{ node_taint }}"

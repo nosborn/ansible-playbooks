@@ -3,5 +3,7 @@ beszel_agent_hub_url: "{{ vault_beszel_agent_hub_url }}"
 beszel_agent_public_key: "{{ vault_beszel_agent_public_key }}"
 beszel_agent_system_name: "{{ vault_beszel_agent_system_name }}"
 beszel_agent_token: "{{ vault_beszel_agent_token }}"
+kubernetes_node_labels:
+  - nvidia.com/gpu.present=true
 kubernetes_node_taints:
-  - gpu=nvidia:NoSchedule
+  - nvidia.com/gpu=1:NoSchedule

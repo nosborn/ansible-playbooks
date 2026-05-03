@@ -16,7 +16,7 @@
 
 - ansible.builtin.include_tasks:
     file: nvidia-container-toolkit.yml
-  when: ansible_facts['os_family'] == 'Archlinux' # FIXME
+  when: "'nvidia.com/gpu.present=true' in kubernetes_node_labels"
 
 - ansible.builtin.include_tasks:
     file: k3s.yml

@@ -1,2 +1,4 @@
 ---
 kubernetes_control_plane: false
+kubernetes_node_labels: []
+kubernetes_node_taints: []
