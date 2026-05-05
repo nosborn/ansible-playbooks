@@ -1,6 +1,7 @@
 # yamllint disable rule:line-length
 ---
 - name: install prerequisites
+  when: kubernetes_control_plane
   block:
     - ansible.builtin.apt:
         name: python3-kubernetes
@@ -12,7 +13,6 @@
         name: python-kubernetes
         state: present
       when: false # ansible_facts['os_family'] == 'Archlinux'
-  when: kubernetes_control_plane
 
 - ansible.builtin.include_tasks:
     file: nvidia-container-toolkit.yml

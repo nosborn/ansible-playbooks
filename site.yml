@@ -197,6 +197,9 @@
     - role: ombi
       tags:
         - ombi
+    - role: open_telemetry
+      tags:
+        - open-telemetry
     - role: opensmtpd
       tags:
         - opensmtpd
@@ -230,9 +233,6 @@
       tags:
         - tdarr
       when: false # TODO
-    - role: traefik
-      tags:
-        - traefik
     - role: unattended_upgrades
       tags:
         - unattended-upgrades
