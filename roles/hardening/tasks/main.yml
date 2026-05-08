@@ -1,0 +1,65 @@
+---
+- name: install module blacklist
+  ansible.builtin.copy:
+    src: hardening.conf
+    dest: /etc/modprobe.d/hardening.conf
+    owner: root
+    group: root
+    mode: !!str 0444
+  notify: reboot
+
+# Superseded by the consolidated hardening.conf above. Remove on hosts
+# that ran earlier versions of this role.
+- name: remove superseded modprobe files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/modprobe.d/copyfail-mitigation.conf
+    - /etc/modprobe.d/dirtyfrag-mitigation.conf
+  notify: reboot
+
+# KSPP-style sysctl hardening. See comments per setting for trade-offs.
+- name: apply hardening sysctls
+  ansible.posix.sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    sysctl_file: /etc/sysctl.d/90-hardening.conf
+    sysctl_set: true
+    state: present
+    reload: true
+  loop:
+    # Hide kernel pointers (e.g. /proc/kallsyms) from everyone, root incl.
+    - name: kernel.kptr_restrict
+      value: "2"
+    # Require CAP_SYSLOG to read the kernel ring buffer.
+    - name: kernel.dmesg_restrict
+      value: "1"
+    # Require CAP_SYS_PTRACE for ptrace - blocks same-UID attach. Side
+    # effect: `gdb -p` on your own process needs sudo. Downgrade to 1 if
+    # that bites on vegas.
+    - name: kernel.yama.ptrace_scope
+      value: "2"
+    # Block kexec post-boot - removes a post-compromise persistence path.
+    - name: kernel.kexec_load_disabled
+      value: "1"
+    # No unprivileged eBPF. Modern Debian default; pinning it.
+    - name: kernel.unprivileged_bpf_disabled
+      value: "1"
+    # Harden the BPF JIT against spectre-class attacks.
+    - name: net.core.bpf_jit_harden
+      value: "2"
+
+# Disable user namespaces system-wide. Closes a major LPE entry-class
+# but breaks rootless containers, Chrome's sandbox, and bubblewrap. Off
+# by default; flip `hardening_block_userns` to enable. Using the upstream
+# `user.max_user_namespaces` (works on Debian + Arch) rather than the
+# Debian-only `kernel.unprivileged_userns_clone`.
+- name: block user namespace creation
+  ansible.posix.sysctl:
+    name: user.max_user_namespaces
+    value: "0"
+    sysctl_file: /etc/sysctl.d/90-hardening.conf
+    sysctl_set: true
+    state: "{{ 'present' if hardening_block_userns else 'absent' }}"
+    reload: true

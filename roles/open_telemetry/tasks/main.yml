@@ -17,9 +17,9 @@
       apiVersion: v1
       kind: Secret
       metadata:
-        annotations: {}
         labels:
           app.kubernetes.io/managed-by: Ansible
+          reconcile.fluxcd.io/watch: Enabled
         name: uptrace
       stringData:
         dsn: "{{ uptrace_dsn }}"

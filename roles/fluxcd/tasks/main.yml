@@ -9,52 +9,61 @@
       force_conflicts: true
     wait: true
 
-- name: GitHub token Secret
+- name: SOPS key Secret
   kubernetes.core.k8s:
-    apply: true
     resource_definition:
       apiVersion: v1
       kind: Secret
       metadata:
         labels:
+          app.kubernetes.io/managed-by: Ansible
+          reconcile.fluxcd.io/watch: Enabled
+        name: sops-age
+        namespace: flux-system
+      stringData:
+        sops.agekey: "{{ sops_age_key_file }}"
+      type: Opaque
+
+- name: GitHub token Secret
+  kubernetes.core.k8s:
+    resource_definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        labels:
+          app.kubernetes.io/managed-by: Ansible
           reconcile.fluxcd.io/watch: Enabled
         name: github-token
         namespace: flux-system
       stringData:
         token: "{{ fluxcd_github_token }}"
       type: Opaque
-    server_side_apply:
-      field_manager: ansible
 
 - name: GitHub webhook token Secret
   kubernetes.core.k8s:
-    apply: true
     resource_definition:
       apiVersion: v1
       kind: Secret
       metadata:
         labels:
+          app.kubernetes.io/managed-by: Ansible
           reconcile.fluxcd.io/watch: Enabled
         name: webhook-secret
         namespace: flux-system
       stringData:
         token: "{{ fluxcd_github_webhook_token }}"
-    server_side_apply:
-      field_manager: ansible
 
 - name: Uptrace DSN Secret
   kubernetes.core.k8s:
-    apply: true
     resource_definition:
       apiVersion: v1
       kind: Secret
       metadata:
         labels:
+          app.kubernetes.io/managed-by: Ansible
           reconcile.fluxcd.io/watch: Enabled
         name: uptrace
         namespace: flux-system
       stringData:
         headers: |
           uptrace-dsn: {{ uptrace_dsn }}
-    server_side_apply:
-      field_manager: ansible

@@ -1,0 +1,5 @@
+---
+# Disable user namespaces system-wide. Off by default - flipping this on
+# may break rootless containers and other userns-using sandboxes. See
+# files/sysctl-hardening-userns.conf for details.
+hardening_block_userns: false

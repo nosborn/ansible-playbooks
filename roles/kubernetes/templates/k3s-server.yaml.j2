@@ -3,7 +3,7 @@
 agent-token: "{{ k3s_server_agent_token }}"
 bind-address: "{{ lan_ipv4_address }}"
 disable: traefik
-flannel-backend: host-gw
+flannel-backend: wireguard-native
 # kube-apiserver-arg:
 #   - enable-admission-plugins=NodeRestriction,EventRateLimit
 #   - admission-control-config-file=/var/lib/rancher/k3s/server/psa.yaml

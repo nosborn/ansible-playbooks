@@ -13,16 +13,15 @@
 
 - name: create ownca intermediate CA secret
   kubernetes.core.k8s:
-    apply: true
     resource_definition:
       apiVersion: v1
       kind: Secret
       metadata:
+        labels:
+          app.kubernetes.io/managed-by: Ansible
         name: ownca-intermediate-ca
         namespace: cert-manager
+      stringData:
+        tls.crt: "{{ lookup('file', playbook_dir~'/ownca/intermediate-ca.crt') }}"
+        tls.key: "{{ lookup('file', playbook_dir~'/ownca/intermediate-ca.key') }}"
       type: kubernetes.io/tls
-      data:
-        tls.crt: "{{ lookup('file', playbook_dir~'/ownca/intermediate-ca.crt') | b64encode }}"
-        tls.key: "{{ lookup('file', playbook_dir~'/ownca/intermediate-ca.key') | b64encode }}"
-    server_side_apply:
-      field_manager: ansible

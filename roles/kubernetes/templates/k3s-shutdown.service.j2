@@ -1,0 +1,18 @@
+[Unit]
+Description=Graceful K3s Shutdown and Cleanup
+DefaultDependencies=no
+Before=shutdown.target reboot.target halt.target
+Conflicts=shutdown.target reboot.target halt.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/k3s kubectl drain {{ ansible_facts.hostname }} \
+  --delete-emptydir-data --force --grace-period=30 --ignore-daemonsets \
+{% if kubernetes_control_plane %}
+  --kubeconfig=/root/.kube/config --context=tombstone
+{% else %}
+  --kubeconfig=/etc/rancher/k3s/k3s.yaml --context=default
+{% endif %}
+
+[Install]
+WantedBy=halt.target reboot.target shutdown.target

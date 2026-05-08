@@ -36,7 +36,13 @@
   hosts: gateway
   gather_facts: false
 
-  roles: []
+  roles:
+    - role: hardening
+      when: false # TODO?
+
+  handlers:
+    - name: reboot
+      ansible.builtin.reboot: {}
 
 - name: Configure Tombstone
   hosts:
@@ -140,6 +146,7 @@
         - always
 
   roles:
+    - role: hardening
     - role: alertmanager
       tags:
         - alertmanager
@@ -223,9 +230,6 @@
     - role: sonarr
       tags:
         - sonarr
-    - role: sops
-      tags:
-        - sops
     - role: sshd
       tags:
         - sshd
@@ -364,6 +368,7 @@
         - kubernetes
 
   roles:
+    - role: hardening
     - role: beszel
       tags:
         - beszel
