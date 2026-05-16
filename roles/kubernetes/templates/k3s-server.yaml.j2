@@ -2,6 +2,7 @@
 ---
 agent-token: "{{ k3s_server_agent_token }}"
 bind-address: "{{ lan_ipv4_address }}"
+cluster-init: true
 disable: traefik
 flannel-backend: wireguard-native
 # kube-apiserver-arg:

@@ -1,15 +1,12 @@
 # yamllint disable rule:line-length
 ---
-- name: apply manifest
+- name: create namespace
   kubernetes.core.k8s:
-    apply: true
-    definition: "{{ lookup('kubernetes.core.kustomize', dir='https://github.com/nosborn/flux-system/clusters/'~ansible_facts['hostname']~'/flux-system/') }}"
-    server_side_apply:
-      field_manager: ansible
-      force_conflicts: true
-    wait: true
+    api_version: v1
+    kind: Namespace
+    name: &namespace flux-system
 
-- name: SOPS key Secret
+- name: create SOPS key Secret
   kubernetes.core.k8s:
     resource_definition:
       apiVersion: v1
@@ -19,10 +16,19 @@
           app.kubernetes.io/managed-by: Ansible
           reconcile.fluxcd.io/watch: Enabled
         name: sops-age
-        namespace: flux-system
+        namespace: *namespace
       stringData:
-        sops.agekey: "{{ sops_age_key_file }}"
+        identity.agekey: "{{ sops_age_key_file }}"
       type: Opaque
+
+- name: apply manifest
+  kubernetes.core.k8s:
+    apply: true
+    definition: "{{ lookup('kubernetes.core.kustomize', dir='https://github.com/nosborn/flux-system/clusters/'~kubernetes_cluster_name~'/flux-system/') }}"
+    server_side_apply:
+      field_manager: ansible
+      force_conflicts: true
+    wait: true
 
 - name: GitHub token Secret
   kubernetes.core.k8s:
@@ -52,6 +58,28 @@
         namespace: flux-system
       stringData:
         token: "{{ fluxcd_github_webhook_token }}"
+
+- name: Substitutions Secret
+  kubernetes.core.k8s:
+    resource_definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        labels:
+          app.kubernetes.io/managed-by: Ansible
+          reconcile.fluxcd.io/watch: Enabled
+        name: substitutions
+        namespace: flux-system
+      stringData:
+        LIDARR_API_KEY: "{{ lidarr_api_key }}"
+        NEWSHOSTING_PASSWORD: "{{ newshosting_password }}"
+        NEWSHOSTING_USERNAME: "{{ newshosting_username }}"
+        PROWLARR_API_KEY: "{{ prowlarr_api_key }}"
+        UPTRACE_DSN: "{{ uptrace_dsn }}"
+        RADARR_API_KEY: "{{ radarr_api_key }}"
+        SONARR_API_KEY: "{{ sonarr_api_key }}"
+        TWEAKNEWS_PASSWORD: "{{ tweaknews_password }}"
+        TWEAKNEWS_USERNAME: "{{ tweaknews_username }}"
 
 - name: Uptrace DSN Secret
   kubernetes.core.k8s:

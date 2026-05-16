@@ -15,6 +15,9 @@
       when: false # ansible_facts['os_family'] == 'Archlinux'
 
 - ansible.builtin.include_tasks:
+    file: networkmanager.yml
+
+- ansible.builtin.include_tasks:
     file: nvidia-container-toolkit.yml
   when: "'nvidia.com/gpu.present=true' in kubernetes_node_labels"
 

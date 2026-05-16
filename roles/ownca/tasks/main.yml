@@ -14,6 +14,9 @@
 - ansible.builtin.include_tasks:
     file: wildcard.yml
 
+- ansible.builtin.include_tasks:
+    file: tombstone.yml
+
 - ansible.builtin.include_tasks: # DEPRECATED
     file: client.yml
   vars:

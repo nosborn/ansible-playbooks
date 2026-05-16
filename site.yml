@@ -11,8 +11,6 @@
       loop: "{{ groups['all'] }}"
       when: item not in ansible_play_hosts
       run_once: true
-      tags:
-        - always
 
     - name: gateway default IPv4 address must be public
       ansible.builtin.assert:
@@ -20,8 +18,63 @@
         that:
           - ([hostvars.gateway.ansible_facts['default_ipv4'].address] | ansible.utils.ipaddr('public')) | length > 0
       run_once: true
-      tags:
-        - always
+
+- name: Networking
+  hosts:
+    - os_Archlinux
+    - os_Debian
+  gather_facts: false
+
+  tasks:
+    - when: (systemd_networks | default([])) | length > 0
+      block:
+        - name: configure network
+          ansible.builtin.copy:
+            content: "{{ item.content }}"
+            dest: /etc/systemd/network/{{ item.name }}.network
+            owner: root
+            group: root
+            mode: !!str 0444
+          loop: "{{ systemd_networks }}"
+          notify: reboot
+
+        - name: enable systemd-networkd
+          ansible.builtin.systemd_service:
+            name: systemd-networkd.service
+            enabled: true
+          notify: reboot
+
+        - name: remove interfaces file
+          ansible.builtin.file:
+            path: /etc/network/interfaces
+            state: absent
+          notify: reboot
+          when: ansible_facts['os_family'] == 'Debian'
+
+        - name: flush handlers
+          ansible.builtin.meta: flush_handlers
+
+        - name: refresh network facts
+          ansible.builtin.setup:
+            gather_subset:
+              - network
+
+  handlers:
+    - name: reboot
+      ansible.builtin.reboot: {}
+
+- name: Hardening
+  hosts:
+    - os_Archlinux
+    - os_Debian
+  gather_facts: false
+
+  roles:
+    - role: hardening
+
+  handlers:
+    - name: reboot
+      ansible.builtin.reboot: {}
 
 - name: Set up OwnCA
   hosts: localhost
@@ -29,20 +82,12 @@
 
   roles:
     - name: ownca
-      tags:
-        - always
 
 - name: Configure Gateway
   hosts: gateway
   gather_facts: false
 
-  roles:
-    - role: hardening
-      when: false # TODO?
-
-  handlers:
-    - name: reboot
-      ansible.builtin.reboot: {}
+  roles: []
 
 - name: Configure Tombstone
   hosts:
@@ -54,57 +99,6 @@
       kubeconfig: /etc/rancher/k3s/k3s.yaml
 
   pre_tasks:
-    - name: configure LAN network
-      ansible.builtin.copy:
-        content: |
-          [Match]
-          Name={{ lan_if }}
-
-          [Network]
-          Address={{ lan_ipv4_address }}/24
-          DNS={{ lan_ipv4_subnet | ansible.utils.nthhost(1) }}
-          Gateway={{ lan_ipv4_subnet | ansible.utils.nthhost(1) }}
-          IPv6AcceptRA=yes
-          IPv6PrivacyExtensions=yes
-
-          [IPv6AcceptRA]
-          Token=eui64
-        dest: /etc/systemd/network/20-ethernet.network
-        owner: root
-        group: root
-        mode: !!str 0444
-      notify: reboot
-      tags:
-        - always
-
-    - name: enable systemd-networkd
-      ansible.builtin.systemd_service:
-        name: systemd-networkd.service
-        enabled: true
-      notify: reboot
-      tags:
-        - always
-
-    - name: remove interfaces file
-      ansible.builtin.file:
-        path: /etc/network/interfaces
-        state: absent
-      notify: reboot
-      tags:
-        - always
-
-    - name: flush handlers
-      ansible.builtin.meta: flush_handlers
-      tags:
-        - always
-
-    - name: refresh network facts
-      ansible.builtin.setup:
-        gather_subset:
-          - network
-      tags:
-        - always
-
     - name: install open-iscsi
       ansible.builtin.apt:
         name:
@@ -113,8 +107,6 @@
         install_recommends: false
         state: present
       notify: reboot
-      tags:
-        - always
 
     - name: enable and start service
       ansible.builtin.systemd_service:
@@ -132,8 +124,6 @@
           - python3-lxml
           - virtualenv
           - yamllint
-      tags:
-        - always
 
     - name: remove conflicting packages
       ansible.builtin.apt:
@@ -142,107 +132,44 @@
         autoremove: true
         purge: true
         state: absent
-      tags:
-        - always
 
   roles:
-    - role: hardening
     - role: alertmanager
-      tags:
-        - alertmanager
       when: false # TODO
     - role: alloy
-      tags:
-        - alloy
       when: false # FIXME
     - role: bazarr
-      tags:
-        - bazarr
       when: false # TODO
     - role: beszel
-      tags:
-        - beszel
       vars:
         beszel_hub: true
     - role: calibre
-      tags:
-        - calibre
       when: false # TODO
     - role: calibre_web
-      tags:
-        - calibre-web
       when: false # TODO
     - role: chrony
-      tags:
-        - chrony
     - role: fluxcd
-      tags:
-        - fluxcd
     - role: forgejo
-      tags:
-        - forgejo
       when: false # TODO
     - role: homebridge
-      tags:
-        - homebridge
-    - role: imapfilter
-      tags:
-        - imapfilter
-      when: false # TODO
     - role: kubernetes
-      tags:
-        - kubernetes
     - role: lidarr
-      tags:
-        - lidarr
-    - role: nftables
-      tags:
-        - nftables
     - role: nzbget
-      tags:
-        - nzbget
     - role: ombi
-      tags:
-        - ombi
-    - role: open_telemetry
-      tags:
-        - open-telemetry
     - role: opensmtpd
-      tags:
-        - opensmtpd
     - role: prowlarr
-      tags:
-        - prowlarr
     - role: radarr
-      tags:
-        - radarr
     - role: readarr
-      tags:
-        - readarr
       when: false # TODO
     - role: restic
-      tags:
-        - restic
       when: false # TODO
     - role: samba
-      tags:
-        - samba
     - role: sonarr
-      tags:
-        - sonarr
     - role: sshd
-      tags:
-        - sshd
     - role: tdarr
-      tags:
-        - tdarr
       when: false # TODO
     - role: unattended_upgrades
-      tags:
-        - unattended-upgrades
     - role: unbound
-      tags:
-        - unbound
 
   tasks:
     - name: install additional packages
@@ -258,8 +185,6 @@
           - net-tools
           - rfkill
           - tcpdump
-      tags:
-        - always
 
     - name: remove unwanted packages
       ansible.builtin.apt:
@@ -268,8 +193,6 @@
           - nano
         purge: true
         state: absent
-      tags:
-        - always
 
     # - name: disable unused hardware
     #   ansible.builtin.copy:
@@ -283,8 +206,6 @@
     #   notify:
     #     - update-initramfs
     #     - reboot
-    #   tags:
-    #     - always
 
   handlers:
     # - name: update-initramfs
@@ -333,11 +254,21 @@
           - PyYAML
           - requests
 
+    - ansible.builtin.copy:
+        src: "{{ playbook_dir~'/ownca/root-ca.crt' }}"
+        dest: /var/db/ca-certificates/OwnCA.crt
+        owner: root
+        group: root
+        mode: !!str 0444
+      notify: update CA certificates
+
   roles:
     - role: beszel
-      tags:
-        - beszel
       when: false
+
+  handlers:
+    - name: update CA certificates
+      shell: /usr/syno/bin/update-ca-certificates.sh
 
 - name: Configure Vegas
   hosts:
@@ -352,29 +283,18 @@
           - open-iscsi
         state: present
       notify: reboot
-      tags:
-        - always
 
     - delegate_to: tombstone
       ansible.builtin.slurp:
         src: /var/lib/rancher/k3s/server/agent-token
       register: result
-      tags:
-        - kubernetes
 
     - ansible.builtin.set_fact:
         k3s_token: "{{ result.content | b64decode }}"
-      tags:
-        - kubernetes
 
   roles:
-    - role: hardening
     - role: beszel
-      tags:
-        - beszel
     - name: kubernetes
-      tags:
-        - kubernetes
 
   handlers:
     - name: reboot

@@ -13,7 +13,7 @@ server:
 	interface: {{ lan_ipv6_address }}@853
 	ip-freebind: yes
 
-  # prefer-ip6: yes
+	# prefer-ip6: yes
 
 	tls-service-key: /etc/unbound/service.key
 	tls-service-pem: /etc/unbound/service.pem
@@ -22,13 +22,14 @@ server:
 
 	access-control: 0.0.0.0/0 refuse
 	access-control: 127.0.0.0/8 allow
+	access-control: {{ kubernetes_pod_ipv4_cidr }} allow
 	access-control: {{ lan_ipv4_subnet }} allow
 	access-control: {{ vpn_ipv4_subnet }} allow
 	access-control: ::0/0 deny
 	access-control: ::1 allow
 	access-control: {{ lan_ipv6_subnet }} allow
-	access-control-view: {{ lan_ipv4_subnet }} lan
-	access-control-view: {{ lan_ipv6_subnet }} lan
+	access-control-view: 192.168.1.0/24 lan
+	access-control-view: 2a0b:9401:8b:1::/64 lan
 
 	# log-queries: yes
 	# log-replies: yes
@@ -56,7 +57,7 @@ server:
 	private-domain: local
 	private-domain: {{ domain_name }}
 
-  prefetch: yes
+	prefetch: yes
 
 	deny-any: yes
 
@@ -75,11 +76,8 @@ server:
 	local-zone: "mask.icloud.com." always_nxdomain
 	local-zone: "mask-h2.icloud.com." always_nxdomain
 
-	# DNS-over-HTTPS
-	local-zone: "doh.dns.apple.com." always_nxdomain
-
 	local-zone: "ipv4only.arpa." always_nxdomain
-	local-zone: "resolver.arpa." always_nxdomain
+	local-zone: "resolver.arpa." always_nodata
 
 	local-zone: "{{ domain_name }}." typetransparent
 	local-zone: "{{ external_domain }}." transparent
@@ -137,8 +135,10 @@ forward-zone:
 	forward-no-cache: yes
 
 view:
+	# This doesn't wotk with macOS because Unbound won't negotaite ALPN.
 	name: "lan"
-	local-data: "_dns.resolver.arpa. SVCB 1 tombstone.{{ domain_name }}. alpn=dot"
+	local-zone: "resolver.arpa." transparent
+	local-data: "_dns.resolver.arpa. 7200 IN SVCB 1 tombstone.home.arpa. alpn=dot port=853 ipv4hint=192.168.1.2 ipv6hint=2a0b:9401:8b:1:8647:9ff:fe5c:f1d9"
 	view-first: yes
 
 rpz:
@@ -149,12 +149,12 @@ rpz:
 	name: pro.hagezi.
 	url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/rpz/pro.txt
 	zonefile: /var/lib/unbound/rpz.pro.hagezi.zone
-  # rpz-log: yes
+	# rpz-log: yes
 
 rpz:
 	name: tif.hagezi.
 	url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/rpz/tif.medium.txt
 	zonefile: /var/lib/unbound/rpz.tif.hagezi.zone
-  # rpz-log: yes
+	# rpz-log: yes
 
 # vim: noet sw=8 ts=8

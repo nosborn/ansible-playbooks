@@ -1,0 +1,19 @@
+# yamllint disable rule:line-length
+---
+- name: "NetworkManager : check if installed"
+  ansible.builtin.stat:
+    path: /etc/NetworkManager
+  register: kubernetes_nm_dir
+
+- name: "NetworkManager : ignore CNI interfaces"
+  when: kubernetes_nm_dir.stat.exists
+  block:
+    - ansible.builtin.copy:
+        dest: /etc/NetworkManager/conf.d/cni.conf
+        owner: root
+        group: root
+        mode: !!str 0644
+        content: |
+          [keyfile]
+          unmanaged-devices=interface-name:cni0;interface-name:flannel-wg
+      notify: reload NetworkManager

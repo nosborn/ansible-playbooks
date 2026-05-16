@@ -20,7 +20,7 @@
 
 - ansible.builtin.copy:
     content: |
-      {{ lookup('file', playbook_dir~'/ownca/wildcard.key') }}
+      {{ lookup('file', playbook_dir~'/ownca/tombstone.key') }}
     dest: /etc/unbound/service.key
     owner: root
     group: root
@@ -30,7 +30,7 @@
 
 - ansible.builtin.copy:
     content: |
-      {{ lookup('file', playbook_dir~'/ownca/wildcard.crt') }}
+      {{ lookup('file', playbook_dir~'/ownca/tombstone.crt') }}
       {{ lookup('file', playbook_dir~'/ownca/root-ca.crt') }}
     dest: /etc/unbound/service.pem
     owner: root

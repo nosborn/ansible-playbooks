@@ -3,7 +3,5 @@
 .envrc
 .kube/
 .vault_password
+/ownca/
 CLAUDE.local.md
-ownca/
-wg-*.conf
-wg-*.png
