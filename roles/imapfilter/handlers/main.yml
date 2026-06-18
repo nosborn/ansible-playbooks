@@ -1,6 +1,9 @@
 ---
 - name: restart imapfilter
   ansible.builtin.systemd_service:
-    name: imapfilter
-    daemon_reload: false
+    daemon_reload: true
+    name: imapfilter@{{ imapfilter_item }}.service
     state: restarted
+  loop: "{{ imapfilter_users }}"
+  loop_control:
+    loop_var: imapfilter_item

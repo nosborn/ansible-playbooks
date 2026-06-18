@@ -139,7 +139,6 @@
     - role: alloy
       when: false # FIXME
     - role: bazarr
-      when: false # TODO
     - role: beszel
       vars:
         beszel_hub: true
@@ -149,25 +148,27 @@
       when: false # TODO
     - role: chrony
     - role: fluxcd
-    - role: forgejo
-      when: false # TODO
     - role: homebridge
+    - role: imapfilter
     - role: kubernetes
     - role: lidarr
+      when: false
     - role: nzbget
+      when: false
     - role: ombi
+      when: false
     - role: opensmtpd
     - role: prowlarr
+      when: false
     - role: radarr
+      when: false
     - role: readarr
       when: false # TODO
     - role: restic
       when: false # TODO
-    - role: samba
     - role: sonarr
+      when: false
     - role: sshd
-    - role: tdarr
-      when: false # TODO
     - role: unattended_upgrades
     - role: unbound
 
@@ -231,6 +232,10 @@
   hosts:
     - diskstation
   gather_facts: false
+
+  module_defaults:
+    community.docker.docker_compose_v2:
+      docker_cli: /usr/local/bin/docker
 
   pre_tasks:
     - name: install Python

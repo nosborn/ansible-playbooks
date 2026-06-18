@@ -1,0 +1,29 @@
+# yamllint disable rule:line-length
+---
+- ansible.builtin.command:
+    argv:
+      - /usr/syno/bin/synopkg
+      - status
+      - WebStation
+  environment:
+    PATH: /sbin:/bin:/usr/sbin:/usr/bin:/usr/syno/sbin:/usr/syno/bin:/usr/local/sbin:/usr/local/bin
+  register: web_station_result
+  changed_when: false
+  failed_when: false
+
+- ansible.builtin.command:
+    args:
+      - /usr/syno/bin/synopkg
+      - install_from_server
+      - WebStation
+  changed_when: (web_station_result.stdout | tojson | selectattr('status')) == 'not_installed'
+  when: (web_station_result.stdout | tojson | selectattr('status')) == 'not_installed'
+
+- name: start service
+  ansible.builtin.command:
+    argv:
+      - /usr/syno/bin/synopkg
+      - start
+      - WebStation
+  changed_when: (web_station_result.stdout | tojson | selectattr('status')) != 'started'
+  when: (web_station_result.stdout | tojson | selectattr('status')) != 'started'

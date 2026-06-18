@@ -1,43 +1,27 @@
 ---
-- name: install package
+- name: install packages
   ansible.builtin.apt:
-    name: imapfilter
+    name:
+      - imapfilter
+      - ripmime
     state: present
 
-- name: create configuration directory
-  ansible.builtin.file:
-    path: /etc/imapfilter
-    owner: root
-    group: imapfilter
-    mode: !!str 0750
-    state: directory
-  when: false
-
-- name: create configuration
-  ansible.builtin.copy:
-    content: "{{ imapfilter_config }}"
-    dest: /etc/imapfilter/config.lua
-    owner: root
-    group: imapfilter
-    mode: !!str 0440
-  # notify: restart imapfilter
-  when: false
-
-- name: configure service
+- name: configure service template
   ansible.builtin.template:
     src: imapfilter.service.j2
-    dest: /etc/systemd/system/imapfilter.service
+    dest: /etc/systemd/system/imapfilter@.service
     owner: root
     group: root
     mode: !!str 0444
-    validate: systemd-analyze verify %s
+    # validate: systemd-analyze verify %s
   notify: restart imapfilter
-  when: false
 
 - name: enable and start service
   ansible.builtin.systemd_service:
-    name: imapfilter.service
     daemon_reload: true
+    name: imapfilter@{{ imapfilter_item }}.service
     enabled: true
     state: started
-  when: false
+  loop: "{{ imapfilter_users }}"
+  loop_control:
+    loop_var: imapfilter_item

@@ -1,4 +1,4 @@
 ---
-library_group: library
+library_group: 100
 library_mount_unit_name: "{{ library_path[1:] | replace('/', '-') }}"
-library_user: library
+library_user: 1026

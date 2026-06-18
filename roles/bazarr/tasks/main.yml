@@ -1,125 +1,43 @@
-# yamllint disable rule:line-length
 ---
-- name: install dependencies
-  ansible.builtin.apt:
-    name:
-      - 7zip
-      - ffmpeg
-      - unrar
-      - unzip
-    state: present
-
-- name: fetch release info
-  delegate_to: localhost
-  ansible.builtin.uri:
-    url: https://api.github.com/repos/morpheus65535/bazarr/releases/latest
-    headers:
-      Accept: application/vnd.github+json
-    return_content: true
-    body_format: json
-  register: bazarr_release
-  until: bazarr_release is success
-
-- name: set version fact
-  ansible.builtin.set_fact:
-    bazarr_version: "{{ bazarr_release.json.tag_name | regex_replace('^v', '') }}"
-
-- ansible.builtin.file:
-    path: "{{ bazarr_item }}"
-    owner: root
-    group: root
-    mode: !!str 0755
-    state: directory
-  loop:
-    - /opt/bazarr
-    - /opt/bazarr/{{ bazarr_version }}
-  loop_control:
-    loop_var: bazarr_item
-
-- ansible.builtin.unarchive:
-    src: "{{ bazarr_release.json.assets | selectattr('name', 'equalto', 'bazarr.zip') | map(attribute='browser_download_url') | first }}"
-    remote_src: true
-    dest: /opt/bazarr/{{ bazarr_version }}
-    owner: root
-    group: root
-    creates: /opt/bazarr/{{ bazarr_version }}/bazarr.py
-  notify: restart bazarr
-
-- ansible.builtin.pip:
-    chdir: /opt/bazarr/{{ bazarr_version }}
-    requirements: requirements.txt
-    virtualenv: venv
-  notify: restart bazarr
-
-- name: creare config directory
+- name: create data directory
   ansible.builtin.file:
-    name: "{{ bazarr_item }}"
+    path: /var/lib/bazarr
     owner: root
     group: "{{ library_group }}"
-    mode: !!str 2770
+    mode: !!str 0750
     state: directory
-  loop:
-    - /srv/bazarr
-    - /srv/bazarr/config
-  loop_control:
-    loop_var: bazarr_item
 
-- name: configure
-  ansible.builtin.template:
-    src: config.j2
-    dest: /srv/bazarr/config/config.yaml
+- name: create data directories
+  ansible.builtin.file:
+    path: /var/lib/bazarr/{{ bazarr_item }}
     owner: "{{ library_user }}"
     group: "{{ library_group }}"
-    mode: !!str 0660
-    # validate: yamllint --no-warnings %s
-  notify: restart bazarr
-
-- name: create library directories
-  ansible.builtin.file:
-    path: "{{ library_path }}/{{ bazarr_item }}"
-    owner: root
-    group: "{{ library_group }}"
-    mode: !!str 2750
+    mode: !!str 0700
     state: directory
   loop:
-    - backups
-    - media
+    - backup
+    - cache
+    - config
+    - db
+    - log
+    - restore
   loop_control:
     loop_var: bazarr_item
 
-- name: create library directories
-  ansible.builtin.file:
-    path: "{{ library_path }}/{{ bazarr_item }}"
-    owner: "{{ library_user }}"
-    group: "{{ library_group }}"
-    mode: !!str 2770
-    state: directory
-  loop:
-    - backups/bazarr
-  loop_control:
-    loop_var: bazarr_item
-
-- name: create service unit
-  ansible.builtin.template:
-    src: service.j2
-    dest: /etc/systemd/system/bazarr.service
-    owner: root
-    group: root
-    mode: !!str 0444
-    validate: systemd-analyze verify %s
-  notify: restart bazarr
-
-- name: enable and start service
-  ansible.builtin.systemd_service:
-    name: bazarr.service
-    daemon_reload: true
-    enabled: false # TODO: true
-    state: stopped # TODO: started
-
-- name: publish service
-  ansible.builtin.include_role:
-    name: library
-    tasks_from: application.yaml
-  vars:
-    library_application_name: bazarr
-    library_application_port: "{{ bazarr_port }}"
+# - name: create library directories
+#   ansible.builtin.file:
+#     path: "{{ library_path }}/{{ bazarr_item }}"
+#     owner: "{{ library_user }}"
+#     group: "{{ library_group }}"
+#     mode: !!str 2770
+#     state: directory
+#   loop:
+#     - backups/bazarr
+#     - media/movies
+#     - torrents/complete
+#     - torrents/complete/bazarr
+#     - usenet/complete
+#     - usenet/complete/bazarr
+#     - usenet/incomplete # strange but true
+#   loop_control:
+#     loop_var: bazarr_item

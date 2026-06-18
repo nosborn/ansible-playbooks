@@ -4,7 +4,7 @@
   kubernetes.core.k8s:
     api_version: v1
     kind: Namespace
-    name: &namespace flux-system
+    name: flux-system
 
 - name: create SOPS key Secret
   kubernetes.core.k8s:
@@ -16,7 +16,7 @@
           app.kubernetes.io/managed-by: Ansible
           reconcile.fluxcd.io/watch: Enabled
         name: sops-age
-        namespace: *namespace
+        namespace: flux-system
       stringData:
         identity.agekey: "{{ sops_age_key_file }}"
       type: Opaque
@@ -45,7 +45,7 @@
         token: "{{ fluxcd_github_token }}"
       type: Opaque
 
-- name: GitHub webhook token Secret
+- name: webhook token Secret
   kubernetes.core.k8s:
     resource_definition:
       apiVersion: v1
@@ -68,18 +68,31 @@
         labels:
           app.kubernetes.io/managed-by: Ansible
           reconcile.fluxcd.io/watch: Enabled
-        name: substitutions
+        name: cluster-secret-vars
         namespace: flux-system
       stringData:
+        DOMAIN_NAME: "{{ domain_name }}"
+        # EASYNEWS_PASSWORD: TODO
+        # EASYNEWS_USERNAME: TODO
+        IPV6_DELEGATED_PREFIX: "{{ ipv6_delegated_prefix }}"
+        ISCSI_IQN: "{{ iscsi_iqn }}"
+        ISCSI_TARGET_PORTAL: "{{ iscsi_target_portal }}"
+        LAN_IPV4_ADDRESS: "{{ lan_ipv4_address }}"
+        LAN_IPV4_SUBNET: "{{ lan_ipv4_subnet }}"
+        LAN_IPV6_ADDRESS: "{{ lan_ipv6_address }}"
+        LAN_IPV6_SUBNET: "{{ lan_ipv6_subnet }}"
         LIDARR_API_KEY: "{{ lidarr_api_key }}"
         NEWSHOSTING_PASSWORD: "{{ newshosting_password }}"
         NEWSHOSTING_USERNAME: "{{ newshosting_username }}"
+        NFS_SERVER: "{{ hostvars.diskstation.lan_ipv4_address }}"
         PROWLARR_API_KEY: "{{ prowlarr_api_key }}"
-        UPTRACE_DSN: "{{ uptrace_dsn }}"
         RADARR_API_KEY: "{{ radarr_api_key }}"
         SONARR_API_KEY: "{{ sonarr_api_key }}"
         TWEAKNEWS_PASSWORD: "{{ tweaknews_password }}"
         TWEAKNEWS_USERNAME: "{{ tweaknews_username }}"
+        UPTRACE_DSN: "{{ uptrace_dsn }}"
+        VPN_IPV4_SUBNET: "{{ vpn_ipv4_subnet }}"
+        VPN_IPV6_SUBNET: "{{ vpn_ipv6_subnet }}"
 
 - name: Uptrace DSN Secret
   kubernetes.core.k8s:

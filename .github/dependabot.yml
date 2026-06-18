@@ -5,11 +5,10 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: monthly
+      interval: weekly
 
   - package-ecosystem: npm
     directory:
       - /roles/homebridge/files
-      - /roles/moltbot/files
     schedule:
-      interval: monthly
+      interval: weekly

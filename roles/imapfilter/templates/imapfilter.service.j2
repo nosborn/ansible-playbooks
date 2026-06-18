@@ -1,44 +1,52 @@
 [Unit]
 After=network-online.target
+ConditionPathExists=/home/%i/.imapfilter/config.lua
+Description=Mail filter
 
 [Service]
+BindPaths=/home/%i/.cache/imapfilter
+BindReadOnlyPaths=/home/%i/.imapfilter
 CapabilityBoundingSet=
-ConfigurationDirectory=imapfilter
-ConfigurationDirectoryMode=0750
 DeviceAllow=
-Environment=IMAPFILTER_HOME=/etc/imapfilter
-ExecStart=/usr/bin/imapfilter -nv
-Group=imapfilter
+ExecStart=/usr/bin/imapfilter -v
+KeyringMode=private
+LimitCORE=0
+LimitNOFILE=512
+LimitNPROC=64
 LockPersonality=yes
+MemoryDenyWriteExecute=yes
+; MemoryMax=256M
 NoNewPrivileges=yes
 PrivateDevices=yes
 PrivateIPC=yes
 PrivateTmp=yes
-; ProcSubset=pid
+PrivateUsers=yes
+ProcSubset=pid
 ProtectClock=yes
 ProtectControlGroups=yes
-ProtectHome=yes
+ProtectHome=tmpfs
 ProtectHostname=yes
 ProtectKernelLogs=yes
 ProtectKernelModules=yes
 ProtectKernelTunables=yes
-; ProtectProc=invisible
+ProtectProc=invisible
 ProtectSystem=strict
 RemoveIPC=yes
 Restart=on-failure
 RestartSec=20
-; RestrictAddressFamilies=AF_INET AF_INET6 AF_NETLINK
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=yes
 RestrictRealtime=yes
 RestrictSUIDSGID=yes
-RuntimeDirectory=imapfilter
 SecureBits=
 SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged @resources @mount @debug @cpu-emulation @obsolete @raw-io @reboot @swap @module
+TasksMax=64
 Type=simple
 UMask=0077
-User=imapfilter
-WorkingDirectory=/run/imapfilter
+User=%i
+WorkingDirectory=/home/%i
 
 [Install]
-WantedBy=multi-user.target
-
-; vim: ft=systemd.jinja2
+WantedBy=sysinit.target

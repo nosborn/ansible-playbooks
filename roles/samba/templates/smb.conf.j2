@@ -20,27 +20,6 @@
 	unix password sync = yes
 	vfs objects = catia fruit streams_xattr
 
-[Library]
-	available = yes
-	browseable = yes
-	guest ok = no
-	path = {{ library_path }}
-	read only = no
-	writable = yes
-	valid users = @users
-;	veto files = /.DS_Store/
-
-[Media]
-	available = yes
-	browseable = yes
-	force group = library
-	guest ok = yes
-	path = {{ library_path }}/media
-	read only = yes
-	writable = no
-;	valid users = @users
-;	veto files = /.DS_Store/
-
 [TimeMachine]
 	available = yes
 	browseable = yes

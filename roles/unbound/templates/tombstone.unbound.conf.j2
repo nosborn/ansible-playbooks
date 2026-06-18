@@ -13,21 +13,20 @@ server:
 	interface: {{ lan_ipv6_address }}@853
 	ip-freebind: yes
 
-	# prefer-ip6: yes
+	prefer-ip6: yes
 
 	tls-service-key: /etc/unbound/service.key
 	tls-service-pem: /etc/unbound/service.pem
 	tls-port: 853
 	tls-cert-bundle: /etc/ssl/certs/ca-certificates.crt
 
-	access-control: 0.0.0.0/0 refuse
 	access-control: 127.0.0.0/8 allow
 	access-control: {{ kubernetes_pod_ipv4_cidr }} allow
 	access-control: {{ lan_ipv4_subnet }} allow
 	access-control: {{ vpn_ipv4_subnet }} allow
-	access-control: ::0/0 deny
 	access-control: ::1 allow
 	access-control: {{ lan_ipv6_subnet }} allow
+	access-control: {{ vpn_ipv6_subnet }} allow
 	access-control-view: 192.168.1.0/24 lan
 	access-control-view: 2a0b:9401:8b:1::/64 lan
 
@@ -64,10 +63,7 @@ server:
 	module-config: "respip iterator"
 
 	# serve-expired: yes
-	# serve-expired-ttl: 86400
 	# serve-expired-ttl-reset: yes
-	# serve-expired-reply-ttl: 30
-	# serve-expired-client-timeout: 1800
 
 	# https://support.mozilla.org/en-US/kb/canary-domain-use-application-dnsnet
 	local-zone: "use-application-dns.net." always_nxdomain
@@ -82,6 +78,9 @@ server:
 	local-zone: "{{ domain_name }}." typetransparent
 	local-zone: "{{ external_domain }}." transparent
 	local-zone: "local." typetransparent
+
+	# Noise reduction
+	local-zone: "ngp-discovery.co.uk." always_nxdomain
 
 	{{ unbound_config_local_data | indent(width=8) }}
 
@@ -108,7 +107,7 @@ server:
 
 {% endif %}
 	ede: yes
-	# ede-serve-expired: yes
+	ede-serve-expired: yes
 
 remote-control:
 	control-enable: yes
@@ -118,9 +117,9 @@ forward-zone:
 	name: "{{ domain_name }}."
 	forward-addr: "{{ lan_ipv4_subnet | ansible.utils.nthhost(1) }}"
 
-forward-zone:
-	name: "internal."
-	forward-addr: "{{ fly_6pn_dns }}"
+#forward-zone:
+#	name: "internal."
+#	forward-addr: "{{ fly_6pn_dns }}"
 
 forward-zone:
 	name: "local."
@@ -135,26 +134,25 @@ forward-zone:
 	forward-no-cache: yes
 
 view:
-	# This doesn't wotk with macOS because Unbound won't negotaite ALPN.
+	# This doesn't wotk with macOS because Unbound won't negotiate ALPN.
 	name: "lan"
 	local-zone: "resolver.arpa." transparent
 	local-data: "_dns.resolver.arpa. 7200 IN SVCB 1 tombstone.home.arpa. alpn=dot port=853 ipv4hint=192.168.1.2 ipv6hint=2a0b:9401:8b:1:8647:9ff:fe5c:f1d9"
 	view-first: yes
 
-rpz:
-	name: rpz.{{ domain_name }}.
-	zonefile: /var/lib/unbound/rpz.{{ domain_name }}.zone
+# rpz:
+#	name: rpz.{{ domain_name }}.
+#	zonefile: /var/lib/unbound/rpz.{{ domain_name }}.zone
+#	rpz-log: yes
 
-rpz:
-	name: pro.hagezi.
-	url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/rpz/pro.txt
-	zonefile: /var/lib/unbound/rpz.pro.hagezi.zone
-	# rpz-log: yes
+#rpz:
+#	name: pro.hagezi.
+#	url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/rpz/pro.txt
+#	zonefile: /var/lib/unbound/rpz.pro.hagezi.zone
+#	# rpz-log: yes
 
-rpz:
-	name: tif.hagezi.
-	url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/rpz/tif.medium.txt
-	zonefile: /var/lib/unbound/rpz.tif.hagezi.zone
-	# rpz-log: yes
-
-# vim: noet sw=8 ts=8
+#rpz:
+#	name: tif.hagezi.
+#	url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/rpz/tif.medium.txt
+#	zonefile: /var/lib/unbound/rpz.tif.hagezi.zone
+#	# rpz-log: yes
