@@ -1,4 +1,5 @@
 ---
+controld_resolver_id: "{{ vault_controld_resolver_id }}"
 guest_if: "{{ vault_guest_if }}"
 guest_ipv4_address: "{{ vault_guest_ipv4_address }}"
 iot_if: "{{ vault_iot_if }}"

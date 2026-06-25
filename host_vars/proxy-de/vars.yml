@@ -1,0 +1,3 @@
+---
+unbound_forwarders: "{{ vault_unbound_forwarders }}"
+unbound_null_zones: "{{ vault_unbound_null_zones }}"

@@ -1,0 +1,7 @@
+---
+- name: restart jellyfin
+  ansible.builtin.command:
+    argv:
+      - /usr/syno/bin/synopkg
+      - restart
+      - jellyfin

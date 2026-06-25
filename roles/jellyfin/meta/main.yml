@@ -1,0 +1,4 @@
+---
+dependencies:
+  - name: ffmpeg7
+    when: ansible_facts['system_vendor'] == 'Synology'

@@ -1,0 +1,22 @@
+# yamllint disable rule:line-length
+---
+- name: get package status
+  ansible.builtin.command:
+    argv:
+      - /usr/syno/bin/synopkg
+      - status
+      - ffmpeg7
+  environment:
+    PATH: /sbin:/bin:/usr/sbin:/usr/bin:/usr/syno/sbin:/usr/syno/bin:/usr/local/sbin:/usr/local/bin
+  register: ffmpeg7_result
+  changed_when: false
+  # failed_when: false
+
+- name: install package
+  ansible.builtin.command:
+    argv:
+      - /usr/syno/bin/synopkg
+      - install_from_server
+      - ffmpeg7
+  changed_when: (ffmpeg7_result.stdout | from_json).status == 'not_installed'
+  when: (ffmpeg7_result.stdout | from_json).status == 'not_installed'

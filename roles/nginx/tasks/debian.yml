@@ -2,7 +2,7 @@
 - name: install packages
   ansible.builtin.apt:
     name:
-      - nginx-block-ai-bots
+      # - nginx-block-ai-bots
       - nginx-light
     state: present
 
