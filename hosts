@@ -1,6 +1,7 @@
 diskstation ansible_host=192.168.1.3 ansible_user=root
 gateway ansible_host=192.168.1.1 ansible_user=root
 localhost ansible_connection=local ansible_host=127.0.0.1
+proxy-de ansible_host=proxy-de.osborn.io ansible_user=root
 tombstone ansible_host=192.168.1.2 ansible_user=root
 vegas ansible_host=vegas.home.arpa ansible_user=root
 
@@ -18,6 +19,7 @@ vegas
 localhost
 
 [os_Debian]
+proxy_de
 tombstone
 
 [os_DSM]
@@ -28,3 +30,6 @@ ansible_python_interpreter=/usr/local/bin/python3.9
 
 [os_Unifi]
 gateway
+
+[vultr]
+proxy-de

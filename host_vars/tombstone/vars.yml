@@ -49,7 +49,6 @@ lan_ipv4_address: "{{ vault_lan_ipv4_address }}"
 lan_ipv6_address: "{{ vault_lan_ipv6_address }}"
 lan_ipv6_link_address: "{{ vault_lan_ipv6_link_address }}"
 lan_ipv6_link_subnet: "{{ vault_lan_ipv6_link_subnet }}"
-lan_ipv6_subnet: "{{ vault_lan_ipv6_subnet }}"
 # lego_domains: "{{ vault_lego_domains }}"
 # lego_email: "{{ vault_lego_email }}"
 # library_path: /srv/media # FIXME: /srv/library

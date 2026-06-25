@@ -1,0 +1,4 @@
+---
+- ansible.builtin.import_tasks:
+    file: synology.yml
+  when: ansible_facts['system_vendor'] == 'Synology'

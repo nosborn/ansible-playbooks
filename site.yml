@@ -87,7 +87,8 @@
   hosts: gateway
   gather_facts: false
 
-  roles: []
+  roles:
+    - role: ctrld
 
 - name: Configure Tombstone
   hosts:
@@ -270,6 +271,7 @@
   roles:
     - role: beszel
       when: false
+    - role: jellyfin
 
   handlers:
     - name: update CA certificates
@@ -300,7 +302,39 @@
   roles:
     - role: beszel
     - name: kubernetes
+      when: false
+    - name: ollama
 
   handlers:
     - name: reboot
       ansible.builtin.reboot: {}
+
+- name: Configure media proxy
+  hosts: proxy-de
+  gather_facts: false
+
+  pre_tasks:
+    - name: install prerequisite packages
+      ansible.builtin.apt:
+        name:
+          - acl
+          - attr
+          - gpg
+          - python3-demjson # jsonlint
+          - python3-lxml
+          - virtualenv
+          - yamllint
+      when: false
+
+    - name: remove conflicting packages
+      ansible.builtin.apt:
+        name:
+          - installation-report
+          - ufw
+        autoremove: true
+        purge: true
+        state: absent
+
+  roles:
+    - role: stream_proxy
+    - role: unbound

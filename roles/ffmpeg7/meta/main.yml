@@ -1,0 +1,4 @@
+---
+dependencies:
+  - name: synocli_videodriver
+    when: ansible_facts['system_vendor'] == 'Synology'

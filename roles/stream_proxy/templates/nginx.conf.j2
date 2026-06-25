@@ -1,0 +1,29 @@
+user www-data;
+worker_processes auto;
+worker_cpu_affinity auto;
+pid /run/nginx.pid;
+error_log /var/log/nginx/error.log;
+
+load_module modules/ngx_stream_module.so;
+
+events {
+	worker_connections 768;
+	# multi_accept on;
+}
+
+stream {
+	ssl_protocols TLSv1.2 TLSv1.3; # Dropping SSLv3 (POODLE), TLS 1.0, 1.1
+	ssl_prefer_server_ciphers off; # Don't force server cipher order.
+
+	log_format basic '$remote_addr [$time_local] '
+		'$protocol $status $bytes_sent $bytes_received '
+		'$session_time';
+	access_log /var/log/nginx/stream.log basic buffer=32k;
+
+	server {
+		listen {{ ansible_facts['default_ipv4'].address }}:443;
+		ssl_preread on;
+		resolver 127.0.0.1;
+		proxy_pass $ssl_preread_server_name:443;
+	}
+}

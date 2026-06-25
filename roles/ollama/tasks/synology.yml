@@ -1,0 +1,33 @@
+---
+- name: install package
+  community.general.pacman:
+    name:
+      - ollama
+      - ollama-cuda
+    state: present
+
+- ansible.builtin.file:
+    path: /etc/systemd/system/ollama.service.d
+    owner: root
+    group: root
+    mode: !!str 0755
+    state: directory
+
+- name: configure service
+  ansible.builtin.copy:
+    content: |
+      [Service]
+      Environment=OLLAMA_HOST=0.0.0.0:11434
+      Environment=OLLAMA_NO_CLOUD=1
+    dest: /etc/systemd/system/ollama.service.d/override.conf
+    owner: root
+    group: root
+    mode: !!str 0444
+  notify: restart ollama
+
+- name: enable and start service
+  ansible.builtin.systemd:
+    name: ollama.service
+    daemon_reload: true
+    enabled: true
+    state: started

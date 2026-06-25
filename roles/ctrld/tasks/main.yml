@@ -1,0 +1,55 @@
+---
+- name: create directory
+  ansible.builtin.file:
+    path: /data/controld
+    owner: root
+    group: root
+    mode: !!str 0755
+    state: directory
+
+- name: install binary
+  ansible.builtin.get_url:
+    url: https://dl.controld.com/linux-arm64/ctrld
+    dest: /data/controld/ctrld
+    owner: root
+    group: root
+    mode: !!str 0555
+  notify: restart ctrld
+
+- name: create config directory
+  ansible.builtin.file:
+    path: /etc/controld
+    owner: root
+    group: root
+    mode: !!str 0750
+    state: directory
+
+- name: configure
+  ansible.builtin.template:
+    src: ctrld.toml.j2
+    dest: /etc/controld/ctrld.toml
+    owner: root
+    group: root
+    mode: !!str 0440
+  notify: restart ctrld
+
+- name: create service unit
+  ansible.builtin.template:
+    src: ctrld.service.j2
+    dest: /etc/systemd/system/ctrld.service
+    owner: root
+    group: root
+    mode: !!str 0444
+    validate: systemd-analyze verify %s
+  notify: restart ctrld
+
+- name: enable and start service
+  ansible.builtin.systemd_service:
+    name: ctrld.service
+    daemon_reload: true
+    enabled: true
+    state: started
+
+- ansible.builtin.lineinfile:
+    path: /root/.bashrc
+    line: export PATH=${PATH}:/data/controld

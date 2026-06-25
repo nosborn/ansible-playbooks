@@ -1,0 +1,22 @@
+# yamllint disable rule:line-length
+---
+- name: get package status
+  ansible.builtin.command:
+    argv:
+      - /usr/syno/bin/synopkg
+      - status
+      - synocli-videodriver
+  environment:
+    PATH: /sbin:/bin:/usr/sbin:/usr/bin:/usr/syno/sbin:/usr/syno/bin:/usr/local/sbin:/usr/local/bin
+  register: synocli_videodriver_result
+  changed_when: false
+  # failed_when: false
+
+- name: install package
+  ansible.builtin.command:
+    argv:
+      - /usr/syno/bin/synopkg
+      - install_from_server
+      - synocli-videodriver
+  changed_when: (synocli_videodriver_result.stdout | from_json).status == 'not_installed'
+  when: (synocli_videodriver_result.stdout | from_json).status == 'not_installed'

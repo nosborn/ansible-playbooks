@@ -1,0 +1,45 @@
+# yamllint disable rule:line-length
+---
+- name: get package status
+  ansible.builtin.command:
+    argv:
+      - /usr/syno/bin/synopkg
+      - status
+      - jellyfin
+  environment:
+    PATH: /sbin:/bin:/usr/sbin:/usr/bin:/usr/syno/sbin:/usr/syno/bin:/usr/local/sbin:/usr/local/bin
+  register: jellyfin_result
+  changed_when: false
+  failed_when: false
+
+- name: install package
+  ansible.builtin.command:
+    argv:
+      - /usr/syno/bin/synopkg
+      - install_from_server
+      - jellyfin
+  changed_when: (jellyfin_result.stdout | from_json).status == 'not_installed'
+  when: (jellyfin_result.stdout | from_json).status == 'not_installed'
+
+- name: configure
+  ansible.builtin.template:
+    src: "{{ jellyfin_item }}.j2"
+    dest: /volume1/@appdata/jellyfin/config/{{ jellyfin_item }}
+    owner: sc-jellyfin
+    group: synocommunity
+    mode: !!str 0600
+  loop:
+    - network.xml
+    - system.xml
+  loop_control:
+    loop_var: jellyfin_item
+  notify: restart jellyfin
+
+- name: start service
+  ansible.builtin.command:
+    argv:
+      - /usr/syno/bin/synopkg
+      - start
+      - jellyfin
+  changed_when: (jellyfin_result.stdout | from_json).status != 'started'
+  when: (jellyfin_result.stdout | from_json).status != 'started'

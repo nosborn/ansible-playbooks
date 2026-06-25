@@ -1,0 +1,38 @@
+[Unit]
+After=NetworkManager-wait-online.service network-online.target nss-lookup.target unifi-mongodb.service
+ConditionFileIsExecutable=/data/controld/ctrld-FIXME
+Description=A highly configurable, multi-protocol DNS forwarding proxy
+Wants=NetworkManager-wait-online.service network-online.target nss-lookup.target unifi-mongodb.service
+
+[Service]
+ConfigurationDirectory=controld
+ConfigurationDirectoryMode=0750
+EnvironmentFile=-/etc/sysconfig/ctrld
+ExecStart=/data/controld/ctrld run -vv
+KillMode=process
+LockPersonality=yes
+LogsDirectory=controld
+; MemoryDenyWriteExecute=yes
+NoNewPrivileges=yes
+; PrivateDevices=yes
+; PrivateTmp=yes
+; ProtectClock=yes
+; ProtectControlGroups=yes
+; ProtectHostname=yes
+; ProtectHome=tmpfs
+; ProtectKernelLogs=yes
+; ProtectKernelModules=yes
+; ProtectKernelTunables=yes
+; ProtectSystem=strict
+; RemoveIPC=yes
+Restart=always
+RestartSec=120
+; RestrictRealtime=yes
+; RestrictSUIDSGID=yes
+RuntimeDirectory=controld
+StartLimitBurst=10
+StartLimitInterval=5
+WorkingDirectory=/data/controld
+
+[Install]
+WantedBy=multi-user.target
