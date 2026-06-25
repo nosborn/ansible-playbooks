@@ -87,7 +87,8 @@
   hosts: gateway
   gather_facts: false
 
-  roles: []
+  roles:
+    - role: ctrld
 
 - name: Configure Tombstone
   hosts:

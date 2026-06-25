@@ -1,0 +1,110 @@
+[service]
+  log_level = "debug"
+  log_path = "/var/log/controld/ctrld.log"
+  cache_serve_stale = true
+  cache_flush_domains = []
+  dhcp_lease_file_path = ""
+  dhcp_lease_file_format = ""
+  metrics_query_stats = true
+  # metrics_listener =
+
+[upstream.0]
+  bootstrap_ip = "76.76.2.22"
+  endpoint = "https://dns.controld.com/{{ controld_resolver_id }}"
+  timeout = 5000
+  type = "doh3"
+
+[upstream.1]
+  bootstrap_ip = "76.76.2.22"
+  endpoint = "https://freedns.controld.com/p1"
+  name = "Control D - Anti-Malware"
+  timeout = 5000
+  type = "doh"
+
+[network.0]
+  name = "Main"
+  cidrs = [
+    "{{ lan_ipv4_subnet }}",
+    "{{ lan_ipv6_subnet }}"
+  ]
+
+[network.1]
+  name = "Guest"
+  cidrs = [
+    "{{ guest_ipv4_subnet }}",
+    "{{ guest_ipv6_subnet }}"
+  ]
+
+[network.2]
+  name = "IoT"
+  cidrs = ["{{ iot_ipv4_subnet }}", "{{ iot_ipv6_subnet }}"]
+
+[network.3]
+  name = "VPN"
+  cidrs = ["{{ vpn_ipv4_subnet }}", "{{ vpn_ipv6_subnet }}"]
+
+[listener.0]
+  ip = "{{ lan_ipv4_address }}"
+  port = 53
+  restricted = true
+
+[listener.0.policy]
+  name = "Main Policy"
+  networks = [
+    {"network.0" = ["upstream.0"]},
+    {"network.1" = ["upstream.0"]},
+    {"network.2" = ["upstream.0"]},
+    {"network.3" = ["upstream.0"]}
+  ]
+  rules = [
+    {"*.globalreachtech.com" = []},
+    {"*.network-auth.com" = []},
+    {"aa.viasat.com" = []},
+    {"aainflight.com" = []},
+    {"acwifi.com" = []},
+    {"airborne.gogoinflight.com" = []},
+    {"airbornesecure.inflightinternet.com" = []},
+    {"aircanadawifi.com" = []},
+    {"alaskawifi.com" = []},
+    {"captive.apple.com" = []},
+    {"captive.inflightinternet.com" = []},
+    {"deltawifi.com" = []},
+    {"detectportal.firefox.com" = []},
+    {"etihadwi-fly.com" = []},
+    {"flyfi.com" = []},
+    {"freewlan.sbb.ch" = []},
+    {"gogoinflight.com" = []},
+    {"guestinternet.com" = []},
+    {"iceportal.de" = []},
+    {"inflight-wifi.com" = []},
+    {"ip.videotron.ca" = []},
+    {"login.cloud5.com" = []},
+    {"neverssl.com" = []},
+    {"portal.mist.com" = []},
+    {"register.onboard.eurostar.com" = []},
+    {"secure.datavalet.io" = []},
+    {"shop.ba.com" = []},
+    {"singaporeair-krisworld.com" = []},
+    {"southwestwifi.com" = []},
+    {"southwestwifi.com" = []},
+    {"thalysnet.com" = []},
+    {"timhortonswifi.com" = []},
+    {"unitedwifi.com" = []},
+    {"vvm.ee.co.uk" = []},
+    {"vvm.mstore.msg.t-mobile.com" = []},
+    {"wifi.airasia.com" = []},
+    {"wifi.cathaypacific.com" = []}, {"wifi.connected.xfinity.com" = []}, {"wifi.delta.com" = []}, {"wifi.inflightinternet.com" = []}, {"wifi.sncf" = []}, {"wifi.tgv-lyria.com" = []},
+    {"wifi.tgvlyria.com" = []},
+    {"wifi.united.com" = []},
+    {"wirelessportal.americanexpress.com" = []},
+  ]
+
+[listener.1]
+  ip = "{{ guest_ipv4_address }}"
+  port = 5354
+  restricted = true
+
+[listener.2]
+  ip = "{{ iot_ipv4_address }}"
+  port = 5354
+  restricted = true
