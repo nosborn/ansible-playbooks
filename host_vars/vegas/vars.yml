@@ -7,4 +7,3 @@ kubernetes_node_labels:
   - nvidia.com/gpu.present=true
 kubernetes_node_taints:
   - nvidia.com/gpu=1:NoSchedule
-# nftables_rules: "{{ vault_nftables_rules }}"

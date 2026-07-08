@@ -81,7 +81,6 @@
         LAN_IPV4_SUBNET: "{{ lan_ipv4_subnet }}"
         LAN_IPV6_ADDRESS: "{{ lan_ipv6_address }}"
         LAN_IPV6_SUBNET: "{{ lan_ipv6_subnet }}"
-        LIDARR_API_KEY: "{{ lidarr_api_key }}"
         NEWSHOSTING_PASSWORD: "{{ newshosting_password }}"
         NEWSHOSTING_USERNAME: "{{ newshosting_username }}"
         NFS_SERVER: "{{ hostvars.diskstation.lan_ipv4_address }}"
