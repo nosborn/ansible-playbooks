@@ -1,6 +1,0 @@
----
-- ansible.builtin.lineinfile:
-    path: /etc/exports
-    regex: ^{{ nfs_export_mount_point }}\s
-    line: "{{ nfs_export_mount_point }} {{ nfs_export_clients | join }}"
-  notify: reload nfs-server

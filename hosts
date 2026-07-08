@@ -19,7 +19,7 @@ vegas
 localhost
 
 [os_Debian]
-proxy_de
+proxy-de
 tombstone
 
 [os_DSM]

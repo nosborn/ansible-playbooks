@@ -86,16 +86,3 @@
     - media/tv
   loop_control:
     loop_var: library_item
-
-- ansible.builtin.include_role:
-    name: nfs
-    tasks_from: export.yml
-  vars:
-    nfs_export_mount_point: "{{ library_path }}/{{ library_debian_item }}"
-    nfs_export_clients:
-      - "{{ lan_ipv4_subnet }}(ro,no_subtree_check,mountpoint={{ library_path }},all_squash,anongid={{ library_gid }})"
-  loop:
-    - media/movies
-    - media/tv
-  loop_control:
-    loop_var: library_debian_item

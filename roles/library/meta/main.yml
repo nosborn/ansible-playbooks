@@ -1,4 +1,0 @@
----
-dependencies:
-  - role: nfs
-    when: ansible_facts['hostname'] == 'tombstone' # FIXME
