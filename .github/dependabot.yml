@@ -8,7 +8,7 @@ updates:
       interval: weekly
 
   - package-ecosystem: npm
-    directory:
+    directories:
       - /roles/homebridge/files
     schedule:
       interval: weekly
