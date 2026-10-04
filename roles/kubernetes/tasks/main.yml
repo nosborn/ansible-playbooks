@@ -1,4 +1,3 @@
-# yamllint disable rule:line-length
 ---
 - name: install prerequisites
   when: kubernetes_control_plane
@@ -30,4 +29,8 @@
 
 - ansible.builtin.include_tasks:
     file: cert-manager.yml
+  when: kubernetes_control_plane
+
+- ansible.builtin.include_tasks:
+    file: gateway-api.yml
   when: kubernetes_control_plane

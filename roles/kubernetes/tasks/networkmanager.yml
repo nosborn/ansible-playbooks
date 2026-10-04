@@ -3,17 +3,34 @@
 - name: "NetworkManager : check if installed"
   ansible.builtin.stat:
     path: /etc/NetworkManager
-  register: kubernetes_nm_dir
+  register: kubernetes_networkmanager_result
 
 - name: "NetworkManager : ignore CNI interfaces"
-  when: kubernetes_nm_dir.stat.exists
+  when: kubernetes_networkmanager_result.stat.exists
   block:
     - ansible.builtin.copy:
-        dest: /etc/NetworkManager/conf.d/cni.conf
+        content: |
+          [keyfile]
+          unmanaged-devices=interface-name:cali*;interface-name:tunl*;interface-name:vxlan.calico;interface-name:vxlan-v6.calico;interface-name:wireguard.cali;interface-name:wg-v6.cali
+        dest: /etc/NetworkManager/conf.d/cni-calico.conf
         owner: root
         group: root
-        mode: !!str 0644
+        mode: !!str 0444
+      notify: reload NetworkManager
+
+    - ansible.builtin.copy:
         content: |
           [keyfile]
           unmanaged-devices=interface-name:cni0;interface-name:flannel-wg
+        dest: /etc/NetworkManager/conf.d/cni-flannel.conf
+        owner: root
+        group: root
+        mode: !!str 0444
+      notify: reload NetworkManager
+
+    # TODO: kube-bridge and kube-ipvs0?
+
+    - ansible.builtin.file:
+        path: /etc/NetworkManager/conf.d/cni.conf
+        state: absent
       notify: reload NetworkManager

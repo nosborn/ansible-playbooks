@@ -1,0 +1,7 @@
+---
+- name: restart llama-server
+  ansible.builtin.service:
+    name: llama-server.service
+    daemon_reload: true
+    state: restarted
+  when: ansible_facts['os_family'] == 'Archlinux'

@@ -1,0 +1,68 @@
+# yamllint disable rule:line-length
+---
+- name: create user group
+  ansible.builtin.group:
+    gid: 500
+    name: fed
+    system: true
+
+- name: create user
+  ansible.builtin.user:
+    name: fed
+    comment: Federation II
+    create_home: false
+    group: fed
+    home: /var/lib/fed
+    password_lock: true
+    shell: /bin/bash
+    system: true
+    uid: 500
+
+- name: create config directory
+  ansible.builtin.file:
+    path: /etc/fed
+    owner: root
+    group: root
+    mode: !!str 0755
+    state: directory
+
+- name: create config file
+  ansible.builtin.template:
+    src: fed.ini.j2
+    dest: /etc/fed/fed.ini
+    owner: root
+    group: fed
+    mode: !!str 0440
+  notify: restart fedtpd
+
+- name: create data directory
+  ansible.builtin.file:
+    path: "{{ fedtpd_item }}"
+    owner: fed
+    group: fed
+    mode: !!str 0750
+    state: directory
+  loop:
+    - /var/lib/fed
+    - /var/lib/fed/backup
+    - /var/lib/fed/data
+    - /var/lib/fed/lock
+  loop_control:
+    loop_var: fedtpd_item
+
+- name: install service
+  ansible.builtin.template:
+    src: fedtpd.service.j2
+    dest: /etc/systemd/system/fedtpd.service
+    owner: root
+    group: root
+    mode: !!str 0444
+    # validate: systemd-analyze verify %s
+  notify: restart fedtpd
+
+- name: enable and start service
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+    name: fedtpd.service
+    enabled: true
+    state: started

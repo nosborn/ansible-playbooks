@@ -148,7 +148,9 @@
     - role: calibre_web
       when: false # TODO
     - role: chrony
+    - role: fedtpd
     - role: fluxcd
+    - role: headscale
     - role: homebridge
     - role: imapfilter
     - role: kubernetes
@@ -163,8 +165,6 @@
       when: false
     - role: radarr
       when: false
-    - role: readarr
-      when: false # TODO
     - role: restic
       when: false # TODO
     - role: sonarr
@@ -300,41 +300,34 @@
         k3s_token: "{{ result.content | b64decode }}"
 
   roles:
-    - role: beszel
+    - name: beszel
     - name: kubernetes
+    - name: llama_server
       when: false
     - name: ollama
+      when: false
 
   handlers:
     - name: reboot
       ansible.builtin.reboot: {}
 
-- name: Configure media proxy
-  hosts: proxy-de
+- name: Configure proxies
+  hosts:
+    - proxy-nl
   gather_facts: false
 
   pre_tasks:
-    - name: install prerequisite packages
-      ansible.builtin.apt:
-        name:
-          - acl
-          - attr
-          - gpg
-          - python3-demjson # jsonlint
-          - python3-lxml
-          - virtualenv
-          - yamllint
-      when: false
-
     - name: remove conflicting packages
       ansible.builtin.apt:
         name:
-          - installation-report
           - ufw
         autoremove: true
         purge: true
         state: absent
 
   roles:
-    - role: stream_proxy
+    - role: otelcol
+    - role: sshd
+    - name: stream_proxy
+    - role: unattended_upgrades
     - role: unbound

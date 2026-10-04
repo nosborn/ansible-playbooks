@@ -1,0 +1,53 @@
+[Unit]
+After=network.target
+ConditionPathExists=/opt/fed/lbin/fedtpd
+Description=Federation II
+StartLimitBurst=5
+StartLimitIntervalSec=60
+
+[Service]
+AmbientCapabilities=
+CapabilityBoundingSet=
+ConfigurationDirectory=fed
+Environment=TZ=Europe/London
+ExecStart=/opt/fed/lbin/fedtpd -d cp
+ExecStartPre=/opt/fed/sbin/backup
+Group=fed
+LimitNOFILE=1024
+LimitNPROC=64
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+NoNewPrivileges=yes
+PrivateDevices=yes
+PrivateIPC=yes
+PrivateTmp=yes
+ProcSubset=pid
+ProtectClock=yes
+ProtectControlGroups=yes
+ProtectHome=tmpfs
+ProtectHostname=yes
+ProtectKernelLogs=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+ProtectProc=invisible
+ProtectSystem=strict
+RemoveIPC=yes
+Restart=always
+RestartSec=2
+RestrictAddressFamilies=AF_INET AF_INET6
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+RuntimeDirectory=fed
+StateDirectory=fed
+SystemCallArchitectures=native x86
+SystemCallErrorNumber=EPERM
+SystemCallFilter=@system-service
+SystemCallFilter=~@cpu-emulation @debug @mount @obsolete @privileged @resources connect
+TasksMax=64
+UMask=0027
+User=fed
+WorkingDirectory=/var/lib/fed
+
+[Install]
+WantedBy=sysinit.target

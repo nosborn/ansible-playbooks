@@ -1,0 +1,36 @@
+# yamllint disable rule:line-length
+---
+- name: fetch release info
+  delegate_to: localhost
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/open-telemetry/opentelemetry-collector-releases/releases
+    headers:
+      Accept: application/vnd.github+json
+    return_content: true
+    body_format: json
+  register: otelcol_releases
+  until: otelcol_releases is success
+
+- name: set version fact
+  ansible.builtin.set_fact:
+    otelcol_version: "{{ otelcol_releases.json[0].tag_name | regex_replace('^v', '') }}"
+
+# hostmetrics, resourcedetection and cumulativetodelta ship only in the
+# contrib distribution, not the core otelcol build.
+- ansible.builtin.apt:
+    deb: https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v{{ otelcol_version }}/otelcol-contrib_{{ otelcol_version }}_linux_amd64.deb
+
+- name: configure
+  ansible.builtin.template:
+    src: config.yaml.j2
+    dest: /etc/otelcol-contrib/config.yaml
+    owner: root
+    group: root
+    mode: !!str 0444
+  notify: restart otelcol
+
+- name: enable and start service
+  ansible.builtin.systemd_service:
+    name: otelcol-contrib.service
+    enabled: true
+    state: started

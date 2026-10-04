@@ -6,7 +6,9 @@ server:
 	interface: 127.0.0.1
 	interface: ::1
 
-	prefer-ip6: yes
+	do-ip6: no
+	# prefer-ip4: yes
+	# prefer-ip6: yes
 
 	tls-cert-bundle: /etc/ssl/certs/ca-certificates.crt
 
@@ -16,7 +18,7 @@ server:
 	access-control: ::1 allow
 
 	# log-queries: yes
-	log-replies: yes
+	# log-replies: yes
 	# log-tag-queryreply: yes
 
 	root-hints: /usr/share/dns/root.hints
@@ -38,13 +40,17 @@ server:
 	private-address: fe80::/10
 	private-address: ::ffff:0:0/96      # IPv4-mapped IPv6 addresses
 
+	prefetch: yes
+	prefetch-key: yes
 	deny-any: yes
 
-  module-config: "iterator"
+	# serve-expired: yes
+	# serve-expired-client-timeout: 0 # answer from cache immediately
+	# serve-expired-ttl-reset: yes
 
 {% if unbound_null_zones | length %}
 {%   for zone in unbound_null_zones | sort | unique %}
-	local-zone: "{{ zone }}." always_null
+	# local-zone: "{{ zone }}." always_null
 {%   endfor %}
 
 {% endif %}

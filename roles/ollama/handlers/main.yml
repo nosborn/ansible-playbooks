@@ -4,3 +4,4 @@
     name: ollama.service
     daemon_reload: true
     state: restarted
+  when: ansible_facts['os_family'] == 'Archlinux'
