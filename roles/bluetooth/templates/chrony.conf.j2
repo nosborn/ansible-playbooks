@@ -1,0 +1,33 @@
+# TIME SOURCES
+
+server ntpmon.dcs1.biz iburst nts
+server nts.netnod.se iburst nts
+server time.cloudflare.com iburst nts
+ntsdumpdir /var/lib/chrony
+
+# SYSTEM CLOCK
+
+driftfile /var/lib/chrony/chrony.drift
+makestep 1 3
+leapsectz right/UTC
+maxupdateskew 100.0
+
+# NTP SERVER
+
+allow {{ lan_ipv4_subnet }}
+bindaddress {{ lan_ipv4_address }}
+
+# REAL-TIME CLOCK
+
+rtcsync
+
+# LOGGING
+
+# log tracking measurements statistics
+logdir /var/log/chrony
+
+# MISCELLANEOUS
+
+# confdir /etc/chrony/conf.d
+# sourcedir /etc/chrony/sources.d
+keyfile /etc/chrony/chrony.keys

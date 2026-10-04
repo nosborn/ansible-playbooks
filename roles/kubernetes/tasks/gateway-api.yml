@@ -1,0 +1,10 @@
+# yamllint disable rule:line-length
+---
+- name: "gateway-api : apply manifest"
+  kubernetes.core.k8s:
+    apply: true
+    server_side_apply:
+      field_manager: ansible
+      force_conflicts: true
+    src: https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.0/standard-install.yaml
+    wait: true

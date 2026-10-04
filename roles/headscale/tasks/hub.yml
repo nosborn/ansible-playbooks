@@ -1,0 +1,49 @@
+# yamllint disable rule:line-length
+---
+- ansible.builtin.tempfile:
+    state: directory
+  register: beszel_hub_tempfile
+  changed_when: false
+
+- ansible.builtin.unarchive:
+    src: "{{ beszel_release.json.assets | selectattr('name', 'equalto', 'beszel_linux_amd64.tar.gz') | map(attribute='browser_download_url') | first }}"
+    remote_src: true
+    dest: "{{ beszel_hub_tempfile.path }}"
+    owner: root
+    group: root
+  changed_when: false
+
+- name: "hub: install binary"
+  ansible.builtin.copy:
+    src: "{{ beszel_hub_tempfile.path }}/beszel"
+    remote_src: true
+    dest: /usr/local/bin/beszel
+    owner: root
+    group: root
+    mode: !!str 0555
+  notify: restart beszel-hub
+
+- name: "hub : create service unit"
+  ansible.builtin.template:
+    src: beszel-hub.service.j2
+    dest: /etc/systemd/system/beszel-hub.service
+    owner: root
+    group: root
+    mode: !!str 0444
+    validate: systemd-analyze verify %s
+  notify: restart beszel-hub
+
+- name: "hub : enable and start service"
+  ansible.builtin.systemd_service:
+    name: beszel-hub.service
+    daemon_reload: true
+    enabled: true
+    state: started
+
+# - name: publish service
+#   ansible.builtin.include_role:
+#     name: library
+#     tasks_from: application.yaml
+#   vars:
+#     library_application_name: beszel
+#     library_application_port: "{{ beszel_hub_port }}"

@@ -1,4 +1,4 @@
 ---
 - ansible.builtin.import_tasks:
-    file: synology.yml
-  when: ansible_facts['system_vendor'] == 'Synology'
+    file: archlinux.yml
+  when: ansible_facts['os_family'] == 'Archlinux'

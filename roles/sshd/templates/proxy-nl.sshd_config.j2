@@ -1,7 +1,7 @@
 #Port 22
-AddressFamily inet
-ListenAddress 0.0.0.0
-#ListenAddress ::
+AddressFamily inet6
+#ListenAddress 0.0.0.0
+ListenAddress ::
 
 AcceptEnv LANG
 AcceptEnv LC_*
@@ -48,14 +48,14 @@ Subsystem sftp internal-sftp -f AUTHPRIV -l INFO
 #SyslogFacility AUTH
 TCPKeepAlive no
 #UseDNS no
-UsePAM no
+UsePAM yes
 VersionAddendum none
 #X11Forwarding no
 
-Match Address {{ hostvars.tombstone.wan_ipv4_address }}
+Match Address {{ hostvars.gateway.lan_ipv6_subnet }}
 	PermitRootLogin prohibit-password
 
-Match Address {{ hostvars.tombstone.lan_ipv6_subnet }}
+Match Address {{ hostvars.gateway.wan_ipv4_address }}
 	PermitRootLogin prohibit-password
 
 # vim: ft=sshdconfig.jinja2

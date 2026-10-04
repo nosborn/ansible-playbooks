@@ -18,6 +18,19 @@
   notify: restart unbound
   when: unbound_rpz_content is defined
 
+- ansible.builtin.get_url:
+    url: "{{ unbound_item.url }}"
+    dest: /var/lib/unbound/rpz.{{ unbound_item.name }}.zone
+    owner: unbound
+    group: unbound
+    mode: !!str 0644
+  loop: "{{ unbound_rpz_zones }}"
+  loop_control:
+    label: "{{ unbound_item.name }}"
+    loop_var: unbound_item
+  notify: restart unbound
+  when: unbound_rpz_zones is defined
+
 - ansible.builtin.copy:
     content: |
       {{ lookup('file', playbook_dir~'/ownca/tombstone.key') }}

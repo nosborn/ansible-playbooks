@@ -1,0 +1,55 @@
+# yamllint disable rule:line-length
+---
+- name: fetch release info
+  delegate_to: localhost
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/juanfont/headscale/releases
+    headers:
+      Accept: application/vnd.github+json
+    return_content: true
+    body_format: json
+  register: headscale_releases
+  until: headscale_releases is success
+
+- name: set version fact
+  ansible.builtin.set_fact:
+    headscale_version: "{{ headscale_releases.json[0].tag_name | regex_replace('^v', '') }}"
+
+- name: download package
+  ansible.builtin.apt:
+    deb: https://github.com/juanfont/headscale/releases/download/v{{ headscale_version }}/headscale_{{ headscale_version }}_linux_amd64.deb
+
+- ansible.builtin.copy:
+    content: |
+      {{ lookup('file', playbook_dir~'/ownca/tombstone.key') }}
+    dest: /etc/headscale/service.key
+    owner: root
+    group: headscale
+    mode: !!str 0440
+  notify: restart headscale
+
+- ansible.builtin.copy:
+    content: |
+      {{ lookup('file', playbook_dir~'/ownca/tombstone.crt') }}
+      {{ lookup('file', playbook_dir~'/ownca/root-ca.crt') }}
+    dest: /etc/headscale/service.pem
+    owner: root
+    group: root
+    mode: !!str 0444
+  notify: restart headscale
+
+- name: configure
+  ansible.builtin.template:
+    src: config.yaml.j2
+    dest: /etc/headscale/config.yaml
+    owner: root
+    group: root
+    mode: !!str 0444
+    validate: headscale configtest --config %s
+  notify: restart headscale
+
+- name: enable and start service
+  ansible.builtin.systemd_service:
+    name: headscale.service
+    enabled: true
+    state: started

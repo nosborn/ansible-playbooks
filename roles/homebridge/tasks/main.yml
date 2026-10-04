@@ -26,6 +26,7 @@
   loop:
     - "{{ homebridge_home }}"
     - "{{ homebridge_home }}/accessories"
+    - "{{ homebridge_home }}/bwp91_cache"
     - "{{ homebridge_home }}/persist"
   loop_control:
     loop_var: homebridge_item

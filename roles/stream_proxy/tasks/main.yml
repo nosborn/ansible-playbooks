@@ -8,6 +8,38 @@
   register: stream_proxy_result
   until: stream_proxy_result is not failed
 
+- name: load bbr module
+  community.general.modprobe:
+    name: tcp_bbr
+    state: present
+    persistent: present
+
+- name: tune kernel for streaming
+  ansible.posix.sysctl:
+    sysctl_file: /etc/sysctl.d/90-stream-proxy.conf
+    name: "{{ stream_proxy_sysctl_item.name }}"
+    value: "{{ stream_proxy_sysctl_item.value }}"
+    sysctl_set: true
+  loop:
+    - name: net.core.default_qdisc
+      value: fq
+    - name: net.ipv4.tcp_congestion_control
+      value: bbr
+    - name: net.core.rmem_max
+      value: 16777216
+    - name: net.core.wmem_max
+      value: 16777216
+    - name: net.ipv4.tcp_rmem
+      value: 4096 131072 16777216
+    - name: net.ipv4.tcp_wmem
+      value: 4096 65536 16777216
+    - name: net.ipv4.tcp_slow_start_after_idle
+      value: 0
+    - name: net.ipv4.tcp_mtu_probing
+      value: 1
+  loop_control:
+    loop_var: stream_proxy_sysctl_item
+
 - name: configure
   ansible.builtin.template:
     src: nginx.conf.j2
@@ -15,7 +47,7 @@
     owner: root
     group: root
     mode: !!str 0444
-    validate: nginx -t %s
+    # validate: nginx -t %s
   notify: restart nginx
 
 - name: enable and start service

@@ -1,0 +1,6 @@
+---
+- name: restart fedtpd
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+    name: fedtpd.service
+    state: restarted

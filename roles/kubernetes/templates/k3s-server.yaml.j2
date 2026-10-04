@@ -3,20 +3,21 @@
 agent-token: "{{ k3s_server_agent_token | ansible.builtin.trim }}"
 bind-address: "{{ lan_ipv4_address }}"
 cluster-cidr:
-  - 10.42.0.0/16
-  - fd42::/56
+  - "{{ kubernetes_cluster_ipv4_cidr }}"
+  - "{{ kubernetes_cluster_ipv6_cidr }}"
 cluster-dns:
-  - 10.43.0.10
-  - fd43::10
+  - "{{ kubernetes_service_ipv4_cidr | ansible.utils.nthhost(10) }}"
+  - "{{ kubernetes_service_ipv6_cidr | ansible.utils.nthhost(0x10) }}"
 cluster-init: true
-disable: traefik
+disable: servicelb,traefik
+disable-network-policy: true
 flannel-backend: wireguard-native
 flannel-ipv6-masq: true
 node-ip: "{{ lan_ipv4_address }},{{ lan_ipv6_address }}"
-node-label:
-  - svccontroller.k3s.cattle.io/enablelb=true
+# node-label:
+#   - svccontroller.k3s.cattle.io/enablelb=true
 protect-kernel-defaults: true
 secrets-encryption: true
 service-cidr:
-  - 10.43.0.0/16
-  - fd43::/112
+  - "{{ kubernetes_service_ipv4_cidr }}"
+  - "{{ kubernetes_service_ipv6_cidr }}"

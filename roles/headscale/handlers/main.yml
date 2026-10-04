@@ -1,0 +1,5 @@
+---
+- name: restart headscale
+  ansible.builtin.systemd_service:
+    name: headscale.service
+    state: restarted

@@ -1,0 +1,21 @@
+---
+- name: install package
+  ansible.builtin.apt:
+    name: bluetooth
+    install_recommends: false
+    state: present
+
+# - name: configure chrony
+#   ansible.builtin.template:
+#     src: chrony.conf.j2
+#     dest: /etc/chrony/chrony.conf
+#     owner: root
+#     group: root
+#     mode: !!str 0444
+#   notify: restart chrony
+
+- name: enable and start service
+  ansible.builtin.systemd_service:
+    name: bluetooth.service
+    enabled: true
+    state: started

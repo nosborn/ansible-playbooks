@@ -21,14 +21,15 @@ server:
 	tls-cert-bundle: /etc/ssl/certs/ca-certificates.crt
 
 	access-control: 127.0.0.0/8 allow
-	access-control: {{ kubernetes_pod_ipv4_cidr }} allow
+	access-control: {{ kubernetes_cluster_ipv4_cidr }} allow
 	access-control: {{ lan_ipv4_subnet }} allow
 	access-control: {{ vpn_ipv4_subnet }} allow
 	access-control: ::1 allow
+	access-control: {{ kubernetes_cluster_ipv6_cidr }} allow
 	access-control: {{ lan_ipv6_subnet }} allow
 	access-control: {{ vpn_ipv6_subnet }} allow
-	access-control-view: 192.168.1.0/24 lan
-	access-control-view: 2a0b:9401:8b:1::/64 lan
+	access-control-view: {{ lan_ipv4_subnet }} lan
+	access-control-view: {{ lan_ipv6_subnet }} lan
 
 	# log-queries: yes
 	log-replies: yes
@@ -56,14 +57,14 @@ server:
 	private-domain: local
 	private-domain: {{ domain_name }}
 
-	# prefetch: yes -- possibly bad idea (F1TV)
+	prefetch: yes
 
 	deny-any: yes
 
 	module-config: "respip iterator"
 
-	# serve-expired: yes
-	# serve-expired-ttl-reset: yes
+	serve-expired: yes
+	serve-expired-ttl-reset: yes
 
 	# https://support.mozilla.org/en-US/kb/canary-domain-use-application-dnsnet
 	local-zone: "use-application-dns.net." always_nxdomain
@@ -117,9 +118,9 @@ forward-zone:
 	name: "{{ domain_name }}."
 	forward-addr: "{{ lan_ipv4_subnet | ansible.utils.nthhost(1) }}"
 
-#forward-zone:
-#	name: "internal."
-#	forward-addr: "{{ fly_6pn_dns }}"
+forward-zone:
+	name: "internal."
+	forward-addr: "{{ fly_6pn_dns }}"
 
 forward-zone:
 	name: "local."
@@ -131,7 +132,6 @@ forward-zone:
 	forward-addr: "{{ forwarder }}"
 {% endfor %}
 	forward-tls-upstream: yes
-	forward-no-cache: yes
 
 view:
 	# This doesn't wotk with macOS because Unbound won't negotiate ALPN.
@@ -140,19 +140,16 @@ view:
 	local-data: "_dns.resolver.arpa. 7200 IN SVCB 1 tombstone.home.arpa. alpn=dot port=853 ipv4hint=192.168.1.2 ipv6hint=2a0b:9401:8b:1:8647:9ff:fe5c:f1d9"
 	view-first: yes
 
-# rpz:
-#	name: rpz.{{ domain_name }}.
-#	zonefile: /var/lib/unbound/rpz.{{ domain_name }}.zone
-#	rpz-log: yes
+rpz:
+	name: rpz.{{ domain_name }}.
+	zonefile: /var/lib/unbound/rpz.{{ domain_name }}.zone
+	rpz-log: yes
+{% for rpz_zone in unbound_rpz_zones %}
 
-#rpz:
-#	name: pro.hagezi.
-#	url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/rpz/pro.txt
-#	zonefile: /var/lib/unbound/rpz.pro.hagezi.zone
-#	# rpz-log: yes
-
-#rpz:
-#	name: tif.hagezi.
-#	url: https://raw.githubusercontent.com/hagezi/dns-blocklists/main/rpz/tif.medium.txt
-#	zonefile: /var/lib/unbound/rpz.tif.hagezi.zone
-#	# rpz-log: yes
+rpz:
+	name: {{ rpz_zone.name }}
+	url: {{ rpz_zone.url }}
+	zonefile: /var/lib/unbound/rpz.{{ rpz_zone.name }}.zone
+	rpz-log: yes
+	rpz-log-name: {{ rpz_zone.name }}
+{% endfor %}
