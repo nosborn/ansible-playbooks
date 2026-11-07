@@ -148,9 +148,9 @@
     - role: calibre_web
       when: false # TODO
     - role: chrony
-    - role: fedtpd
     - role: fluxcd
     - role: headscale
+      when: false
     - role: homebridge
     - role: imapfilter
     - role: kubernetes

@@ -3,6 +3,7 @@ After=network.target
 Description=HomeKit support for the impatient.
 
 [Service]
+AmbientCapabilities=CAP_NET_RAW
 ExecStart={{ homebridge_home }}/node_modules/.bin/homebridge --no-qrcode --no-timestamp --user-storage-path {{ homebridge_home }}
 Group=homebridge
 LockPersonality=yes
@@ -17,12 +18,14 @@ ProtectHostname=yes
 ProtectKernelLogs=yes
 ProtectKernelModules=yes
 ProtectKernelTunables=yes
+; ProtectProc=
 ProtectSystem=strict
-ReadWritePaths=/srv/homebridge/accessories /srv/homebridge/bwp91_cache /srv/homebridge/persist
+ReadWritePaths={{ homebridge_home }}/accessories {{ homebridge_home }}/bwp91_cache {{ homebridge_home }}/persist
 RemoveIPC=yes
 Restart=always
 RestrictRealtime=yes
 RestrictSUIDSGID=yes
+SystemCallArchitectures=native
 User=homebridge
 WorkingDirectory={{ homebridge_home }}
 
